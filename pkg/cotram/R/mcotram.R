@@ -1,8 +1,9 @@
-
 ### mmlt function for count case
 mcotram <- function(..., formula = ~ 1, data, theta = NULL, # diag = FALSE,
                     control.outer = list(trace = FALSE), # scale = FALSE,
                     tol = sqrt(.Machine$double.eps), dofit = TRUE) {
+  # random = FALSE, reset_seed = 1
+  
   
   ## diag = FALSE by default. 
   ## diag = TRUE still present in the code but not in use for the moment being.
@@ -11,7 +12,14 @@ mcotram <- function(..., formula = ~ 1, data, theta = NULL, # diag = FALSE,
   scale <- FALSE
   if(diag == TRUE)
     stop("diag = TRUE not available")
-
+  
+  # if(random) {
+  #   message("discrete approximation with random uniform shift. seed is reset to
+  #           the value given in reset_seed.")
+  #   set.seed(reset_seed)
+  # }
+  
+  
   call <- match.call()
   
   m <- list(...)
@@ -27,6 +35,11 @@ mcotram <- function(..., formula = ~ 1, data, theta = NULL, # diag = FALSE,
               optimization still works but no interpretation in the
               Gaussian copula framework is possible, though the lambdas still serve
               as coefficients for the transformation functions.")
+  
+  ### all marginal models need to have the same log_first argument
+  if(length(unique(sapply(m, function(x) attr(x$model$model$bresponse, "log_first") ))) != 1)
+    warning("Marginal models do not have the same log_first argument.")
+  
   ### check if data is count vector
   lu <- lapply(m, function(mod) {
     iY <- get("iY", environment(mod$parm))
@@ -41,9 +54,17 @@ mcotram <- function(..., formula = ~ 1, data, theta = NULL, # diag = FALSE,
     attr(iY$Yleft, "constraint") <- tmp
     attr(iY$Yright, "constraint") <- tmp
     
+    if ("binteracting" %in% names(mod$model$model))
+      logf <- attr(mod$model$model$binteracting$iresponse, "log_first")
+    
+    if ("bresponse" %in% names(mod$model$model))
+      logf <- attr(mod$model$model$bresponse, "log_first")
+    
     resp <- variable.names(mod)[1]
     nd05 <- mod$data
-    nd05[, resp] <- mod$data[, resp] - 0.5 * (mod$data[, resp] >= 1) + 1
+    nd05[, resp] <- mod$data[, resp] - 0.5 * (mod$data[, resp] >= 1) + logf
+    # if (random)
+    #   nd05[, resp] <- mod$data[, resp] - runif(nrow(mod$data)) * (mod$data[, resp] >= 1) + logf
     Y05 <- model.matrix(mod$model, data = nd05)
     
     list(lower = iY$Yleft, upper = iY$Yright,
@@ -76,7 +97,7 @@ mcotram <- function(..., formula = ~ 1, data, theta = NULL, # diag = FALSE,
     L[lower.tri(L, diag = diag)] <- 1:Jp
     di <- diag(L)
     di <- di[!is.na(di)]
-
+    
     CP <- matrix(1:(Jp*ncol(lX)), nrow = ncol(lX))
     dintercept <- CP[1L, di]
     tci <- rep(-Inf, Jp * ncol(lX))
@@ -84,16 +105,16 @@ mcotram <- function(..., formula = ~ 1, data, theta = NULL, # diag = FALSE,
     D <- Diagonal(Jp * ncol(lX))[dintercept,]
     NL <- Matrix(0, nrow = length(dintercept), ncol = ncol(cnstr))
     ui <- rbind(ui, cbind(NL, -D))
-
+    
     ci <- c(ci, tci, rep(-1 + tol, length(dintercept)))
   } else {
     ci <- c(ci, rep(-Inf, Jp * ncol(lX)))
   }
-
+  
   ui <- ui[is.finite(ci),]
   ci <- ci[is.finite(ci)]
   ui <- as(ui, "matrix")
-
+  
   idx <- 1
   S <- 1
   if (J > 2) {
@@ -106,15 +127,15 @@ mcotram <- function(..., formula = ~ 1, data, theta = NULL, # diag = FALSE,
       idx <- unlist(lapply(colSums(S), seq_len))
     }
   }
-
+  
   ### catch constraint violations here
   .log <- function(x) {
     return(log(pmax(.Machine$double.eps, x)))
   }
-
+  
   .p0 <- function(x)
     pmax(.Machine$double.eps^(1/2), x)  ## tuning this makes a difference!
-
+  
   # if (diag) {
   #   ll <- function(par) {
   #     
@@ -240,118 +261,118 @@ mcotram <- function(..., formula = ~ 1, data, theta = NULL, # diag = FALSE,
   #   }
   #   
   # } else {  ## diag = FALSE
-    ll <- function(par) {
-      
-      mpar <- par[1:ncol(Ylower)]
-      cpar <- matrix(par[-(1:ncol(Ylower))], nrow = ncol(lX))
-      
-      ### Ylower = NaN means -Inf and Yupper == NaN means +Inf
-      ### (corresponding to probabilities 0 and 1)
-      Yp_l <- matrix(Ylower %*% mpar, nrow = N)
-      Yp_l[is.na(Yp_l)] <- -Inf
-      Yp_u <- matrix(Yupper %*% mpar, nrow = N)
-      Yp_u[is.na(Yp_u)] <- Inf
-      
-      Yp_05 <- matrix(Y05 %*% mpar, nrow = N)
-
-      Xp <- lX %*% cpar
-      
-      ## old version
-      # A <- Yp_u[, idx] * Xp
-      
-      A <- Yp_05[, idx] * Xp
-      B_l <- A %*% S + Yp_l[,-1]
-      B_u <- A %*% S + Yp_u[,-1]
-      C_l <- cbind(Yp_l[,1], B_l)
-      C_u <- cbind(Yp_u[,1], B_u)
-
-      ret <- 0
-      for (j in 1:J) {
-        F_Zj <- m[[j]]$todistr$p
-        ret <- ret + sum(.log(F_Zj(C_u[, j]) - F_Zj(C_l[, j])))
-      }
-      
-      return(-ret)
+  ll <- function(par) {
+    
+    mpar <- par[1:ncol(Ylower)]
+    cpar <- matrix(par[-(1:ncol(Ylower))], nrow = ncol(lX))
+    
+    ### Ylower = NaN means -Inf and Yupper == NaN means +Inf
+    ### (corresponding to probabilities 0 and 1)
+    Yp_l <- matrix(Ylower %*% mpar, nrow = N)
+    Yp_l[is.na(Yp_l)] <- -Inf
+    Yp_u <- matrix(Yupper %*% mpar, nrow = N)
+    Yp_u[is.na(Yp_u)] <- Inf
+    
+    Yp_05 <- matrix(Y05 %*% mpar, nrow = N)
+    
+    Xp <- lX %*% cpar
+    
+    ## old version
+    # A <- Yp_u[, idx] * Xp
+    
+    A <- Yp_05[, idx] * Xp
+    B_l <- A %*% S + Yp_l[,-1]
+    B_u <- A %*% S + Yp_u[,-1]
+    C_l <- cbind(Yp_l[,1], B_l)
+    C_u <- cbind(Yp_u[,1], B_u)
+    
+    ret <- 0
+    for (j in 1:J) {
+      F_Zj <- m[[j]]$todistr$p
+      ret <- ret + sum(.log(F_Zj(C_u[, j]) - F_Zj(C_l[, j])))
     }
     
-    sc <- function(par) {
-      
-      mpar <- par[1:ncol(Ylower)]
-      cpar <- matrix(par[-(1:ncol(Ylower))], nrow = ncol(lX))
-      
-      ### Ylower = NaN means -Inf and Yupper == NaN means +Inf
-      ### (corresponding to probabilities 0 and 1)
-      Yp_l <- matrix(Ylower %*% mpar, nrow = N)
-      Yp_l[is.na(Yp_l)] <- -Inf
-      Yp_u <- matrix(Yupper %*% mpar, nrow = N)
-      Yp_u[is.na(Yp_u)] <- Inf
-      
-      Yp_05 <- matrix(Y05 %*% mpar, nrow = N)
-      
-      Xp <- lX %*% cpar
-      
-      ## old version
-      # A <- Yp_u[, idx] * Xp
-      
-      A <- Yp_05[, idx] * Xp
-      B_l <- A %*% S + Yp_l[,-1]
-      B_u <- A %*% S + Yp_u[,-1]
-      C_l <- cbind(Yp_l[,1], B_l)
-      C_u <- cbind(Yp_u[,1], B_u)
-      
-      C1 <- C_l
-      for (j in 1:J) {
-        f_Zj <- m[[j]]$todistr$d
-        F_Zj <- m[[j]]$todistr$p
-        C1[, j] <- (f_Zj(C_u[, j]) - f_Zj(C_l[, j])) / .p0(F_Zj(C_u[, j]) - F_Zj(C_l[, j]))
-      }
-      
-      L <- diag(0, J)
-      L[upper.tri(L)] <- 1:Jp
-      L <- t(L)
-      
-      mret <- vector(length = J, mode = "list")
-      for (k in 1:J) {
-        f_Zk <- m[[k]]$todistr$d
-        F_Zk <- m[[k]]$todistr$p
-        lu[[k]]$lower[is.infinite(lu[[k]]$lower)] <- 0
-        mret[[k]] <- colSums((f_Zk(C_u[, k])*lu[[k]]$upper - f_Zk(C_l[, k])*lu[[k]]$lower)/
-                               .p0(F_Zk(C_u[, k]) - F_Zk(C_l[, k])))
-        Lk <- L[,k]
-        D <- cbind(matrix(rep(0, k*N), nrow = N), Xp[,Lk[Lk > 0]])
-        # mret[[k]] <- mret[[k]] + colSums(rowSums(C1 * D) * lu[[k]]$upper)
-        mret[[k]] <- mret[[k]] + colSums(rowSums(C1 * D) * lu[[k]]$Y05)
-      }
-      
-      cret <- vector(length = J - 1, mode = "list")
-      for (k in 1:(J - 1)) { # go over rows
-        C2 <- matrix(rep(C1[, k+1], k), ncol = k)
-        # tmp <- C2 * Yp_u[,1:k]
-        tmp <- C2 * Yp_05[,1:k]
-        ret <- c()
-        l <- ncol(lX)
-        for (i in 1:k) {
-          tmp1 <- matrix(rep(tmp[,i], l), ncol = l)
-          ret <- c(ret, colSums(tmp1 * lX))
-        }
-        cret[[k]] <- ret
-      }
-      
-      mret <- -do.call("c", mret)
-      cret <- -do.call("c", cret)
-      c(mret, cret)
+    return(-ret)
+  }
+  
+  sc <- function(par) {
+    
+    mpar <- par[1:ncol(Ylower)]
+    cpar <- matrix(par[-(1:ncol(Ylower))], nrow = ncol(lX))
+    
+    ### Ylower = NaN means -Inf and Yupper == NaN means +Inf
+    ### (corresponding to probabilities 0 and 1)
+    Yp_l <- matrix(Ylower %*% mpar, nrow = N)
+    Yp_l[is.na(Yp_l)] <- -Inf
+    Yp_u <- matrix(Yupper %*% mpar, nrow = N)
+    Yp_u[is.na(Yp_u)] <- Inf
+    
+    Yp_05 <- matrix(Y05 %*% mpar, nrow = N)
+    
+    Xp <- lX %*% cpar
+    
+    ## old version
+    # A <- Yp_u[, idx] * Xp
+    
+    A <- Yp_05[, idx] * Xp
+    B_l <- A %*% S + Yp_l[,-1]
+    B_u <- A %*% S + Yp_u[,-1]
+    C_l <- cbind(Yp_l[,1], B_l)
+    C_u <- cbind(Yp_u[,1], B_u)
+    
+    C1 <- C_l
+    for (j in 1:J) {
+      f_Zj <- m[[j]]$todistr$d
+      F_Zj <- m[[j]]$todistr$p
+      C1[, j] <- (f_Zj(C_u[, j]) - f_Zj(C_l[, j])) / .p0(F_Zj(C_u[, j]) - F_Zj(C_l[, j]))
     }
     
-    ### user-defined starting parameters for optimization
-    if(!is.null(theta)) {
-      start <- unname(theta)
+    L <- diag(0, J)
+    L[upper.tri(L)] <- 1:Jp
+    L <- t(L)
+    
+    mret <- vector(length = J, mode = "list")
+    for (k in 1:J) {
+      f_Zk <- m[[k]]$todistr$d
+      F_Zk <- m[[k]]$todistr$p
+      lu[[k]]$lower[is.infinite(lu[[k]]$lower)] <- 0
+      mret[[k]] <- colSums((f_Zk(C_u[, k])*lu[[k]]$upper - f_Zk(C_l[, k])*lu[[k]]$lower)/
+                             .p0(F_Zk(C_u[, k]) - F_Zk(C_l[, k])))
+      Lk <- L[,k]
+      D <- cbind(matrix(rep(0, k*N), nrow = N), Xp[,Lk[Lk > 0]])
+      # mret[[k]] <- mret[[k]] + colSums(rowSums(C1 * D) * lu[[k]]$upper)
+      mret[[k]] <- mret[[k]] + colSums(rowSums(C1 * D) * lu[[k]]$Y05)
     }
-    else {
-      ### don't bother with .start(), simply use the marginal coefficients
-      ### and zero for the lambda parameters
-      start <- do.call("c", lapply(m, function(mod) coef(as.mlt(mod))))
-      start <- c(start, rep(0, Jp * ncol(lX)))
+    
+    cret <- vector(length = J - 1, mode = "list")
+    for (k in 1:(J - 1)) { # go over rows
+      C2 <- matrix(rep(C1[, k+1], k), ncol = k)
+      # tmp <- C2 * Yp_u[,1:k]
+      tmp <- C2 * Yp_05[,1:k]
+      ret <- c()
+      l <- ncol(lX)
+      for (i in 1:k) {
+        tmp1 <- matrix(rep(tmp[,i], l), ncol = l)
+        ret <- c(ret, colSums(tmp1 * lX))
+      }
+      cret[[k]] <- ret
     }
+    
+    mret <- -do.call("c", mret)
+    cret <- -do.call("c", cret)
+    c(mret, cret)
+  }
+  
+  ### user-defined starting parameters for optimization
+  if(!is.null(theta)) {
+    start <- unname(theta)
+  }
+  else {
+    ### don't bother with .start(), simply use the marginal coefficients
+    ### and zero for the lambda parameters
+    start <- do.call("c", lapply(m, function(mod) coef(as.mlt(mod))))
+    start <- c(start, rep(0, Jp * ncol(lX)))
+  }
   # }
   
   ### does this work for count too? m$lower or upper?
@@ -378,10 +399,10 @@ mcotram <- function(..., formula = ~ 1, data, theta = NULL, # diag = FALSE,
   f <- function(par) ll(par)
   g <- sc
   # }
-
+  
   if (!dofit)
-       return(list(ll = ll, sc = sc))
-
+    return(list(ll = ll, sc = sc))
+  
   opt <- alabama::auglag(par = start, fn = f, 
                          gr = g,
                          hin = function(par) ui %*% par - ci, 
@@ -390,14 +411,14 @@ mcotram <- function(..., formula = ~ 1, data, theta = NULL, # diag = FALSE,
                                                           "value", 
                                                           "gradient",
                                                           "hessian")]
-
+  
   if (scale) opt$par <- opt$par * scl
   
   opt$ll <- ll
   opt$sc <- sc
   opt
   mpar <- opt$par[1:(sum(sapply(lu, function(m) ncol(m$lower))))]
-
+  
   mlist <- split(mpar, sf <- rep(factor(1:J), sapply(lu, function(m) ncol(m$lower))))
   mmod <- vector(mode = "list", length = J)
   for (j in 1:J) {

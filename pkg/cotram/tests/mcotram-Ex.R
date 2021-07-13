@@ -156,26 +156,49 @@ qqline(d4, col = "red")
 ## data - 0.5 (and + 1 depending on log_first)
 yt <- y - 0.5*(y > 0)
 ytt <- yt + 1
-d <- data.frame(y = y, yt = yt, ytt = ytt, x = x)
+ytu <- y - runif(length(y))*(y > 0)
+ytut <- ytu + 1
+d <- data.frame(y = y, yt = yt, ytt = ytt, ytu = ytu, ytut = ytut, x = x)
 
 ## univariate BoxCox models, log_first = TRUE
+## need plus_one = TRUE: achieve this by yt + 1 or ytu + 1
 b1 <- BoxCox(ytt.1 ~ 1, data = d, log_first = TRUE)
 b2 <- BoxCox(ytt.2 ~ 1, data = d, log_first = TRUE)
+b1u <- BoxCox(ytut.1 ~ 1, data = d, log_first = TRUE)
+b2u <- BoxCox(ytut.2 ~ 1, data = d, log_first = TRUE)
+logLik(b1)
+logLik(b1u)
+logLik(b2)
+logLik(b2u)
 
+## log_first = FALSE. Here it doesn't matter if we take y+1 or just y
 b1l <- BoxCox(yt.1 ~ 1, data = d, log_first = FALSE)
 b2l <- BoxCox(yt.2 ~ 1, data = d, log_first = FALSE)
+b1ul <- BoxCox(ytu.1 ~ 1, data = d, log_first = FALSE)
+b2ul <- BoxCox(ytu.2 ~ 1, data = d, log_first = FALSE)
+logLik(b1l)
+logLik(b1ul)
+logLik(b2l)
+logLik(b2ul)
 
 ## multivariate mmlt models
 mb1 <- mmlt(b1, b2, data = d)
 mb2 <- mmlt(b2, b1, data = d)
 logLik(mb1)
 logLik(mb2)
+mb1u <- mmlt(b1u, b2u, data = d)
+mb2u <- mmlt(b2u, b1u, data = d)
+logLik(mb1u)
+logLik(mb2u)
 
 mb1l <- mmlt(b1l, b2l, data = d)
 mb2l <- mmlt(b2l, b1l, data = d)
 logLik(mb1l)
 logLik(mb2l)
-
+mb1ul <- mmlt(b1ul, b2ul, data = d)
+mb2ul <- mmlt(b2ul, b1ul, data = d)
+logLik(mb1ul)
+logLik(mb2ul)
 ## compare coef
 # coef(mb1)
 # coef(mb2)
@@ -184,6 +207,11 @@ coef(mb2, type = "Lambda")[1,]
 coef(mb1, type = "Corr")[1,]
 coef(mb2, type = "Corr")[1,]
 
+coef(mb1u, type = "Lambda")[1,]
+coef(mb2u, type = "Lambda")[1,]
+coef(mb1u, type = "Corr")[1,]
+coef(mb2u, type = "Corr")[1,]
+
 ## log_first = FALSE
 # coef(mb1l)
 # coef(mb2l)
@@ -191,6 +219,11 @@ coef(mb1l, type = "Lambda")[1,]
 coef(mb2l, type = "Lambda")[1,]
 coef(mb1l, type = "Corr")[1,]
 coef(mb2l, type = "Corr")[1,]
+
+coef(mb1ul, type = "Lambda")[1,]
+coef(mb2ul, type = "Lambda")[1,]
+coef(mb1ul, type = "Corr")[1,]
+coef(mb2ul, type = "Corr")[1,]
 
 ## transformation theory check
 ## for constant lambdas, the transformed coefficients should agree with the
@@ -203,6 +236,12 @@ coef(mb2)[1:7]
 coef(mb2)[-c(1:7, 15)] / sqrt(coef(mb2, type = "Sigma")$diagonal[1,2])
 coef(mb1)[1:7]
 
+coef(mb1u)[-c(1:7, 15)] / sqrt(coef(mb1u, type = "Sigma")$diagonal[1,2])
+coef(mb2u)[1:7]
+
+coef(mb2u)[-c(1:7, 15)] / sqrt(coef(mb2u, type = "Sigma")$diagonal[1,2])
+coef(mb1u)[1:7]
+
 ## log_first = FALSE
 ## results not great but probably because the marginal models are too simple
 coef(mb1l)[-c(1:7, 15)] / sqrt(coef(mb1l, type = "Sigma")$diagonal[1,2])
@@ -210,6 +249,12 @@ coef(mb2l)[1:7]
 
 coef(mb2l)[-c(1:7, 15)] / sqrt(coef(mb2l, type = "Sigma")$diagonal[1,2])
 coef(mb1l)[1:7]
+
+coef(mb1ul)[-c(1:7, 15)] / sqrt(coef(mb1ul, type = "Sigma")$diagonal[1,2])
+coef(mb2ul)[1:7]
+
+coef(mb2ul)[-c(1:7, 15)] / sqrt(coef(mb2ul, type = "Sigma")$diagonal[1,2])
+coef(mb1ul)[1:7]
 
 ### predict accuracy
 cbind(b1 = predict(b1, newdata = d[1:3, ], type = "distribution"),
@@ -219,12 +264,26 @@ cbind(b2 = predict(b2, newdata = d[1:3, ], type = "distribution"),
       mb1 = predict(mb1, marginal = 2, newdata = d[1:3, ], type = "distribution"),
       mb2 = predict(mb2, marginal = 1, newdata = d[1:3, ], type = "distribution"))
 
+cbind(b1u = predict(b1u, newdata = d[1:3, ], type = "distribution"),
+      mb1u = predict(mb1u, marginal = 1, newdata = d[1:3, ], type = "distribution"),
+      mb2u = predict(mb2u, marginal = 2, newdata = d[1:3, ], type = "distribution"))
+cbind(b2u = predict(b2u, newdata = d[1:3, ], type = "distribution"),
+      mb1u = predict(mb1u, marginal = 2, newdata = d[1:3, ], type = "distribution"),
+      mb2u = predict(mb2u, marginal = 1, newdata = d[1:3, ], type = "distribution"))
+
 cbind(b1l = predict(b1l, newdata = d[1:3, ], type = "distribution"),
       mb1l = predict(mb1l, marginal = 1, newdata = d[1:3, ], type = "distribution"),
       mb2l = predict(mb2l, marginal = 2, newdata = d[1:3, ], type = "distribution"))
 cbind(b2l = predict(b2l, newdata = d[1:3, ], type = "distribution"),
       mb1l = predict(mb1l, marginal = 2, newdata = d[1:3, ], type = "distribution"),
       mb2l = predict(mb2l, marginal = 1, newdata = d[1:3, ], type = "distribution"))
+
+cbind(b1ul = predict(b1ul, newdata = d[1:3, ], type = "distribution"),
+      mb1ul = predict(mb1ul, marginal = 1, newdata = d[1:3, ], type = "distribution"),
+      mb2ul = predict(mb2ul, marginal = 2, newdata = d[1:3, ], type = "distribution"))
+cbind(b2ul = predict(b2ul, newdata = d[1:3, ], type = "distribution"),
+      mb1ul = predict(mb1ul, marginal = 2, newdata = d[1:3, ], type = "distribution"),
+      mb2ul = predict(mb2ul, marginal = 1, newdata = d[1:3, ], type = "distribution"))
 
 ## QQ-plot to check that marginal transformations are standard normal:
 nd <- d
@@ -245,6 +304,23 @@ d4 <- predict(mb2, marginal = 1, newdata = d, type = "trafo")
 qqnorm(d4, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 21, marginal = 2")
 qqline(d4, col = "red")
 
+
+d1 <- predict(mb1u, marginal = 1, newdata = d, type = "trafo")
+qqnorm(d1, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 12, marginal = 1")
+qqline(d1, col = "red")
+
+d2 <- predict(mb1u, marginal = 2, newdata = d, type = "trafo")
+qqnorm(d2, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 12, marginal = 2")
+qqline(d2, col = "red")
+
+d3 <- predict(mb2u, marginal = 2, newdata = d, type = "trafo")
+qqnorm(d3, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 21, marginal = 2")
+qqline(d3, col = "red")
+
+d4 <- predict(mb2u, marginal = 1, newdata = d, type = "trafo")
+qqnorm(d4, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 21, marginal = 2")
+qqline(d4, col = "red")
+
 ## log_first = FALSE
 d1 <- predict(mb1l, marginal = 1, newdata = d, type = "trafo")
 qqnorm(d1, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 12, marginal = 1")
@@ -259,6 +335,23 @@ qqnorm(d3, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 21, marginal = 2
 qqline(d3, col = "red")
 
 d4 <- predict(mb2l, marginal = 1, newdata = d, type = "trafo")
+qqnorm(d4, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 21, marginal = 2")
+qqline(d4, col = "red")
+
+
+d1 <- predict(mb1ul, marginal = 1, newdata = d, type = "trafo")
+qqnorm(d1, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 12, marginal = 1")
+qqline(d1, col = "red")
+
+d2 <- predict(mb1ul, marginal = 2, newdata = d, type = "trafo")
+qqnorm(d2, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 12, marginal = 2")
+qqline(d2, col = "red")
+
+d3 <- predict(mb2ul, marginal = 2, newdata = d, type = "trafo")
+qqnorm(d3, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 21, marginal = 2")
+qqline(d3, col = "red")
+
+d4 <- predict(mb2ul, marginal = 1, newdata = d, type = "trafo")
 qqnorm(d4, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 21, marginal = 2")
 qqline(d4, col = "red")
 
@@ -386,20 +479,41 @@ qqline(d4, col = "red")
 ## univariate BoxCox models, log_first = TRUE
 b1 <- BoxCox(ytt.1 ~ x.1 + x.2, data = d, log_first = TRUE)
 b2 <- BoxCox(ytt.2 ~ x.1 + x.2, data = d, log_first = TRUE)
+b1u <- BoxCox(ytut.1 ~ x.1 + x.2, data = d, log_first = TRUE)
+b2u <- BoxCox(ytut.2 ~ x.1 + x.2, data = d, log_first = TRUE)
+logLik(b1)
+logLik(b1u)
+logLik(b2)
+logLik(b2u)
 
 b1l <- BoxCox(yt.1 ~ x.1 + x.2, data = d, log_first = FALSE)
 b2l <- BoxCox(yt.2 ~ x.1 + x.2, data = d, log_first = FALSE)
-
+b1ul <- BoxCox(ytu.1 ~ x.1 + x.2, data = d, log_first = FALSE)
+b2ul <- BoxCox(ytu.2 ~ x.1 + x.2, data = d, log_first = FALSE)
+logLik(b1l)
+logLik(b1ul)
+logLik(b2l)
+logLik(b2ul)
 ## multivariate mmlt models
 mb1 <- mmlt(b1, b2, data = d)
 mb2 <- mmlt(b2, b1, data = d)
 logLik(mb1)
 logLik(mb2)
 
+mb1u <- mmlt(b1u, b2u, data = d)
+mb2u <- mmlt(b2u, b1u, data = d)
+logLik(mb1u)
+logLik(mb2u)
+
 mb1l <- mmlt(b1l, b2l, data = d)
 mb2l <- mmlt(b2l, b1l, data = d)
 logLik(mb1l)
 logLik(mb2l)
+
+mb1ul <- mmlt(b1ul, b2ul, data = d)
+mb2ul <- mmlt(b2ul, b1ul, data = d)
+logLik(mb1ul)
+logLik(mb2ul)
 
 ## compare coef
 ## log_first = TRUE
@@ -407,36 +521,62 @@ beta
 coef(mb1)
 coef(mb2)
 value
+## compare coef
+# coef(mb1)
+# coef(mb2)
 coef(mb1, type = "Lambda")[1,]
 coef(mb2, type = "Lambda")[1,]
-cov2cor(Sigma)[1, 2]
 coef(mb1, type = "Corr")[1,]
 coef(mb2, type = "Corr")[1,]
 
+coef(mb1u, type = "Lambda")[1,]
+coef(mb2u, type = "Lambda")[1,]
+coef(mb1u, type = "Corr")[1,]
+coef(mb2u, type = "Corr")[1,]
+
 ## log_first = FALSE
-beta
-coef(mb1l)
-coef(mb2l)
+# coef(mb1l)
+# coef(mb2l)
 coef(mb1l, type = "Lambda")[1,]
 coef(mb2l, type = "Lambda")[1,]
 coef(mb1l, type = "Corr")[1,]
 coef(mb2l, type = "Corr")[1,]
 
+coef(mb1ul, type = "Lambda")[1,]
+coef(mb2ul, type = "Lambda")[1,]
+coef(mb1ul, type = "Corr")[1,]
+coef(mb2ul, type = "Corr")[1,]
+
 ## transformation theory check
 ## for constant lambdas, the transformed coefficients should agree with the
 ## coefficients of the model with the different order
-coef(mb1)[-c(1:9, 19)] / sqrt(coef(mb1, type = "Sigma")$diagonal[1,2])
-coef(mb2)[1:9]
 
-coef(mb2)[-c(1:9, 19)] / sqrt(coef(mb2, type = "Sigma")$diagonal[1,2])
-coef(mb1)[1:9]
+## log_first = TRUE
+coef(mb1)[-c(1:7, 15)] / sqrt(coef(mb1, type = "Sigma")$diagonal[1,2])
+coef(mb2)[1:7]
 
+coef(mb2)[-c(1:7, 15)] / sqrt(coef(mb2, type = "Sigma")$diagonal[1,2])
+coef(mb1)[1:7]
+
+coef(mb1u)[-c(1:7, 15)] / sqrt(coef(mb1u, type = "Sigma")$diagonal[1,2])
+coef(mb2u)[1:7]
+
+coef(mb2u)[-c(1:7, 15)] / sqrt(coef(mb2u, type = "Sigma")$diagonal[1,2])
+coef(mb1u)[1:7]
+
+## log_first = FALSE
 ## doesn't seem to be the case for log_first = FALSE?
-coef(mb1l)[-c(1:9, 19)] / sqrt(coef(mb1l, type = "Sigma")$diagonal[1,2])
-coef(mb2l)[1:9]
+coef(mb1l)[-c(1:7, 15)] / sqrt(coef(mb1l, type = "Sigma")$diagonal[1,2])
+coef(mb2l)[1:7]
 
-coef(mb2l)[-c(1:9, 19)] / sqrt(coef(mb2l, type = "Sigma")$diagonal[1,2])
-coef(mb1l)[1:9]
+coef(mb2l)[-c(1:7, 15)] / sqrt(coef(mb2l, type = "Sigma")$diagonal[1,2])
+coef(mb1l)[1:7]
+
+coef(mb1ul)[-c(1:7, 15)] / sqrt(coef(mb1ul, type = "Sigma")$diagonal[1,2])
+coef(mb2ul)[1:7]
+
+coef(mb2ul)[-c(1:7, 15)] / sqrt(coef(mb2ul, type = "Sigma")$diagonal[1,2])
+coef(mb1ul)[1:7]
 
 ### predict accuracy
 cbind(b1 = predict(b1, newdata = d[1:3, ], type = "distribution"),
@@ -446,12 +586,26 @@ cbind(b2 = predict(b2, newdata = d[1:3, ], type = "distribution"),
       mb1 = predict(mb1, marginal = 2, newdata = d[1:3, ], type = "distribution"),
       mb2 = predict(mb2, marginal = 1, newdata = d[1:3, ], type = "distribution"))
 
+cbind(b1u = predict(b1u, newdata = d[1:3, ], type = "distribution"),
+      mb1u = predict(mb1u, marginal = 1, newdata = d[1:3, ], type = "distribution"),
+      mb2u = predict(mb2u, marginal = 2, newdata = d[1:3, ], type = "distribution"))
+cbind(b2u = predict(b2u, newdata = d[1:3, ], type = "distribution"),
+      mb1u = predict(mb1u, marginal = 2, newdata = d[1:3, ], type = "distribution"),
+      mb2u = predict(mb2u, marginal = 1, newdata = d[1:3, ], type = "distribution"))
+
 cbind(b1l = predict(b1l, newdata = d[1:3, ], type = "distribution"),
       mb1l = predict(mb1l, marginal = 1, newdata = d[1:3, ], type = "distribution"),
       mb2l = predict(mb2l, marginal = 2, newdata = d[1:3, ], type = "distribution"))
 cbind(b2l = predict(b2l, newdata = d[1:3, ], type = "distribution"),
       mb1l = predict(mb1l, marginal = 2, newdata = d[1:3, ], type = "distribution"),
       mb2l = predict(mb2l, marginal = 1, newdata = d[1:3, ], type = "distribution"))
+
+cbind(b1ul = predict(b1ul, newdata = d[1:3, ], type = "distribution"),
+      mb1ul = predict(mb1ul, marginal = 1, newdata = d[1:3, ], type = "distribution"),
+      mb2ul = predict(mb2ul, marginal = 2, newdata = d[1:3, ], type = "distribution"))
+cbind(b2ul = predict(b2ul, newdata = d[1:3, ], type = "distribution"),
+      mb1ul = predict(mb1ul, marginal = 2, newdata = d[1:3, ], type = "distribution"),
+      mb2ul = predict(mb2ul, marginal = 1, newdata = d[1:3, ], type = "distribution"))
 
 ## QQ-plot to check that marginal transformations are standard normal:
 nd <- d
@@ -472,6 +626,23 @@ d4 <- predict(mb2, marginal = 1, newdata = d, type = "trafo")
 qqnorm(d4, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 21, marginal = 2")
 qqline(d4, col = "red")
 
+
+d1 <- predict(mb1u, marginal = 1, newdata = d, type = "trafo")
+qqnorm(d1, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 12, marginal = 1")
+qqline(d1, col = "red")
+
+d2 <- predict(mb1u, marginal = 2, newdata = d, type = "trafo")
+qqnorm(d2, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 12, marginal = 2")
+qqline(d2, col = "red")
+
+d3 <- predict(mb2u, marginal = 2, newdata = d, type = "trafo")
+qqnorm(d3, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 21, marginal = 2")
+qqline(d3, col = "red")
+
+d4 <- predict(mb2u, marginal = 1, newdata = d, type = "trafo")
+qqnorm(d4, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 21, marginal = 2")
+qqline(d4, col = "red")
+
 ## log_first = FALSE
 d1 <- predict(mb1l, marginal = 1, newdata = d, type = "trafo")
 qqnorm(d1, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 12, marginal = 1")
@@ -486,6 +657,23 @@ qqnorm(d3, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 21, marginal = 2
 qqline(d3, col = "red")
 
 d4 <- predict(mb2l, marginal = 1, newdata = d, type = "trafo")
+qqnorm(d4, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 21, marginal = 2")
+qqline(d4, col = "red")
+
+
+d1 <- predict(mb1ul, marginal = 1, newdata = d, type = "trafo")
+qqnorm(d1, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 12, marginal = 1")
+qqline(d1, col = "red")
+
+d2 <- predict(mb1ul, marginal = 2, newdata = d, type = "trafo")
+qqnorm(d2, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 12, marginal = 2")
+qqline(d2, col = "red")
+
+d3 <- predict(mb2ul, marginal = 2, newdata = d, type = "trafo")
+qqnorm(d3, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 21, marginal = 2")
+qqline(d3, col = "red")
+
+d4 <- predict(mb2ul, marginal = 1, newdata = d, type = "trafo")
 qqnorm(d4, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 21, marginal = 2")
 qqline(d4, col = "red")
 
@@ -645,9 +833,21 @@ qqline(d4, col = "red")
 ## univariate BoxCox models, log_first = TRUE
 b1 <- BoxCox(ytt.1 ~ x.1 + x.2, data = d, log_first = TRUE)
 b2 <- BoxCox(ytt.2 ~ x.1 + x.2, data = d, log_first = TRUE)
+b1u <- BoxCox(ytut.1 ~ x.1 + x.2, data = d, log_first = TRUE)
+b2u <- BoxCox(ytut.2 ~ x.1 + x.2, data = d, log_first = TRUE)
+logLik(b1)
+logLik(b1u)
+logLik(b2)
+logLik(b2u)
 
 b1l <- BoxCox(yt.1 ~ x.1 + x.2, data = d, log_first = FALSE)
 b2l <- BoxCox(yt.2 ~ x.1 + x.2, data = d, log_first = FALSE)
+b1ul <- BoxCox(ytu.1 ~ x.1 + x.2, data = d, log_first = FALSE)
+b2ul <- BoxCox(ytu.2 ~ x.1 + x.2, data = d, log_first = FALSE)
+logLik(b1l)
+logLik(b1ul)
+logLik(b2l)
+logLik(b2ul)
 
 ## multivariate mmlt models
 mb1 <- mmlt(b1, b2, data = d, formula = ~ x.1 + x.2)
@@ -673,12 +873,24 @@ cbind(lb[1:3], coef(mb1, type = "Lambda")[1:3,], coef(mb2, type = "Lambda")[1:3,
 cbind(orig = R, mb1 = coef(mb1, type = "Corr")[1:3,], 
       mb2 = coef(mb2, type = "Corr")[1:3,])
 
+coef(mb1u)
+coef(mb2u)
+cbind(lb[1:3], coef(mb1u, type = "Lambda")[1:3,], coef(mb2u, type = "Lambda")[1:3,])
+cbind(orig = R, mb1u = coef(mb1u, type = "Corr")[1:3,], 
+      mb2u = coef(mb2u, type = "Corr")[1:3,])
+
 ## log_first = FALSE
 coef(mb1l)
 coef(mb2l)
 cbind(lb[1:3], coef(mb1l, type = "Lambda")[1:3,], coef(mb2l, type = "Lambda")[1:3,])
 cbind(orig = R, mb1l = coef(mb1l, type = "Corr")[1:3,], 
       mb2l = coef(mb2l, type = "Corr")[1:3,])
+
+coef(mb1ul)
+coef(mb2ul)
+cbind(lb[1:3], coef(mb1ul, type = "Lambda")[1:3,], coef(mb2ul, type = "Lambda")[1:3,])
+cbind(orig = R, mb1ul = coef(mb1ul, type = "Corr")[1:3,], 
+      mb2ul = coef(mb2ul, type = "Corr")[1:3,])
 
 ### predict accuracy
 cbind(b1 = predict(b1, newdata = d[1:3, ], type = "distribution"),
@@ -688,12 +900,26 @@ cbind(b2 = predict(b2, newdata = d[1:3, ], type = "distribution"),
       mb1 = predict(mb1, marginal = 2, newdata = d[1:3, ], type = "distribution"),
       mb2 = predict(mb2, marginal = 1, newdata = d[1:3, ], type = "distribution"))
 
+cbind(b1u = predict(b1u, newdata = d[1:3, ], type = "distribution"),
+      mb1u = predict(mb1u, marginal = 1, newdata = d[1:3, ], type = "distribution"),
+      mb2u = predict(mb2u, marginal = 2, newdata = d[1:3, ], type = "distribution"))
+cbind(b2u = predict(b2u, newdata = d[1:3, ], type = "distribution"),
+      mb1u = predict(mb1u, marginal = 2, newdata = d[1:3, ], type = "distribution"),
+      mb2u = predict(mb2u, marginal = 1, newdata = d[1:3, ], type = "distribution"))
+
 cbind(b1l = predict(b1l, newdata = d[1:3, ], type = "distribution"),
       mb1l = predict(mb1l, marginal = 1, newdata = d[1:3, ], type = "distribution"),
       mb2l = predict(mb2l, marginal = 2, newdata = d[1:3, ], type = "distribution"))
 cbind(b2l = predict(b2l, newdata = d[1:3, ], type = "distribution"),
       mb1l = predict(mb1l, marginal = 2, newdata = d[1:3, ], type = "distribution"),
       mb2l = predict(mb2l, marginal = 1, newdata = d[1:3, ], type = "distribution"))
+
+cbind(b1ul = predict(b1ul, newdata = d[1:3, ], type = "distribution"),
+      mb1ul = predict(mb1ul, marginal = 1, newdata = d[1:3, ], type = "distribution"),
+      mb2ul = predict(mb2ul, marginal = 2, newdata = d[1:3, ], type = "distribution"))
+cbind(b2ul = predict(b2ul, newdata = d[1:3, ], type = "distribution"),
+      mb1ul = predict(mb1ul, marginal = 2, newdata = d[1:3, ], type = "distribution"),
+      mb2ul = predict(mb2ul, marginal = 1, newdata = d[1:3, ], type = "distribution"))
 
 ## QQ-plot to check that marginal transformations are standard normal:
 nd <- d
@@ -714,6 +940,23 @@ d4 <- predict(mb2, marginal = 1, newdata = d, type = "trafo")
 qqnorm(d4, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 21, marginal = 2")
 qqline(d4, col = "red")
 
+
+d1 <- predict(mb1u, marginal = 1, newdata = d, type = "trafo")
+qqnorm(d1, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 12, marginal = 1")
+qqline(d1, col = "red")
+
+d2 <- predict(mb1u, marginal = 2, newdata = d, type = "trafo")
+qqnorm(d2, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 12, marginal = 2")
+qqline(d2, col = "red")
+
+d3 <- predict(mb2u, marginal = 2, newdata = d, type = "trafo")
+qqnorm(d3, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 21, marginal = 2")
+qqline(d3, col = "red")
+
+d4 <- predict(mb2u, marginal = 1, newdata = d, type = "trafo")
+qqnorm(d4, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 21, marginal = 2")
+qqline(d4, col = "red")
+
 ## log_first = FALSE
 d1 <- predict(mb1l, marginal = 1, newdata = d, type = "trafo")
 qqnorm(d1, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 12, marginal = 1")
@@ -728,6 +971,23 @@ qqnorm(d3, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 21, marginal = 2
 qqline(d3, col = "red")
 
 d4 <- predict(mb2l, marginal = 1, newdata = d, type = "trafo")
+qqnorm(d4, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 21, marginal = 2")
+qqline(d4, col = "red")
+
+
+d1 <- predict(mb1ul, marginal = 1, newdata = d, type = "trafo")
+qqnorm(d1, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 12, marginal = 1")
+qqline(d1, col = "red")
+
+d2 <- predict(mb1ul, marginal = 2, newdata = d, type = "trafo")
+qqnorm(d2, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 12, marginal = 2")
+qqline(d2, col = "red")
+
+d3 <- predict(mb2ul, marginal = 2, newdata = d, type = "trafo")
+qqnorm(d3, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 21, marginal = 2")
+qqline(d3, col = "red")
+
+d4 <- predict(mb2ul, marginal = 1, newdata = d, type = "trafo")
 qqnorm(d4, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 21, marginal = 2")
 qqline(d4, col = "red")
 
