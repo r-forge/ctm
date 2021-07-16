@@ -23,5 +23,6 @@ Depends: tram (>= 0.2-6), mlt (>= 1.2-1)
 Imports: variables (>= 1.0-2), basefun (>= 1.0-5), alabama, Matrix, methods
 Suggests: TH.data, knitr, lattice, colorspace, multcomp, mvtnorm, numDeriv
 VignetteBuilder: knitr
+URL: http://ctm.R-forge.R-project.org
 Encoding: UTF-8
 License: GPL-2
