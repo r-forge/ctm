@@ -11,6 +11,10 @@
   url: "/software/"
   side: left
 
+- title: "Universe"
+  url: "https://trafo-universe.r-universe.dev/"
+  side: left
+
 - title: "News" #blog-style
   url: "/news/"
   side: left
