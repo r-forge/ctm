@@ -1,7 +1,8 @@
 Package: tramnet
 Title: Penalized Transformation Models
-Version: 0.0-5
-Date: 2021-03-16
+Version: 0.0-6
+Date: 2021-07-19
+URL: http://ctm.R-forge.R-project.org
 Authors@R: c(person("Lucas", "Kook", role = c("cre", "aut"),
                     email = "lucasheinrich.kook@uzh.ch"),
              person("Balint", "Tamasi", role = "ctb"),
