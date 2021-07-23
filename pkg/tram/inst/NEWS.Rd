@@ -2,13 +2,14 @@
 \name{NEWS}
 \title{NEWS file for the tram package}
 
-\section{Changes in Version 0.6-1 (2021-06-08)}{
+\section{Changes in Version 0.6-1 (2021-07-23)}{
   \itemize{
     \item{Add \code{dofit} argument to \code{mmlt}.}
     \item{Robustify \code{vcov} for \code{mmlt} objects.}
+    \item{Add experimental \code{score_test} and \code{perm_test} methods
+    for \code{glm}.}
   }
 }
-
 
 \section{Changes in Version 0.6-0 (2021-03-08)}{
   \itemize{
