@@ -1,4 +1,8 @@
-# tramME 0.1.1 (2021-03-30)
+# tramME 0.1.2 (2021-08-16)
+
+* Added R-Forge URL
+
+# tramME 0.1.1 (2021-04-05)
 
 * Fixed uninitialized value problem indicated by valgrind
 
