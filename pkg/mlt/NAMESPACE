@@ -70,6 +70,7 @@ S3method("as.mlt", "mlt")
 S3method("as.Surv", "response")
 S3method("[", "response")
 S3method("[<-", "response")
+S3method("as.double", "response")
 
 #S3method("model.matrix", "mlt")
 #S3method("paraboot", "mlt")
