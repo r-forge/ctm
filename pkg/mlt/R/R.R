@@ -460,3 +460,18 @@ R.list <- function(object, ...) {
     class(x) <- cls
     x
 }
+
+### coerse to double vector (get rid of censoring)
+as.double.response <- function(x, ...) {
+    ex <- x$exact
+    le <- x$cleft
+    ri <- x$cright
+    rex <- ex
+    rle <- le
+    rri <- ri
+    rex[is.na(ex)] <- 0
+    rle[is.na(le) | !is.finite(le)] <- 0
+    rri[is.na(ri) | !is.finite(ri)] <- 0
+    ### (-Inf, x] -> x and (x, Inf) -> x
+    rex + (rle + ifelse(is.finite(ri) & is.finite(le), (rri - rle)/2, rri))
+}
