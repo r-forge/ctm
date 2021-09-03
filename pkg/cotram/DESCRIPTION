@@ -20,7 +20,7 @@ Description: Count transformation models featuring
         Siegfried & Hothorn (2020) <DOI:10.1111/2041-210X.13383>. 
         The package also contains an experimental implementation of 
         multivariate count transformation models.
-Depends: tram (>= 0.2-6), mlt (>= 1.2-1)
+Depends: R (>= 3.5.0), tram (>= 0.2-6), mlt (>= 1.2-1)
 Imports: variables (>= 1.0-2), basefun (>= 1.0-5), alabama, Matrix, methods
 Suggests: TH.data, knitr, lattice, colorspace, multcomp, mvtnorm, numDeriv
 VignetteBuilder: knitr
