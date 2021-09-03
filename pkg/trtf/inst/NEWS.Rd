@@ -2,9 +2,10 @@
 \name{NEWS}
 \title{NEWS file for the trtf package}
 
-\section{Changes in Version 0.3-8 (2021-08-24)}{
+\section{Changes in Version 0.3-8 (2021-09-03)}{
   \itemize{
     \item{Replace \code{.R2vec} by \code{as.double} method.}
+    \item{Update references.}
   }
 }
 
