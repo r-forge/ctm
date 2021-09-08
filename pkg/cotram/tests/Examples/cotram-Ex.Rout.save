@@ -1,0 +1,337 @@
+
+R version 4.1.1 (2021-08-10) -- "Kick Things"
+Copyright (C) 2021 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> pkgname <- "cotram"
+> source(file.path(R.home("share"), "R", "examples-header.R"))
+> options(warn = 1)
+> library('cotram')
+Loading required package: tram
+Loading required package: mlt
+Loading required package: basefun
+Loading required package: variables
+
+Attaching package: ‘cotram’
+
+The following object is masked from ‘package:mlt’:
+
+    confband
+
+> 
+> base::assign(".oldSearch", base::search(), pos = 'CheckExEnv')
+> base::assign(".old_wd", base::getwd(), pos = 'CheckExEnv')
+> cleanEx()
+> nameEx("confband")
+> ### * confband
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: confband
+> ### Title: Confidence Bands
+> ### Aliases: confband confband.cotram
+> 
+> ### ** Examples
+> 
+> 
+>   op <- options(digits = 4)
+> 
+>   data("birds", package = "TH.data")
+>   
+>   ### fit count transformation model with cloglog link
+>   m_birds <- cotram(SG5 ~ AOT + AFS + GST + DBH + DWC + LOG, data = birds,
++                     method = "cloglog")
+>   
+>   ### compute asymptotic confidence bands for the distribution function
+>   ### for the first oberservation
+>   confband(m_birds, newdata = birds[1, ], type = "distribution")
+    q Estimate     lwr    upr
+1   0   0.1493 0.08909 0.2444
+1.1 1   0.3883 0.27107 0.5344
+1.2 2   0.5860 0.44150 0.7369
+1.3 3   0.7668 0.62282 0.8863
+1.4 4   0.8929 0.77567 0.9646
+1.5 5   0.9561 0.87446 0.9910
+1.6 6   0.9829 0.93374 0.9978
+1.7 7   0.9940 0.96418 0.9996
+1.8 8   0.9981 0.98001 1.0000
+1.9 9   0.9994 0.98855 1.0000
+> 
+>   options(op)
+> 
+> 
+> 
+> 
+> cleanEx()
+> nameEx("cotram-methods")
+> ### * cotram-methods
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: cotram-methods
+> ### Title: Methods for Count Transformation Models
+> ### Aliases: predict.cotram plot.cotram as.mlt.cotram logLik.cotram
+> 
+> ### ** Examples
+> 
+> 	
+>   data("birds", package = "TH.data")
+>   
+>   ### fit count transformation model with cloglog link
+>   m_birds <- cotram(SG5 ~ AOT + AFS + GST + DBH + DWC + LOG, data = birds,
++                     method = "cloglog")
+>   logLik(m_birds)
+'log Lik.' -504.3843 (df=13)
+> 
+>   ### classical likelihood inference
+>   summary(m_birds)
+
+  Discrete Hazards Cox Count Transformation Model 
+
+Call:
+cotram(formula = SG5 ~ AOT + AFS + GST + DBH + DWC + LOG, data = birds, 
+    method = "cloglog")
+
+Coefficients:
+      Estimate Std. Error z value Pr(>|z|)    
+AOT -5.469e-03  2.263e-03  -2.417 0.015665 *  
+AFS  9.397e-03  2.705e-03   3.474 0.000513 ***
+GST -3.014e-04  5.043e-04  -0.598 0.550087    
+DBH -3.653e-05  5.441e-03  -0.007 0.994644    
+DWC  7.223e-03  5.778e-03   1.250 0.211276    
+LOG -4.284e-03  2.401e-03  -1.785 0.074338 .  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Log-Likelihood:
+ -504.3843 (df = 13)
+Likelihood-ratio Test: Chisq = 20.08602 on 6 degrees of freedom; p = 0.002673
+
+> 
+>   ### coefficients of the linear predictor (discrete hazard ratios)
+>   exp(-coef(m_birds))
+      AOT       AFS       GST       DBH       DWC       LOG 
+1.0054839 0.9906469 1.0003014 1.0000365 0.9928032 1.0042934 
+> 
+>   ### compute predicted median along with 10% and 90% quantile for the first
+>   ### three observations
+>   nd <- birds[1:3,]
+>   predict(m_birds, newdata = nd, type = "quantile", prob = c(.1, .5, .9), 
++           smooth = TRUE)
+       
+prob        [,1]     [,2]     [,3]
+    0.1 0.000000 0.000000 0.000000
+    0.5 1.561050 1.483632 1.547645
+    0.9 4.079575 3.964106 4.059711
+> 
+>   ### plot the predicted distribution for these observations
+>   plot(m_birds, newdata = nd, type = "distribution",
++        col = c("skyblue", "grey", "seagreen"))
+>     
+> 
+> 
+> 
+> cleanEx()
+> nameEx("cotram")
+> ### * cotram
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: cotram
+> ### Title: Count Transformation Models
+> ### Aliases: cotram
+> ### Keywords: models regression
+> 
+> ### ** Examples
+> 
+> 
+>   op <- options(digits = 4)
+> 
+>   data("birds", package = "TH.data")
+>   cotram(SG5 ~ AOT + AFS + GST + DBH + DWC + LOG, data = birds)
+
+  Discrete Odds Count Transformation Model 
+
+Call:
+cotram(formula = SG5 ~ AOT + AFS + GST + DBH + DWC + LOG, data = birds)
+
+Coefficients:
+      AOT       AFS       GST       DBH       DWC       LOG 
+-0.009297  0.017419 -0.001876  0.009141  0.020826 -0.004114 
+
+Log-Likelihood:
+ -502.3 (df = 13)
+
+> 
+>   options(op)
+> 
+> 
+> 
+> 
+> cleanEx()
+> nameEx("mcotram")
+> ### * mcotram
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: mcotram
+> ### Title: Multivariate Count Conditional Transformation Models
+> ### Aliases: mcotram
+> ### Keywords: models
+> 
+> ### ** Examples
+> 
+> 
+>   op <- options(digits = 2)
+> 
+>   data("spiders", package = "cotram")
+> 
+>   ## fit conditional marginal count transformation models
+>   m_PF <- cotram(Pardosa_ferruginea ~ Elevation + Canopy_openess, 
++                  data = spiders, method = "probit")
+>   m_HL <- cotram(Harpactea_lepida ~ Elevation + Canopy_openess,
++                  data = spiders, method = "probit")
+>   m_CC <- cotram(Callobius_claustrarius ~ Elevation + Canopy_openess,
++                  data = spiders, method = "probit")
+>   m_CT <- cotram(Coelotes_terrestris ~ Elevation + Canopy_openess,
++                  data = spiders, method = "probit")
+>   m_PL <- cotram(Pardosa_lugubris ~ Elevation + Canopy_openess,
++                  data = spiders, method = "probit")
+>   m_PR <- cotram(Pardosa_riparia ~ Elevation + Canopy_openess,
++                  data = spiders, method = "probit")
+> 
+>   ## fit multi-species count transformation model
+>   ## with constant Cholesky factor of the precision matrix
+>   m_all_1 <- mcotram(m_PF, m_HL, m_CC, m_CT, m_PL, m_PR, 
++                      formula = ~ 1, data = spiders)
+> 
+>   ## with covariate-dependent Cholesky factor of the precision matrix
+>   m_all_2 <- mcotram(m_PF, m_HL, m_CC, m_CT, m_PL, m_PR, 
++                      formula = ~ Elevation + Canopy_openess, data = spiders)
+> 
+>   logLik(m_all_1)
+'log Lik.' -2420 (df=69)
+>   logLik(m_all_2)
+'log Lik.' -2377 (df=99)
+> 
+>   ## lambda defining the Cholesky factor of the precision matrix,
+>   ## with standard errors
+>   coef(m_all_1, newdata = spiders[1,], type = "Lambda")
+  [,1]  [,2] [,3]  [,4] [,5]  [,6] [,7]  [,8] [,9] [,10]  [,11] [,12] [,13]
+1 0.69 -0.35 0.28 -0.93 0.78 0.025 0.33 -0.56 0.27  0.88 0.0043 -0.21 -0.48
+   [,14] [,15]
+1 -0.079  0.16
+>   V <- vcov(m_all_1)[55:69, 55:69]
+>   (se <- sqrt(diag(V)))
+  Hrp_.Prds_f.(Intercept)   Cll_.Prds_f.(Intercept)   Clt_.Prds_f.(Intercept) 
+                     0.19                      0.16                      0.13 
+Prds_l.Prds_f.(Intercept) Prds_r.Prds_f.(Intercept)     Cll_.Hrp_.(Intercept) 
+                     0.20                      0.18                      0.10 
+    Clt_.Hrp_.(Intercept)   Prds_l.Hrp_.(Intercept)   Prds_r.Hrp_.(Intercept) 
+                     0.22                      0.15                      0.11 
+    Clt_.Cll_.(Intercept)   Prds_l.Cll_.(Intercept)   Prds_r.Cll_.(Intercept) 
+                     0.18                      0.17                      0.14 
+  Prds_l.Clt_.(Intercept)   Prds_r.Clt_.(Intercept) Prds_r.Prds_l.(Intercept) 
+                     0.11                      0.13                      0.11 
+> 
+>   coef(m_all_2, newdata = spiders[1,], type = "Lambda")
+    [,1] [,2]  [,3] [,4] [,5] [,6]   [,7]  [,8]  [,9] [,10] [,11] [,12] [,13]
+1 -0.099 0.16 0.095 -1.2  1.1 0.16 -0.049 -0.97 -0.28  0.43 0.082 -0.36 -0.54
+  [,14]  [,15]
+1 0.027 -0.022
+>   V <- vcov(m_all_2)[55:99, 55:99]
+>   (se <- sqrt(diag(V)))
+     Hrp_.Prds_f.(Intercept)        Hrp_.Prds_f.Elevation 
+                     3.78014                      0.00407 
+  Hrp_.Prds_f.Canopy_openess      Cll_.Prds_f.(Intercept) 
+                     0.00067                      1.96653 
+       Cll_.Prds_f.Elevation   Cll_.Prds_f.Canopy_openess 
+                     0.00206                      0.00054 
+     Clt_.Prds_f.(Intercept)        Clt_.Prds_f.Elevation 
+                     2.62350                      0.00265 
+  Clt_.Prds_f.Canopy_openess    Prds_l.Prds_f.(Intercept) 
+                     0.00039                      1.56914 
+     Prds_l.Prds_f.Elevation Prds_l.Prds_f.Canopy_openess 
+                     0.00168                      0.00079 
+   Prds_r.Prds_f.(Intercept)      Prds_r.Prds_f.Elevation 
+                     3.05135                      0.00269 
+Prds_r.Prds_f.Canopy_openess        Cll_.Hrp_.(Intercept) 
+                     0.00088                      0.75926 
+         Cll_.Hrp_.Elevation     Cll_.Hrp_.Canopy_openess 
+                     0.00080                      0.00036 
+       Clt_.Hrp_.(Intercept)          Clt_.Hrp_.Elevation 
+                     2.01593                      0.00205 
+    Clt_.Hrp_.Canopy_openess      Prds_l.Hrp_.(Intercept) 
+                     0.00102                      1.40393 
+       Prds_l.Hrp_.Elevation   Prds_l.Hrp_.Canopy_openess 
+                     0.00133                      0.00055 
+     Prds_r.Hrp_.(Intercept)        Prds_r.Hrp_.Elevation 
+                     0.82539                      0.00099 
+  Prds_r.Hrp_.Canopy_openess        Clt_.Cll_.(Intercept) 
+                     0.00058                      1.90852 
+         Clt_.Cll_.Elevation     Clt_.Cll_.Canopy_openess 
+                     0.00260                      0.00107 
+     Prds_l.Cll_.(Intercept)        Prds_l.Cll_.Elevation 
+                     1.94855                      0.00192 
+  Prds_l.Cll_.Canopy_openess      Prds_r.Cll_.(Intercept) 
+                     0.00069                      1.11309 
+       Prds_r.Cll_.Elevation   Prds_r.Cll_.Canopy_openess 
+                     0.00101                      0.00055 
+     Prds_l.Clt_.(Intercept)        Prds_l.Clt_.Elevation 
+                     0.85291                      0.00088 
+  Prds_l.Clt_.Canopy_openess      Prds_r.Clt_.(Intercept) 
+                     0.00034                      1.17727 
+       Prds_r.Clt_.Elevation   Prds_r.Clt_.Canopy_openess 
+                     0.00125                      0.00045 
+   Prds_r.Prds_l.(Intercept)      Prds_r.Prds_l.Elevation 
+                     0.93477                      0.00096 
+Prds_r.Prds_l.Canopy_openess 
+                     0.00032 
+> 
+>   ## linear correlation, ie Pearson correlation of the models after
+>   ## transformation to bivariate normality
+>   (r1 <- coef(m_all_1, newdata = spiders[1,], type = "Corr"))
+      [,1] [,2] [,3]  [,4]  [,5]  [,6]  [,7] [,8] [,9] [,10] [,11] [,12] [,13]
+[1,] -0.57 0.32  0.3 -0.21 -0.35 -0.46 -0.58 0.35 0.34  0.24 -0.38  0.18 -0.68
+     [,14]  [,15]
+[1,]  -0.2 -0.068
+>   (r2 <- coef(m_all_2, newdata = spiders[1,], type = "Corr"))
+      [,1]  [,2] [,3]  [,4]  [,5]   [,6]  [,7] [,8] [,9] [,10] [,11] [,12]
+[1,] 0.098 -0.17 0.66 0.076 -0.26 -0.032 -0.47 0.68 0.27 -0.18  0.13  0.47
+     [,13] [,14] [,15]
+[1,] -0.47 -0.37  0.26
+> 
+>   options(op)
+> 
+> 
+> 
+> 
+> ### * <FOOTER>
+> ###
+> cleanEx()
+> options(digits = 7L)
+> base::cat("Time elapsed: ", proc.time() - base::get("ptime", pos = 'CheckExEnv'),"\n")
+Time elapsed:  9.109 0.105 9.214 0 0 
+> grDevices::dev.off()
+null device 
+          1 
+> ###
+> ### Local variables: ***
+> ### mode: outline-minor ***
+> ### outline-regexp: "\\(> \\)?### [*]+" ***
+> ### End: ***
+> quit('no')

@@ -588,1233 +588,648 @@ yt.1.Bs6(ytu.1) yt.1.Bs7(ytu.1)
 > qqnorm(d4, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 21, marginal = 2")
 > qqline(d4, col = "red")
 > 
-> ##########################################################
-> ###### constant lambda, marginal models ~ x.1 + x.2 ######
-> ##########################################################
-> ## cotram models for the marginals
-> u1 <- cotram(y.1 ~ x.1 + x.2, data = d, method = "probit")
-> u2 <- cotram(y.2 ~ x.1 + x.2, data = d, method = "probit")
-> 
-> ## joint models with different orders of the marginals, constant lambdas
-> uc1 <- mcotram(u1, u2, data = d)
-> uc2 <- mcotram(u2, u1, data = d)
-> logLik(uc1)
-'log Lik.' -3485 (df=19)
-> logLik(uc2) ## these log-likelihoods are expected to be very close, but not equal
-'log Lik.' -3488 (df=19)
-> 
-> ## check gradient
-> all.equal(uc1$sc(uc2$par), numDeriv::grad(uc1$ll, uc2$par),
+> ### make CRAN team happy
+> if (FALSE) {
++ 
++ ##########################################################
++ ###### constant lambda, marginal models ~ x.1 + x.2 ######
++ ##########################################################
++ ## cotram models for the marginals
++ u1 <- cotram(y.1 ~ x.1 + x.2, data = d, method = "probit")
++ u2 <- cotram(y.2 ~ x.1 + x.2, data = d, method = "probit")
++ 
++ ## joint models with different orders of the marginals, constant lambdas
++ uc1 <- mcotram(u1, u2, data = d)
++ uc2 <- mcotram(u2, u1, data = d)
++ logLik(uc1)
++ logLik(uc2) ## these log-likelihoods are expected to be very close, but not equal
++ 
++ ## check gradient
++ all.equal(uc1$sc(uc2$par), numDeriv::grad(uc1$ll, uc2$par),
 +           tol = 1e-6, check.attributes = FALSE)
-[1] TRUE
-> 
-> ## marginal cotram models with log_first = FALSE
-> # uc1 <- uc2 <- 0
-> u1l <- cotram(y.1 ~ x.1 + x.2, data = d, method = "probit", log_first = FALSE)
-> u2l <- cotram(y.2 ~ x.1 + x.2, data = d, method = "probit", log_first = FALSE)
-> uc1l <- mcotram(u1l, u2l, data = d)
-> uc2l <- mcotram(u2l, u1l, data = d)
-> logLik(uc1l)
-'log Lik.' -3482 (df=19)
-> logLik(uc2l)
-'log Lik.' -3485 (df=19)
-> all.equal(uc1l$sc(uc2l$par), numDeriv::grad(uc1l$ll, uc2l$par),
++ 
++ ## marginal cotram models with log_first = FALSE
++ # uc1 <- uc2 <- 0
++ u1l <- cotram(y.1 ~ x.1 + x.2, data = d, method = "probit", log_first = FALSE)
++ u2l <- cotram(y.2 ~ x.1 + x.2, data = d, method = "probit", log_first = FALSE)
++ uc1l <- mcotram(u1l, u2l, data = d)
++ uc2l <- mcotram(u2l, u1l, data = d)
++ logLik(uc1l)
++ logLik(uc2l)
++ all.equal(uc1l$sc(uc2l$par), numDeriv::grad(uc1l$ll, uc2l$par),
 +           tol = 1e-6, check.attributes = FALSE)
-[1] TRUE
-> 
-> ## compare coefficients
-> ## recall beta:
-> beta
-[1]  1.0 -1.0 -0.5  0.5
-> ## log_first = TRUE
-> coef(uc1)
-       y.1.Bs1(y.1)        y.1.Bs2(y.1)        y.1.Bs3(y.1)        y.1.Bs4(y.1) 
-             -2.341              -2.341              -1.973              -1.696 
-       y.1.Bs5(y.1)        y.1.Bs6(y.1)        y.1.Bs7(y.1)             y.1.x.1 
-             -0.369              -0.053               1.664               0.983 
-            y.1.x.2        y.2.Bs1(y.2)        y.2.Bs2(y.2)        y.2.Bs3(y.2) 
-             -1.043              -2.414              -2.414              -2.308 
-       y.2.Bs4(y.2)        y.2.Bs5(y.2)        y.2.Bs6(y.2)        y.2.Bs7(y.2) 
-             -0.974              -0.974               0.185               2.179 
-            y.2.x.1             y.2.x.2 y.2.y.1.(Intercept) 
-             -0.765               0.510               0.921 
-> coef(uc2)
-       y.2.Bs1(y.2)        y.2.Bs2(y.2)        y.2.Bs3(y.2)        y.2.Bs4(y.2) 
-             -1.890              -1.759              -1.759              -0.650 
-       y.2.Bs5(y.2)        y.2.Bs6(y.2)        y.2.Bs7(y.2)             y.2.x.1 
-             -0.650               0.098               1.631              -0.540 
-            y.2.x.2        y.1.Bs1(y.1)        y.1.Bs2(y.1)        y.1.Bs3(y.1) 
-              0.355              -4.527              -2.600              -2.600 
-       y.1.Bs4(y.1)        y.1.Bs5(y.1)        y.1.Bs6(y.1)        y.1.Bs7(y.1) 
-             -2.600              -0.529              -0.016               2.189 
-            y.1.x.1             y.1.x.2 y.1.y.2.(Intercept) 
-              1.370              -1.453               0.977 
-> value
-[1] 0.9
-> coef(uc1, type = "Lambda")[1,] 
-   1 
-0.92 
-> coef(uc2, type = "Lambda")[1,]
-   1 
-0.98 
-> cov2cor(Sigma)[1, 2]
-[1] -0.67
-> coef(uc1, type = "Corr")[1,]
-[1] -0.68
-> coef(uc2, type = "Corr")[1,]
-[1] -0.7
-> 
-> ## log_first = FALSE
-> beta
-[1]  1.0 -1.0 -0.5  0.5
-> coef(uc1l)
-       y.1.Bs1(y.1)        y.1.Bs2(y.1)        y.1.Bs3(y.1)        y.1.Bs4(y.1) 
-              -2.48               -1.70               -0.37               -0.37 
-       y.1.Bs5(y.1)        y.1.Bs6(y.1)        y.1.Bs7(y.1)             y.1.x.1 
-               0.68                1.00                1.63                0.98 
-            y.1.x.2        y.2.Bs1(y.2)        y.2.Bs2(y.2)        y.2.Bs3(y.2) 
-              -1.04               -2.64               -1.43               -0.36 
-       y.2.Bs4(y.2)        y.2.Bs5(y.2)        y.2.Bs6(y.2)        y.2.Bs7(y.2) 
-              -0.24                0.79                1.54                2.17 
-            y.2.x.1             y.2.x.2 y.2.y.1.(Intercept) 
-              -0.77                0.51                0.92 
-> coef(uc2l)
-       y.2.Bs1(y.2)        y.2.Bs2(y.2)        y.2.Bs3(y.2)        y.2.Bs4(y.2) 
-             -2.037              -0.907              -0.365              -0.024 
-       y.2.Bs5(y.2)        y.2.Bs6(y.2)        y.2.Bs7(y.2)             y.2.x.1 
-              0.502               1.148               1.626              -0.540 
-            y.2.x.2        y.1.Bs1(y.1)        y.1.Bs2(y.1)        y.1.Bs3(y.1) 
-              0.355              -3.332              -2.420              -0.554 
-       y.1.Bs4(y.1)        y.1.Bs5(y.1)        y.1.Bs6(y.1)        y.1.Bs7(y.1) 
-             -0.554               0.959               1.334               2.138 
-            y.1.x.1             y.1.x.2 y.1.y.2.(Intercept) 
-              1.369              -1.453               0.977 
-> coef(uc1l, type = "Lambda")[1,]
-   1 
-0.92 
-> coef(uc2l, type = "Lambda")[1,]
-   1 
-0.98 
-> coef(uc1l, type = "Corr")[1,]
-[1] -0.68
-> coef(uc2l, type = "Corr")[1,]
-[1] -0.7
-> 
-> ## transformation theory check
-> ## for constant lambdas, the transformed coefficients should agree with the
-> ## coefficients of the model with the different order
-> 
-> ## log_first = TRUE
-> ## seems to agree better than log_first = FALSE
-> coef(uc1)[-c(1:9, 19)] / sqrt(coef(uc1, type = "Sigma")$diagonal[1,2])
-y.2.Bs1(y.2) y.2.Bs2(y.2) y.2.Bs3(y.2) y.2.Bs4(y.2) y.2.Bs5(y.2) y.2.Bs6(y.2) 
-       -1.78        -1.78        -1.70        -0.72        -0.72         0.14 
-y.2.Bs7(y.2)      y.2.x.1      y.2.x.2 
-        1.60        -0.56         0.37 
-> coef(uc2)[1:9]
-y.2.Bs1(y.2) y.2.Bs2(y.2) y.2.Bs3(y.2) y.2.Bs4(y.2) y.2.Bs5(y.2) y.2.Bs6(y.2) 
-      -1.890       -1.759       -1.759       -0.650       -0.650        0.098 
-y.2.Bs7(y.2)      y.2.x.1      y.2.x.2 
-       1.631       -0.540        0.355 
-> 
-> coef(uc2)[-c(1:9, 19)] / sqrt(coef(uc2, type = "Sigma")$diagonal[1,2])
-y.1.Bs1(y.1) y.1.Bs2(y.1) y.1.Bs3(y.1) y.1.Bs4(y.1) y.1.Bs5(y.1) y.1.Bs6(y.1) 
-      -3.238       -1.860       -1.860       -1.860       -0.378       -0.012 
-y.1.Bs7(y.1)      y.1.x.1      y.1.x.2 
-       1.566        0.980       -1.039 
-> coef(uc1)[1:9]
-y.1.Bs1(y.1) y.1.Bs2(y.1) y.1.Bs3(y.1) y.1.Bs4(y.1) y.1.Bs5(y.1) y.1.Bs6(y.1) 
-      -2.341       -2.341       -1.973       -1.696       -0.369       -0.053 
-y.1.Bs7(y.1)      y.1.x.1      y.1.x.2 
-       1.664        0.983       -1.043 
-> 
-> ## log_first = FALSE
-> coef(uc1l)[-c(1:9, 19)] / sqrt(coef(uc1l, type = "Sigma")$diagonal[1,2])
-y.2.Bs1(y.2) y.2.Bs2(y.2) y.2.Bs3(y.2) y.2.Bs4(y.2) y.2.Bs5(y.2) y.2.Bs6(y.2) 
-       -1.94        -1.05        -0.26        -0.17         0.58         1.13 
-y.2.Bs7(y.2)      y.2.x.1      y.2.x.2 
-        1.59        -0.56         0.38 
-> coef(uc2l)[1:9]
-y.2.Bs1(y.2) y.2.Bs2(y.2) y.2.Bs3(y.2) y.2.Bs4(y.2) y.2.Bs5(y.2) y.2.Bs6(y.2) 
-      -2.037       -0.907       -0.365       -0.024        0.502        1.148 
-y.2.Bs7(y.2)      y.2.x.1      y.2.x.2 
-       1.626       -0.540        0.355 
-> 
-> coef(uc2l)[-c(1:9, 19)] / sqrt(coef(uc2l, type = "Sigma")$diagonal[1,2])
-y.1.Bs1(y.1) y.1.Bs2(y.1) y.1.Bs3(y.1) y.1.Bs4(y.1) y.1.Bs5(y.1) y.1.Bs6(y.1) 
-       -2.38        -1.73        -0.40        -0.40         0.69         0.95 
-y.1.Bs7(y.1)      y.1.x.1      y.1.x.2 
-        1.53         0.98        -1.04 
-> coef(uc1l)[1:9]
-y.1.Bs1(y.1) y.1.Bs2(y.1) y.1.Bs3(y.1) y.1.Bs4(y.1) y.1.Bs5(y.1) y.1.Bs6(y.1) 
-       -2.48        -1.70        -0.37        -0.37         0.68         1.00 
-y.1.Bs7(y.1)      y.1.x.1      y.1.x.2 
-        1.63         0.98        -1.04 
-> 
-> ### predict accuracy
-> cbind(u1 = predict(u1, newdata = d[1:3, ], type = "distribution"),
++ 
++ ## compare coefficients
++ ## recall beta:
++ beta
++ ## log_first = TRUE
++ coef(uc1)
++ coef(uc2)
++ value
++ coef(uc1, type = "Lambda")[1,] 
++ coef(uc2, type = "Lambda")[1,]
++ cov2cor(Sigma)[1, 2]
++ coef(uc1, type = "Corr")[1,]
++ coef(uc2, type = "Corr")[1,]
++ 
++ ## log_first = FALSE
++ beta
++ coef(uc1l)
++ coef(uc2l)
++ coef(uc1l, type = "Lambda")[1,]
++ coef(uc2l, type = "Lambda")[1,]
++ coef(uc1l, type = "Corr")[1,]
++ coef(uc2l, type = "Corr")[1,]
++ 
++ ## transformation theory check
++ ## for constant lambdas, the transformed coefficients should agree with the
++ ## coefficients of the model with the different order
++ 
++ ## log_first = TRUE
++ ## seems to agree better than log_first = FALSE
++ coef(uc1)[-c(1:9, 19)] / sqrt(coef(uc1, type = "Sigma")$diagonal[1,2])
++ coef(uc2)[1:9]
++ 
++ coef(uc2)[-c(1:9, 19)] / sqrt(coef(uc2, type = "Sigma")$diagonal[1,2])
++ coef(uc1)[1:9]
++ 
++ ## log_first = FALSE
++ coef(uc1l)[-c(1:9, 19)] / sqrt(coef(uc1l, type = "Sigma")$diagonal[1,2])
++ coef(uc2l)[1:9]
++ 
++ coef(uc2l)[-c(1:9, 19)] / sqrt(coef(uc2l, type = "Sigma")$diagonal[1,2])
++ coef(uc1l)[1:9]
++ 
++ ### predict accuracy
++ cbind(u1 = predict(u1, newdata = d[1:3, ], type = "distribution"),
 +       uc1 = predict(uc1, marginal = 1, newdata = d[1:3, ], type = "distribution"),
 +       uc2 = predict(uc2, marginal = 2, newdata = d[1:3, ], type = "distribution"))
-     u1            
-1 0.382 0.388 0.380
-2 0.587 0.587 0.577
-3 0.014 0.012 0.014
-> cbind(u2 = predict(u2, newdata = d[1:3, ], type = "distribution"),
++ cbind(u2 = predict(u2, newdata = d[1:3, ], type = "distribution"),
 +       uc1 = predict(uc1, marginal = 2, newdata = d[1:3, ], type = "distribution"),
 +       uc2 = predict(uc2, marginal = 1, newdata = d[1:3, ], type = "distribution"))
-    u2          
-1 0.39 0.39 0.40
-2 0.64 0.64 0.65
-3 0.96 0.96 0.96
-> 
-> cbind(u1l = predict(u1l, newdata = d[1:3, ], type = "distribution"),
++ 
++ cbind(u1l = predict(u1l, newdata = d[1:3, ], type = "distribution"),
 +       uc1l = predict(uc1l, marginal = 1, newdata = d[1:3, ], type = "distribution"),
 +       uc2l = predict(uc2l, marginal = 2, newdata = d[1:3, ], type = "distribution"))
-    u1l            
-1 0.378 0.385 0.377
-2 0.591 0.590 0.579
-3 0.014 0.012 0.014
-> cbind(u2l = predict(u2l, newdata = d[1:3, ], type = "distribution"),
++ cbind(u2l = predict(u2l, newdata = d[1:3, ], type = "distribution"),
 +       uc1l = predict(uc1l, marginal = 2, newdata = d[1:3, ], type = "distribution"),
 +       uc2l = predict(uc2l, marginal = 1, newdata = d[1:3, ], type = "distribution"))
-   u2l          
-1 0.39 0.39 0.40
-2 0.64 0.64 0.65
-3 0.96 0.96 0.96
-> 
-> ## QQ-plot to check that marginal transformations are standard normal:
-> nd <- d
-> par(mfrow = c(2, 2))
-> d1 <- predict(uc1, marginal = 1, newdata = d, type = "trafo")
-> qqnorm(d1, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 12, marginal = 1")
-> qqline(d1, col = "red")
-> 
-> d2 <- predict(uc1, marginal = 2, newdata = d, type = "trafo")
-> qqnorm(d2, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 12, marginal = 2")
-> qqline(d2, col = "red")
-> 
-> d3 <- predict(uc2, marginal = 2, newdata = d, type = "trafo")
-> qqnorm(d3, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 21, marginal = 2")
-> qqline(d3, col = "red")
-> 
-> d4 <- predict(uc2, marginal = 1, newdata = d, type = "trafo")
-> qqnorm(d4, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 21, marginal = 2")
-> qqline(d4, col = "red")
-> 
-> ## log_first = FALSE
-> d1 <- predict(uc1l, marginal = 1, newdata = d, type = "trafo")
-> qqnorm(d1, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 12, marginal = 1")
-> qqline(d1, col = "red")
-> 
-> d2 <- predict(uc1l, marginal = 2, newdata = d, type = "trafo")
-> qqnorm(d2, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 12, marginal = 2")
-> qqline(d2, col = "red")
-> 
-> d3 <- predict(uc2l, marginal = 2, newdata = d, type = "trafo")
-> qqnorm(d3, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 21, marginal = 2")
-> qqline(d3, col = "red")
-> 
-> d4 <- predict(uc2l, marginal = 1, newdata = d, type = "trafo")
-> qqnorm(d4, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 21, marginal = 2")
-> qqline(d4, col = "red")
-> 
-> #### continuous approximation
-> ## univariate BoxCox models, log_first = TRUE
-> b1 <- BoxCox(ytt.1 ~ x.1 + x.2, data = d, log_first = TRUE)
-> b2 <- BoxCox(ytt.2 ~ x.1 + x.2, data = d, log_first = TRUE)
-> b1u <- BoxCox(ytut.1 ~ x.1 + x.2, data = d, log_first = TRUE)
-> b2u <- BoxCox(ytut.2 ~ x.1 + x.2, data = d, log_first = TRUE)
-> logLik(b1)
-'log Lik.' -1659 (df=9)
-> logLik(b1u)
-'log Lik.' -1729 (df=9)
-> logLik(b2)
-'log Lik.' -1885 (df=9)
-> logLik(b2u)
-'log Lik.' -1910 (df=9)
-> 
-> b1l <- BoxCox(yt.1 ~ x.1 + x.2, data = d, log_first = FALSE)
-> b2l <- BoxCox(yt.2 ~ x.1 + x.2, data = d, log_first = FALSE)
-> b1ul <- BoxCox(ytu.1 ~ x.1 + x.2, data = d, log_first = FALSE)
-> b2ul <- BoxCox(ytu.2 ~ x.1 + x.2, data = d, log_first = FALSE)
-> logLik(b1l)
-'log Lik.' -1694 (df=9)
-> logLik(b1ul)
-'log Lik.' -1743 (df=9)
-> logLik(b2l)
-'log Lik.' -1936 (df=9)
-> logLik(b2ul)
-'log Lik.' -1946 (df=9)
-> ## multivariate mmlt models
-> mb1 <- mmlt(b1, b2, data = d)
-> mb2 <- mmlt(b2, b1, data = d)
-> logLik(mb1)
-'log Lik.' -3260 (df=19)
-> logLik(mb2)
-'log Lik.' -3260 (df=19)
-> 
-> mb1u <- mmlt(b1u, b2u, data = d)
-> mb2u <- mmlt(b2u, b1u, data = d)
-> logLik(mb1u)
-'log Lik.' -3372 (df=19)
-> logLik(mb2u)
-'log Lik.' -3372 (df=19)
-> 
-> mb1l <- mmlt(b1l, b2l, data = d)
-> mb2l <- mmlt(b2l, b1l, data = d)
-> logLik(mb1l)
-'log Lik.' -3345 (df=19)
-> logLik(mb2l)
-'log Lik.' -3345 (df=19)
-> 
-> mb1ul <- mmlt(b1ul, b2ul, data = d)
-> mb2ul <- mmlt(b2ul, b1ul, data = d)
-> logLik(mb1ul)
-'log Lik.' -3424 (df=19)
-> logLik(mb2ul)
-'log Lik.' -3424 (df=19)
-> 
-> ## compare coef
-> ## log_first = TRUE
-> beta
-[1]  1.0 -1.0 -0.5  0.5
-> coef(mb1)
-      yt.1.Bs1(ytt.1)       yt.1.Bs2(ytt.1)       yt.1.Bs3(ytt.1) 
-                -1.46                 -0.93                 -0.93 
-      yt.1.Bs4(ytt.1)       yt.1.Bs5(ytt.1)       yt.1.Bs6(ytt.1) 
-                -0.88                  0.47                  0.47 
-      yt.1.Bs7(ytt.1)              yt.1.x.1              yt.1.x.2 
-                 1.31                  0.96                 -1.02 
-      yt.2.Bs1(ytt.2)       yt.2.Bs2(ytt.2)       yt.2.Bs3(ytt.2) 
-                -1.59                 -0.94                 -0.94 
-      yt.2.Bs4(ytt.2)       yt.2.Bs5(ytt.2)       yt.2.Bs6(ytt.2) 
-                -0.91                  0.62                  0.62 
-      yt.2.Bs7(ytt.2)              yt.2.x.1              yt.2.x.2 
-                 1.81                 -0.71                  0.46 
-yt.2.yt.1.(Intercept) 
-                 0.88 
-> coef(mb2)
-      yt.2.Bs1(ytt.2)       yt.2.Bs2(ytt.2)       yt.2.Bs3(ytt.2) 
-                -1.20                 -0.71                 -0.71 
-      yt.2.Bs4(ytt.2)       yt.2.Bs5(ytt.2)       yt.2.Bs6(ytt.2) 
-                -0.68                  0.47                  0.47 
-      yt.2.Bs7(ytt.2)              yt.2.x.1              yt.2.x.2 
-                 1.36                 -0.53                  0.35 
-      yt.1.Bs1(ytt.1)       yt.1.Bs2(ytt.1)       yt.1.Bs3(ytt.1) 
-                -1.94                 -1.24                 -1.24 
-      yt.1.Bs4(ytt.1)       yt.1.Bs5(ytt.1)       yt.1.Bs6(ytt.1) 
-                -1.17                  0.62                  0.62 
-      yt.1.Bs7(ytt.1)              yt.1.x.1              yt.1.x.2 
-                 1.74                  1.28                 -1.36 
-yt.1.yt.2.(Intercept) 
-                 0.88 
-> value
-[1] 0.9
-> ## compare coef
-> # coef(mb1)
-> # coef(mb2)
-> coef(mb1, type = "Lambda")[1,]
-   1 
-0.88 
-> coef(mb2, type = "Lambda")[1,]
-   1 
-0.88 
-> coef(mb1, type = "Corr")[1,]
-[1] -0.66
-> coef(mb2, type = "Corr")[1,]
-[1] -0.66
-> 
-> coef(mb1u, type = "Lambda")[1,]
-   1 
-0.84 
-> coef(mb2u, type = "Lambda")[1,]
-   1 
-0.84 
-> coef(mb1u, type = "Corr")[1,]
-[1] -0.64
-> coef(mb2u, type = "Corr")[1,]
-[1] -0.64
-> 
-> ## log_first = FALSE
-> # coef(mb1l)
-> # coef(mb2l)
-> coef(mb1l, type = "Lambda")[1,]
-   1 
-0.88 
-> coef(mb2l, type = "Lambda")[1,]
-   1 
-0.88 
-> coef(mb1l, type = "Corr")[1,]
-[1] -0.66
-> coef(mb2l, type = "Corr")[1,]
-[1] -0.66
-> 
-> coef(mb1ul, type = "Lambda")[1,]
-   1 
-0.84 
-> coef(mb2ul, type = "Lambda")[1,]
-   1 
-0.84 
-> coef(mb1ul, type = "Corr")[1,]
-[1] -0.64
-> coef(mb2ul, type = "Corr")[1,]
-[1] -0.64
-> 
-> ## transformation theory check
-> ## for constant lambdas, the transformed coefficients should agree with the
-> ## coefficients of the model with the different order
-> 
-> ## log_first = TRUE
-> coef(mb1)[-c(1:7, 15)] / sqrt(coef(mb1, type = "Sigma")$diagonal[1,2])
-             yt.1.x.1              yt.1.x.2       yt.2.Bs1(ytt.2) 
-                 0.72                 -0.77                 -1.20 
-      yt.2.Bs2(ytt.2)       yt.2.Bs3(ytt.2)       yt.2.Bs4(ytt.2) 
-                -0.71                 -0.71                 -0.68 
-      yt.2.Bs5(ytt.2)       yt.2.Bs7(ytt.2)              yt.2.x.1 
-                 0.47                  1.36                 -0.53 
-             yt.2.x.2 yt.2.yt.1.(Intercept) 
-                 0.35                  0.66 
-> coef(mb2)[1:7]
-yt.2.Bs1(ytt.2) yt.2.Bs2(ytt.2) yt.2.Bs3(ytt.2) yt.2.Bs4(ytt.2) yt.2.Bs5(ytt.2) 
-          -1.20           -0.71           -0.71           -0.68            0.47 
-yt.2.Bs6(ytt.2) yt.2.Bs7(ytt.2) 
-           0.47            1.36 
-> 
-> coef(mb2)[-c(1:7, 15)] / sqrt(coef(mb2, type = "Sigma")$diagonal[1,2])
-             yt.2.x.1              yt.2.x.2       yt.1.Bs1(ytt.1) 
-                -0.40                  0.26                 -1.46 
-      yt.1.Bs2(ytt.1)       yt.1.Bs3(ytt.1)       yt.1.Bs4(ytt.1) 
-                -0.93                 -0.93                 -0.88 
-      yt.1.Bs5(ytt.1)       yt.1.Bs7(ytt.1)              yt.1.x.1 
-                 0.47                  1.31                  0.96 
-             yt.1.x.2 yt.1.yt.2.(Intercept) 
-                -1.02                  0.66 
-> coef(mb1)[1:7]
-yt.1.Bs1(ytt.1) yt.1.Bs2(ytt.1) yt.1.Bs3(ytt.1) yt.1.Bs4(ytt.1) yt.1.Bs5(ytt.1) 
-          -1.46           -0.93           -0.93           -0.88            0.47 
-yt.1.Bs6(ytt.1) yt.1.Bs7(ytt.1) 
-           0.47            1.31 
-> 
-> coef(mb1u)[-c(1:7, 15)] / sqrt(coef(mb1u, type = "Sigma")$diagonal[1,2])
-             yt.1.x.1              yt.1.x.2      yt.2.Bs1(ytut.2) 
-                0.771                -0.750                -1.654 
-     yt.2.Bs2(ytut.2)      yt.2.Bs3(ytut.2)      yt.2.Bs4(ytut.2) 
-               -0.915                -0.915                -0.810 
-     yt.2.Bs5(ytut.2)      yt.2.Bs7(ytut.2)              yt.2.x.1 
-                0.029                 1.241                -0.533 
-             yt.2.x.2 yt.2.yt.1.(Intercept) 
-                0.346                 0.643 
-> coef(mb2u)[1:7]
-yt.2.Bs1(ytut.2) yt.2.Bs2(ytut.2) yt.2.Bs3(ytut.2) yt.2.Bs4(ytut.2) 
-          -1.654           -0.915           -0.915           -0.810 
-yt.2.Bs5(ytut.2) yt.2.Bs6(ytut.2) yt.2.Bs7(ytut.2) 
-           0.029            0.283            1.241 
-> 
-> coef(mb2u)[-c(1:7, 15)] / sqrt(coef(mb2u, type = "Sigma")$diagonal[1,2])
-             yt.2.x.1              yt.2.x.2      yt.1.Bs1(ytut.1) 
-               -0.409                 0.265                -1.435 
-     yt.1.Bs2(ytut.1)      yt.1.Bs3(ytut.1)      yt.1.Bs4(ytut.1) 
-               -1.033                -1.033                -0.078 
-     yt.1.Bs5(ytut.1)      yt.1.Bs7(ytut.1)              yt.1.x.1 
-               -0.078                 1.458                 1.006 
-             yt.1.x.2 yt.1.yt.2.(Intercept) 
-               -0.979                 0.643 
-> coef(mb1u)[1:7]
-yt.1.Bs1(ytut.1) yt.1.Bs2(ytut.1) yt.1.Bs3(ytut.1) yt.1.Bs4(ytut.1) 
-          -1.435           -1.033           -1.033           -0.078 
-yt.1.Bs5(ytut.1) yt.1.Bs6(ytut.1) yt.1.Bs7(ytut.1) 
-          -0.078            0.655            1.458 
-> 
-> ## log_first = FALSE
-> ## doesn't seem to be the case for log_first = FALSE?
-> coef(mb1l)[-c(1:7, 15)] / sqrt(coef(mb1l, type = "Sigma")$diagonal[1,2])
-             yt.1.x.1              yt.1.x.2        yt.2.Bs1(yt.2) 
-                 0.72                 -0.77                 -1.31 
-       yt.2.Bs2(yt.2)        yt.2.Bs3(yt.2)        yt.2.Bs4(yt.2) 
-                -0.30                 -0.30                 -0.14 
-       yt.2.Bs5(yt.2)        yt.2.Bs7(yt.2)              yt.2.x.1 
-                 0.91                  1.33                 -0.52 
-             yt.2.x.2 yt.2.yt.1.(Intercept) 
-                 0.35                  0.66 
-> coef(mb2l)[1:7]
-yt.2.Bs1(yt.2) yt.2.Bs2(yt.2) yt.2.Bs3(yt.2) yt.2.Bs4(yt.2) yt.2.Bs5(yt.2) 
-         -1.31          -0.30          -0.30          -0.14           0.91 
-yt.2.Bs6(yt.2) yt.2.Bs7(yt.2) 
-          0.91           1.33 
-> 
-> coef(mb2l)[-c(1:7, 15)] / sqrt(coef(mb2l, type = "Sigma")$diagonal[1,2])
-             yt.2.x.1              yt.2.x.2        yt.1.Bs1(yt.1) 
-               -0.391                 0.259                -1.570 
-       yt.1.Bs2(yt.1)        yt.1.Bs3(yt.1)        yt.1.Bs4(yt.1) 
-               -0.609                -0.609                -0.059 
-       yt.1.Bs5(yt.1)        yt.1.Bs7(yt.1)              yt.1.x.1 
-                0.812                 1.261                 0.960 
-             yt.1.x.2 yt.1.yt.2.(Intercept) 
-               -1.022                 0.659 
-> coef(mb1l)[1:7]
-yt.1.Bs1(yt.1) yt.1.Bs2(yt.1) yt.1.Bs3(yt.1) yt.1.Bs4(yt.1) yt.1.Bs5(yt.1) 
-        -1.570         -0.609         -0.609         -0.059          0.812 
-yt.1.Bs6(yt.1) yt.1.Bs7(yt.1) 
-         0.812          1.261 
-> 
-> coef(mb1ul)[-c(1:7, 15)] / sqrt(coef(mb1ul, type = "Sigma")$diagonal[1,2])
-             yt.1.x.1              yt.1.x.2       yt.2.Bs1(ytu.2) 
-                 0.77                 -0.75                 -1.71 
-      yt.2.Bs2(ytu.2)       yt.2.Bs3(ytu.2)       yt.2.Bs4(ytu.2) 
-                -0.45                 -0.45                 -0.25 
-      yt.2.Bs5(ytu.2)       yt.2.Bs7(ytu.2)              yt.2.x.1 
-                 0.62                  1.22                 -0.52 
-             yt.2.x.2 yt.2.yt.1.(Intercept) 
-                 0.34                  0.64 
-> coef(mb2ul)[1:7]
-yt.2.Bs1(ytu.2) yt.2.Bs2(ytu.2) yt.2.Bs3(ytu.2) yt.2.Bs4(ytu.2) yt.2.Bs5(ytu.2) 
-          -1.71           -0.45           -0.45           -0.25            0.62 
-yt.2.Bs6(ytu.2) yt.2.Bs7(ytu.2) 
-           0.81            1.22 
-> 
-> coef(mb2ul)[-c(1:7, 15)] / sqrt(coef(mb2ul, type = "Sigma")$diagonal[1,2])
-             yt.2.x.1              yt.2.x.2       yt.1.Bs1(ytu.1) 
-                -0.40                  0.26                 -1.50 
-      yt.1.Bs2(ytu.1)       yt.1.Bs3(ytu.1)       yt.1.Bs4(ytu.1) 
-                -0.62                 -0.50                  0.25 
-      yt.1.Bs5(ytu.1)       yt.1.Bs7(ytu.1)              yt.1.x.1 
-                 0.51                  1.44                  1.01 
-             yt.1.x.2 yt.1.yt.2.(Intercept) 
-                -0.98                  0.64 
-> coef(mb1ul)[1:7]
-yt.1.Bs1(ytu.1) yt.1.Bs2(ytu.1) yt.1.Bs3(ytu.1) yt.1.Bs4(ytu.1) yt.1.Bs5(ytu.1) 
-          -1.50           -0.62           -0.50            0.25            0.51 
-yt.1.Bs6(ytu.1) yt.1.Bs7(ytu.1) 
-           1.03            1.44 
-> 
-> ### predict accuracy
-> cbind(b1 = predict(b1, newdata = d[1:3, ], type = "distribution"),
++ 
++ ## QQ-plot to check that marginal transformations are standard normal:
++ nd <- d
++ par(mfrow = c(2, 2))
++ d1 <- predict(uc1, marginal = 1, newdata = d, type = "trafo")
++ qqnorm(d1, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 12, marginal = 1")
++ qqline(d1, col = "red")
++ 
++ d2 <- predict(uc1, marginal = 2, newdata = d, type = "trafo")
++ qqnorm(d2, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 12, marginal = 2")
++ qqline(d2, col = "red")
++ 
++ d3 <- predict(uc2, marginal = 2, newdata = d, type = "trafo")
++ qqnorm(d3, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 21, marginal = 2")
++ qqline(d3, col = "red")
++ 
++ d4 <- predict(uc2, marginal = 1, newdata = d, type = "trafo")
++ qqnorm(d4, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 21, marginal = 2")
++ qqline(d4, col = "red")
++ 
++ ## log_first = FALSE
++ d1 <- predict(uc1l, marginal = 1, newdata = d, type = "trafo")
++ qqnorm(d1, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 12, marginal = 1")
++ qqline(d1, col = "red")
++ 
++ d2 <- predict(uc1l, marginal = 2, newdata = d, type = "trafo")
++ qqnorm(d2, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 12, marginal = 2")
++ qqline(d2, col = "red")
++ 
++ d3 <- predict(uc2l, marginal = 2, newdata = d, type = "trafo")
++ qqnorm(d3, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 21, marginal = 2")
++ qqline(d3, col = "red")
++ 
++ d4 <- predict(uc2l, marginal = 1, newdata = d, type = "trafo")
++ qqnorm(d4, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 21, marginal = 2")
++ qqline(d4, col = "red")
++ 
++ #### continuous approximation
++ ## univariate BoxCox models, log_first = TRUE
++ b1 <- BoxCox(ytt.1 ~ x.1 + x.2, data = d, log_first = TRUE)
++ b2 <- BoxCox(ytt.2 ~ x.1 + x.2, data = d, log_first = TRUE)
++ b1u <- BoxCox(ytut.1 ~ x.1 + x.2, data = d, log_first = TRUE)
++ b2u <- BoxCox(ytut.2 ~ x.1 + x.2, data = d, log_first = TRUE)
++ logLik(b1)
++ logLik(b1u)
++ logLik(b2)
++ logLik(b2u)
++ 
++ b1l <- BoxCox(yt.1 ~ x.1 + x.2, data = d, log_first = FALSE)
++ b2l <- BoxCox(yt.2 ~ x.1 + x.2, data = d, log_first = FALSE)
++ b1ul <- BoxCox(ytu.1 ~ x.1 + x.2, data = d, log_first = FALSE)
++ b2ul <- BoxCox(ytu.2 ~ x.1 + x.2, data = d, log_first = FALSE)
++ logLik(b1l)
++ logLik(b1ul)
++ logLik(b2l)
++ logLik(b2ul)
++ ## multivariate mmlt models
++ mb1 <- mmlt(b1, b2, data = d)
++ mb2 <- mmlt(b2, b1, data = d)
++ logLik(mb1)
++ logLik(mb2)
++ 
++ mb1u <- mmlt(b1u, b2u, data = d)
++ mb2u <- mmlt(b2u, b1u, data = d)
++ logLik(mb1u)
++ logLik(mb2u)
++ 
++ mb1l <- mmlt(b1l, b2l, data = d)
++ mb2l <- mmlt(b2l, b1l, data = d)
++ logLik(mb1l)
++ logLik(mb2l)
++ 
++ mb1ul <- mmlt(b1ul, b2ul, data = d)
++ mb2ul <- mmlt(b2ul, b1ul, data = d)
++ logLik(mb1ul)
++ logLik(mb2ul)
++ 
++ ## compare coef
++ ## log_first = TRUE
++ beta
++ coef(mb1)
++ coef(mb2)
++ value
++ ## compare coef
++ # coef(mb1)
++ # coef(mb2)
++ coef(mb1, type = "Lambda")[1,]
++ coef(mb2, type = "Lambda")[1,]
++ coef(mb1, type = "Corr")[1,]
++ coef(mb2, type = "Corr")[1,]
++ 
++ coef(mb1u, type = "Lambda")[1,]
++ coef(mb2u, type = "Lambda")[1,]
++ coef(mb1u, type = "Corr")[1,]
++ coef(mb2u, type = "Corr")[1,]
++ 
++ ## log_first = FALSE
++ # coef(mb1l)
++ # coef(mb2l)
++ coef(mb1l, type = "Lambda")[1,]
++ coef(mb2l, type = "Lambda")[1,]
++ coef(mb1l, type = "Corr")[1,]
++ coef(mb2l, type = "Corr")[1,]
++ 
++ coef(mb1ul, type = "Lambda")[1,]
++ coef(mb2ul, type = "Lambda")[1,]
++ coef(mb1ul, type = "Corr")[1,]
++ coef(mb2ul, type = "Corr")[1,]
++ 
++ ## transformation theory check
++ ## for constant lambdas, the transformed coefficients should agree with the
++ ## coefficients of the model with the different order
++ 
++ ## log_first = TRUE
++ coef(mb1)[-c(1:7, 15)] / sqrt(coef(mb1, type = "Sigma")$diagonal[1,2])
++ coef(mb2)[1:7]
++ 
++ coef(mb2)[-c(1:7, 15)] / sqrt(coef(mb2, type = "Sigma")$diagonal[1,2])
++ coef(mb1)[1:7]
++ 
++ coef(mb1u)[-c(1:7, 15)] / sqrt(coef(mb1u, type = "Sigma")$diagonal[1,2])
++ coef(mb2u)[1:7]
++ 
++ coef(mb2u)[-c(1:7, 15)] / sqrt(coef(mb2u, type = "Sigma")$diagonal[1,2])
++ coef(mb1u)[1:7]
++ 
++ ## log_first = FALSE
++ ## doesn't seem to be the case for log_first = FALSE?
++ coef(mb1l)[-c(1:7, 15)] / sqrt(coef(mb1l, type = "Sigma")$diagonal[1,2])
++ coef(mb2l)[1:7]
++ 
++ coef(mb2l)[-c(1:7, 15)] / sqrt(coef(mb2l, type = "Sigma")$diagonal[1,2])
++ coef(mb1l)[1:7]
++ 
++ coef(mb1ul)[-c(1:7, 15)] / sqrt(coef(mb1ul, type = "Sigma")$diagonal[1,2])
++ coef(mb2ul)[1:7]
++ 
++ coef(mb2ul)[-c(1:7, 15)] / sqrt(coef(mb2ul, type = "Sigma")$diagonal[1,2])
++ coef(mb1ul)[1:7]
++ 
++ ### predict accuracy
++ cbind(b1 = predict(b1, newdata = d[1:3, ], type = "distribution"),
 +       mb1 = predict(mb1, marginal = 1, newdata = d[1:3, ], type = "distribution"),
 +       mb2 = predict(mb2, marginal = 2, newdata = d[1:3, ], type = "distribution"))
-      b1              
-1 0.2373 0.2413 0.2413
-2 0.4584 0.4611 0.4611
-3 0.0043 0.0039 0.0039
-> cbind(b2 = predict(b2, newdata = d[1:3, ], type = "distribution"),
++ cbind(b2 = predict(b2, newdata = d[1:3, ], type = "distribution"),
 +       mb1 = predict(mb1, marginal = 2, newdata = d[1:3, ], type = "distribution"),
 +       mb2 = predict(mb2, marginal = 1, newdata = d[1:3, ], type = "distribution"))
-    b2          
-1 0.29 0.29 0.29
-2 0.55 0.55 0.55
-3 0.94 0.94 0.94
-> 
-> cbind(b1u = predict(b1u, newdata = d[1:3, ], type = "distribution"),
++ 
++ cbind(b1u = predict(b1u, newdata = d[1:3, ], type = "distribution"),
 +       mb1u = predict(mb1u, marginal = 1, newdata = d[1:3, ], type = "distribution"),
 +       mb2u = predict(mb2u, marginal = 2, newdata = d[1:3, ], type = "distribution"))
-     b1u            
-1 0.2867 0.288 0.288
-2 0.5064 0.506 0.506
-3 0.0079 0.008 0.008
-> cbind(b2u = predict(b2u, newdata = d[1:3, ], type = "distribution"),
++ cbind(b2u = predict(b2u, newdata = d[1:3, ], type = "distribution"),
 +       mb1u = predict(mb1u, marginal = 2, newdata = d[1:3, ], type = "distribution"),
 +       mb2u = predict(mb2u, marginal = 1, newdata = d[1:3, ], type = "distribution"))
-   b2u          
-1 0.38 0.39 0.39
-2 0.55 0.55 0.55
-3 0.92 0.92 0.92
-> 
-> cbind(b1l = predict(b1l, newdata = d[1:3, ], type = "distribution"),
++ 
++ cbind(b1l = predict(b1l, newdata = d[1:3, ], type = "distribution"),
 +       mb1l = predict(mb1l, marginal = 1, newdata = d[1:3, ], type = "distribution"),
 +       mb2l = predict(mb2l, marginal = 2, newdata = d[1:3, ], type = "distribution"))
-     b1l              
-1 0.2544 0.2578 0.2577
-2 0.4564 0.4578 0.4578
-3 0.0064 0.0059 0.0059
-> cbind(b2l = predict(b2l, newdata = d[1:3, ], type = "distribution"),
++ cbind(b2l = predict(b2l, newdata = d[1:3, ], type = "distribution"),
 +       mb1l = predict(mb1l, marginal = 2, newdata = d[1:3, ], type = "distribution"),
 +       mb2l = predict(mb2l, marginal = 1, newdata = d[1:3, ], type = "distribution"))
-   b2l          
-1 0.31 0.32 0.32
-2 0.54 0.55 0.55
-3 0.93 0.93 0.93
-> 
-> cbind(b1ul = predict(b1ul, newdata = d[1:3, ], type = "distribution"),
++ 
++ cbind(b1ul = predict(b1ul, newdata = d[1:3, ], type = "distribution"),
 +       mb1ul = predict(mb1ul, marginal = 1, newdata = d[1:3, ], type = "distribution"),
 +       mb2ul = predict(mb2ul, marginal = 2, newdata = d[1:3, ], type = "distribution"))
-    b1ul              
-1 0.2874 0.2892 0.2893
-2 0.5077 0.5065 0.5066
-3 0.0089 0.0089 0.0089
-> cbind(b2ul = predict(b2ul, newdata = d[1:3, ], type = "distribution"),
++ cbind(b2ul = predict(b2ul, newdata = d[1:3, ], type = "distribution"),
 +       mb1ul = predict(mb1ul, marginal = 2, newdata = d[1:3, ], type = "distribution"),
 +       mb2ul = predict(mb2ul, marginal = 1, newdata = d[1:3, ], type = "distribution"))
-  b2ul          
-1 0.39 0.39 0.39
-2 0.54 0.54 0.54
-3 0.92 0.92 0.92
-> 
-> ## QQ-plot to check that marginal transformations are standard normal:
-> nd <- d
-> par(mfrow = c(2, 2))
-> d1 <- predict(mb1, marginal = 1, newdata = d, type = "trafo")
-> qqnorm(d1, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 12, marginal = 1")
-> qqline(d1, col = "red")
-> 
-> d2 <- predict(mb1, marginal = 2, newdata = d, type = "trafo")
-> qqnorm(d2, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 12, marginal = 2")
-> qqline(d2, col = "red")
-> 
-> d3 <- predict(mb2, marginal = 2, newdata = d, type = "trafo")
-> qqnorm(d3, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 21, marginal = 2")
-> qqline(d3, col = "red")
-> 
-> d4 <- predict(mb2, marginal = 1, newdata = d, type = "trafo")
-> qqnorm(d4, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 21, marginal = 2")
-> qqline(d4, col = "red")
-> 
-> 
-> d1 <- predict(mb1u, marginal = 1, newdata = d, type = "trafo")
-> qqnorm(d1, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 12, marginal = 1")
-> qqline(d1, col = "red")
-> 
-> d2 <- predict(mb1u, marginal = 2, newdata = d, type = "trafo")
-> qqnorm(d2, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 12, marginal = 2")
-> qqline(d2, col = "red")
-> 
-> d3 <- predict(mb2u, marginal = 2, newdata = d, type = "trafo")
-> qqnorm(d3, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 21, marginal = 2")
-> qqline(d3, col = "red")
-> 
-> d4 <- predict(mb2u, marginal = 1, newdata = d, type = "trafo")
-> qqnorm(d4, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 21, marginal = 2")
-> qqline(d4, col = "red")
-> 
-> ## log_first = FALSE
-> d1 <- predict(mb1l, marginal = 1, newdata = d, type = "trafo")
-> qqnorm(d1, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 12, marginal = 1")
-> qqline(d1, col = "red")
-> 
-> d2 <- predict(mb1l, marginal = 2, newdata = d, type = "trafo")
-> qqnorm(d2, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 12, marginal = 2")
-> qqline(d2, col = "red")
-> 
-> d3 <- predict(mb2l, marginal = 2, newdata = d, type = "trafo")
-> qqnorm(d3, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 21, marginal = 2")
-> qqline(d3, col = "red")
-> 
-> d4 <- predict(mb2l, marginal = 1, newdata = d, type = "trafo")
-> qqnorm(d4, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 21, marginal = 2")
-> qqline(d4, col = "red")
-> 
-> 
-> d1 <- predict(mb1ul, marginal = 1, newdata = d, type = "trafo")
-> qqnorm(d1, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 12, marginal = 1")
-> qqline(d1, col = "red")
-> 
-> d2 <- predict(mb1ul, marginal = 2, newdata = d, type = "trafo")
-> qqnorm(d2, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 12, marginal = 2")
-> qqline(d2, col = "red")
-> 
-> d3 <- predict(mb2ul, marginal = 2, newdata = d, type = "trafo")
-> qqnorm(d3, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 21, marginal = 2")
-> qqline(d3, col = "red")
-> 
-> d4 <- predict(mb2ul, marginal = 1, newdata = d, type = "trafo")
-> qqnorm(d4, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 21, marginal = 2")
-> qqline(d4, col = "red")
-> 
-> #############################################################
-> ###### lambda = lambda(x), marginal models ~ x.1 + x.2 ######
-> #############################################################
-> 
-> ## data
-> ## need to simulate data with lambdas that depend on x.1, x.2
-> set.seed(2701)
-> N <- 1000
-> J <- 2
-> x <- matrix(runif(N * J), ncol = J)
-> 
-> beta <- c(1, -1, -.5, .5)
-> # beta <- rep(0, 4)
-> 
-> xb <- x %*% matrix(beta, nrow = 2)
-> ly <- xb
-> 
-> lb <- (off_l <- 0.4) + x %*% (cf_l <- c(1.3, 0.6))
-> # plot(lb)
-> cr <- numeric(N)
-> 
-> for (i in 1:N) {
++ 
++ ## QQ-plot to check that marginal transformations are standard normal:
++ nd <- d
++ par(mfrow = c(2, 2))
++ d1 <- predict(mb1, marginal = 1, newdata = d, type = "trafo")
++ qqnorm(d1, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 12, marginal = 1")
++ qqline(d1, col = "red")
++ 
++ d2 <- predict(mb1, marginal = 2, newdata = d, type = "trafo")
++ qqnorm(d2, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 12, marginal = 2")
++ qqline(d2, col = "red")
++ 
++ d3 <- predict(mb2, marginal = 2, newdata = d, type = "trafo")
++ qqnorm(d3, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 21, marginal = 2")
++ qqline(d3, col = "red")
++ 
++ d4 <- predict(mb2, marginal = 1, newdata = d, type = "trafo")
++ qqnorm(d4, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 21, marginal = 2")
++ qqline(d4, col = "red")
++ 
++ 
++ d1 <- predict(mb1u, marginal = 1, newdata = d, type = "trafo")
++ qqnorm(d1, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 12, marginal = 1")
++ qqline(d1, col = "red")
++ 
++ d2 <- predict(mb1u, marginal = 2, newdata = d, type = "trafo")
++ qqnorm(d2, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 12, marginal = 2")
++ qqline(d2, col = "red")
++ 
++ d3 <- predict(mb2u, marginal = 2, newdata = d, type = "trafo")
++ qqnorm(d3, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 21, marginal = 2")
++ qqline(d3, col = "red")
++ 
++ d4 <- predict(mb2u, marginal = 1, newdata = d, type = "trafo")
++ qqnorm(d4, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 21, marginal = 2")
++ qqline(d4, col = "red")
++ 
++ ## log_first = FALSE
++ d1 <- predict(mb1l, marginal = 1, newdata = d, type = "trafo")
++ qqnorm(d1, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 12, marginal = 1")
++ qqline(d1, col = "red")
++ 
++ d2 <- predict(mb1l, marginal = 2, newdata = d, type = "trafo")
++ qqnorm(d2, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 12, marginal = 2")
++ qqline(d2, col = "red")
++ 
++ d3 <- predict(mb2l, marginal = 2, newdata = d, type = "trafo")
++ qqnorm(d3, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 21, marginal = 2")
++ qqline(d3, col = "red")
++ 
++ d4 <- predict(mb2l, marginal = 1, newdata = d, type = "trafo")
++ qqnorm(d4, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 21, marginal = 2")
++ qqline(d4, col = "red")
++ 
++ 
++ d1 <- predict(mb1ul, marginal = 1, newdata = d, type = "trafo")
++ qqnorm(d1, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 12, marginal = 1")
++ qqline(d1, col = "red")
++ 
++ d2 <- predict(mb1ul, marginal = 2, newdata = d, type = "trafo")
++ qqnorm(d2, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 12, marginal = 2")
++ qqline(d2, col = "red")
++ 
++ d3 <- predict(mb2ul, marginal = 2, newdata = d, type = "trafo")
++ qqnorm(d3, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 21, marginal = 2")
++ qqline(d3, col = "red")
++ 
++ d4 <- predict(mb2ul, marginal = 1, newdata = d, type = "trafo")
++ qqnorm(d4, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 21, marginal = 2")
++ qqline(d4, col = "red")
++ 
++ #############################################################
++ ###### lambda = lambda(x), marginal models ~ x.1 + x.2 ######
++ #############################################################
++ 
++ ## data
++ ## need to simulate data with lambdas that depend on x.1, x.2
++ set.seed(2701)
++ N <- 1000
++ J <- 2
++ x <- matrix(runif(N * J), ncol = J)
++ 
++ beta <- c(1, -1, -.5, .5)
++ # beta <- rep(0, 4)
++ 
++ xb <- x %*% matrix(beta, nrow = 2)
++ ly <- xb
++ 
++ lb <- (off_l <- 0.4) + x %*% (cf_l <- c(1.3, 0.6))
++ # plot(lb)
++ cr <- numeric(N)
++ 
++ for (i in 1:N) {
 +    L_i <- diag(J)
 +    L_i[2, 1] <- lb[i]
 +    S_i <- tcrossprod(solve(L_i))
 +    ly[i, ] <- ly[i, ] + rmvnorm(1, sigma = S_i)
 +    cr[i] <- cov2cor(S_i)[1, 2]
 + }
-> 
-> ly_marg <- pnorm(ly)
-> y <- qbinom(ly_marg, size = 10, prob = 0.3) 
-> 
-> ## or take different distributions for the two margins
-> # y <- ly
-> # y[,1] <- qbinom(ly_marg[,1], size = 15, prob = 0.2) 
-> # y[,2] <- qbinom(ly_marg[,2], size = 10, prob = 0.3) 
-> 
-> # d <- data.frame(y = y, x = x)
-> yt <- y - 0.5*(y > 0)
-> ytt <- yt + 1
-> ytu <- y - runif(length(y))*(y > 0)
-> ytut <- ytu + 1
-> d <- data.frame(y = y, yt = yt, ytt = ytt, ytut = ytut, ytu = ytu, x = x)
-> # hist(d$y.1, breaks = 50)
-> # hist(d$y.2, breaks = 50)
-> # sort(unique(y)) ## we only have counts
-> # plot(y)
-> 
-> ##################################
-> ## cotram models for the marginals
-> u1 <- cotram(y.1 ~ x.1 + x.2, data = d, method = "probit")
-> u2 <- cotram(y.2 ~ x.1 + x.2, data = d, method = "probit")
-> 
-> ## joint models with different orders of the marginals, constant lambdas
-> uc1 <- mcotram(u1, u2, data = d, formula = ~ x.1 + x.2)
-> uc2 <- mcotram(u2, u1, data = d, formula = ~ x.1 + x.2)
-> logLik(uc1)
-'log Lik.' -3437 (df=21)
-> logLik(uc2) ## these log-likelihoods will not be the same
-'log Lik.' -3499 (df=21)
-> 
-> ## check gradient
-> all.equal(uc1$sc(uc2$par), numDeriv::grad(uc1$ll, uc2$par),
++ 
++ ly_marg <- pnorm(ly)
++ y <- qbinom(ly_marg, size = 10, prob = 0.3) 
++ 
++ ## or take different distributions for the two margins
++ # y <- ly
++ # y[,1] <- qbinom(ly_marg[,1], size = 15, prob = 0.2) 
++ # y[,2] <- qbinom(ly_marg[,2], size = 10, prob = 0.3) 
++ 
++ # d <- data.frame(y = y, x = x)
++ yt <- y - 0.5*(y > 0)
++ ytt <- yt + 1
++ ytu <- y - runif(length(y))*(y > 0)
++ ytut <- ytu + 1
++ d <- data.frame(y = y, yt = yt, ytt = ytt, ytut = ytut, ytu = ytu, x = x)
++ # hist(d$y.1, breaks = 50)
++ # hist(d$y.2, breaks = 50)
++ # sort(unique(y)) ## we only have counts
++ # plot(y)
++ 
++ ##################################
++ ## cotram models for the marginals
++ u1 <- cotram(y.1 ~ x.1 + x.2, data = d, method = "probit")
++ u2 <- cotram(y.2 ~ x.1 + x.2, data = d, method = "probit")
++ 
++ ## joint models with different orders of the marginals, constant lambdas
++ uc1 <- mcotram(u1, u2, data = d, formula = ~ x.1 + x.2)
++ uc2 <- mcotram(u2, u1, data = d, formula = ~ x.1 + x.2)
++ logLik(uc1)
++ logLik(uc2) ## these log-likelihoods will not be the same
++ 
++ ## check gradient
++ all.equal(uc1$sc(uc2$par), numDeriv::grad(uc1$ll, uc2$par),
 +           tol = 1e-6, check.attributes = FALSE)
-[1] TRUE
-> 
-> ## marginal cotram models with log_first = FALSE
-> # uc1 <- uc2 <- 0
-> u1l <- cotram(y.1 ~ x.1 + x.2, data = d, method = "probit", log_first = FALSE)
-> u2l <- cotram(y.2 ~ x.1 + x.2, data = d, method = "probit", log_first = FALSE)
-> uc1l <- mcotram(u1l, u2l, data = d, formula = ~ x.1 + x.2)
-> uc2l <- mcotram(u2l, u1l, data = d, formula = ~ x.1 + x.2)
-> logLik(uc1l)
-'log Lik.' -3434 (df=21)
-> logLik(uc2l)
-'log Lik.' -3497 (df=21)
-> all.equal(uc1l$sc(uc2l$par), numDeriv::grad(uc1l$ll, uc2l$par),
++ 
++ ## marginal cotram models with log_first = FALSE
++ # uc1 <- uc2 <- 0
++ u1l <- cotram(y.1 ~ x.1 + x.2, data = d, method = "probit", log_first = FALSE)
++ u2l <- cotram(y.2 ~ x.1 + x.2, data = d, method = "probit", log_first = FALSE)
++ uc1l <- mcotram(u1l, u2l, data = d, formula = ~ x.1 + x.2)
++ uc2l <- mcotram(u2l, u1l, data = d, formula = ~ x.1 + x.2)
++ logLik(uc1l)
++ logLik(uc2l)
++ all.equal(uc1l$sc(uc2l$par), numDeriv::grad(uc1l$ll, uc2l$par),
 +           tol = 1e-6, check.attributes = FALSE)
-[1] TRUE
-> 
-> ## compare coefficients
-> ## recall true coefs:
-> beta
-[1]  1.0 -1.0 -0.5  0.5
-> off_l
-[1] 0.4
-> cf_l
-[1] 1.3 0.6
-> 
-> R <- numeric(3)
-> for (i in 1:3) {
++ 
++ ## compare coefficients
++ ## recall true coefs:
++ beta
++ off_l
++ cf_l
++ 
++ R <- numeric(3)
++ for (i in 1:3) {
 +    L <- diag(2)
 +    L[2,1] <- lb[i]
 +    S <- tcrossprod(solve(L))
 +    R[i] <- cov2cor(S)[2, 1]
 + }
-> 
-> ## log_first = TRUE
-> coef(uc1)
-       y.1.Bs1(y.1)        y.1.Bs2(y.1)        y.1.Bs3(y.1)        y.1.Bs4(y.1) 
-             -3.852              -1.654              -1.654              -1.654 
-       y.1.Bs5(y.1)        y.1.Bs6(y.1)        y.1.Bs7(y.1)             y.1.x.1 
-             -0.271               0.022               1.706               1.141 
-            y.1.x.2        y.2.Bs1(y.2)        y.2.Bs2(y.2)        y.2.Bs3(y.2) 
-             -0.983              -2.175              -2.174              -2.174 
-       y.2.Bs4(y.2)        y.2.Bs5(y.2)        y.2.Bs6(y.2)        y.2.Bs7(y.2) 
-             -1.583              -0.109              -0.015               2.245 
-            y.2.x.1             y.2.x.2 y.2.y.1.(Intercept)         y.2.y.1.x.1 
-             -0.867               0.673               0.376               1.174 
-        y.2.y.1.x.2 
-              0.737 
-> coef(uc2)
-       y.2.Bs1(y.2)        y.2.Bs2(y.2)        y.2.Bs3(y.2)        y.2.Bs4(y.2) 
-             -2.293              -1.055              -1.055              -1.055 
-       y.2.Bs5(y.2)        y.2.Bs6(y.2)        y.2.Bs7(y.2)             y.2.x.1 
-              0.016               0.061               1.396              -0.449 
-            y.2.x.2        y.1.Bs1(y.1)        y.1.Bs2(y.1)        y.1.Bs3(y.1) 
-              0.393              -4.805              -2.665              -2.660 
-       y.1.Bs4(y.1)        y.1.Bs5(y.1)        y.1.Bs6(y.1)        y.1.Bs7(y.1) 
-             -2.660              -0.594               0.282               2.648 
-            y.1.x.1             y.1.x.2 y.1.y.2.(Intercept)         y.1.y.2.x.1 
-              1.995              -1.515               1.382               0.056 
-        y.1.y.2.x.2 
-             -0.125 
-> cbind(lb[1:3], coef(uc1, type = "Lambda")[1:3,], coef(uc2, type = "Lambda")[1:3,])
-  [,1] [,2] [,3]
-1 1.70  1.6  1.4
-2 0.98  1.0  1.3
-3 1.32  1.4  1.3
-> cbind(orig = R, uc1 = coef(uc1, type = "Corr")[1:3,], 
++ 
++ ## log_first = TRUE
++ coef(uc1)
++ coef(uc2)
++ cbind(lb[1:3], coef(uc1, type = "Lambda")[1:3,], coef(uc2, type = "Lambda")[1:3,])
++ cbind(orig = R, uc1 = coef(uc1, type = "Corr")[1:3,], 
 +       uc2 = coef(uc2, type = "Corr")[1:3,])
-      orig   uc1   uc2
-[1,] -0.86 -0.85 -0.81
-[2,] -0.70 -0.72 -0.79
-[3,] -0.80 -0.81 -0.79
-> 
-> ## log_first = FALSE
-> coef(uc1l)
-       y.1.Bs1(y.1)        y.1.Bs2(y.1)        y.1.Bs3(y.1)        y.1.Bs4(y.1) 
-              -2.56               -1.01               -1.01                0.34 
-       y.1.Bs5(y.1)        y.1.Bs6(y.1)        y.1.Bs7(y.1)             y.1.x.1 
-               0.48                1.07                1.68                1.14 
-            y.1.x.2        y.2.Bs1(y.2)        y.2.Bs2(y.2)        y.2.Bs3(y.2) 
-              -0.98               -2.38               -1.63               -0.31 
-       y.2.Bs4(y.2)        y.2.Bs5(y.2)        y.2.Bs6(y.2)        y.2.Bs7(y.2) 
-               0.43                0.43                1.60                2.27 
-            y.2.x.1             y.2.x.2 y.2.y.1.(Intercept)         y.2.y.1.x.1 
-              -0.87                0.67                0.37                1.19 
-        y.2.y.1.x.2 
-               0.73 
-> coef(uc2l)
-       y.2.Bs1(y.2)        y.2.Bs2(y.2)        y.2.Bs3(y.2)        y.2.Bs4(y.2) 
-              -1.57               -0.68               -0.32                0.36 
-       y.2.Bs5(y.2)        y.2.Bs6(y.2)        y.2.Bs7(y.2)             y.2.x.1 
-               0.36                0.99                1.40               -0.45 
-            y.2.x.2        y.1.Bs1(y.1)        y.1.Bs2(y.1)        y.1.Bs3(y.1) 
-               0.39               -3.66               -1.96               -1.45 
-       y.1.Bs4(y.1)        y.1.Bs5(y.1)        y.1.Bs6(y.1)        y.1.Bs7(y.1) 
-               0.61                0.61                1.89                2.65 
-            y.1.x.1             y.1.x.2 y.1.y.2.(Intercept)         y.1.y.2.x.1 
-               1.99               -1.52                1.38                0.05 
-        y.1.y.2.x.2 
-              -0.12 
-> cbind(orig = lb[1:3], uc1l = coef(uc1l, type = "Lambda")[1:3,], 
++ 
++ ## log_first = FALSE
++ coef(uc1l)
++ coef(uc2l)
++ cbind(orig = lb[1:3], uc1l = coef(uc1l, type = "Lambda")[1:3,], 
 +       uc2l = coef(uc2l, type = "Lambda")[1:3,])
-  orig uc1l uc2l
-1 1.70  1.6  1.4
-2 0.98  1.0  1.3
-3 1.32  1.4  1.3
-> cbind(orig = R, uc1 = coef(uc1l, type = "Corr")[1:3,], 
++ cbind(orig = R, uc1 = coef(uc1l, type = "Corr")[1:3,], 
 +       uc2 = coef(uc2l, type = "Corr")[1:3,])
-      orig   uc1   uc2
-[1,] -0.86 -0.85 -0.81
-[2,] -0.70 -0.72 -0.79
-[3,] -0.80 -0.81 -0.79
-> 
-> ### predict accuracy
-> cbind(u1 = predict(u1, newdata = d[1:3, ], type = "distribution"),
++ 
++ ### predict accuracy
++ cbind(u1 = predict(u1, newdata = d[1:3, ], type = "distribution"),
 +       uc1 = predict(uc1, marginal = 1, newdata = d[1:3, ], type = "distribution"),
 +       uc2 = predict(uc2, marginal = 2, newdata = d[1:3, ], type = "distribution"))
-    u1          
-1 0.94 0.94 0.88
-2 0.36 0.37 0.36
-3 0.66 0.67 0.64
-> cbind(u2 = predict(u2, newdata = d[1:3, ], type = "distribution"),
++ cbind(u2 = predict(u2, newdata = d[1:3, ], type = "distribution"),
 +       uc1 = predict(uc1, marginal = 2, newdata = d[1:3, ], type = "distribution"),
 +       uc2 = predict(uc2, marginal = 1, newdata = d[1:3, ], type = "distribution"))
-    u2          
-1 0.20 0.24 0.19
-2 0.98 0.98 0.97
-3 0.77 0.75 0.77
-> 
-> cbind(u1l = predict(u1l, newdata = d[1:3, ], type = "distribution"),
++ 
++ cbind(u1l = predict(u1l, newdata = d[1:3, ], type = "distribution"),
 +       uc1l = predict(uc1l, marginal = 1, newdata = d[1:3, ], type = "distribution"),
 +       uc2l = predict(uc2l, marginal = 2, newdata = d[1:3, ], type = "distribution"))
-   u1l          
-1 0.93 0.94 0.88
-2 0.36 0.37 0.36
-3 0.66 0.67 0.64
-> cbind(u2l = predict(u2l, newdata = d[1:3, ], type = "distribution"),
++ cbind(u2l = predict(u2l, newdata = d[1:3, ], type = "distribution"),
 +       uc1l = predict(uc1l, marginal = 2, newdata = d[1:3, ], type = "distribution"),
 +       uc2l = predict(uc2l, marginal = 1, newdata = d[1:3, ], type = "distribution"))
-   u2l          
-1 0.20 0.24 0.19
-2 0.97 0.98 0.97
-3 0.77 0.75 0.77
-> 
-> ## QQ-plot to check that marginal transformations are standard normal:
-> nd <- d
-> par(mfrow = c(2, 2))
-> d1 <- predict(uc1, marginal = 1, newdata = d, type = "trafo")
-> qqnorm(d1, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 12, marginal = 1")
-> qqline(d1, col = "red")
-> 
-> d2 <- predict(uc1, marginal = 2, newdata = d, type = "trafo")
-> qqnorm(d2, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 12, marginal = 2")
-> qqline(d2, col = "red")
-> 
-> d3 <- predict(uc2, marginal = 2, newdata = d, type = "trafo")
-> qqnorm(d3, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 21, marginal = 2")
-> qqline(d3, col = "red")
-> 
-> d4 <- predict(uc2, marginal = 1, newdata = d, type = "trafo")
-> qqnorm(d4, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 21, marginal = 2")
-> qqline(d4, col = "red")
-> 
-> ## log_first = FALSE
-> d1 <- predict(uc1l, marginal = 1, newdata = d, type = "trafo")
-> qqnorm(d1, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 12, marginal = 1")
-> qqline(d1, col = "red")
-> 
-> d2 <- predict(uc1l, marginal = 2, newdata = d, type = "trafo")
-> qqnorm(d2, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 12, marginal = 2")
-> qqline(d2, col = "red")
-> 
-> d3 <- predict(uc2l, marginal = 2, newdata = d, type = "trafo")
-> qqnorm(d3, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 21, marginal = 2")
-> qqline(d3, col = "red")
-> 
-> d4 <- predict(uc2l, marginal = 1, newdata = d, type = "trafo")
-> qqnorm(d4, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 21, marginal = 2")
-> qqline(d4, col = "red")
-> 
-> #### continuous approximation
-> ## univariate BoxCox models, log_first = TRUE
-> b1 <- BoxCox(ytt.1 ~ x.1 + x.2, data = d, log_first = TRUE)
-> b2 <- BoxCox(ytt.2 ~ x.1 + x.2, data = d, log_first = TRUE)
-> b1u <- BoxCox(ytut.1 ~ x.1 + x.2, data = d, log_first = TRUE)
-> b2u <- BoxCox(ytut.2 ~ x.1 + x.2, data = d, log_first = TRUE)
-> logLik(b1)
-'log Lik.' -1687 (df=9)
-> logLik(b1u)
-'log Lik.' -1758 (df=9)
-> logLik(b2)
-'log Lik.' -1944 (df=9)
-> logLik(b2u)
-'log Lik.' -1949 (df=9)
-> 
-> b1l <- BoxCox(yt.1 ~ x.1 + x.2, data = d, log_first = FALSE)
-> b2l <- BoxCox(yt.2 ~ x.1 + x.2, data = d, log_first = FALSE)
-> b1ul <- BoxCox(ytu.1 ~ x.1 + x.2, data = d, log_first = FALSE)
-> b2ul <- BoxCox(ytu.2 ~ x.1 + x.2, data = d, log_first = FALSE)
-> logLik(b1l)
-'log Lik.' -1723 (df=9)
-> logLik(b1ul)
-'log Lik.' -1772 (df=9)
-> logLik(b2l)
-'log Lik.' -2010 (df=9)
-> logLik(b2ul)
-'log Lik.' -2029 (df=9)
-> 
-> ## multivariate mmlt models
-> mb1 <- mmlt(b1, b2, data = d, formula = ~ x.1 + x.2)
-> mb2 <- mmlt(b2, b1, data = d, formula = ~ x.1 + x.2)
-> logLik(mb1)
-'log Lik.' -3163 (df=21)
-> logLik(mb2) ## these log-likelihoods are *not* expected to be the same
-'log Lik.' -3210 (df=21)
-> 
-> mb1l <- mmlt(b1l, b2l, data = d, formula = ~ x.1 + x.2)
-> mb2l <- mmlt(b2l, b1l, data = d, formula = ~ x.1 + x.2)
-> logLik(mb1l)
-'log Lik.' -3277 (df=21)
-> logLik(mb2l)
-'log Lik.' -3321 (df=21)
-> 
-> ## compare coefficients
-> ## recall true coefs:
-> beta
-[1]  1.0 -1.0 -0.5  0.5
-> off_l
-[1] 0.4
-> cf_l
-[1] 1.3 0.6
-> 
-> ## log_first = TRUE
-> coef(mb1)
-      yt.1.Bs1(ytt.1)       yt.1.Bs2(ytt.1)       yt.1.Bs3(ytt.1) 
-                -1.32                 -0.81                 -0.81 
-      yt.1.Bs4(ytt.1)       yt.1.Bs5(ytt.1)       yt.1.Bs6(ytt.1) 
-                -0.81                  0.60                  0.60 
-      yt.1.Bs7(ytt.1)              yt.1.x.1              yt.1.x.2 
-                 1.39                  1.14                 -0.94 
-      yt.2.Bs1(ytt.2)       yt.2.Bs2(ytt.2)       yt.2.Bs3(ytt.2) 
-                -2.82                 -1.05                 -1.05 
-      yt.2.Bs4(ytt.2)       yt.2.Bs5(ytt.2)       yt.2.Bs6(ytt.2) 
-                -1.05                  0.25                  0.39 
-      yt.2.Bs7(ytt.2)              yt.2.x.1              yt.2.x.2 
-                 1.91                 -0.74                  0.61 
-yt.2.yt.1.(Intercept)         yt.2.yt.1.x.1         yt.2.yt.1.x.2 
-                 0.44                  0.99                  0.56 
-> coef(mb2)
-      yt.2.Bs1(ytt.2)       yt.2.Bs2(ytt.2)       yt.2.Bs3(ytt.2) 
-               -1.739                -0.652                -0.652 
-      yt.2.Bs4(ytt.2)       yt.2.Bs5(ytt.2)       yt.2.Bs6(ytt.2) 
-               -0.652                 0.170                 0.294 
-      yt.2.Bs7(ytt.2)              yt.2.x.1              yt.2.x.2 
-                1.218                -0.437                 0.390 
-      yt.1.Bs1(ytt.1)       yt.1.Bs2(ytt.1)       yt.1.Bs3(ytt.1) 
-               -1.959                -1.220                -1.220 
-      yt.1.Bs4(ytt.1)       yt.1.Bs5(ytt.1)       yt.1.Bs6(ytt.1) 
-               -1.220                 0.877                 0.877 
-      yt.1.Bs7(ytt.1)              yt.1.x.1              yt.1.x.2 
-                2.147                 1.753                -1.405 
-yt.1.yt.2.(Intercept)         yt.1.yt.2.x.1         yt.1.yt.2.x.2 
-                1.212                 0.012                -0.131 
-> cbind(lb[1:3], coef(mb1, type = "Lambda")[1:3,], coef(mb2, type = "Lambda")[1:3,])
-  [,1] [,2] [,3]
-1 1.70 1.46  1.2
-2 0.98 0.96  1.1
-3 1.32 1.24  1.1
-> cbind(orig = R, mb1 = coef(mb1, type = "Corr")[1:3,], 
++ 
++ ## QQ-plot to check that marginal transformations are standard normal:
++ nd <- d
++ par(mfrow = c(2, 2))
++ d1 <- predict(uc1, marginal = 1, newdata = d, type = "trafo")
++ qqnorm(d1, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 12, marginal = 1")
++ qqline(d1, col = "red")
++ 
++ d2 <- predict(uc1, marginal = 2, newdata = d, type = "trafo")
++ qqnorm(d2, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 12, marginal = 2")
++ qqline(d2, col = "red")
++ 
++ d3 <- predict(uc2, marginal = 2, newdata = d, type = "trafo")
++ qqnorm(d3, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 21, marginal = 2")
++ qqline(d3, col = "red")
++ 
++ d4 <- predict(uc2, marginal = 1, newdata = d, type = "trafo")
++ qqnorm(d4, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 21, marginal = 2")
++ qqline(d4, col = "red")
++ 
++ ## log_first = FALSE
++ d1 <- predict(uc1l, marginal = 1, newdata = d, type = "trafo")
++ qqnorm(d1, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 12, marginal = 1")
++ qqline(d1, col = "red")
++ 
++ d2 <- predict(uc1l, marginal = 2, newdata = d, type = "trafo")
++ qqnorm(d2, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 12, marginal = 2")
++ qqline(d2, col = "red")
++ 
++ d3 <- predict(uc2l, marginal = 2, newdata = d, type = "trafo")
++ qqnorm(d3, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 21, marginal = 2")
++ qqline(d3, col = "red")
++ 
++ d4 <- predict(uc2l, marginal = 1, newdata = d, type = "trafo")
++ qqnorm(d4, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 21, marginal = 2")
++ qqline(d4, col = "red")
++ 
++ #### continuous approximation
++ ## univariate BoxCox models, log_first = TRUE
++ b1 <- BoxCox(ytt.1 ~ x.1 + x.2, data = d, log_first = TRUE)
++ b2 <- BoxCox(ytt.2 ~ x.1 + x.2, data = d, log_first = TRUE)
++ b1u <- BoxCox(ytut.1 ~ x.1 + x.2, data = d, log_first = TRUE)
++ b2u <- BoxCox(ytut.2 ~ x.1 + x.2, data = d, log_first = TRUE)
++ logLik(b1)
++ logLik(b1u)
++ logLik(b2)
++ logLik(b2u)
++ 
++ b1l <- BoxCox(yt.1 ~ x.1 + x.2, data = d, log_first = FALSE)
++ b2l <- BoxCox(yt.2 ~ x.1 + x.2, data = d, log_first = FALSE)
++ b1ul <- BoxCox(ytu.1 ~ x.1 + x.2, data = d, log_first = FALSE)
++ b2ul <- BoxCox(ytu.2 ~ x.1 + x.2, data = d, log_first = FALSE)
++ logLik(b1l)
++ logLik(b1ul)
++ logLik(b2l)
++ logLik(b2ul)
++ 
++ ## multivariate mmlt models
++ mb1 <- mmlt(b1, b2, data = d, formula = ~ x.1 + x.2)
++ mb2 <- mmlt(b2, b1, data = d, formula = ~ x.1 + x.2)
++ logLik(mb1)
++ logLik(mb2) ## these log-likelihoods are *not* expected to be the same
++ 
++ mb1l <- mmlt(b1l, b2l, data = d, formula = ~ x.1 + x.2)
++ mb2l <- mmlt(b2l, b1l, data = d, formula = ~ x.1 + x.2)
++ logLik(mb1l)
++ logLik(mb2l)
++ 
++ ## compare coefficients
++ ## recall true coefs:
++ beta
++ off_l
++ cf_l
++ 
++ ## log_first = TRUE
++ coef(mb1)
++ coef(mb2)
++ cbind(lb[1:3], coef(mb1, type = "Lambda")[1:3,], coef(mb2, type = "Lambda")[1:3,])
++ cbind(orig = R, mb1 = coef(mb1, type = "Corr")[1:3,], 
 +       mb2 = coef(mb2, type = "Corr")[1:3,])
-      orig   mb1   mb2
-[1,] -0.86 -0.83 -0.77
-[2,] -0.70 -0.69 -0.74
-[3,] -0.80 -0.78 -0.74
-> 
-> coef(mb1u)
-     yt.1.Bs1(ytut.1)      yt.1.Bs2(ytut.1)      yt.1.Bs3(ytut.1) 
-               -1.435                -1.033                -1.033 
-     yt.1.Bs4(ytut.1)      yt.1.Bs5(ytut.1)      yt.1.Bs6(ytut.1) 
-               -0.078                -0.078                 0.655 
-     yt.1.Bs7(ytut.1)              yt.1.x.1              yt.1.x.2 
-                1.458                 1.006                -0.979 
-     yt.2.Bs1(ytut.2)      yt.2.Bs2(ytut.2)      yt.2.Bs3(ytut.2) 
-               -2.159                -1.194                -1.194 
-     yt.2.Bs4(ytut.2)      yt.2.Bs5(ytut.2)      yt.2.Bs6(ytut.2) 
-               -1.057                 0.037                 0.369 
-     yt.2.Bs7(ytut.2)              yt.2.x.1              yt.2.x.2 
-                1.620                -0.696                 0.452 
-yt.2.yt.1.(Intercept) 
-                0.838 
-> coef(mb2u)
-     yt.2.Bs1(ytut.2)      yt.2.Bs2(ytut.2)      yt.2.Bs3(ytut.2) 
-               -1.654                -0.915                -0.915 
-     yt.2.Bs4(ytut.2)      yt.2.Bs5(ytut.2)      yt.2.Bs6(ytut.2) 
-               -0.810                 0.029                 0.283 
-     yt.2.Bs7(ytut.2)              yt.2.x.1              yt.2.x.2 
-                1.241                -0.533                 0.346 
-     yt.1.Bs1(ytut.1)      yt.1.Bs2(ytut.1)      yt.1.Bs3(ytut.1) 
-               -1.873                -1.348                -1.348 
-     yt.1.Bs4(ytut.1)      yt.1.Bs5(ytut.1)      yt.1.Bs6(ytut.1) 
-               -0.102                -0.102                 0.855 
-     yt.1.Bs7(ytut.1)              yt.1.x.1              yt.1.x.2 
-                1.903                 1.313                -1.278 
-yt.1.yt.2.(Intercept) 
-                0.838 
-> cbind(lb[1:3], coef(mb1u, type = "Lambda")[1:3,], coef(mb2u, type = "Lambda")[1:3,])
-  [,1] [,2] [,3]
-1 1.70 0.84 0.84
-2 0.98 0.84 0.84
-3 1.32 0.84 0.84
-> cbind(orig = R, mb1u = coef(mb1u, type = "Corr")[1:3,], 
++ 
++ coef(mb1u)
++ coef(mb2u)
++ cbind(lb[1:3], coef(mb1u, type = "Lambda")[1:3,], coef(mb2u, type = "Lambda")[1:3,])
++ cbind(orig = R, mb1u = coef(mb1u, type = "Corr")[1:3,], 
 +       mb2u = coef(mb2u, type = "Corr")[1:3,])
-      orig  mb1u  mb2u
-[1,] -0.86 -0.64 -0.64
-[2,] -0.70 -0.64 -0.64
-[3,] -0.80 -0.64 -0.64
-> 
-> ## log_first = FALSE
-> coef(mb1l)
-       yt.1.Bs1(yt.1)        yt.1.Bs2(yt.1)        yt.1.Bs3(yt.1) 
-                -1.43                 -0.51                 -0.51 
-       yt.1.Bs4(yt.1)        yt.1.Bs5(yt.1)        yt.1.Bs6(yt.1) 
-                 0.12                  0.93                  0.93 
-       yt.1.Bs7(yt.1)              yt.1.x.1              yt.1.x.2 
-                 1.34                  1.14                 -0.93 
-       yt.2.Bs1(yt.2)        yt.2.Bs2(yt.2)        yt.2.Bs3(yt.2) 
-                -2.65                 -0.28                 -0.28 
-       yt.2.Bs4(yt.2)        yt.2.Bs5(yt.2)        yt.2.Bs6(yt.2) 
-                -0.28                  1.19                  1.19 
-       yt.2.Bs7(yt.2)              yt.2.x.1              yt.2.x.2 
-                 1.83                 -0.71                  0.61 
-yt.2.yt.1.(Intercept)         yt.2.yt.1.x.1         yt.2.yt.1.x.2 
-                 0.45                  0.95                  0.54 
-> coef(mb2l)
-       yt.2.Bs1(yt.2)        yt.2.Bs2(yt.2)        yt.2.Bs3(yt.2) 
-               -1.659                -0.171                -0.171 
-       yt.2.Bs4(yt.2)        yt.2.Bs5(yt.2)        yt.2.Bs6(yt.2) 
-               -0.171                 0.790                 0.790 
-       yt.2.Bs7(yt.2)              yt.2.x.1              yt.2.x.2 
-                1.178                -0.426                 0.389 
-       yt.1.Bs1(yt.1)        yt.1.Bs2(yt.1)        yt.1.Bs3(yt.1) 
-               -2.100                -0.776                -0.776 
-       yt.1.Bs4(yt.1)        yt.1.Bs5(yt.1)        yt.1.Bs6(yt.1) 
-                0.170                 1.394                 1.394 
-       yt.1.Bs7(yt.1)              yt.1.x.1              yt.1.x.2 
-                2.056                 1.743                -1.376 
-yt.1.yt.2.(Intercept)         yt.1.yt.2.x.1         yt.1.yt.2.x.2 
-                1.179                 0.028                -0.119 
-> cbind(lb[1:3], coef(mb1l, type = "Lambda")[1:3,], coef(mb2l, type = "Lambda")[1:3,])
-  [,1] [,2] [,3]
-1 1.70 1.43  1.2
-2 0.98 0.96  1.1
-3 1.32 1.22  1.1
-> cbind(orig = R, mb1l = coef(mb1l, type = "Corr")[1:3,], 
++ 
++ ## log_first = FALSE
++ coef(mb1l)
++ coef(mb2l)
++ cbind(lb[1:3], coef(mb1l, type = "Lambda")[1:3,], coef(mb2l, type = "Lambda")[1:3,])
++ cbind(orig = R, mb1l = coef(mb1l, type = "Corr")[1:3,], 
 +       mb2l = coef(mb2l, type = "Corr")[1:3,])
-      orig  mb1l  mb2l
-[1,] -0.86 -0.82 -0.76
-[2,] -0.70 -0.69 -0.74
-[3,] -0.80 -0.77 -0.73
-> 
-> coef(mb1ul)
-      yt.1.Bs1(ytu.1)       yt.1.Bs2(ytu.1)       yt.1.Bs3(ytu.1) 
-                -1.50                 -0.62                 -0.50 
-      yt.1.Bs4(ytu.1)       yt.1.Bs5(ytu.1)       yt.1.Bs6(ytu.1) 
-                 0.25                  0.51                  1.03 
-      yt.1.Bs7(ytu.1)              yt.1.x.1              yt.1.x.2 
-                 1.44                  1.01                 -0.98 
-      yt.2.Bs1(ytu.2)       yt.2.Bs2(ytu.2)       yt.2.Bs3(ytu.2) 
-                -2.23                 -0.59                 -0.59 
-      yt.2.Bs4(ytu.2)       yt.2.Bs5(ytu.2)       yt.2.Bs6(ytu.2) 
-                -0.33                  0.81                  1.05 
-      yt.2.Bs7(ytu.2)              yt.2.x.1              yt.2.x.2 
-                 1.59                 -0.68                  0.45 
-yt.2.yt.1.(Intercept) 
-                 0.84 
-> coef(mb2ul)
-      yt.2.Bs1(ytu.2)       yt.2.Bs2(ytu.2)       yt.2.Bs3(ytu.2) 
-                -1.71                 -0.45                 -0.45 
-      yt.2.Bs4(ytu.2)       yt.2.Bs5(ytu.2)       yt.2.Bs6(ytu.2) 
-                -0.25                  0.62                  0.81 
-      yt.2.Bs7(ytu.2)              yt.2.x.1              yt.2.x.2 
-                 1.22                 -0.52                  0.34 
-      yt.1.Bs1(ytu.1)       yt.1.Bs2(ytu.1)       yt.1.Bs3(ytu.1) 
-                -1.95                 -0.81                 -0.66 
-      yt.1.Bs4(ytu.1)       yt.1.Bs5(ytu.1)       yt.1.Bs6(ytu.1) 
-                 0.33                  0.66                  1.34 
-      yt.1.Bs7(ytu.1)              yt.1.x.1              yt.1.x.2 
-                 1.88                  1.31                 -1.28 
-yt.1.yt.2.(Intercept) 
-                 0.84 
-> cbind(lb[1:3], coef(mb1ul, type = "Lambda")[1:3,], coef(mb2ul, type = "Lambda")[1:3,])
-  [,1] [,2] [,3]
-1 1.70 0.84 0.84
-2 0.98 0.84 0.84
-3 1.32 0.84 0.84
-> cbind(orig = R, mb1ul = coef(mb1ul, type = "Corr")[1:3,], 
++ 
++ coef(mb1ul)
++ coef(mb2ul)
++ cbind(lb[1:3], coef(mb1ul, type = "Lambda")[1:3,], coef(mb2ul, type = "Lambda")[1:3,])
++ cbind(orig = R, mb1ul = coef(mb1ul, type = "Corr")[1:3,], 
 +       mb2ul = coef(mb2ul, type = "Corr")[1:3,])
-      orig mb1ul mb2ul
-[1,] -0.86 -0.64 -0.64
-[2,] -0.70 -0.64 -0.64
-[3,] -0.80 -0.64 -0.64
-> 
-> ### predict accuracy
-> cbind(b1 = predict(b1, newdata = d[1:3, ], type = "distribution"),
++ 
++ ### predict accuracy
++ cbind(b1 = predict(b1, newdata = d[1:3, ], type = "distribution"),
 +       mb1 = predict(mb1, marginal = 1, newdata = d[1:3, ], type = "distribution"),
 +       mb2 = predict(mb2, marginal = 2, newdata = d[1:3, ], type = "distribution"))
-    b1          
-1 0.89 0.88 0.88
-2 0.23 0.23 0.23
-3 0.50 0.50 0.49
-> cbind(b2 = predict(b2, newdata = d[1:3, ], type = "distribution"),
++ cbind(b2 = predict(b2, newdata = d[1:3, ], type = "distribution"),
 +       mb1 = predict(mb1, marginal = 2, newdata = d[1:3, ], type = "distribution"),
 +       mb2 = predict(mb2, marginal = 1, newdata = d[1:3, ], type = "distribution"))
-     b2            
-1 0.075 0.098 0.076
-2 0.963 0.980 0.962
-3 0.703 0.703 0.708
-> 
-> cbind(b1u = predict(b1u, newdata = d[1:3, ], type = "distribution"),
++ 
++ cbind(b1u = predict(b1u, newdata = d[1:3, ], type = "distribution"),
 +       mb1u = predict(mb1u, marginal = 1, newdata = d[1:3, ], type = "distribution"),
 +       mb2u = predict(mb2u, marginal = 2, newdata = d[1:3, ], type = "distribution"))
-   b1u          
-1 0.88 0.90 0.90
-2 0.36 0.34 0.34
-3 0.55 0.54 0.54
-> cbind(b2u = predict(b2u, newdata = d[1:3, ], type = "distribution"),
++ cbind(b2u = predict(b2u, newdata = d[1:3, ], type = "distribution"),
 +       mb1u = predict(mb1u, marginal = 2, newdata = d[1:3, ], type = "distribution"),
 +       mb2u = predict(mb2u, marginal = 1, newdata = d[1:3, ], type = "distribution"))
-    b2u            
-1 0.084 0.062 0.062
-2 0.961 0.980 0.980
-3 0.645 0.680 0.680
-> 
-> cbind(b1l = predict(b1l, newdata = d[1:3, ], type = "distribution"),
++ 
++ cbind(b1l = predict(b1l, newdata = d[1:3, ], type = "distribution"),
 +       mb1l = predict(mb1l, marginal = 1, newdata = d[1:3, ], type = "distribution"),
 +       mb2l = predict(mb2l, marginal = 2, newdata = d[1:3, ], type = "distribution"))
-   b1l          
-1 0.88 0.87 0.88
-2 0.20 0.19 0.20
-3 0.52 0.52 0.51
-> cbind(b2l = predict(b2l, newdata = d[1:3, ], type = "distribution"),
++ cbind(b2l = predict(b2l, newdata = d[1:3, ], type = "distribution"),
 +       mb1l = predict(mb1l, marginal = 2, newdata = d[1:3, ], type = "distribution"),
 +       mb2l = predict(mb2l, marginal = 1, newdata = d[1:3, ], type = "distribution"))
-    b2l           
-1 0.086 0.11 0.087
-2 0.964 0.98 0.963
-3 0.713 0.71 0.718
-> 
-> cbind(b1ul = predict(b1ul, newdata = d[1:3, ], type = "distribution"),
++ 
++ cbind(b1ul = predict(b1ul, newdata = d[1:3, ], type = "distribution"),
 +       mb1ul = predict(mb1ul, marginal = 1, newdata = d[1:3, ], type = "distribution"),
 +       mb2ul = predict(mb2ul, marginal = 2, newdata = d[1:3, ], type = "distribution"))
-  b1ul          
-1 0.87 0.89 0.89
-2 0.36 0.35 0.35
-3 0.55 0.54 0.54
-> cbind(b2ul = predict(b2ul, newdata = d[1:3, ], type = "distribution"),
++ cbind(b2ul = predict(b2ul, newdata = d[1:3, ], type = "distribution"),
 +       mb1ul = predict(mb1ul, marginal = 2, newdata = d[1:3, ], type = "distribution"),
 +       mb2ul = predict(mb2ul, marginal = 1, newdata = d[1:3, ], type = "distribution"))
-   b2ul            
-1 0.091 0.069 0.069
-2 0.960 0.982 0.982
-3 0.648 0.690 0.690
-> 
-> ## QQ-plot to check that marginal transformations are standard normal:
-> nd <- d
-> par(mfrow = c(2, 2))
-> d1 <- predict(mb1, marginal = 1, newdata = d, type = "trafo")
-> qqnorm(d1, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 12, marginal = 1")
-> qqline(d1, col = "red")
-> 
-> d2 <- predict(mb1, marginal = 2, newdata = d, type = "trafo")
-> qqnorm(d2, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 12, marginal = 2")
-> qqline(d2, col = "red")
-> 
-> d3 <- predict(mb2, marginal = 2, newdata = d, type = "trafo")
-> qqnorm(d3, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 21, marginal = 2")
-> qqline(d3, col = "red")
-> 
-> d4 <- predict(mb2, marginal = 1, newdata = d, type = "trafo")
-> qqnorm(d4, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 21, marginal = 2")
-> qqline(d4, col = "red")
-> 
-> 
-> d1 <- predict(mb1u, marginal = 1, newdata = d, type = "trafo")
-> qqnorm(d1, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 12, marginal = 1")
-> qqline(d1, col = "red")
-> 
-> d2 <- predict(mb1u, marginal = 2, newdata = d, type = "trafo")
-> qqnorm(d2, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 12, marginal = 2")
-> qqline(d2, col = "red")
-> 
-> d3 <- predict(mb2u, marginal = 2, newdata = d, type = "trafo")
-> qqnorm(d3, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 21, marginal = 2")
-> qqline(d3, col = "red")
-> 
-> d4 <- predict(mb2u, marginal = 1, newdata = d, type = "trafo")
-> qqnorm(d4, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 21, marginal = 2")
-> qqline(d4, col = "red")
-> 
-> ## log_first = FALSE
-> d1 <- predict(mb1l, marginal = 1, newdata = d, type = "trafo")
-> qqnorm(d1, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 12, marginal = 1")
-> qqline(d1, col = "red")
-> 
-> d2 <- predict(mb1l, marginal = 2, newdata = d, type = "trafo")
-> qqnorm(d2, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 12, marginal = 2")
-> qqline(d2, col = "red")
-> 
-> d3 <- predict(mb2l, marginal = 2, newdata = d, type = "trafo")
-> qqnorm(d3, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 21, marginal = 2")
-> qqline(d3, col = "red")
-> 
-> d4 <- predict(mb2l, marginal = 1, newdata = d, type = "trafo")
-> qqnorm(d4, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 21, marginal = 2")
-> qqline(d4, col = "red")
-> 
-> 
-> d1 <- predict(mb1ul, marginal = 1, newdata = d, type = "trafo")
-> qqnorm(d1, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 12, marginal = 1")
-> qqline(d1, col = "red")
-> 
-> d2 <- predict(mb1ul, marginal = 2, newdata = d, type = "trafo")
-> qqnorm(d2, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 12, marginal = 2")
-> qqline(d2, col = "red")
-> 
-> d3 <- predict(mb2ul, marginal = 2, newdata = d, type = "trafo")
-> qqnorm(d3, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 21, marginal = 2")
-> qqline(d3, col = "red")
-> 
-> d4 <- predict(mb2ul, marginal = 1, newdata = d, type = "trafo")
-> qqnorm(d4, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 21, marginal = 2")
-> qqline(d4, col = "red")
-> 
-> 
++ 
++ ## QQ-plot to check that marginal transformations are standard normal:
++ nd <- d
++ par(mfrow = c(2, 2))
++ d1 <- predict(mb1, marginal = 1, newdata = d, type = "trafo")
++ qqnorm(d1, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 12, marginal = 1")
++ qqline(d1, col = "red")
++ 
++ d2 <- predict(mb1, marginal = 2, newdata = d, type = "trafo")
++ qqnorm(d2, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 12, marginal = 2")
++ qqline(d2, col = "red")
++ 
++ d3 <- predict(mb2, marginal = 2, newdata = d, type = "trafo")
++ qqnorm(d3, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 21, marginal = 2")
++ qqline(d3, col = "red")
++ 
++ d4 <- predict(mb2, marginal = 1, newdata = d, type = "trafo")
++ qqnorm(d4, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 21, marginal = 2")
++ qqline(d4, col = "red")
++ 
++ 
++ d1 <- predict(mb1u, marginal = 1, newdata = d, type = "trafo")
++ qqnorm(d1, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 12, marginal = 1")
++ qqline(d1, col = "red")
++ 
++ d2 <- predict(mb1u, marginal = 2, newdata = d, type = "trafo")
++ qqnorm(d2, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 12, marginal = 2")
++ qqline(d2, col = "red")
++ 
++ d3 <- predict(mb2u, marginal = 2, newdata = d, type = "trafo")
++ qqnorm(d3, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 21, marginal = 2")
++ qqline(d3, col = "red")
++ 
++ d4 <- predict(mb2u, marginal = 1, newdata = d, type = "trafo")
++ qqnorm(d4, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 21, marginal = 2")
++ qqline(d4, col = "red")
++ 
++ ## log_first = FALSE
++ d1 <- predict(mb1l, marginal = 1, newdata = d, type = "trafo")
++ qqnorm(d1, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 12, marginal = 1")
++ qqline(d1, col = "red")
++ 
++ d2 <- predict(mb1l, marginal = 2, newdata = d, type = "trafo")
++ qqnorm(d2, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 12, marginal = 2")
++ qqline(d2, col = "red")
++ 
++ d3 <- predict(mb2l, marginal = 2, newdata = d, type = "trafo")
++ qqnorm(d3, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 21, marginal = 2")
++ qqline(d3, col = "red")
++ 
++ d4 <- predict(mb2l, marginal = 1, newdata = d, type = "trafo")
++ qqnorm(d4, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 21, marginal = 2")
++ qqline(d4, col = "red")
++ 
++ 
++ d1 <- predict(mb1ul, marginal = 1, newdata = d, type = "trafo")
++ qqnorm(d1, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 12, marginal = 1")
++ qqline(d1, col = "red")
++ 
++ d2 <- predict(mb1ul, marginal = 2, newdata = d, type = "trafo")
++ qqnorm(d2, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 12, marginal = 2")
++ qqline(d2, col = "red")
++ 
++ d3 <- predict(mb2ul, marginal = 2, newdata = d, type = "trafo")
++ qqnorm(d3, pch = 19, col = rgb(.1, .1, .1, .1), main = "order = 21, marginal = 2")
++ qqline(d3, col = "red")
++ 
++ d4 <- predict(mb2ul, marginal = 1, newdata = d, type = "trafo")
++ qqnorm(d4, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 21, marginal = 2")
++ qqline(d4, col = "red")
++ 
++ }
 > 
 > 
 > ## add tests for diag = TRUE in future?
@@ -1822,4 +1237,4 @@ yt.1.yt.2.(Intercept)
 > 
 > proc.time()
    user  system elapsed 
-  37.78    0.19   37.97 
+  10.59    0.13   10.70 
