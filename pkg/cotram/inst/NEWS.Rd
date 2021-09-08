@@ -6,6 +6,7 @@
   \itemize{
     \item{New function \code{mcotram} implementing a multivariate count transformation model.}
     \item{New dataset \code{spiders}.}
+    \item{Add more reference output.}
   }
 }
 

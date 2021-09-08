@@ -356,6 +356,9 @@ d4 <- predict(mb2ul, marginal = 1, newdata = d, type = "trafo")
 qqnorm(d4, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 21, marginal = 2")
 qqline(d4, col = "red")
 
+### make CRAN team happy
+if (FALSE) {
+
 ##########################################################
 ###### constant lambda, marginal models ~ x.1 + x.2 ######
 ##########################################################
@@ -994,7 +997,7 @@ d4 <- predict(mb2ul, marginal = 1, newdata = d, type = "trafo")
 qqnorm(d4, pch = 19, col = rgb(.1, .1, .1, .1), main = "oder = 21, marginal = 2")
 qqline(d4, col = "red")
 
-
+}
 
 
 ## add tests for diag = TRUE in future?

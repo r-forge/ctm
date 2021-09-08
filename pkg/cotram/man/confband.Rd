@@ -42,6 +42,8 @@ confband(object, newdata, level = 0.95, ...)
 }
 \examples{
 
+  op <- options(digits = 4)
+
   data("birds", package = "TH.data")
   
   ### fit count transformation model with cloglog link
@@ -51,5 +53,7 @@ confband(object, newdata, level = 0.95, ...)
   ### compute asymptotic confidence bands for the distribution function
   ### for the first oberservation
   confband(m_birds, newdata = birds[1, ], type = "distribution")
+
+  options(op)
 
 }

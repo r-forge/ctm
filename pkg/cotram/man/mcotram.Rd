@@ -5,7 +5,7 @@
 }
 \description{
   A proof-of-concept implementation of multivariate conditional
-transformation models for count data
+  transformation models for count data.
 }
 \usage{
 mcotram(..., formula = ~ 1, data, theta = NULL,
@@ -46,6 +46,8 @@ An object of class \code{mcotram} and \code{mmlt} with \code{coef} and
 }
 \examples{
 
+  op <- options(digits = 2)
+
   data("spiders", package = "cotram")
 
   ## fit conditional marginal count transformation models
@@ -62,7 +64,7 @@ An object of class \code{mcotram} and \code{mmlt} with \code{coef} and
   m_PR <- cotram(Pardosa_riparia ~ Elevation + Canopy_openess,
                  data = spiders, method = "probit")
 
-  ## fit multi-species count conditional transformation model
+  ## fit multi-species count transformation model
   ## with constant Cholesky factor of the precision matrix
   m_all_1 <- mcotram(m_PF, m_HL, m_CC, m_CT, m_PL, m_PR, 
                      formula = ~ 1, data = spiders)
@@ -88,5 +90,8 @@ An object of class \code{mcotram} and \code{mmlt} with \code{coef} and
   ## transformation to bivariate normality
   (r1 <- coef(m_all_1, newdata = spiders[1,], type = "Corr"))
   (r2 <- coef(m_all_2, newdata = spiders[1,], type = "Corr"))
+
+  options(op)
+
 }
 \keyword{models}
