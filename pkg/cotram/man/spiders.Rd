@@ -38,7 +38,7 @@ plot elevation and canopy openess.
   Sebastian Seibold, Claus Bässler, Petr Baldrian, Lena Reinhard, Simon Thorn,
   Michael D. Ulyshen, Ingmar Weiß and Jörg Müller (2016). Dead-wood addition 
   promotes non-saproxylic epigeal arthropods but effects are mediated by canopy
-  openness. \emph{Biological Conservation}, 204, 181--188.
+  openness. \emph{Biological Conservation}, \bold{204}, 181--188,
   \doi{10.1016/j.biocon.2016.09.031}.
 
 }
