@@ -1,6 +1,7 @@
 ### test for mcotram
 library("cotram")
 library("mvtnorm")
+options(digits = 2)
 ########################################################
 ################ constant Lambda - data ################
 ########################################################
@@ -717,7 +718,9 @@ y <- qbinom(ly_marg, size = 10, prob = 0.3)
 # d <- data.frame(y = y, x = x)
 yt <- y - 0.5*(y > 0)
 ytt <- yt + 1
-d <- data.frame(y = y, yt = yt, ytt = ytt, x = x)
+ytu <- y - runif(length(y))*(y > 0)
+ytut <- ytu + 1
+d <- data.frame(y = y, yt = yt, ytt = ytt, ytut = ytut, ytu = ytu, x = x)
 # hist(d$y.1, breaks = 50)
 # hist(d$y.2, breaks = 50)
 # sort(unique(y)) ## we only have counts

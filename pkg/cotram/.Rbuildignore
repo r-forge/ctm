@@ -4,3 +4,4 @@ analysis
 DVC.tgz
 ^.*\.Rproj$
 ^\.Rproj\.user$
+test_randomunif.R

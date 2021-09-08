@@ -1,5 +1,6 @@
 
 library("cotram")
+options(digits = 4)
 
 set.seed(25)
 

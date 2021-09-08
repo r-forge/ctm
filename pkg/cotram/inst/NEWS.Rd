@@ -2,6 +2,13 @@
 \name{NEWS}
 \title{NEWS file for the cotram package}
 
+\section{Changes in Version 0.3-0 (2021-09-08)}{
+  \itemize{
+    \item{New function \code{mcotram} implementing a multivariate count transformation model.}
+    \item{New dataset \code{spiders}.}
+  }
+}
+
 \section{Changes in Version 0.2-1 (2021-02-23)}{
   \itemize{
     \item{Implement discrete hazard functions for count transformation models.}

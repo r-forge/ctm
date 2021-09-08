@@ -45,7 +45,8 @@ An object of class \code{mcotram} and \code{mmlt} with \code{coef} and
 
 }
 \examples{
-  data("spiders")
+
+  data("spiders", package = "cotram")
 
   ## fit conditional marginal count transformation models
   m_PF <- cotram(Pardosa_ferruginea ~ Elevation + Canopy_openess, 
