@@ -10134,7 +10134,7 @@ structure(list(Nummer = c(1L, 3L, 4L, 5L, 9L, 10L, 12L, 14L,
 `5005` = 5005L, `5006` = 5006L, `5063` = 5063L), class = "omit"))
 
 
-## ----setup_functions, echo = FALSE, message = FALSE, warning = FALSE-----------------------------
+## define harmonics
 sfm <- function(timevar, freq = 365, S = 3) {
   S <- 1:S * 2
   paste("I(", rep(c("sin", "cos"), length(S)), "(",
@@ -10349,7 +10349,6 @@ f2 <- function(mod) {
 
 xtick1 <- c(10, cumsum(c(1, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31))[-c(1, 13)], 360)
 xtick <- cumsum(c(1, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31))
-# cumsum(c(31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 31)) - 31
 xlabs <- c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep",
            "Oct", "Nov", "Dec", "Jan")
 
@@ -10617,31 +10616,33 @@ f_s_harm <- function(m_h, m_k, m_s, m_h_m, m_k_m, m_s_m,
 
 
 
-## ----mod1_fit_d, echo = FALSE, eval = TRUE, message = FALSE, warning = FALSE, cache = TRUE-------
+### univariate count transformation models
 m_h1 <- cotram(Haubentaucher ~ tvar1 + tvar2 + tvar3 + tvar4 + tvar5 + tvar6 + Jahr,
                order = ord, data = aquabirds, method = "probit", add = c(-.5, 300))
 m_k1 <- cotram(Kormoran ~ tvar1 + tvar2 + tvar3 + tvar4 + tvar5 + tvar6 + Jahr,
                order = ord, data = aquabirds, method = "probit", add = c(-.5, 300))
 m_s1 <- cotram(Saeger ~ tvar1 + tvar2 + tvar3 + tvar4 + tvar5 + tvar6 + Jahr,
                order = ord, data = aquabirds, method = "probit", add = c(-.5, 300))
+
+### multi-species transformation model: M-Lambda, discrete approximation
 m_disc1 <- mcotram(m_h1, m_k1, m_s1, data = aquabirds)
 
 
-## ----legend, echo = FALSE, fig.height = 2--------------------------------------------------------
+### quantiles legend
 mymai <- c(1, 1, 0, 1)
 op <- par(mfrow = c(1, 1), mai = par("mai") * mymai)
 add_leg(TRUE)
 par(op)
 
-
-## ----mod1_dist_d, echo = FALSE, eval = TRUE, message = FALSE, warning = FALSE, cache = TRUE------
+### Figure A.1
+### marginal distributions: model M-I-CO
 mymai <- c(.5, 1, .5, 1)
 op <- par(mfrow = c(3, 1), mai = par("mai") * mymai)
 f_mar_d(m_h1, m_k1, m_s1)
 par(op)
 
 
-## ----mod1_fit_negbin, echo = FALSE, eval = TRUE, message = FALSE, cache = TRUE-------------------
+### univariate models: negative binomial
 m_h_nb <- glm.nb(Haubentaucher ~ tvar1 + tvar2 + tvar3 + tvar4 + tvar5 + tvar6 + Jahr,
                  data = aquabirds)
 m_k_nb <- glm.nb(Kormoran ~ tvar1 + tvar2 + tvar3 + tvar4 + tvar5 + tvar6 + Jahr,
@@ -10649,14 +10650,14 @@ m_k_nb <- glm.nb(Kormoran ~ tvar1 + tvar2 + tvar3 + tvar4 + tvar5 + tvar6 + Jahr
 m_s_nb <- glm.nb(Saeger ~ tvar1 + tvar2 + tvar3 + tvar4 + tvar5 + tvar6 + Jahr,
                  data = aquabirds)
 
-
-## ----mod1_dist_negbin, echo = FALSE, eval = TRUE, message = FALSE, warning = FALSE, cache = TRUE----
+### Figure A.2
+### marginal distributions: model M-I-NB
 op <- par(mfrow = c(3, 1), mai = par("mai") * mymai)
 f_mar_d_nb(m_h_nb, m_k_nb, m_s_nb)
 par(op)
 
-
-## ----plot_harmonics_disc, eval = TRUE, echo = FALSE, cache = TRUE--------------------------------
+### Figure A.3
+### plotting simultaneous confidence bands comparing s(d) of M-I-CO and M-Lambda
 yr <- sort(unique(aquabirds$Jahr))
 ndat <- data.frame(dayY = 1:36 * 10, Jahr = yr[1])
 X <- model.matrix(as.formula(paste("~", sfm("dayY"))), data = ndat)[,-1]
@@ -10695,7 +10696,7 @@ f_s_harm(ci_h1, ci_k1, ci_s1, ci_hc, ci_kc, ci_sc,
 par(op)
 
 
-## ----mod1_fit_c, echo = FALSE, eval = TRUE, message = FALSE, warning = FALSE, cache = TRUE-------
+### marginal models for continuous approximation
 aquabirds$H <- aquabirds$Haubentaucher - 0.5*(aquabirds$Haubentaucher >= 1) +1
 aquabirds$K <- aquabirds$Kormoran - 0.5*(aquabirds$Kormoran >= 1) + 1
 aquabirds$S <- aquabirds$Saeger - 0.5*(aquabirds$Saeger >= 1) + 1
@@ -10718,24 +10719,29 @@ m_s2 <- as.mlt(BoxCox(S ~ tvar1 + tvar2 + tvar3 + tvar4 + tvar5 + tvar6 + Jahr,
                       support = attr(m_s1$model$model$bresponse, 
                                      "variables")$support, 
                       bounds = c(0, Inf)))
+
+### multi-species transformation model: M-Lambda, continuous approximation
 m_cont1 <- mmlt(m_h2, m_k2, m_s2, data = aquabirds)
 
 
-## ----mod1_dist_c_const, eval = TRUE, echo = FALSE, cache = TRUE, warning = FALSE-----------------
+### Figure A.4
+### marginal distributions: model M-Lambda, continuous approximation
 op <- par(mfrow = c(3, 1), mai = par("mai") * mymai)
 f_mar_c(m_cont1)
 par(op)
 
-
-## ----mod1_dist_d_const, eval = TRUE, echo = FALSE, warning = FALSE, cache = TRUE-----------------
+### Figure A.5
+### marginal distributions: model M-Lambda, discrete approximation
 op <- par(mfrow = c(3, 1), mai = par("mai") * mymai)
 f_mar_d(m_disc1$marginals[[1]], 
         m_disc1$marginals[[2]],
         m_disc1$marginals[[3]])
 par(op)
 
+### Table 2
+### M-Lambda: lambda coefficients and correlations
 
-## ----mod1_corr_c, eval = TRUE, echo = FALSE, message = FALSE, cache = TRUE, warning = FALSE, results = FALSE----
+## continuous approximation
 lambda1_c <- coef(m_cont1, newdata = nd, type = "Lambda")[1, ]
 corr1_c <- coef(m_cont1, newdata = nd, type = "Corr")[1, ]
 confints_c1 <- ci_const(m_cont1)
@@ -10760,8 +10766,7 @@ corr_mat_c1[, 3] <- confints_c1$rho[c(2, 4, 6)]
 round(lambda_mat_c1, 3)
 round(corr_mat_c1, 3)
 
-
-## ----mod1_corr_d, eval = TRUE, echo = FALSE, message = FALSE, cache = TRUE, warning = FALSE, results = FALSE----
+## discrete approximation
 lambda1_d <- coef(m_disc1, newdata = nd, type = "Lambda")[1, ]
 corr1_d <- coef(m_disc1, newdata = nd, type = "Corr")[1, ]
 confints_d1 <- ci_const(m_disc1)
@@ -10786,7 +10791,7 @@ round(lambda_mat_d1, 3)
 round(corr_mat_d1, 3)
 
 
-## ----mod3_fit_d, eval = TRUE, echo = FALSE, warning = FALSE, cache = TRUE------------------------
+### univariate count transformation models for M-Lambda | d and M-Lambda(x) | d
 m_h3 <- cotram(Haubentaucher | tvar1 + tvar2 + tvar3 + tvar4 + tvar5 + tvar6 ~ Jahr,
                order = ord, data = aquabirds, method = "probit", add = c(-0.5, 300))
 m_k3 <- cotram(Kormoran | tvar1 + tvar2 + tvar3 + tvar4 + tvar5 + tvar6 ~ Jahr,
@@ -10794,11 +10799,14 @@ m_k3 <- cotram(Kormoran | tvar1 + tvar2 + tvar3 + tvar4 + tvar5 + tvar6 ~ Jahr,
 m_s3 <- cotram(Saeger | tvar1 + tvar2 + tvar3 + tvar4 + tvar5 + tvar6 ~ Jahr,
                order = ord, data = aquabirds, method = "probit", add = c(-0.5, 300))
 
+### multi-species transformation models: M-Lambda(x) | d, discrete approximation
 m_disc3 <- mcotram(m_h3, m_k3, m_s3, formula = fm, data = aquabirds)
+
+### multi-species transformation models: M-Lambda | d, discrete approximation
 m_disc3_const <- mcotram(m_h3, m_k3, m_s3, data = aquabirds)
 
 
-## ----mod3_fit_c, eval = TRUE, echo = FALSE, warning = FALSE, cache = TRUE, message = FALSE-------
+## marginal models for continuous approximation and  M-Lambda | d, M-Lambda(x) | d
 m_h4 <- as.mlt(BoxCox(H | tvar1 + tvar2 + tvar3 + tvar4 + tvar5 + tvar6 ~ Jahr,
                       data = aquabirds, order = ord, log_first = TRUE, add = c(-0.5, 1200), 
                       support = attr(m_h3$model$model$binteracting$iresponse, 
@@ -10811,17 +10819,21 @@ m_s4 <- as.mlt(BoxCox(S | tvar1 + tvar2 + tvar3 + tvar4 + tvar5 + tvar6 ~ Jahr,
                       data = aquabirds, order = ord, log_first = TRUE, add = c(-0.5, 1200), 
                       support = attr(m_s3$model$model$binteracting$iresponse, 
                                      "variables")$support, bounds = c(0, Inf)))
+
+### multi-species transformation models: M-Lambda(x) | d, continuous approximation
 m_cont3 <- mmlt(m_h4, m_k4, m_s4, formula = fm, data = aquabirds)
+
+### multi-species transformation models: M-Lambda | d, discrete approximation
 m_cont3_const <- mmlt(m_h4, m_k4, m_s4, data = aquabirds)
 
-
-## ----mod3_dist_c_const, eval = TRUE, echo = FALSE, cache = TRUE, warning = FALSE-----------------
+### Figure A.6
+### marginal distributions: M-Lambda | d, continuous approximation
 op <- par(mfrow = c(3, 1), mai = par("mai") * mymai)
 f_mar_c(m_cont3_const)
 par(op)
 
-
-## ----mod3_dist_d_const, eval = TRUE, echo = FALSE, warning = FALSE, cache = TRUE-----------------
+### Figure 2
+## marginal distributions: M-Lambda | d, discrete approximation
 op <- par(mfrow = c(3, 1), mai = par("mai") * mymai)
 f_mar_d(m_disc3_const$marginals[[1]], 
         m_disc3_const$marginals[[2]],
@@ -10829,7 +10841,10 @@ f_mar_d(m_disc3_const$marginals[[1]],
 par(op)
 
 
-## ----mod3_corr_c_const, eval = TRUE, echo = FALSE, message = FALSE, cache = TRUE, warning = FALSE, results = FALSE----
+### Table 2
+### M-Lambda | d: lambda coefficients and correlations
+
+## continuous approximation
 lambda3_c <- coef(m_cont3_const, newdata = nd, type = "Lambda")[1, ]
 corr3_c <- coef(m_cont3_const, newdata = nd, type = "Corr")[1, ]
 confints_c3 <- ci_const(m_cont3_const)
@@ -10854,7 +10869,7 @@ round(lambda_mat_c3, 3)
 round(corr_mat_c3, 3)
 
 
-## ----mod3_corr_d_const, eval = TRUE, echo = FALSE, message = FALSE, cache = TRUE, warning = FALSE, results = FALSE----
+## discrete approximation
 lambda3_d <- coef(m_disc3_const, newdata = nd, type = "Lambda")[1, ]
 corr3_d <- coef(m_disc3_const, newdata = nd, type = "Corr")[1, ]
 confints_d3 <- ci_const(m_disc3_const)
@@ -10879,13 +10894,15 @@ round(lambda_mat_d3, 3)
 round(corr_mat_d3, 3)
 
 
-## ----mod3_dist_c, eval = TRUE, echo = FALSE, cache = TRUE, warning = FALSE-----------------------
+### Figure A.7
+### marginal distributions: M-Lambda(x) | d, continuous approximation
 op <- par(mfrow = c(3, 1), mai = par("mai") * mymai)
 f_mar_c(m_cont3)
 par(op)
 
 
-## ----mod3_dist_d, eval = TRUE, echo = FALSE, warning = FALSE, cache = TRUE-----------------------
+### Figure 3
+### marginal distributions: M-Lambda(x) | d, discrete approximation
 op <- par(mfrow = c(3, 1), mai = par("mai") * mymai)
 f_mar_d(m_disc3$marginals[[1]], 
         m_disc3$marginals[[2]],
@@ -10893,44 +10910,45 @@ f_mar_d(m_disc3$marginals[[1]],
 par(op)
 
 
-## ----mod3_corr_c, eval = TRUE, echo = FALSE, warning = FALSE, cache = TRUE, message = FALSE------
+### Figure A.8
+### Trajectories of latent correlations: M-Lambda(x) | d, continuous approximation
 op <- par(mfrow = c(3, 1), mai = par("mai") * mymai)
 f_corr(m_cont3, corr_mat_c3)
 par(op)
 
 
-## ----mod3_corr_d, eval = TRUE, echo = FALSE, cache = TRUE, warning = FALSE-----------------------
+### Figure 4
+### Trajectories of latent correlations: M-Lambda(x) | d, discrete approximation
 op <- par(mfrow = c(3, 1), mai = par("mai") * mymai)
 f_corr(m_disc3, corr_mat_d3)
 par(op)
 
 
-## ----scipen, echo=FALSE--------------------------------------------------------------------------
 options(scipen = 8)
 
+if (FALSE) {
+  ### likelihood-ratio test continuous approximation: M-Lambda | d vs M-Lambda(x) | d
+  logLik(m_cont3)
+  logLik(m_cont3_const)
+  df <- length(coef(m_cont3)) - length(coef(m_cont3_const))
+  df
+  lr <- 2 * (as.numeric(logLik(m_cont3)) - as.numeric(logLik(m_cont3_const)))
+  lr
+  pchisq(lr, df = df, lower.tail = FALSE)
+  
+  
+  ### likelihood-ratio test discrete approximation: M-Lambda | d vs M-Lambda(x) | d
+  logLik(m_disc3)
+  logLik(m_disc3_const)
+  df <- length(coef(m_disc3)) - length(coef(m_disc3_const))
+  df
+  lr <- 2 * (as.numeric(logLik(m_disc3)) - as.numeric(logLik(m_disc3_const)))
+  lr
+  pchisq(lr, df = df, lower.tail = FALSE)
+}
 
-## ----lrtest_mod3_c, eval = FALSE, echo = FALSE, cache = TRUE-------------------------------------
-## logLik(m_cont3)
-## logLik(m_cont3_const)
-## df <- length(coef(m_cont3)) - length(coef(m_cont3_const))
-## df
-## lr <- 2 * (as.numeric(logLik(m_cont3)) - as.numeric(logLik(m_cont3_const)))
-## lr
-## pchisq(lr, df = df, lower.tail = FALSE)
 
-
-## ----lrtest_mod3_d, eval = FALSE, echo = FALSE, cache = TRUE-------------------------------------
-## logLik(m_disc3)
-## logLik(m_disc3_const)
-## df <- length(coef(m_disc3)) - length(coef(m_disc3_const))
-## df
-## lr <- 2 * (as.numeric(logLik(m_disc3)) - as.numeric(logLik(m_disc3_const)))
-## lr
-## pchisq(lr, df = df, lower.tail = FALSE)
-
-
-## ----par_boot_eval, echo = FALSE, eval = FALSE---------------------------------------------
-## ## PARAMETRIC BOOTSTRAP
+### PARAMETRIC BOOTSTRAP
 ## ## computationally expensive! only run if recalculate = TRUE
 ## if (recalculate) {
 ## 
@@ -11123,7 +11141,7 @@ options(scipen = 8)
 ## }
 
 
-## ----par_boot_results, echo = FALSE, eval = TRUE-------------------------------------------
+### parametric bootstrap results
 cret <-
   structure(c(41302.890981353958, 41674.619694733563, 41762.009508775111, 
               41243.05265257258, 41659.125787871919, 41407.67135270415, 41675.577188091236, 
@@ -11209,7 +11227,8 @@ dret <-
 
 
 
-## ----par_boot_plots, echo = FALSE, eval = TRUE, cache = TRUE-------------------------------
+### Figure 5
+### parametric bootstrap results
 # op <- par(mfrow = c(1, 2), mai = par("mai") * mymai)
 par(mfrow = c(1, 2), pty = "s")
 plot(cret[, "cont"], cret[, "orig"], 
