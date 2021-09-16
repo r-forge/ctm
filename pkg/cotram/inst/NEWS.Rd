@@ -2,7 +2,7 @@
 \name{NEWS}
 \title{NEWS file for the cotram package}
 
-\section{Changes in Version 0.3-0 (2021-09-08)}{
+\section{Changes in Version 0.3-0 (2021-09-16)}{
   \itemize{
     \item{New function \code{mcotram} implementing a multivariate count transformation model.}
     \item{New dataset \code{spiders}.}
