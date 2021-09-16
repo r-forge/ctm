@@ -8,7 +8,7 @@
 transformation models
 }
 \usage{
-mmlt(..., formula = ~ 1, data, theta = NULL, diag = FALSE,
+mmlt(..., formula = ~ 1, data, theta = NULL, 
      control.outer = list(trace = FALSE), scale = FALSE, dofit = TRUE)
 }
 \arguments{
@@ -20,8 +20,6 @@ structure via the lambda parameters. The default is set to \code{~ 1} for consta
   \item{data}{a data.frame
 }
   \item{theta}{an optional vector of starting values
-}
-  \item{diag}{logical; by default, diagonal elements are constrained to 1, corresponding to \code{diag = FALSE}.
 }
   \item{control.outer}{a list controlling \code{\link[alabama]{auglag}}
 }
