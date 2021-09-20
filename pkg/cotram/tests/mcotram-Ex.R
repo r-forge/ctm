@@ -55,8 +55,9 @@ all.equal(uc1$sc(uc2$par), numDeriv::grad(uc1$ll, uc2$par),
 ## marginal cotram models with log_first = FALSE
 u1l <- cotram(y.1 ~ 1, data = d, method = "probit", log_first = FALSE)
 u2l <- cotram(y.2 ~ 1, data = d, method = "probit", log_first = FALSE)
-uc1l <- mcotram(u1l, u2l, data = d)
-uc2l <- mcotram(u2l, u1l, data = d)
+theta <- round(c(coef(as.mlt(u1l)), coef(as.mlt(u2l)), 0), 2)
+uc1l <- mcotram(u1l, u2l, data = d, theta = theta)
+uc2l <- mcotram(u2l, u1l, data = d, theta = theta)
 logLik(uc1l)
 logLik(uc2l)
 all.equal(uc1l$sc(uc2l$par), numDeriv::grad(uc1l$ll, uc2l$par),
@@ -371,10 +372,11 @@ if (FALSE) {
 ## cotram models for the marginals
 u1 <- cotram(y.1 ~ x.1 + x.2, data = d, method = "probit")
 u2 <- cotram(y.2 ~ x.1 + x.2, data = d, method = "probit")
+theta <- round(c(coef(as.mlt(u1)), coef(as.mlt(u2)), 0), 2)
 
 ## joint models with different orders of the marginals, constant lambdas
-uc1 <- mcotram(u1, u2, data = d)
-uc2 <- mcotram(u2, u1, data = d)
+uc1 <- mcotram(u1, u2, data = d, theta = theta)
+uc2 <- mcotram(u2, u1, data = d, theta = theta)
 logLik(uc1)
 logLik(uc2) ## these log-likelihoods are expected to be very close, but not equal
 
@@ -386,8 +388,9 @@ all.equal(uc1$sc(uc2$par), numDeriv::grad(uc1$ll, uc2$par),
 # uc1 <- uc2 <- 0
 u1l <- cotram(y.1 ~ x.1 + x.2, data = d, method = "probit", log_first = FALSE)
 u2l <- cotram(y.2 ~ x.1 + x.2, data = d, method = "probit", log_first = FALSE)
-uc1l <- mcotram(u1l, u2l, data = d)
-uc2l <- mcotram(u2l, u1l, data = d)
+theta <- round(c(coef(as.mlt(u1l)), coef(as.mlt(u2l)), 0), 2)
+uc1l <- mcotram(u1l, u2l, data = d, theta = theta)
+uc2l <- mcotram(u2l, u1l, data = d, theta = theta)
 logLik(uc1l)
 logLik(uc2l)
 all.equal(uc1l$sc(uc2l$par), numDeriv::grad(uc1l$ll, uc2l$par),
