@@ -1,4 +1,4 @@
-### test for mcotram
+#### test for mcotram
 library("cotram")
 library("mvtnorm")
 options(digits = 2)
@@ -38,10 +38,12 @@ d <- data.frame(y = y, x = x)
 ## marginal cotram models with log_first = TRUE (default)
 u1 <- cotram(y.1 ~ 1, data = d, method = "probit")
 u2 <- cotram(y.2 ~ 1, data = d, method = "probit")
+## this is needed to ATLAS, OpenBlas etc reproducibility
+theta <- round(c(coef(as.mlt(u1)), coef(as.mlt(u2)), 0), 2)
 
 ## joint models with different orders of the marginals, constant lambdas
-uc1 <- mcotram(u1, u2, data = d)
-uc2 <- mcotram(u2, u1, data = d)
+uc1 <- mcotram(u1, u2, data = d, theta = theta)
+uc2 <- mcotram(u2, u1, data = d, theta = theta)
 ## these log-likelihoods are expected to be very close, but not equal
 logLik(uc1)
 logLik(uc2)
@@ -85,6 +87,8 @@ coef(uc2l, type = "Corr")[1,]
 ## coefficients of the model with the different order
 
 ## here, the results are not great because the marginal models are too simple
+## OpenBlas + ATLAS think differently
+if (FALSE) {
 
 ## log_first = TRUE
 coef(uc1)[-c(1:7, 15)] / sqrt(coef(uc1, type = "Sigma")$diagonal[1,2])
@@ -99,6 +103,8 @@ coef(uc2l)[1:7]
 
 coef(uc2l)[-c(1:7, 15)] / sqrt(coef(uc2l, type = "Sigma")$diagonal[1,2])
 coef(uc1l)[1:7]
+
+}
 
 ### predict accuracy
 cbind(u1 = predict(u1, newdata = d[1:3, ], type = "distribution"),

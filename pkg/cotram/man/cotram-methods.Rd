@@ -71,7 +71,9 @@
   logLik(m_birds)
 
   ### classical likelihood inference
+## IGNORE_RDIFF_BEGIN
   summary(m_birds)
+## IGNORE_RDIFF_END
 
   ### coefficients of the linear predictor (discrete hazard ratios)
   exp(-coef(m_birds))
