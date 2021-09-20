@@ -72,7 +72,9 @@ coef(uc1, type = "Lambda")[1,]
 coef(uc2, type = "Lambda")[1,]
 cov2cor(Sigma)[1, 2] ## original value for correlation
 coef(uc1, type = "Corr")[1,]
+## IGNORE_RDIFF_BEGIN
 coef(uc2, type = "Corr")[1,]
+## IGNORE_RDIFF_END
 
 ## log_first = FALSE
 # coef(uc1l)
@@ -81,7 +83,9 @@ coef(uc1l, type = "Lambda")[1,]
 coef(uc2l, type = "Lambda")[1,]
 
 coef(uc1l, type = "Corr")[1,]
+## IGNORE_RDIFF_BEGIN
 coef(uc2l, type = "Corr")[1,]
+## IGNORE_RDIFF_END
 
 ## transformation theory check
 ## for constant lambdas, the transformed coefficients should agree with the
