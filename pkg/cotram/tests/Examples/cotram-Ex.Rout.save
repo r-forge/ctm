@@ -98,6 +98,7 @@ The following object is masked from ‘package:mlt’:
 'log Lik.' -504.3843 (df=13)
 > 
 >   ### classical likelihood inference
+> ## IGNORE_RDIFF_BEGIN
 >   summary(m_birds)
 
   Discrete Hazards Cox Count Transformation Model 
@@ -121,6 +122,7 @@ Log-Likelihood:
  -504.3843 (df = 13)
 Likelihood-ratio Test: Chisq = 20.08602 on 6 degrees of freedom; p = 0.002673
 
+> ## IGNORE_RDIFF_END
 > 
 >   ### coefficients of the linear predictor (discrete hazard ratios)
 >   exp(-coef(m_birds))
@@ -216,104 +218,56 @@ Log-Likelihood:
 > 
 >   ## fit multi-species count transformation model
 >   ## with constant Cholesky factor of the precision matrix
+>   ##
+>   ## define starting values here (this is not necessary but leads
+>   ## to diffs for ATLAS and OpenBlas)
+>   theta <- round(c(coef(as.mlt(m_PF)), coef(as.mlt(m_HL)), 
++              coef(as.mlt(m_CC)), coef(as.mlt(m_CT)), 
++              coef(as.mlt(m_PL)), coef(as.mlt(m_PR)), 
++              rep(0, 15)), 2)
 >   m_all_1 <- mcotram(m_PF, m_HL, m_CC, m_CT, m_PL, m_PR, 
++                      theta = theta, ### <- not really necessary
 +                      formula = ~ 1, data = spiders)
 > 
 >   ## with covariate-dependent Cholesky factor of the precision matrix
->   m_all_2 <- mcotram(m_PF, m_HL, m_CC, m_CT, m_PL, m_PR, 
-+                      formula = ~ Elevation + Canopy_openess, data = spiders)
+>   theta <- round(c(coef(as.mlt(m_PF)), coef(as.mlt(m_HL)), 
++              coef(as.mlt(m_CC)), coef(as.mlt(m_CT)), 
++              coef(as.mlt(m_PL)), coef(as.mlt(m_PR)), 
++              rep(0, 15 * 3)), 2)
+>   m_all_2 <- mcotram(m_PF, m_HL, m_CC, m_CT, m_PL, m_PR, theta = theta,
++                      formula = ~ Elevation + Canopy_openess, data = spiders,
++                      ##                            not needed!
++                      control.outer = list(method = "Nelder-Mead", trace = FALSE))
 > 
 >   logLik(m_all_1)
-'log Lik.' -2420 (df=69)
+'log Lik.' -5185 (df=69)
 >   logLik(m_all_2)
-'log Lik.' -2377 (df=99)
+'log Lik.' -4038 (df=99)
 > 
->   ## lambda defining the Cholesky factor of the precision matrix,
->   ## with standard errors
+>   ## lambda defining the Cholesky factor of the precision matrix
 >   coef(m_all_1, newdata = spiders[1,], type = "Lambda")
-  [,1]  [,2] [,3]  [,4] [,5]  [,6] [,7]  [,8] [,9] [,10]  [,11] [,12] [,13]
-1 0.69 -0.35 0.28 -0.93 0.78 0.025 0.33 -0.56 0.27  0.88 0.0043 -0.21 -0.48
-   [,14] [,15]
-1 -0.079  0.16
->   V <- vcov(m_all_1)[55:69, 55:69]
->   (se <- sqrt(diag(V)))
-  Hrp_.Prds_f.(Intercept)   Cll_.Prds_f.(Intercept)   Clt_.Prds_f.(Intercept) 
-                     0.19                      0.16                      0.13 
-Prds_l.Prds_f.(Intercept) Prds_r.Prds_f.(Intercept)     Cll_.Hrp_.(Intercept) 
-                     0.20                      0.18                      0.10 
-    Clt_.Hrp_.(Intercept)   Prds_l.Hrp_.(Intercept)   Prds_r.Hrp_.(Intercept) 
-                     0.22                      0.15                      0.11 
-    Clt_.Cll_.(Intercept)   Prds_l.Cll_.(Intercept)   Prds_r.Cll_.(Intercept) 
-                     0.18                      0.17                      0.14 
-  Prds_l.Clt_.(Intercept)   Prds_r.Clt_.(Intercept) Prds_r.Prds_l.(Intercept) 
-                     0.11                      0.13                      0.11 
-> 
+  [,1]  [,2] [,3] [,4] [,5] [,6] [,7]  [,8] [,9] [,10] [,11] [,12] [,13] [,14]
+1 0.73 -0.21 0.27 -1.1 0.84 0.15 0.27 -0.18 0.21   1.5 -0.16  0.36 -0.45 -0.12
+  [,15]
+1  0.27
 >   coef(m_all_2, newdata = spiders[1,], type = "Lambda")
-    [,1] [,2]  [,3] [,4] [,5] [,6]   [,7]  [,8]  [,9] [,10] [,11] [,12] [,13]
-1 -0.099 0.16 0.095 -1.2  1.1 0.16 -0.049 -0.97 -0.28  0.43 0.082 -0.36 -0.54
-  [,14]  [,15]
-1 0.027 -0.022
->   V <- vcov(m_all_2)[55:99, 55:99]
->   (se <- sqrt(diag(V)))
-     Hrp_.Prds_f.(Intercept)        Hrp_.Prds_f.Elevation 
-                     3.78014                      0.00407 
-  Hrp_.Prds_f.Canopy_openess      Cll_.Prds_f.(Intercept) 
-                     0.00067                      1.96653 
-       Cll_.Prds_f.Elevation   Cll_.Prds_f.Canopy_openess 
-                     0.00206                      0.00054 
-     Clt_.Prds_f.(Intercept)        Clt_.Prds_f.Elevation 
-                     2.62350                      0.00265 
-  Clt_.Prds_f.Canopy_openess    Prds_l.Prds_f.(Intercept) 
-                     0.00039                      1.56914 
-     Prds_l.Prds_f.Elevation Prds_l.Prds_f.Canopy_openess 
-                     0.00168                      0.00079 
-   Prds_r.Prds_f.(Intercept)      Prds_r.Prds_f.Elevation 
-                     3.05135                      0.00269 
-Prds_r.Prds_f.Canopy_openess        Cll_.Hrp_.(Intercept) 
-                     0.00088                      0.75926 
-         Cll_.Hrp_.Elevation     Cll_.Hrp_.Canopy_openess 
-                     0.00080                      0.00036 
-       Clt_.Hrp_.(Intercept)          Clt_.Hrp_.Elevation 
-                     2.01593                      0.00205 
-    Clt_.Hrp_.Canopy_openess      Prds_l.Hrp_.(Intercept) 
-                     0.00102                      1.40393 
-       Prds_l.Hrp_.Elevation   Prds_l.Hrp_.Canopy_openess 
-                     0.00133                      0.00055 
-     Prds_r.Hrp_.(Intercept)        Prds_r.Hrp_.Elevation 
-                     0.82539                      0.00099 
-  Prds_r.Hrp_.Canopy_openess        Clt_.Cll_.(Intercept) 
-                     0.00058                      1.90852 
-         Clt_.Cll_.Elevation     Clt_.Cll_.Canopy_openess 
-                     0.00260                      0.00107 
-     Prds_l.Cll_.(Intercept)        Prds_l.Cll_.Elevation 
-                     1.94855                      0.00192 
-  Prds_l.Cll_.Canopy_openess      Prds_r.Cll_.(Intercept) 
-                     0.00069                      1.11309 
-       Prds_r.Cll_.Elevation   Prds_r.Cll_.Canopy_openess 
-                     0.00101                      0.00055 
-     Prds_l.Clt_.(Intercept)        Prds_l.Clt_.Elevation 
-                     0.85291                      0.00088 
-  Prds_l.Clt_.Canopy_openess      Prds_r.Clt_.(Intercept) 
-                     0.00034                      1.17727 
-       Prds_r.Clt_.Elevation   Prds_r.Clt_.Canopy_openess 
-                     0.00125                      0.00045 
-   Prds_r.Prds_l.(Intercept)      Prds_r.Prds_l.Elevation 
-                     0.93477                      0.00096 
-Prds_r.Prds_l.Canopy_openess 
-                     0.00032 
+  [,1] [,2] [,3] [,4] [,5] [,6] [,7] [,8] [,9] [,10] [,11] [,12] [,13] [,14]
+1    0 0.63    0    0    0    0    0    0    0  0.63     0     0   2.5     0
+  [,15]
+1   1.3
 > 
 >   ## linear correlation, ie Pearson correlation of the models after
 >   ## transformation to bivariate normality
 >   (r1 <- coef(m_all_1, newdata = spiders[1,], type = "Corr"))
-      [,1] [,2] [,3]  [,4]  [,5]  [,6]  [,7] [,8] [,9] [,10] [,11] [,12] [,13]
-[1,] -0.57 0.32  0.3 -0.21 -0.35 -0.46 -0.58 0.35 0.34  0.24 -0.38  0.18 -0.68
-     [,14]  [,15]
-[1,]  -0.2 -0.068
+      [,1] [,2] [,3]   [,4]  [,5]  [,6]  [,7]  [,8]    [,9] [,10] [,11] [,12]
+[1,] -0.59 0.27 0.45 -0.018 -0.41 -0.55 -0.79 0.073 -0.0023  0.36 -0.13  0.32
+     [,13]  [,14] [,15]
+[1,] -0.55 -0.024 -0.16
 >   (r2 <- coef(m_all_2, newdata = spiders[1,], type = "Corr"))
-      [,1]  [,2] [,3]  [,4]  [,5]   [,6]  [,7] [,8] [,9] [,10] [,11] [,12]
-[1,] 0.098 -0.17 0.66 0.076 -0.26 -0.032 -0.47 0.68 0.27 -0.18  0.13  0.47
-     [,13] [,14] [,15]
-[1,] -0.47 -0.37  0.26
+     [,1]  [,2]  [,3] [,4] [,5] [,6] [,7] [,8] [,9] [,10] [,11] [,12] [,13]
+[1,]    0 -0.51 -0.53    0 0.31 0.32 0.67    0 -0.4  0.48     0 -0.68 -0.28
+      [,14] [,15]
+[1,] -0.098 -0.55
 > 
 >   options(op)
 > 
@@ -325,7 +279,7 @@ Prds_r.Prds_l.Canopy_openess
 > cleanEx()
 > options(digits = 7L)
 > base::cat("Time elapsed: ", proc.time() - base::get("ptime", pos = 'CheckExEnv'),"\n")
-Time elapsed:  9.109 0.105 9.214 0 0 
+Time elapsed:  8.693 1.416 8.113 0 0 
 > grDevices::dev.off()
 null device 
           1 

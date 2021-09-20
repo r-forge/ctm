@@ -69,25 +69,33 @@ An object of class \code{mcotram} and \code{mmlt} with \code{coef} and
 
   ## fit multi-species count transformation model
   ## with constant Cholesky factor of the precision matrix
+  ##
+  ## define starting values here (this is not necessary but leads
+  ## to diffs for ATLAS and OpenBlas)
+  theta <- round(c(coef(as.mlt(m_PF)), coef(as.mlt(m_HL)), 
+             coef(as.mlt(m_CC)), coef(as.mlt(m_CT)), 
+             coef(as.mlt(m_PL)), coef(as.mlt(m_PR)), 
+             rep(0, 15)), 2)
   m_all_1 <- mcotram(m_PF, m_HL, m_CC, m_CT, m_PL, m_PR, 
+                     theta = theta, ### <- not really necessary
                      formula = ~ 1, data = spiders)
 
   ## with covariate-dependent Cholesky factor of the precision matrix
-  m_all_2 <- mcotram(m_PF, m_HL, m_CC, m_CT, m_PL, m_PR, 
-                     formula = ~ Elevation + Canopy_openess, data = spiders)
+  theta <- round(c(coef(as.mlt(m_PF)), coef(as.mlt(m_HL)), 
+             coef(as.mlt(m_CC)), coef(as.mlt(m_CT)), 
+             coef(as.mlt(m_PL)), coef(as.mlt(m_PR)), 
+             rep(0, 15 * 3)), 2)
+  m_all_2 <- mcotram(m_PF, m_HL, m_CC, m_CT, m_PL, m_PR, theta = theta,
+                     formula = ~ Elevation + Canopy_openess, data = spiders,
+                     ##                            not needed!
+                     control.outer = list(method = "Nelder-Mead", trace = FALSE))
 
   logLik(m_all_1)
   logLik(m_all_2)
 
-  ## lambda defining the Cholesky factor of the precision matrix,
-  ## with standard errors
+  ## lambda defining the Cholesky factor of the precision matrix
   coef(m_all_1, newdata = spiders[1,], type = "Lambda")
-  V <- vcov(m_all_1)[55:69, 55:69]
-  (se <- sqrt(diag(V)))
-
   coef(m_all_2, newdata = spiders[1,], type = "Lambda")
-  V <- vcov(m_all_2)[55:99, 55:99]
-  (se <- sqrt(diag(V)))
 
   ## linear correlation, ie Pearson correlation of the models after
   ## transformation to bivariate normality

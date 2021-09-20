@@ -15,7 +15,7 @@ Type 'demo()' for some demos, 'help()' for on-line help, or
 'help.start()' for an HTML browser interface to help.
 Type 'q()' to quit R.
 
-> ### test for mcotram
+> #### test for mcotram
 > library("cotram")
 Loading required package: tram
 Loading required package: mlt
@@ -66,10 +66,12 @@ The following object is masked from 'package:mlt':
 > ## marginal cotram models with log_first = TRUE (default)
 > u1 <- cotram(y.1 ~ 1, data = d, method = "probit")
 > u2 <- cotram(y.2 ~ 1, data = d, method = "probit")
+> ## this is needed to ATLAS, OpenBlas etc reproducibility
+> theta <- round(c(coef(as.mlt(u1)), coef(as.mlt(u2)), 0), 2)
 > 
 > ## joint models with different orders of the marginals, constant lambdas
-> uc1 <- mcotram(u1, u2, data = d)
-> uc2 <- mcotram(u2, u1, data = d)
+> uc1 <- mcotram(u1, u2, data = d, theta = theta)
+> uc2 <- mcotram(u2, u1, data = d, theta = theta)
 > ## these log-likelihoods are expected to be very close, but not equal
 > logLik(uc1)
 'log Lik.' -3571 (df=15)
@@ -133,52 +135,24 @@ The following object is masked from 'package:mlt':
 > ## coefficients of the model with the different order
 > 
 > ## here, the results are not great because the marginal models are too simple
-> 
-> ## log_first = TRUE
-> coef(uc1)[-c(1:7, 15)] / sqrt(coef(uc1, type = "Sigma")$diagonal[1,2])
-y.2.Bs1(y.2) y.2.Bs2(y.2) y.2.Bs3(y.2) y.2.Bs4(y.2) y.2.Bs5(y.2) y.2.Bs6(y.2) 
-       -1.67        -1.67        -1.53        -0.62        -0.62         0.23 
-y.2.Bs7(y.2) 
-        1.66 
-> coef(uc2)[1:7]
-y.2.Bs1(y.2) y.2.Bs2(y.2) y.2.Bs3(y.2) y.2.Bs4(y.2) y.2.Bs5(y.2) y.2.Bs6(y.2) 
-       -1.97        -1.58        -1.58        -0.57        -0.57         0.20 
-y.2.Bs7(y.2) 
-        1.69 
-> 
-> coef(uc2)[-c(1:7, 15)] / sqrt(coef(uc2, type = "Sigma")$diagonal[1,2])
-y.1.Bs1(y.1) y.1.Bs2(y.1) y.1.Bs3(y.1) y.1.Bs4(y.1) y.1.Bs5(y.1) y.1.Bs6(y.1) 
-      -3.007       -1.682       -1.673       -1.673       -0.328        0.013 
-y.1.Bs7(y.1) 
-       1.465 
-> coef(uc1)[1:7]
-y.1.Bs1(y.1) y.1.Bs2(y.1) y.1.Bs3(y.1) y.1.Bs4(y.1) y.1.Bs5(y.1) y.1.Bs6(y.1) 
-      -2.140       -2.140       -1.782       -1.527       -0.311       -0.023 
-y.1.Bs7(y.1) 
-       1.560 
-> 
-> ## log_first = FALSE?
-> coef(uc1l)[-c(1:7, 15)] / sqrt(coef(uc1l, type = "Sigma")$diagonal[1,2])
-y.2.Bs1(y.2) y.2.Bs2(y.2) y.2.Bs3(y.2) y.2.Bs4(y.2) y.2.Bs5(y.2) y.2.Bs6(y.2) 
-      -1.819       -0.925       -0.174       -0.082        0.656        1.205 
-y.2.Bs7(y.2) 
-       1.655 
-> coef(uc2l)[1:7]
-y.2.Bs1(y.2) y.2.Bs2(y.2) y.2.Bs3(y.2) y.2.Bs4(y.2) y.2.Bs5(y.2) y.2.Bs6(y.2) 
-       -1.95        -0.71        -0.38         0.15         0.54         1.23 
-y.2.Bs7(y.2) 
-        1.69 
-> 
-> coef(uc2l)[-c(1:7, 15)] / sqrt(coef(uc2l, type = "Sigma")$diagonal[1,2])
-y.1.Bs1(y.1) y.1.Bs2(y.1) y.1.Bs3(y.1) y.1.Bs4(y.1) y.1.Bs5(y.1) y.1.Bs6(y.1) 
-       -2.19        -1.54        -0.34        -0.34         0.66         0.90 
-y.1.Bs7(y.1) 
-        1.43 
-> coef(uc1l)[1:7]
-y.1.Bs1(y.1) y.1.Bs2(y.1) y.1.Bs3(y.1) y.1.Bs4(y.1) y.1.Bs5(y.1) y.1.Bs6(y.1) 
-       -2.27        -1.52        -0.31        -0.31         0.66         0.95 
-y.1.Bs7(y.1) 
-        1.53 
+> ## OpenBlas + ATLAS think differently
+> if (FALSE) {
++ 
++ ## log_first = TRUE
++ coef(uc1)[-c(1:7, 15)] / sqrt(coef(uc1, type = "Sigma")$diagonal[1,2])
++ coef(uc2)[1:7]
++ 
++ coef(uc2)[-c(1:7, 15)] / sqrt(coef(uc2, type = "Sigma")$diagonal[1,2])
++ coef(uc1)[1:7]
++ 
++ ## log_first = FALSE?
++ coef(uc1l)[-c(1:7, 15)] / sqrt(coef(uc1l, type = "Sigma")$diagonal[1,2])
++ coef(uc2l)[1:7]
++ 
++ coef(uc2l)[-c(1:7, 15)] / sqrt(coef(uc2l, type = "Sigma")$diagonal[1,2])
++ coef(uc1l)[1:7]
++ 
++ }
 > 
 > ### predict accuracy
 > cbind(u1 = predict(u1, newdata = d[1:3, ], type = "distribution"),
@@ -1237,4 +1211,4 @@ yt.1.Bs6(ytu.1) yt.1.Bs7(ytu.1)
 > 
 > proc.time()
    user  system elapsed 
-  10.59    0.13   10.70 
+   11.0     1.7    10.3 
