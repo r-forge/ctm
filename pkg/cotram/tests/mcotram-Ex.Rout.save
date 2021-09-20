@@ -113,8 +113,10 @@ The following object is masked from 'package:mlt':
 [1] -0.67
 > coef(uc1, type = "Corr")[1,]
 [1] -0.69
+> ## IGNORE_RDIFF_BEGIN
 > coef(uc2, type = "Corr")[1,]
 [1] -0.7
+> ## IGNORE_RDIFF_END
 > 
 > ## log_first = FALSE
 > # coef(uc1l)
@@ -128,8 +130,10 @@ The following object is masked from 'package:mlt':
 > 
 > coef(uc1l, type = "Corr")[1,]
 [1] -0.69
+> ## IGNORE_RDIFF_BEGIN
 > coef(uc2l, type = "Corr")[1,]
 [1] -0.7
+> ## IGNORE_RDIFF_END
 > 
 > ## transformation theory check
 > ## for constant lambdas, the transformed coefficients should agree with the
@@ -1214,4 +1218,4 @@ yt.1.Bs6(ytu.1) yt.1.Bs7(ytu.1)
 > 
 > proc.time()
    user  system elapsed 
-   11.5     1.8    10.5 
+  12.88    0.13   13.01 
