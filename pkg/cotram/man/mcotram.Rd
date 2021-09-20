@@ -39,6 +39,9 @@ An object of class \code{mcotram} and \code{mmlt} with \code{coef} and
 }
 \references{
 
+  Luisa Barbani, Roland Brandl, Torsten Hothorn (2021), Multi-species Count
+  Transformation Models. Submitted manuscript, available from the authors.
+
   Nadja Klein, Torsten Hothorn, Luisa Barbanti, Thomas Kneib (2020),
   Multivariate Conditional Transformation Models. \emph{Scandinavian Journal
   of Statistics}, \doi{10.1111/sjos.12501}.
