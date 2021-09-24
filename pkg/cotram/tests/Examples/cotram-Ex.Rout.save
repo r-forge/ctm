@@ -239,6 +239,8 @@ Log-Likelihood:
 +                      ##                            not needed!
 +                      control.outer = list(method = "Nelder-Mead", trace = FALSE))
 > 
+> ## IGNORE_RDIFF_BEGIN
+> 
 >   logLik(m_all_1)
 'log Lik.' -5185 (df=69)
 >   logLik(m_all_2)
@@ -269,6 +271,8 @@ Log-Likelihood:
       [,14] [,15]
 [1,] -0.098 -0.55
 > 
+> ## IGNORE_RDIFF_END
+> 
 >   options(op)
 > 
 > 
@@ -279,7 +283,7 @@ Log-Likelihood:
 > cleanEx()
 > options(digits = 7L)
 > base::cat("Time elapsed: ", proc.time() - base::get("ptime", pos = 'CheckExEnv'),"\n")
-Time elapsed:  8.693 1.416 8.113 0 0 
+Time elapsed:  11.464 0.121 11.606 0 0 
 > grDevices::dev.off()
 null device 
           1 

@@ -90,6 +90,8 @@ An object of class \code{mcotram} and \code{mmlt} with \code{coef} and
                      ##                            not needed!
                      control.outer = list(method = "Nelder-Mead", trace = FALSE))
 
+## IGNORE_RDIFF_BEGIN
+
   logLik(m_all_1)
   logLik(m_all_2)
 
@@ -101,6 +103,8 @@ An object of class \code{mcotram} and \code{mmlt} with \code{coef} and
   ## transformation to bivariate normality
   (r1 <- coef(m_all_1, newdata = spiders[1,], type = "Corr"))
   (r2 <- coef(m_all_2, newdata = spiders[1,], type = "Corr"))
+
+## IGNORE_RDIFF_END
 
   options(op)
 
