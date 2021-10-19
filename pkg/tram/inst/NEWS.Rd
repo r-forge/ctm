@@ -2,6 +2,14 @@
 \name{NEWS}
 \title{NEWS file for the tram package}
 
+\section{Changes in Version 0.6-2 (2021-10-19)}{
+  \itemize{
+    \item{Make sure to use the Schur complement when computing
+          variances in for linear transformation models in 
+          \code{score_test} and \code{perm_test}.}
+  }
+}
+
 \section{Changes in Version 0.6-1 (2021-09-16)}{
   \itemize{
     \item{Add \code{dofit} argument to \code{mmlt}.}
@@ -10,6 +18,7 @@
           for \code{glm}.}
   }
 }
+
 
 \section{Changes in Version 0.6-0 (2021-03-08)}{
   \itemize{
