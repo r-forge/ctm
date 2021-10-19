@@ -50,7 +50,7 @@ under stratification (time-varying coefficients), all types of random
 censoring and trunction. An early reference to this parameterisation is
 McLain and Ghosh (2013).
 
-The responses is bounded (\code{bounds = c(0, Inf)}) when specified as a
+The response is bounded (\code{bounds = c(0, Inf)}) when specified as a
 \code{Surv} object. Otherwise, \code{bounds} can be specified via
 \code{\dots}.
 
