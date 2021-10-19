@@ -318,11 +318,14 @@ score_test.tram <- function(object, parm = names(coef(object)),
         coef(m1) <- cf
         ### see Lehmann, Elements of Large-sample Theory,
         ### 1999, 539-540, for score tests in the presence
-
         ### of additional parameters
-        sum(estfun(m1)[, parm]) * sqrt(vcov(m1)[parm, parm])
+        vr <- try(vcov.tram(m1)[parm, parm])
+        ###       ^^^^^^^^^ uses Schur complement
+        if (inherits(vr, "try-error")) return(NA)
+        sum(estfun(m1)[, parm]) * sqrt(vr)
     }
     stat <- c("Z" = sc(nullvalue))
+    if (is.na(stat)) stop("Cannot compute test statistic")
     pval <- switch(alternative, 
         "two.sided" = pnorm(-abs(stat)) * 2,
         "less" = pnorm(-abs(stat)),
@@ -339,9 +342,11 @@ score_test.tram <- function(object, parm = names(coef(object)),
             grd <- seq(from = Wci[1], to = Wci[2], length.out = maxsteps)
 
             grd_sc <- numeric(length(grd))
-            for (i in 1:length(grd)) {
+            for (i in 1:length(grd))
                 grd_sc[i] <- sc(grd[i])
-                if (!is.finite(grd_sc)[1]) break()
+            if (mean(is.na(grd_sc)) < .2) { ### less than 20% failures
+                grd <- grd[!is.na(grd_sc)]
+                grd_sc <- grd_sc[!is.na(grd_sc)]
             }
 
             if (all(is.finite(grd_sc))) {
@@ -506,7 +511,8 @@ perm_test.tram <- function(object, parm = names(coef(object)),
         cf[] <- c(coef(m0, fixed = FALSE), 0)
         coef(m1) <- cf
         ### resid is weighted, remove weights and feed them to coin
-        r0 <- (resid(m1) / w) * sqrt(vcov(m1)[parm,parm])
+        r0 <- (resid(m1) / w) * sqrt(vcov.tram(m1)[parm,parm])
+        ###                          ^^^^^^^^^ uses Schur complement
         if (is.null(block)) {
             it0 <- coin::independence_test(r0 ~ Xf, teststat = "scalar", 
                 alternative = alternative, weights = ~ w, ...)
@@ -557,15 +563,20 @@ perm_test.tram <- function(object, parm = names(coef(object)),
                     ### 1999, 539-540, for score tests in the presence
                     ### of additional parameters
                     ### estfun is already weighted
-                    sum(estfun(m1)[, parm]) * sqrt(vcov(m1)[parm, parm])
+                    vr <- try(vcov.tram(m1)[parm, parm])
+                    ###       ^^^^^^^^^ uses Schur complement
+                    if (inherits(vr, "try-error")) return(NA)
+                    sum(estfun(m1)[, parm]) * sqrt(vr)
                 }
                 Wci <- confint(object, level = 1 - alpha / 5)[parm,]
                 grd <- seq(from = Wci[1], to = Wci[2], length.out = maxsteps)
                 
                 grd_sc <- numeric(length(grd))
-                for (i in 1:length(grd)) {
+                for (i in 1:length(grd))
                     grd_sc[i] <- sc(grd[i])
-                    if (!is.finite(grd_sc)[i]) break()
+                if (mean(is.na(grd_sc)) < .2) { ### less than 20% failures
+                    grd <- grd[!is.na(grd_sc)]
+                    grd_sc <- grd_sc[!is.na(grd_sc)]
                 }
 
                 if (all(is.finite(grd_sc))) {
