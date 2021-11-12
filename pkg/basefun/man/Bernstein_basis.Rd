@@ -4,12 +4,12 @@
     Bernstein Basis Functions
 }
 \description{
-    Basis functions defining a Bernstein polynomial
+    Basis functions defining a polynomial in Bernstein form
 }
 \usage{
 Bernstein_basis(var, order = 2, ui = c("none", "increasing", "decreasing", 
                                        "cyclic", "zerointegral", "positive",
-                                       "negative"),
+                                       "negative", "concave", "convex"),
                 extrapolate = FALSE, log_first = FALSE)
 }
 \arguments{
@@ -20,10 +20,10 @@ Bernstein_basis(var, order = 2, ui = c("none", "increasing", "decreasing",
                      extrapolated linearily outside \code{support(var)}.
                      In particular, the second derivative of the polynomial
                      at \code{support(var)} is constrained to zero.}
-  \item{log_first}{logical; the Bernstein polynomial is defined on the
+  \item{log_first}{logical; the polynomial in Bernstein form is defined on the
                    log-scale if \code{TRUE}. It makes sense to define the
                    support as \code{c(1, q)}$, ie putting the first 
-                   basis function of the Bernstein polynomial on
+                   basis function of the polynomial on
                    \code{log(1)}.}
 }
 \details{
@@ -65,4 +65,32 @@ Bernstein_basis(var, order = 2, ui = c("none", "increasing", "decreasing",
   plot(x$x, predict(bb, newdata = x, coef = cf, deriv = c(x = 1)), 
        type = "l")
 
+  ### illustrate constrainted estimation by toy example
+  N <- 100
+  order <- 10
+  x <- seq(from = 0, to = pi, length.out = N)
+  y <- rnorm(N, mean = -sin(x) + .5, sd = .5)
+
+  if (require("coneproj")) {
+    prnt_est <- function(ui) {
+      xv <- numeric_var("x", support = c(0, pi))
+      xb <- Bernstein_basis(xv, order = 10, ui = ui)
+      X <- model.matrix(xb, data = data.frame(x = x))
+      uiM <- as(attr(X, "constraint")$ui, "matrix")
+      ci <- attr(X, "constraint")$ci
+      if (all(is.finite(ci)))
+        parm <- qprog(crossprod(X), crossprod(X, y), 
+                      uiM, ci, msg = FALSE)$thetahat
+      else
+        parm <- coef(lm(y ~ 0 + X))
+      plot(x, y, main = ui)
+      lines(x, X \%*\% parm, col = col[ui], lwd = 2)
+    }
+    ui <- eval(formals(Bernstein_basis)$ui)
+    col <- 1:length(ui)
+    names(col) <- ui
+    layout(matrix(1:length(ui), 
+                  ncol = ceiling(sqrt(length(ui)))))
+    tmp <- sapply(ui, function(x) try(prnt_est(x)))
+  }
 }

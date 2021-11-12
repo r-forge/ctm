@@ -22,7 +22,8 @@
 ### arXiv preprint arXiv:1404.2293
 Bernstein_basis <- function(var, order = 2, 
                             ui = c("none", "increasing", "decreasing", 
-                                   "cyclic", "zerointegral", "positive", "negative"),
+                                   "cyclic", "zerointegral", "positive", 
+                                   "negative", "concave", "convex"),
                             extrapolate = FALSE, log_first = FALSE) {
 
     zeroint <- FALSE
@@ -50,7 +51,7 @@ Bernstein_basis <- function(var, order = 2,
                       ci = rep(-Inf, order + 1)),
         "increasing" = list(ui = diff(Diagonal(order + 1), differences = 1), 
                             ci = rep(0, order)),
-        "decreasing" = list(ui = diff(Diagonal(order + 1), differences = 1) * -1,
+        "decreasing" = list(ui = -diff(Diagonal(order + 1), differences = 1),
                             ci = rep(0, order)),
         "increasing.positive" = {
             tmp <- Bernstein_basis(var, order = order, extrapolate = FALSE)
@@ -61,7 +62,13 @@ Bernstein_basis <- function(var, order = 2,
         },
         "positive" = list(ui = Diagonal(order + 1), ci = rep(0, order + 1)),
         "negative" = list(ui = -Diagonal(order + 1), ci = rep(0, order + 1)),
-        "default" = stop(paste(ui, "not yet implemented")))
+        ### doi:10.1016/j.csda.2012.02.018
+        "convex" = list(ui = diff(Diagonal(order + 1), differences = 2), 
+                        ci = rep(0, order - 1)),
+        "concave" = list(ui = -diff(Diagonal(order + 1), differences = 2), 
+                         ci = rep(0, order - 1)),
+        stop(paste(ui, "not yet implemented"))
+    )
 
     ### linear extrapolation, f''(support) = 0
     if (extrapolate) {
