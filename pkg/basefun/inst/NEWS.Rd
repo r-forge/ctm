@@ -2,7 +2,16 @@
 \name{NEWS}
 \title{NEWS file for the basefun package}
 
-\section{Changes in Version 1.1-0 (2020-03-01)}{
+\section{Changes in Version 1.1-1 (2021-11-12)}{
+  \itemize{
+    \item{Add convexity and concavity constraints to 
+          polynomials in Bernstein form.}
+    \item{Add toy example demonstrating constrainted 
+          curve estimation to \code{?Bernstein_basis}.}
+  }
+}
+
+\section{Changes in Version 1.1-0 (2021-03-09)}{
   \itemize{
     \item{More infrastructure for \code{as.basis} to return 
           a \code{Matrix} object for ordered factors.}
