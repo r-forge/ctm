@@ -18,9 +18,6 @@
 
 \newcommand{\cmd}[1]{\texttt{#1()}}
 
-
-\usepackage{tikz}
-\usetikzlibrary{shapes,arrows,chains}
 \usepackage{verbatim}
 
 <<mtram-setup, echo = FALSE, results = "hide", message = FALSE, warning = FALSE>>=
