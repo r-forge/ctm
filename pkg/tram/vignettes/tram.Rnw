@@ -59,6 +59,12 @@ fill <- diverge_hcl(2, h = c(246, 40), c = 96, l = c(65, 90), alpha = .3)
 
 \renewcommand{\thefootnote}{}
 
+%%% redefine from jss.cls, tikz loads xcolor and
+%%% xcolor forgets about already defined colors
+\definecolor{Red}{rgb}{0.5,0,0}
+\definecolor{Blue}{rgb}{0,0,0.5}
+
+
 %% code commands
 \newcommand{\Rclass}[1]{`\code{#1}'}
 %% JSS
