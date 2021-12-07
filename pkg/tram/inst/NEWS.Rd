@@ -7,6 +7,7 @@
     \item{Make sure to use the Schur complement when computing
           variances in for linear transformation models in 
           \code{score_test} and \code{perm_test}.}
+    \item{Fix LaTeX problems.}
   }
 }
 

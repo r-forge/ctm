@@ -2,11 +2,19 @@
 \name{NEWS}
 \title{NEWS file for the cotram package}
 
+\section{Changes in Version 0.3-2 (2021-11-08)}{
+  \itemize{
+    \item{Import \code{confband} generic from \pkg{mlt}.}
+  }
+}
+
+
 \section{Changes in Version 0.3-1 (2021-09-21)}{
   \itemize{
     \item{Fix additional check problems.}
   }
 }
+
 
 \section{Changes in Version 0.3-0 (2021-09-20)}{
   \itemize{
