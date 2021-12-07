@@ -1,6 +1,8 @@
 
 library("mlt")
 library("truncreg")
+### make M1mac happy
+options(digits = 4)
 
 
 ## Left-truncated 

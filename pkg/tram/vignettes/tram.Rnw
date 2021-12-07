@@ -9,7 +9,7 @@
 \usepackage{thumbpdf}
 \usepackage{amsfonts,amstext,amsmath,amssymb,amsthm}
 \usepackage{accents}
-\usepackage{color}
+%\usepackage{color}
 \usepackage{rotating}
 \usepackage{verbatim}
 \usepackage[utf8]{inputenc}

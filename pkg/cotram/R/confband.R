@@ -1,8 +1,4 @@
 
-confband <- function(object, newdata, level = 0.95, ...)
-    UseMethod("confband")
-
-
 confband.cotram <- function(object, newdata,  level = 0.95, 
                             type = c("trafo", "distribution", "survivor", "cumhazard"), 
                             smooth = FALSE, q = NULL, K = 20, cheat = K, ...){
