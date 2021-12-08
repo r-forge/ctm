@@ -1,5 +1,5 @@
 
-R version 4.0.4 (2021-02-15) -- "Lost Library Book"
+R version 4.1.2 (2021-11-01) -- "Bird Hippie"
 Copyright (C) 2021 The R Foundation for Statistical Computing
 Platform: x86_64-pc-linux-gnu (64-bit)
 
@@ -28,6 +28,8 @@ Henningsen, Arne and Toomet, Ott (2011). maxLik: A package for maximum likelihoo
 
 If you have questions, suggestions, or comments regarding the 'maxLik' package, please use a forum or 'tracker' at maxLik's R-Forge site:
 https://r-forge.r-project.org/projects/maxlik/
+> ### make M1mac happy
+> options(digits = 4)
 > 
 > 
 > ## Left-truncated 
@@ -44,14 +46,14 @@ https://r-forge.r-project.org/projects/maxlik/
 > tmod <- truncreg(yt ~ x, data = d, point = tr, direction = "left")
 > coef(tmod)
 (Intercept)           x       sigma 
-  1.0192835   1.9917670   0.2575485 
+     1.0193      1.9918      0.2575 
 > logLik(tmod)
-'log Lik.' -33.99032 (df=3)
+'log Lik.' -33.99 (df=3)
 > vcov(tmod)
-              (Intercept)             x         sigma
-(Intercept)  4.971662e-04 -1.146545e-04 -7.445133e-06
-x           -1.146545e-04  3.145827e-05  1.637489e-06
-sigma       -7.445133e-06  1.637489e-06  3.940881e-05
+            (Intercept)          x      sigma
+(Intercept)   4.972e-04 -1.147e-04 -7.445e-06
+x            -1.147e-04  3.146e-05  1.637e-06
+sigma        -7.445e-06  1.637e-06  3.941e-05
 > 
 > ## MLT
 > fm <- as.formula("~ x")
@@ -63,26 +65,26 @@ sigma       -7.445133e-06  1.637489e-06  3.940881e-05
 > mltmod <- mlt(m, data = dfull)
 > (cf <- coef(mltmod))
 (Intercept)          yt           x 
-  -3.957638    3.882764   -7.733562 
+     -3.958       3.883      -7.734 
 > c(-cf[1] / cf[2], -cf[3] / cf[2], 1 / cf[2])
 (Intercept)           x          yt 
-  1.0192835   1.9917670   0.2575485 
+     1.0193      1.9918      0.2575 
 > logLik(mltmod)
-'log Lik.' -33.99032 (df=3)
+'log Lik.' -33.99 (df=3)
 > vcov(mltmod)
-             (Intercept)           yt           x
-(Intercept)  0.017689298 -0.009565423  0.01722588
-yt          -0.009565423  0.008956894 -0.01774419
-x            0.017225877 -0.017744193  0.03562564
+            (Intercept)        yt        x
+(Intercept)    0.017689 -0.009565  0.01723
+yt            -0.009565  0.008957 -0.01774
+x              0.017226 -0.017744  0.03563
 > 
 > #library("numDeriv")
 > 
 > solve(numDeriv::hessian(mltmod$loglik, coef(mltmod), 
 +                         weights = weights(mltmod)))
-             [,1]         [,2]        [,3]
-[1,]  0.017689298 -0.009565423  0.01722588
-[2,] -0.009565423  0.008956894 -0.01774419
-[3,]  0.017225878 -0.017744194  0.03562565
+          [,1]      [,2]     [,3]
+[1,]  0.017689 -0.009565  0.01723
+[2,] -0.009565  0.008957 -0.01774
+[3,]  0.017226 -0.017744  0.03563
 > 
 > 
 > ## right-truncated
@@ -100,14 +102,14 @@ x            0.017225877 -0.017744193  0.03562564
 > tmod <- truncreg(yt ~ x, data = d, point = tr, direction = "right")
 > coef(tmod)
 (Intercept)           x       sigma 
-  1.0003424   1.9951261   0.2640064 
+      1.000       1.995       0.264 
 > logLik(tmod)
-'log Lik.' -50.51895 (df=3)
+'log Lik.' -50.52 (df=3)
 > vcov(tmod)
-              (Intercept)             x         sigma
-(Intercept)  3.312327e-04 -1.021957e-04 -2.840604e-06
-x           -1.021957e-04  4.352539e-05  1.854543e-06
-sigma       -2.840604e-06  1.854543e-06  4.525605e-05
+            (Intercept)          x      sigma
+(Intercept)   3.312e-04 -1.022e-04 -2.841e-06
+x            -1.022e-04  4.353e-05  1.855e-06
+sigma        -2.841e-06  1.855e-06  4.526e-05
 > 
 > ## MLT
 > fm <- as.formula("~ x")
@@ -119,29 +121,29 @@ sigma       -2.840604e-06  1.854543e-06  4.525605e-05
 > mltmod <- mlt(m, data = dfull)
 > (cf <- coef(mltmod))
 (Intercept)          yt           x 
-  -3.789087    3.787786   -7.557110 
+     -3.789       3.788      -7.557 
 > c(-cf[1] / cf[2], -cf[3] / cf[2], 1 / cf[2])
 (Intercept)           x          yt 
-  1.0003433   1.9951258   0.2640064 
+      1.000       1.995       0.264 
 > logLik(mltmod)
-'log Lik.' -50.51895 (df=3)
+'log Lik.' -50.52 (df=3)
 > vcov(mltmod)
-             (Intercept)           yt           x
-(Intercept)  0.014383309 -0.009473336  0.01733345
-yt          -0.009473336  0.009315775 -0.01848536
-x            0.017333447 -0.018485363  0.03730403
+            (Intercept)        yt        x
+(Intercept)    0.014383 -0.009473  0.01733
+yt            -0.009473  0.009316 -0.01849
+x              0.017333 -0.018485  0.03730
 > 
 > #library("numDeriv")
 > 
 > solve(numDeriv::hessian(mltmod$loglik, coef(mltmod), 
 +                         weights = weights(mltmod)))
-             [,1]         [,2]        [,3]
-[1,]  0.014244914 -0.009331758  0.01705011
-[2,] -0.009331758  0.009171150 -0.01819602
-[3,]  0.017050110 -0.018196018  0.03672519
+          [,1]      [,2]     [,3]
+[1,]  0.014245 -0.009332  0.01705
+[2,] -0.009332  0.009171 -0.01820
+[3,]  0.017050 -0.018196  0.03673
 > 
 > 
 > 
 > proc.time()
    user  system elapsed 
-  1.596   0.093   1.679 
+  1.916   0.081   1.986 
