@@ -82,6 +82,11 @@ m1 <- Coxph(Surv(time, cens) | menostat:tgrade ~ horTh, data = GBSG2)
 m2 <- Coxph(Surv(time, cens) | 0 + menostat:tgrade ~ horTh, data = GBSG2)
 stopifnot(max(abs(coef(as.mlt(m1)) - coef(as.mlt(m2)))) < 
           sqrt(.Machine$double.eps))
+### interaction term with stratum
+m3 <- Coxph(Surv(time, cens) | horTh ~ menostat + menostat:horTh, 
+            data = GBSG2)
+ci <- confint(m3)["menostatPre:horThyes",]
+stopifnot(all(!is.finite(ci)))
 
 ### problems with responses of class "R", spotted by Balint Tamasi
 data("wine", package = "ordinal")
@@ -124,5 +129,5 @@ m1 <- update(mm, perm = "crim", permutation = p)
 tmp <- BostonHousing2
 tmp[, "crim"] <- tmp[p, "crim"]
 m2 <- Colr(Surv(cmedv, cmedv < 50) ~ chas + crim, data = tmp)
-stopifnot(all.equal(coef(m1), coef(as.mlt(m2)), tol = 1e-4))
-stopifnot(all.equal(logLik(m1), logLik(m2)))
+stopifnot(all.equal(coef(m1), coef(as.mlt(m2)), tol = 1e-3))
+stopifnot(all.equal(logLik(m1), logLik(m2), tol = 1e-6))
