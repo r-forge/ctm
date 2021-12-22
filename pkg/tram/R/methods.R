@@ -96,7 +96,9 @@ vcov.tram <- function(object, with_baseline = FALSE, complete = FALSE, ...)
     ret <- solve(H)
     if (inherits(ret, "try-error"))
         return(vcov(as.mlt(object))[shift, shift])
-    colnames(ret) <- rownames(ret) <- object$shiftcoef
+    nm <- object$shiftcoef
+    nm <- nm[!nm %in% names(object$fixed)]
+    colnames(ret) <- rownames(ret) <- nm
     return(ret)
 }
 

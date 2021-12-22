@@ -195,10 +195,15 @@ tram <- function(formula, data, subset, weights, offset, cluster, na.action = na
     ###         be OK.
     Xfixed <- NULL
     if (!is.null(iS) && !is.null(iX)) {
-        ### fix coefs corresponding to a stratum to zero
-        nS <- colnames(model.matrix(iS, data = td$mf[1:10,]))
+
+        fm <- as.formula(paste("~", 
+            as.character(as.expression(td$mt$x[[2]])), "+",
+            as.character(as.expression(td$mt$s[[2]]))))
+        nS <- colnames(model.matrix(fm, data = td$mf[1:10,])) 
+        ### nS <- colnames(model.matrix(iS, data = td$mf[1:10,]))
         nX <- colnames(model.matrix(iX, data = td$mf[1:10,]))
-        if (any(xin <- nX %in% nS)) {
+        ### fix coefs corresponding to a stratum to zero
+        if (any(xin <- !nX %in% nS)) {
             Xfixed <- numeric(sum(xin))
             names(Xfixed) <- nX[xin]
         }
