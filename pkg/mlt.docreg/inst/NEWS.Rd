@@ -3,7 +3,7 @@
 \title{NEWS file for the mlt.docreg package}
 
 
-\section{Changes in Version 1.1-2 (2021-12-08)}{
+\section{Changes in Version 1.1-2 (2021-12-16)}{
   \itemize{
     \item{Update reference output for truncation examples.}
   }

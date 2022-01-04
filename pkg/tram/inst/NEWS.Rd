@@ -2,7 +2,7 @@
 \name{NEWS}
 \title{NEWS file for the tram package}
 
-\section{Changes in Version 0.6-3 (2021-21-22)}{
+\section{Changes in Version 0.6-3 (2022-01-04)}{
   \itemize{
     \item{Deal with stratum - covariate interactions,
           overparameterised coefficients are constraint to zero.}
