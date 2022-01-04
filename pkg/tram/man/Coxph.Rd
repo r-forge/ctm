@@ -91,8 +91,9 @@ An object of class \code{Coxph}, with corresponding \code{coef},
   confint(profile(m2))
   ### score interval
   confint(score_test(m2))
-  ### permutation score interval
-  confint(perm_test(m2))
+  ### permutation score interval; uses permutation distribution
+  ### see coin::independence_test
+  \dontrun{confint(perm_test(m2))}
 
 }
 \keyword{models}
