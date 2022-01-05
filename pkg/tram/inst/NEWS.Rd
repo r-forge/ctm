@@ -2,6 +2,12 @@
 \name{NEWS}
 \title{NEWS file for the tram package}
 
+\section{Changes in Version 0.6-4 (2022-01-05)}{
+  \itemize{
+    \item{Add methods for probabilistic indices and overlap coefficients + friends.}
+  }
+}
+
 \section{Changes in Version 0.6-3 (2022-01-04)}{
   \itemize{
     \item{Deal with stratum - covariate interactions,
