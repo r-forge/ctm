@@ -10,6 +10,14 @@
 \alias{estfun.tram}
 \alias{predict.tram}
 \alias{plot.tram}
+\alias{PI}
+\alias{PI.tram}
+\alias{OVL}
+\alias{OVL.tram}
+\alias{TV}
+\alias{TV.tram}
+\alias{L1}
+\alias{L1.tram}
 \title{
   Methods for Stratified Linear Transformation Models
 }
@@ -34,10 +42,20 @@
      which = c("QQ-PIT", "baseline only", "distribution"), 
      confidence = c("none", "interval", "band"), level = 0.95, 
      K = 50, cheat = K, col = "black", fill = "lightgrey", lwd = 1, ...)
+\method{PI}{tram}(object, newdata = model.frame(object), reference = 0,
+                  \dots)
+\method{PI}{default}(object, prob, link = "logistic", ...)
+\method{OVL}{tram}(object, newdata = model.frame(object), reference = 0,
+                  \dots)
+\method{TV}{tram}(object, newdata = model.frame(object), reference = 0,
+                  \dots)
+\method{L1}{tram}(object, newdata = model.frame(object), reference = 0,
+                  \dots)
 }
 \arguments{
   \item{object, formula, x}{a fitted stratified linear transformation model inheriting
-                from class \code{tram}.}
+                from class \code{tram}. \code{PI} also takes a numeric
+                vector in the default method.}
   \item{data}{an optional data frame.}
   \item{with_baseline}{logical, if \code{TRUE} all model parameters
                        are returned, otherwise parameters describing the
@@ -49,6 +67,8 @@
   \item{parm}{model parameters, including baseline parameters.}
   \item{complete}{currently ignored}
   \item{newdata}{an optional data frame of new observations.}
+  \item{reference}{an optional data frame of reference observations, or 
+                   a numeric vector of reference values.}
   \item{type}{type of prediction, current options include
               linear predictors (\code{"lp"}, of \code{x} variables in the
               formula \code{y | s ~ x}), transformation functions
@@ -69,6 +89,8 @@
   \item{col}{line color.}
   \item{fill}{fill color.}
   \item{lwd}{line width.}
+  \item{prob}{a numeric vector of probabilistic indices.}
+  \item{link}{a character identifying a link function.}
   \item{\dots}{additional arguments to the underlying methods for class
                \code{mlt}, see \code{\link[mlt]{mlt-methods}}.}
 }
@@ -81,6 +103,28 @@
   and \code{estfun} gives the score contribution by each observation.
   \code{predict} and \code{plot} can be used to inspect the model on
   different scales.
+
+  \code{PI} computes the probabilistic index (or concordance probability or
+  AUC) for all observations in \code{newdata}, relative to \code{reference},
+  ie the probability \deqn{P(Y_1 \le Y_0 \mid x_0, x_1)}
+  of observing a smaller value of a randomly sampled observation conditional
+  on \eqn{x_1} compared to a randomly sampled reference observation, which
+  is conditional on \eqn{x_0}. This is equivalent to the area under the
+  receiver operating curve (ROC). The probability only applies within
+  strata, response-varying coefficients are not allowed.
+
+  Under the same setup, \code{OVL} gives the overlap coefficient, which is
+  one minus the total variation and one minus half the \eqn{L_1} distance
+  between the two conditional densities. The overlap coefficient is
+  identical to the Youden index and the Smirnov statistic. 
+
+  \code{PI} and friends also accept an argument \code{conf.level} which
+  triggers computation of simultaneous 
+  Wald confidence intervals for these measures.
+  Arguments in \dots are forwarded to \code{\link[multcomp]{glht}}.
+
+  
+
 }
 \seealso{
   \code{\link[mlt]{mlt-methods}},  \code{\link[mlt]{plot.ctm}}
@@ -134,5 +178,36 @@
          xlab = "Median Value", ylab = expression(h[Y]))
     legend("bottomright", lty = 1, col = col, 
             title = "Near Charles River", legend = c("no", "yes"), bty = "n")
+
+    ### cars data; with quantile functions
+    plot(dist ~ speed, data = cars)
+    m <- Colr(dist ~ speed, data = cars)
+    q <- predict(as.mlt(m), newdata = data.frame(speed = s <- 6:25),
+                 type = "quantile", prob = c(1, 5, 9) / 10)
+    lines(s, q[1,])
+    lines(s, q[2,])
+    lines(s, q[3,])
+
+    nd <- data.frame(speed = s <- as.double(1:5 * 5))
+    
+    # Prob(dist at speed s <= dist at speed 0)
+    # speed 0 is reference, not a good choice here
+    PI(m, newdata = nd)
+
+    # Prob(dist at speed s <= dist at speed 15)
+    lp15 <- c(predict(m, newdata = data.frame(speed = 15)))
+    PI(m, newdata = nd, reference = lp15)
+    PI(m, newdata = nd, reference = nd[3,,drop = FALSE])
+
+    # Prob(dist at speed s <= dist at speed s')
+    PI(m, newdata = nd, reference = nd)
+    # essentically:
+    lp <- predict(m, newdata = nd)
+    PI(object = -dist(lp))
+    # same, with simultaneous confidence intervals
+    PI(m, newdata = nd, reference = nd, conf.level = .95)
+
+    # Overlap of conditional densities at speed s and s' 
+    OVL(m, newdata = nd, reference = nd)
 
 }
