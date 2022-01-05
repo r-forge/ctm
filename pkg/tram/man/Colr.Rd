@@ -1,6 +1,5 @@
 \name{Colr}
 \alias{Colr}
-\alias{PI}
 \title{
   Continuous Outcome Logistic Regression
 }
@@ -9,7 +8,6 @@
 }
 \usage{
 Colr(formula, data, subset, weights, offset, cluster, na.action = na.omit, ...)
-PI(logOR, prob)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -42,12 +40,10 @@ PI(logOR, prob)
           contain \code{NA}s.  The default is set by the \code{na.action} setting
           of \code{options}, and is \code{na.fail} if that is unset.
   }
-  \item{logOR}{a log-odds ratio to be converted to a probabilistic index.}
-  \item{prob}{a probabilistic index to be converted to a log-odds ratio.}
   \item{\dots}{additional arguments to \code{\link{tram}}.}
 }
 \details{
-Simultanous estimation of all possible binary logistic models obtained 
+Simultaneous estimation of all possible binary logistic models obtained 
 by dichotomisation of a continuous response. The regression coefficients can
 be constant allowing for an interpretation as log-odds ratios.
 

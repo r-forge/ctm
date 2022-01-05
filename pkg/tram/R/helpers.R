@@ -1,17 +1,14 @@
 
-PI <- function(logOR, prob) {
+### convert lp to PI and back, use logistic as default
+PI.default <- function(object, prob, link = "logistic", ...) {
 
-    stopifnot(xor(missing(logOR), missing(prob)))
+    FUN <- .lp2PI(link = link)
 
-    if (missing(prob)) {
-        OR <- exp(logOR)
-        ret <- OR * (OR - 1 - logOR) / (OR - 1)^2
-        ret[abs(logOR) < .Machine$double.eps] <- .5
-        return(ret)
-    }
+    if (missing(prob))
+        return(FUN(object))
 
-    logOR <- 1:999 / 50
-    s <- spline(x = logOR, y = PI(logOR = logOR), method = "hyman")
+    object <- 1:999 / 50
+    s <- spline(x = object, y = FUN(object), method = "hyman")
     wl5 <- (prob < .5 - .Machine$double.eps)
     wg5 <- (prob > .5 + .Machine$double.eps)
     ret <- numeric(length(prob))
@@ -21,5 +18,3 @@ PI <- function(logOR, prob) {
         ret[wg5] <- approx(x = s$y, y = s$x, xout = prob[wg5])$y
     ret
 }
-
-

@@ -1392,3 +1392,163 @@ perm_test.glm <- function(object, parm = names(coef(object)),
 
 simulate.tram <- function(object, nsim = 1L, seed = NULL, ...)
     simulate(as.mlt(object), nsim = nsim, seed = seed, ...)
+
+PI <- function(object, ...)
+    UseMethod("PI")
+
+PI.tram <- function(object, newdata = model.frame(object), 
+                    reference = 0, ...) {
+
+    .lp2x(object = object, newdata = newdata, reference = reference, 
+          FUN = .lp2PI(link = object$model$todistr$name), ...)
+}
+
+### convert lp to PI and back, use logistic as default
+PI.default <- function(object, prob, link = "logistic", ...) {
+
+    FUN <- .lp2PI(link = link)
+
+    if (missing(prob))
+        return(FUN(object))
+
+    object <- 1:999 / 50
+    s <- spline(x = object, y = FUN(object), method = "hyman")
+    wl5 <- (prob < .5 - .Machine$double.eps)
+    wg5 <- (prob > .5 + .Machine$double.eps)
+    ret <- numeric(length(prob))
+    if (any(wl5))
+        ret[wl5] <- - approx(x = s$y, y = s$x, xout = 1 - prob[wl5])$y
+    if (any(wg5))
+        ret[wg5] <- approx(x = s$y, y = s$x, xout = prob[wg5])$y
+    ret
+}
+
+OVL <- function(object, ...)
+    UseMethod("OVL")
+
+OVL.tram <- function(object, newdata = model.frame(object), 
+                     reference = 0, ...) {
+
+     ### <FIXME> handle confidence intervals including 1;
+     ### make sure lwr < upr </FIXME>
+    .lp2x(object = object, newdata = newdata, reference = reference, 
+          FUN = .lp2OVL(link = object$model$todistr$name), ...)
+}
+
+TV <- function(object, ...)
+    UseMethod("TV")
+
+TV.tram <- function(object, newdata = model.frame(object), 
+                    reference = 0, ...) {
+
+    ret <- OVL(object = object, newdata = newdata, reference = reference, ...)
+    ### <FIXME> make sure lwr < upr </FIXME>
+    1 - ret    
+}
+
+L1 <- function(object, ...)
+    UseMethod("L1")
+
+L1.tram <- function(object, newdata = model.frame(object), 
+                    reference = 0, ...) {
+
+    ret <- OVL(object = object, newdata = newdata, reference = reference, ...)
+    ### <FIXME> make sure lwr < upr </FIXME>
+    2 * (1 - ret)
+}
+
+.lp2x <- function(object, newdata = model.frame(object), reference = 0, FUN, 
+                  conf.level = 0, ...) {
+
+    ### <FIXME>: applies within strata, but response-varying coefficients
+    ### are not allowed -> add check </FIXME>
+
+    if (conf.level > 0) {
+        X <- model.matrix(object, data = newdata)
+        if (is.data.frame(reference)) {
+            Xr <- model.matrix(object, data = reference)
+        } else {
+            if (is.null(reference)) {
+                Xr <- X
+            } else {
+                ret <- confint(glht(object, linfct = X), ...)
+                ret$confint <- ret$confint + 
+                    c(-1, 1)[object$negative + 1L] * reference
+                return(FUN(c(-1, 1)[object$negative + 1L] * ret$confint))
+            }
+        }
+
+        i1 <- matrix(1:nrow(X), nrow = nrow(X), ncol = nrow(Xr))
+        i2 <- matrix(rep(1:nrow(Xr), each = nrow(X)), nrow = nrow(X))
+
+        if (isTRUE(all.equal(X, Xr))) {
+            i1 <- i1[upper.tri(i1)]
+            i2 <- i2[upper.tri(i2)]
+        }
+        K <- Xr[c(i2),, drop = FALSE] - X[c(i1),, drop = FALSE]
+        rownames(K) <- paste0(rownames(Xr)[i2], "-", rownames(X)[i1])
+        ret <- confint(glht(object, linfct = K), ...)
+        return(FUN(c(-1, 1)[object$negative + 1L] * ret$confint))
+    }
+
+    lp <- predict(object, newdata = newdata, type = "lp")
+    if (is.data.frame(reference)) {
+        rf <- predict(object, newdata = reference, type = "lp")
+    } else {
+        if (is.null(reference)) {
+            rf <- lp
+        } else {
+            rf <- reference
+        }
+    }
+
+    if (isTRUE(all.equal(lp, rf))) {
+        ret <- c(1, -1)[object$negative + 1L] * dist(lp, diag = FALSE)
+    } else {
+        ret <- outer(c(rf), c(lp), "-")
+    }
+    FUN(c(-1, 1)[object$negative + 1L] * ret)
+}
+
+.lp2PI <- function(link = c("normal", "logistic", "minimum extreme value", 
+                            "maximum extreme value")) {
+
+    link <- match.arg(link)
+    switch(link,
+        normal = function(x) pnorm(x / sqrt(2)),
+        logistic = function(x) {
+            OR <- exp(x)
+            ret <- OR * (OR - 1 - x)/(OR - 1)^2
+            ret[abs(x) < .Machine$double.eps] <- 0.5
+            return(ret)
+        },
+        "minimum extreme value" = function(x) plogis(x),
+        "maximum extreme value" = function(x) plogis(x)
+    )
+}
+
+
+.lp2OVL <- function(link = c("normal", "logistic", "minimum extreme value", 
+                              "maximum extreme value")) {
+
+    link <- match.arg(link)
+
+    switch(link, 
+        "normal" = function(x) 2 * pnorm(-abs(x / 2)),
+        "logistic" = function(x) 2 * plogis(-abs(x / 2)),
+        "minimum extreme value" = function(x) {
+            x <- abs(x)
+            ret <- exp(x / (exp(-x) - 1)) - exp(-x / (exp(x) - 1)) + 1 
+            ret[abs(x) < .Machine$double.eps] <- 1
+            x[] <- ret
+            return(x)
+        },
+        "maximum extreme value" = function(x) {
+            x <- abs(x)
+            rt <- exp(-x / (exp(x) - 1))
+            ret <- rt^exp(x) + 1 - rt
+            ret[abs(x) < .Machine$double.eps] <- 1
+            x[] <- ret
+            return(x)
+        })
+}
