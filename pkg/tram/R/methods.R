@@ -1457,6 +1457,38 @@ L1.tram <- function(object, newdata = model.frame(object),
     2 * (1 - ret)
 }
 
+ROC <- function(object, ...)
+    UseMethod("ROC")
+
+ROC.tram <- function(object, newdata = model.frame(object), reference = 0,
+                     prob = 1:99 / 100, ...) {
+
+    beta <- .lp2x(object = object, newdata = newdata, reference = reference, 
+                  FUN = function(x) x, ...)
+    roc <- function(prob, beta) 
+        1 - object$model$todistr$p(object$model$todistr$q(1 - prob) - beta)
+
+    lwr <- upr <- NULL
+    if (inherits(beta, "dist"))
+        beta <- c(beta)
+    if ("Estimate" %in% colnames(beta)) {
+        lwr <- beta[, "lwr"]
+        upr <- beta[, "upr"]
+        beta <- beta[, "Estimate"]
+        tmp <- lwr
+        lwr[beta < 0] <- abs(upr[beta < 0])
+        upr[beta < 0] <- abs(tmp[beta < 0])
+    }
+
+    ret <- outer(c(prob), abs(c(beta)), roc)
+    if (!is.null(lwr) & !is.null(upr))
+        attr(ret, "conf.band") <- list(lwr = outer(prob, lwr, roc), 
+                                       upr = outer(prob, upr, roc))
+    attr(ret, "prob") <- prob
+    class(ret) <- "ROCtram"
+    ret
+}
+
 .lp2x <- function(object, newdata = model.frame(object), reference = 0, FUN, 
                   conf.level = 0, ...) {
 
