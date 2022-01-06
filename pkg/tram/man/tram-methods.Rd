@@ -10,14 +10,18 @@
 \alias{estfun.tram}
 \alias{predict.tram}
 \alias{plot.tram}
+\alias{plot.ROCtram}
 \alias{PI}
 \alias{PI.tram}
+\alias{PI.default}
 \alias{OVL}
 \alias{OVL.tram}
 \alias{TV}
 \alias{TV.tram}
 \alias{L1}
 \alias{L1.tram}
+\alias{ROC}
+\alias{ROC.tram}
 \title{
   Methods for Stratified Linear Transformation Models
 }
@@ -36,7 +40,8 @@
 \method{estfun}{tram}(object, parm = coef(as.mlt(object), fixed = FALSE), ...)
 \method{predict}{tram}(object, newdata = model.frame(object), 
         type = c("lp", "trafo", "distribution", "survivor", "density", 
-                    "logdensity", "hazard", "loghazard", "cumhazard", "quantile"), 
+                 "logdensity", "hazard", "loghazard", "cumhazard", 
+                 "quantile"), 
            ...)
 \method{plot}{tram}(x, newdata = model.frame(x), 
      which = c("QQ-PIT", "baseline only", "distribution"), 
@@ -51,6 +56,10 @@
                   \dots)
 \method{L1}{tram}(object, newdata = model.frame(object), reference = 0,
                   \dots)
+\method{ROC}{tram}(object, newdata = model.frame(object), reference = 0,
+                   prob = 1:99 / 100, \dots)
+\method{plot}{ROCtram}(x, lty = 1:ncol(x), col = "black", 
+     fill = "lightgrey", lwd = 1, ...) 
 }
 \arguments{
   \item{object, formula, x}{a fitted stratified linear transformation model inheriting
@@ -89,7 +98,8 @@
   \item{col}{line color.}
   \item{fill}{fill color.}
   \item{lwd}{line width.}
-  \item{prob}{a numeric vector of probabilistic indices.}
+  \item{lty}{line type.}
+  \item{prob}{a numeric vector of probabilities..}
   \item{link}{a character identifying a link function.}
   \item{\dots}{additional arguments to the underlying methods for class
                \code{mlt}, see \code{\link[mlt]{mlt-methods}}.}
@@ -206,6 +216,12 @@
     PI(object = -dist(lp))
     # same, with simultaneous confidence intervals
     PI(m, newdata = nd, reference = nd, conf.level = .95)
+
+    # plot ROC curves + confidence bands
+    # compare speed 5 and 10 to speed 15
+    plot(ROC(m, newdata = nd[1:2,,drop = FALSE],
+             reference = nd[3,,drop = FALSE],
+             conf.level = 0.95))
 
     # Overlap of conditional densities at speed s and s' 
     OVL(m, newdata = nd, reference = nd)
