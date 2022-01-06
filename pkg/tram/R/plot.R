@@ -96,12 +96,14 @@ plot.ROCtram <- function(x, lty = 1:ncol(x),
         lty <- rep(lty, length.out = ncol(x))
 
     for (i in 1:ncol(x))
-        lines(prob, x[, i], lty = lty[i])
+        lines(c(0, prob, 1), c(0, x[, i], 1), lty = lty[i])
     cb <- attr(x, "conf.band")
     if (!is.null(cb)) {
         for (i in 1:ncol(cb$lwr))
-            .add_confband(cbind(q = prob, Estimate = x[,i], 
-                                lwr = cb$lwr[, i], upr = cb$upr[, i]),
+            .add_confband(cbind(q = c(0, prob, 1), 
+                                Estimate = c(0, x[,i], 1),
+                                lwr = c(0, cb$lwr[, i], 1), 
+                                upr = c(0, cb$upr[, i], 1)),
                           fill = fill[i], col = col[i], ...)
     }
 }
