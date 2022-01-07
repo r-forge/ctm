@@ -2,6 +2,14 @@
 \name{NEWS}
 \title{NEWS file for the mlt package}
 
+\section{Changes in Version 1.4-0 (2022-01-07)}{
+  \subsection{New features}{
+    \itemize{
+      \item{Add infrastructure for shift-scale transformation models.}
+    }
+  }
+}
+
 \section{Changes in Version 1.3-2 (2021-08-24)}{
   \subsection{New features}{
     \itemize{
