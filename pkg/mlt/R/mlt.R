@@ -64,12 +64,16 @@
         if (SCALE) {
             sparm <- .parm(beta)
             sparm[Assign[2,] != "bscaling"] <- 0L
+            sterm <- c(sqrt(exp(Y %*% sparm)))
             parm <- beta
             parm[Assign[2,] == "bscaling"] <- 0L
-            sterm <- c(sqrt(exp(Y %*% sparm)))
             Parm <- matrix(parm, nrow = nrow(Y), ncol = length(parm), byrow = TRUE)
-            Parm[, !Assign[2,] %in% c("bshifting", "bscaling")] <- 
-                Parm[, !Assign[2,] %in% c("bshifting", "bscaling")] * sterm
+            if (model$scale_shift) {
+                idx <- !Assign[2,] %in% "bscaling"
+            } else {
+                idx <- !Assign[2,] %in% c("bshifting", "bscaling")
+            }
+            Parm[, idx] <- Parm[, idx] * sterm
             Parm
         } else {
             .parm(beta)
