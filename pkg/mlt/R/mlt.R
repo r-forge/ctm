@@ -16,6 +16,7 @@
     } else {
         Y <- eY$Y
     }
+    Assign <- attr(Y, "Assign")
 
     ui <- attr(Y, "constraint")$ui
     ci <- attr(Y, "constraint")$ci
@@ -57,6 +58,22 @@
         .parm <- function(beta) beta
         fix <- rep(FALSE, ncol(Y))
     } 
+
+    .sparm <- function(beta) {
+        if ("bscaling" %in% Assign[2,]) {
+            sparm <- .parm(beta)
+            sparm[Assign[2,] != "bscaling"] <- 0L
+            parm <- beta
+            parm[Assign[2,] == "bscaling"] <- 0L
+            sterm <- c(sqrt(exp(Y %*% sparm)))
+            Parm <- matrix(parm, nrow = nrow(Y), ncol = length(parm), byrow = TRUE)
+            Parm[, !Assign[2,] %in% c("bshifting", "bscaling")] <- 
+                Parm[, !Assign[2,] %in% c("bshifting", "bscaling")] * sterm
+            Parm
+        } else {
+            .parm(beta)
+        }
+    }
 
     .ofuns <- function(weights, subset = NULL, offset = NULL, 
                        perm = NULL, permutation = NULL, 
@@ -155,10 +172,10 @@
                 }
                 if (!is.null(es$full_ex))
                     ret[es$full_ex] <- .mlt_loglik_exact(distr, 
-                        exY, exYprime, exoffset, extrunc)(.parm(beta_ex))
+                        exY, exYprime, exoffset, extrunc)(.sparm(beta_ex))
                 if (!is.null(es$full_nex))
                     ret[es$full_nex] <- .mlt_loglik_interval(distr, 
-                        iYleft, iYright, ioffset, itrunc)(.parm(beta_nex))
+                        iYleft, iYright, ioffset, itrunc)(.sparm(beta_nex))
                 return(ret)
             },
             sc = function(beta, Xmult = TRUE) {
@@ -181,7 +198,7 @@
                 }
                 if (!is.null(es$full_ex)) {
                     scr <- .mlt_score_exact(distr, 
-                        exY, exYprime, exoffset, extrunc)(.parm(beta_ex), Xmult)
+                        exY, exYprime, exoffset, extrunc)(.sparm(beta_ex), Xmult)
                     if (EX_ONLY) {
                         ret <- scr
                     } else {
@@ -190,7 +207,7 @@
                 }
                 if (!is.null(es$full_nex)) {
                     scr <- .mlt_score_interval(distr, 
-                        iYleft, iYright, ioffset, itrunc)(.parm(beta_nex), Xmult)
+                        iYleft, iYright, ioffset, itrunc)(.sparm(beta_nex), Xmult)
                     if (IN_ONLY) {
                         ret <- scr
                     } else {
@@ -220,11 +237,11 @@
                 if (!is.null(es$full_ex))
                     ret <- ret + .mlt_hessian_exact(distr, 
                         exY, exYprime, exoffset, extrunc, 
-                        exweights)(.parm(beta_ex))
+                        exweights)(.sparm(beta_ex))
                 if (!is.null(es$full_nex))
                     ret <- ret + .mlt_hessian_interval(distr, 
                         iYleft, iYright, ioffset, itrunc, 
-                        iweights)(.parm(beta_nex))
+                        iweights)(.sparm(beta_nex))
                 colnames(ret) <- rownames(ret) <- colnames(Y)
                 ### in case beta contains fix parameters,
                 ### return all scores
@@ -256,8 +273,17 @@
                      offset = offset, ...)
         loglikfct <- function(beta, weights)  
             -sum(weights * of$ll(beta))
-        score <- function(beta, weights, Xmult = TRUE) 
-            weights * of$sc(beta, Xmult = Xmult)
+        score <- function(beta, weights, Xmult = TRUE) {
+            sc <- weights * of$sc(beta, Xmult = Xmult)
+            if (!"bscaling" %in% Assign[2,]) return(sc)
+            sparm <- beta
+            sparm[Assign[2,] != "bscaling"] <- 0L
+            sterm <- c(sqrt(exp(Y %*% sparm)))
+            idx <- !Assign[2,] %in% c("bshifting", "bscaling")
+            cbind(sterm * sc[, idx],
+                  sc[, Assign[2, ] == "bshifting"],
+                  sterm * c(sc[, idx] %*% .parm(beta)[idx]) * .5 * Y[, Assign[2,] == "bscaling"])
+        }
         hessian <- function(beta, weights) 
             of$he(beta)
         scorefct <- function(beta, weights) 

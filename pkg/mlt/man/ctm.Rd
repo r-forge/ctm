@@ -7,7 +7,7 @@
   Specification of conditional transformation models
 }
 \usage{
-ctm(response, interacting = NULL, shifting = NULL, data = NULL, 
+ctm(response, interacting = NULL, shifting = NULL, scaling = NULL, data = NULL, 
     todistr = c("Normal", "Logistic", "MinExtrVal", "MaxExtrVal", "Exponential"), 
     sumconstr = inherits(interacting, c("formula", "formula_basis")), ...)
 }
@@ -15,6 +15,7 @@ ctm(response, interacting = NULL, shifting = NULL, data = NULL,
   \item{response}{a basis function, ie, an object of class \code{basis}}
   \item{interacting}{a basis function, ie, an object of class \code{basis}}
   \item{shifting}{a basis function, ie, an object of class \code{basis}}
+  \item{scaling}{a basis function, ie, an object of class \code{basis}}
   \item{data}{either a \code{data.frame} containing the model variables
               or a formal description of these variables in an object of class \code{vars}}
   \item{todistr}{a character vector describing the distribution to be transformed}
