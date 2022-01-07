@@ -113,7 +113,11 @@ predict.cbind_bases <- function(object, newdata, coef,
         if (is.null(nmb)) nmb <- ""
         if (names(object)[b] %in% terms || nmb %in% terms) {
             start <- ifelse(b == 1, 1, sum(unlist(np[names(object)[1:(b - 1)]])) + 1)
-            cf <- coef[start:sum(unlist(np[names(object)[1:b]]))]
+            if (is.matrix(coef) && nrow(coef) == nrow(newdata)) {
+                cf <- coef[,start:sum(unlist(np[names(object)[1:b]])), drop = FALSE]
+            } else {
+                cf <- coef[start:sum(unlist(np[names(object)[1:b]]))]
+            }
             ### this will only work for depth two, ie c(c(...)) but
             ### not deeper.
             if (names(object)[b] %in% terms) {

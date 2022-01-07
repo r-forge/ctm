@@ -65,3 +65,8 @@ stopifnot(all.equal(drop(p3),
     matrix(p2[as.matrix(expand.grid(1:5, 1:3, 1))], nrow = 5), 
     check.attributes = FALSE))
 
+### matrix coefficients
+X <- model.matrix(cb, data = d)
+cf <- matrix(sample(1:(nrow(X) * ncol(X))), nrow = nrow(X))
+p <- predict(cb, newdata = d, coef = cf)
+all.equal(p, rowSums(X * cf))

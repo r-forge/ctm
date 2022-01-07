@@ -2,6 +2,12 @@
 \name{NEWS}
 \title{NEWS file for the basefun package}
 
+\section{Changes in Version 1.1-2 (2022-01-07)}{
+  \itemize{
+    \item{Allow coefficients in matrix form.}
+  }
+}
+
 \section{Changes in Version 1.1-1 (2021-11-12)}{
   \itemize{
     \item{Add convexity and concavity constraints to 
