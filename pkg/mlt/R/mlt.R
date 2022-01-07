@@ -17,6 +17,7 @@
         Y <- eY$Y
     }
     Assign <- attr(Y, "Assign")
+    SCALE <- "bscaling" %in% Assign[2,]
 
     ui <- attr(Y, "constraint")$ui
     ci <- attr(Y, "constraint")$ci
@@ -60,7 +61,7 @@
     } 
 
     .sparm <- function(beta) {
-        if ("bscaling" %in% Assign[2,]) {
+        if (SCALE) {
             sparm <- .parm(beta)
             sparm[Assign[2,] != "bscaling"] <- 0L
             parm <- beta
@@ -325,7 +326,19 @@
         ### NOTE: this overwrites the functions taking the possibly updated
         ### offset into account
         ret$score <- score
-        ret$hessian <- hessian
+        wfit <- weights
+        if (SCALE) {
+            ret$hessian <- function(beta, weights) {
+                warning("Analytical Hessian not available, using numerical approximation")
+                if (isTRUE(all.equal(beta, ret$par)) &&
+                    isTRUE(all.equal(weights, wfit)) &&
+                    !is.null(ret$optim_hessian))
+                    return(ret$optim_hessian)
+                numDeriv::hessian(loglikfct, beta, weights = weights)
+            }
+        } else {
+            ret$hessian <- hessian
+        }
         ret$loglik <- loglikfct
         ret$logliki <- logliki
 
