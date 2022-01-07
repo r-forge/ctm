@@ -334,11 +334,13 @@
         if (SCALE) {
             ret$hessian <- function(beta, weights) {
                 warning("Analytical Hessian not available, using numerical approximation")
-                if (isTRUE(all.equal(beta, ret$par)) &&
-                    isTRUE(all.equal(weights, wfit)) &&
-                    !is.null(ret$optim_hessian))
-                    return(ret$optim_hessian)
-                ret <- numDeriv::hessian(loglikfct, beta, weights = weights)
+                if (isTRUE(all.equal(beta, ret$par, check.attributes = FALSE)) &&
+                    isTRUE(all.equal(weights, wfit, check.attributes = FALSE)) &&
+                    !is.null(ret$optim_hessian)) {
+                    ret <- ret$optim_hessian
+                } else {
+                    ret <- numDeriv::hessian(loglikfct, beta, weights = weights)
+                }
                 rownames(ret) <- colnames(ret) <- colnames(Y)
                 return(ret)
             }
