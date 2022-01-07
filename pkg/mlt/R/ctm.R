@@ -41,7 +41,7 @@ ctm <- function(response, interacting = NULL, shifting = NULL,
     nd <- do.call("expand.grid", nd)
     X <- model.matrix(ret, data = nd)
     cn <- colnames(X)
-    if (any(duplicted(cn)))
+    if (any(duplicated(cn)))
         warning("Non-unique coefficient names; this might cause problems.")
     cf <- numeric(NCOL(X))
     names(cf) <- colnames(X)
