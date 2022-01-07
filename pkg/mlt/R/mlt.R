@@ -338,7 +338,9 @@
                     isTRUE(all.equal(weights, wfit)) &&
                     !is.null(ret$optim_hessian))
                     return(ret$optim_hessian)
-                numDeriv::hessian(loglikfct, beta, weights = weights)
+                ret <- numDeriv::hessian(loglikfct, beta, weights = weights)
+                rownames(ret) <- colnames(ret) <- colnames(Y)
+                return(ret)
             }
         } else {
             ret$hessian <- hessian
