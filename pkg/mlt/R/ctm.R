@@ -1,7 +1,10 @@
 
-ctm <- function(response, interacting = NULL, shifting = NULL, data = NULL,
-                todistr = c("Normal", "Logistic", "MinExtrVal", "MaxExtrVal", "Exponential"),
-                sumconstr = inherits(interacting, c("formula", "formula_basis")), ...) {
+ctm <- function(response, interacting = NULL, shifting = NULL, 
+                scaling = NULL, data = NULL,
+                todistr = c("Normal", "Logistic", "MinExtrVal", 
+                            "MaxExtrVal", "Exponential"),
+                sumconstr = inherits(interacting, c("formula", "formula_basis")), 
+                ...) {
 
     ### mkgrid() will not work if data is missing
     if (.is.formula(response)) 
@@ -10,31 +13,36 @@ ctm <- function(response, interacting = NULL, shifting = NULL, data = NULL,
         interacting <- as.basis(interacting, data = data)
     if (.is.formula(shifting)) 
         shifting <- as.basis(shifting, data = data, remove_intercept = TRUE, ...)
+    if (.is.formula(scaling)) 
+        scaling <- as.basis(scaling, data = data, remove_intercept = TRUE, ...)
 
     if (is.character(todistr))
         todistr <- .distr(todistr)
 
-    bases <- list(response = response, interacting = interacting, shifting = shifting)
+    bases <- list(response = response, interacting = interacting, 
+                  shifting = shifting, scaling = scaling)
 
     if (!is.null(interacting))
         interacting <- b(iresponse = response, iinteracting = interacting, 
                          sumconstr = sumconstr)
 
-    if (is.null(interacting) && is.null(shifting)) {
-        mod <- c(bresponse = response)
-    } else if (!is.null(interacting) && is.null(shifting)) {
-        mod <- c(binteracting = interacting)
-    } else if (is.null(interacting) && !is.null(shifting)) {
-        mod <- c(bresponse = response, bshifting = shifting)
-    } else {
-        mod <- c(binteracting = interacting, bshifting = shifting)
-    }
+    args <- bases
+    names(args) <- paste0("b", names(args))
+    args$binteracting <- interacting
+    if (!is.null(interacting))
+        args$bresponse <- NULL
+    args <- args[!sapply(args, is.null)]
+    mod <- do.call("c", args)
+
     ret <- list(model = mod, response = variable.names(response), 
                 todistr = todistr, bases = bases)
     class(ret) <- "ctm"
     nd <- lapply(mkgrid(ret, n = 1), function(x) x[1]) ### integer may have more values
     nd <- do.call("expand.grid", nd)
     X <- model.matrix(ret, data = nd)
+    cn <- colnames(X)
+    if (any(duplicted(cn)))
+        warning("Non-unique coefficient names; this might cause problems.")
     cf <- numeric(NCOL(X))
     names(cf) <- colnames(X)
     cf[] <- NA
@@ -46,7 +54,7 @@ model.matrix.ctm <- function(object, data, ...)
     return(model.matrix(object$model, data = data, ...))
 
 variable.names.ctm <- function(object, 
-    which = c("all", "response", "interacting", "shifting"), 
+    which = c("all", "response", "interacting", "shifting", "scaling"), 
     ...) {
 
     which <- match.arg(which)
@@ -63,6 +71,11 @@ variable.names.ctm <- function(object,
     if (which == "shifting") {
         if (!is.null(m$shifting))
             return(variable.names(m$shifting))
+        return(NULL)
+    }
+    if (which == "scaling") {
+        if (!is.null(m$scaling))
+            return(variable.names(m$scaling))
         return(NULL)
     }
 }
