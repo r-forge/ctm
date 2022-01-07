@@ -107,6 +107,9 @@ predict.box_bases <- function(object, newdata, coef,
         return(predict.basis(object = object, newdata = newdata,
                              coef = coef, dim = dim, ...))
 
+    if (is.matrix(coef) && nrow(coef) == nrow(newdata))
+        stop("cannot handle coefficient matrix for box_bases")
+
     if (isTRUE(dim)) dim <- sapply(newdata, NROW)
 
     X <- model.matrix(object = object, data = newdata, 

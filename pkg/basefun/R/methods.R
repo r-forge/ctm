@@ -9,7 +9,11 @@ predict.basis <- function(object, newdata, coef,
         dim <- NULL
     
     X <- model.matrix(object = object, data = newdata, dim = dim, ...)
-    lp <- c(X %*% coef)
+    if (is.matrix(coef) && nrow(coef) == nrow(X)) {
+        lp <- rowSums(X * coef)
+    } else {
+        lp <- c(X %*% coef)
+    }
     if (is.null(dim)) return(lp)
     nd <- names(dim)
     ### <FIXME> essentially handle the length(dim) == 2 case
