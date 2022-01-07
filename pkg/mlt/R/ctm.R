@@ -1,6 +1,6 @@
 
 ctm <- function(response, interacting = NULL, shifting = NULL, 
-                scaling = NULL, data = NULL,
+                scaling = NULL, scale_shift = FALSE, data = NULL,
                 todistr = c("Normal", "Logistic", "MinExtrVal", 
                             "MaxExtrVal", "Exponential"),
                 sumconstr = inherits(interacting, c("formula", "formula_basis")), 
@@ -35,7 +35,7 @@ ctm <- function(response, interacting = NULL, shifting = NULL,
     mod <- do.call("c", args)
 
     ret <- list(model = mod, response = variable.names(response), 
-                todistr = todistr, bases = bases)
+                todistr = todistr, bases = bases, scale_shift = scale_shift)
     class(ret) <- "ctm"
     nd <- lapply(mkgrid(ret, n = 1), function(x) x[1]) ### integer may have more values
     nd <- do.call("expand.grid", nd)

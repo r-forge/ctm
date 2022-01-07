@@ -24,8 +24,12 @@ tmlt <- function(object, newdata = NULL, q = NULL, ...) {
         cf[Assign[2,] == "bscaling"] <- 0
         cf <- matrix(cf, nrow = length(sterm), ncol = length(cf), 
                      byrow = TRUE)
-        cf[, !Assign[2,] %in% c("bshifting", "bscaling")] <-
-            cf[, !Assign[2,] %in% c("bshifting", "bscaling")] * sterm
+        if (object$scale_shift) {
+            idx <- !Assign[2,] %in% "bscaling"
+        } else {
+            idx <- !Assign[2,] %in% c("bshifting", "bscaling")
+        }
+        cf[, idx] <- cf[, idx] * sterm
     }
 
     stopifnot(!is.null(newdata[[y]]) || !is.null(q))
