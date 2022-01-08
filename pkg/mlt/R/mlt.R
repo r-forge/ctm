@@ -183,7 +183,7 @@
                         iYleft, iYright, ioffset, itrunc)(.sparm(beta_nex))
                 return(ret)
             },
-            sc = function(beta, Xmult = TRUE) {
+            sc = function(beta, Xmult = TRUE, ret_all = FALSE) {
                 ### Xmult = FALSE means
                 ### score wrt to an intercept term. This avoids
                 ### multiplication with the whole design matrix.
@@ -221,6 +221,8 @@
                 }
                 if (!Xmult) return(ret)
                 colnames(ret) <- colnames(Y)
+                ### return all scores, no questions asked
+                if (ret_all) return(ret)
                 ### in case beta contains fix parameters,
                 ### return all scores
                 if (!is.null(fixed)) {
@@ -279,15 +281,24 @@
         loglikfct <- function(beta, weights)  
             -sum(weights * of$ll(beta))
         score <- function(beta, weights, Xmult = TRUE) {
-            sc <- weights * of$sc(beta, Xmult = Xmult)
+            sc <- weights * of$sc(beta, Xmult = Xmult, ret_all = TRUE)
             if (!"bscaling" %in% Assign[2,]) return(sc)
-            sparm <- beta
+            sparm <- .parm(beta)
             sparm[Assign[2,] != "bscaling"] <- 0L
             sterm <- c(sqrt(exp(Y %*% sparm)))
-            idx <- !Assign[2,] %in% c("bshifting", "bscaling")
-            cbind(sterm * sc[, idx],
-                  sc[, Assign[2, ] == "bshifting"],
+            if (model$scale_shift) {
+                idx <- (!Assign[2,] %in% "bscaling")
+            } else {
+                idx <- (!Assign[2,] %in% c("bshifting", "bscaling"))
+            }
+            ret <- cbind(sterm * sc[, idx],
+                  if (!model$scale_shift) sc[, Assign[2, ] == "bshifting"],
                   sterm * c(sc[, idx] %*% .parm(beta)[idx]) * .5 * Y[, Assign[2,] == "bscaling"])
+            if (!is.null(fixed)) {
+                if (all(names(fixed) %in% names(beta)))
+                    return(ret)
+            }
+            return(ret[, !fix, drop = FALSE])
         }
         hessian <- function(beta, weights) 
             of$he(beta)
