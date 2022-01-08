@@ -12,9 +12,11 @@ ctm <- function(response, interacting = NULL, shifting = NULL,
     if (.is.formula(interacting)) 
         interacting <- as.basis(interacting, data = data)
     if (.is.formula(shifting)) 
-        shifting <- as.basis(shifting, data = data, remove_intercept = TRUE, ...)
+        shifting <- as.basis(shifting, data = data, remove_intercept = TRUE,
+                             prefix = ifelse(is.null(scaling), "", "sft_"), ...)
     if (.is.formula(scaling)) 
-        scaling <- as.basis(scaling, data = data, remove_intercept = TRUE, ...)
+        scaling <- as.basis(scaling, data = data, remove_intercept = TRUE, 
+                            prefix = "scl_", ...)
 
     if (is.character(todistr))
         todistr <- .distr(todistr)
