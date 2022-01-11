@@ -15,7 +15,7 @@
 as.basis(object, ...)
 \method{as.basis}{formula}(object, data = NULL, remove_intercept = FALSE, 
          ui = NULL, ci = NULL, negative = FALSE, scale = FALSE, 
-         Matrix = FALSE, ...)
+         Matrix = FALSE, prefix = "", ...)
 \method{as.basis}{factor_var}(object, ...)
 \method{as.basis}{ordered_var}(object, ...)
 \method{as.basis}{factor}(object, ...)
@@ -33,6 +33,7 @@ as.basis(object, ...)
                model matrix to the unit interval (based on observations in \code{data})}
   \item{Matrix}{a logical requesting a sparse model matrix, that is, a
                 \code{Matrix} object.}
+  \item{prefix}{character prefix for model matrix column names (allows disambiguation of parameter names).}
   \item{\dots}{additional arguments to \code{\link{model.matrix}}, for
                example contrasts}
 }
