@@ -84,7 +84,11 @@
                        perm = NULL, permutation = NULL, 
                        distr = todistr) ### <- change todistr via update(, distr =)
     {
-        if (is.null(offset)) offset <- rep(0, nrow(data))
+        if (is.null(offset)) {
+            offset <- rep(0, nrow(data))
+        } else {
+            if (SCALE) warning("offset ignored in scaling term")
+        }
         es <- .exact_subset(.exact(y), subset)
         exY <- NULL
         iYleft <- NULL
@@ -281,8 +285,9 @@
         loglikfct <- function(beta, weights)  
             -sum(weights * of$ll(beta))
         score <- function(beta, weights, Xmult = TRUE) {
+            if (!"bscaling" %in% Assign[2,])
+                return(weights * of$sc(beta, Xmult = Xmult))
             sc <- weights * of$sc(beta, Xmult = Xmult, ret_all = TRUE)
-            if (!"bscaling" %in% Assign[2,]) return(sc)
             sparm <- .parm(beta)
             sparm[Assign[2,] != "bscaling"] <- 0L
             sterm <- c(sqrt(exp(Y %*% sparm)))
