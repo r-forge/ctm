@@ -1,7 +1,7 @@
 
 as.basis.formula <- function(object, data = NULL, remove_intercept = FALSE, 
                              ui = NULL, ci = NULL, negative = FALSE, scale = FALSE,
-                             Matrix = FALSE, ...) {
+                             Matrix = FALSE, prefix = "", ...) {
 
     mm <- stats::model.matrix
     if (Matrix) mm <- Matrix::sparse.model.matrix
@@ -62,6 +62,7 @@ as.basis.formula <- function(object, data = NULL, remove_intercept = FALSE,
         stopifnot(nrow(ui) == length(ci))
         attr(X, "constraint") <- list(ui = ui, ci = ci)
         attr(X, "Assign") <- c("(Intercept)", varnames)[attr(X, "assign") + 1]
+        colnames(X) <- paste0(prefix, colnames(X))
         if (deriv == 1) {
             nm <- names(deriv)[deriv == 1L]
             X[, attr(X, "Assign") %in% nm] <- 1
