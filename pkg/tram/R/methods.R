@@ -32,12 +32,15 @@ model.matrix.tram <- function(object, data = object$data,
     ret
 }	
 
+model.matrix.stram <- function(object, ...)
+    stop("no model.matrix method defined for objects of class stram")
+
 coef.tram <- function(object, with_baseline = FALSE, ...) 
 {
     cf <- coef(as.mlt(object), ...)
     if (with_baseline) return(cf)
-    if (is.null(object$shiftcoef)) return(NULL)
-    return(cf[names(cf) %in% object$shiftcoef])
+    if (is.null(object$shiftcoef) && is.null(object$scalecoef)) return(NULL)
+    return(cf[names(cf) %in% c(object$shiftcoef, object$scalecoef)])
 }
 
 coef.Lm <- function(object, as.lm = FALSE, ...) {
@@ -48,6 +51,8 @@ coef.Lm <- function(object, as.lm = FALSE, ...) {
 
     if (!is.null(object$stratacoef))
         stop("cannot compute scaled coefficients with strata")
+    if (!is.null(object$scalecoef))
+        stop("cannot compute scaled coefficients with scale term")
 
     cf <- coef(object, with_baseline = TRUE, ...)
     cfx <- coef(object, with_baseline = FALSE, ...)
@@ -80,12 +85,13 @@ vcov.tram <- function(object, with_baseline = FALSE, complete = FALSE, ...)
                                     cluster = object$cluster))
         }
     }
-    if (is.null(object$shiftcoef)) return(NULL)
+    if (is.null(object$shiftcoef) && is.null(object$scalecoef)) return(NULL)
    
     ### covariance matrix for shift terms only
     ### return Schur complement
     H <- Hessian(as.mlt(object), ...)
-    shift <- which(colnames(H) %in% object$shiftcoef)
+    cf <- c(object$shiftcoef, object$scalecoef)
+    shift <- which(colnames(H) %in% cf)
     Hlin <- H[shift, shift, drop = FALSE]
     Hbase <- H[-shift, -shift, drop = FALSE]
     Hoff <- H[shift, -shift, drop = FALSE]
@@ -96,7 +102,7 @@ vcov.tram <- function(object, with_baseline = FALSE, complete = FALSE, ...)
     ret <- solve(H)
     if (inherits(ret, "try-error"))
         return(vcov(as.mlt(object))[shift, shift])
-    nm <- object$shiftcoef
+    nm <- cf
     nm <- nm[!nm %in% names(object$fixed)]
     colnames(ret) <- rownames(ret) <- nm
     return(ret)
@@ -271,6 +277,12 @@ profile.tram <- function(fitted, which = 1:p, alpha = 0.01,
     val
 }
 
+profile.stram <- function(fitted, which = fitted$shiftcoef, ...) {
+    if (any(which %in% fitted$scalecoef))
+        stop("cannot compute profile likelihood for scale coefficients")
+    profile.tram(fitted = fitted, which = which, ...)
+}
+
 ### score tests and confidence intervals
 ### hm, can't find such a generic
 score_test <- function(object, ...)
@@ -405,6 +417,12 @@ score_test.tram <- function(object, parm = names(coef(object)),
     ret$parm <- parm
     class(ret) <- "htest"
     ret
+}
+
+score_test.stram <- function(object, parm = object$shiftcoef, ...) {
+    if (any(parm %in% object$scalecoef))
+        stop("cannot compute score test for scale coefficients")
+    score_test.tram(object = object, parm = parm, ...)
 }
 
 confint.htest <- function(object, parm, level = .95, ...) {
@@ -756,6 +774,12 @@ perm_test.tram <- function(object, parm = names(coef(object)),
          }
          return(list(Likelihood = retL, Wald = retW))
     }
+}
+
+perm_test.stram <- function(object, parm = object$shiftcoef, ...) {
+    if (any(parm %in% object$scalecoef))
+        stop("cannot compute permutation test for scale coefficients")
+    perm_test.tram(object = object, parm = parm, ...)
 }
 
 ### score_test and perm_test for survival::coxph
@@ -1403,6 +1427,9 @@ PI.tram <- function(object, newdata = model.frame(object),
           FUN = .lp2PI(link = object$model$todistr$name), ...)
 }
 
+PI.stram <- function(object, ...)
+    stop("no PI method defined for objects of class stram")
+
 ### convert lp to PI and back, use logistic as default
 PI.default <- function(object, prob, link = "logistic", ...) {
 
@@ -1435,6 +1462,9 @@ OVL.tram <- function(object, newdata = model.frame(object),
           FUN = .lp2OVL(link = object$model$todistr$name), ...)
 }
 
+OVL.stram <- function(object, ...)
+    stop("no OVL method defined for objects of class stram")
+
 TV <- function(object, ...)
     UseMethod("TV")
 
@@ -1446,6 +1476,9 @@ TV.tram <- function(object, newdata = model.frame(object),
     1 - ret    
 }
 
+TV.stram <- function(object, ...)
+    stop("no TV method defined for objects of class stram")
+
 L1 <- function(object, ...)
     UseMethod("L1")
 
@@ -1456,6 +1489,9 @@ L1.tram <- function(object, newdata = model.frame(object),
     ### <FIXME> make sure lwr < upr </FIXME>
     2 * (1 - ret)
 }
+
+L1.stram <- function(object, ...)
+    stop("no L1 method defined for objects of class stram")
 
 ROC <- function(object, ...)
     UseMethod("ROC")
@@ -1488,6 +1524,9 @@ ROC.tram <- function(object, newdata = model.frame(object), reference = 0,
     class(ret) <- "ROCtram"
     ret
 }
+
+ROC.stram <- function(object, ...)
+    stop("no ROC method defined for objects of class stram")
 
 .lp2x <- function(object, newdata = model.frame(object), reference = 0, FUN, 
                   conf.level = 0, ...) {

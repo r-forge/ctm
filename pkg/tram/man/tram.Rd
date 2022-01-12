@@ -13,7 +13,7 @@ tram(formula, data, subset, weights, offset, cluster, na.action = na.omit,
      transformation = c("discrete", "linear", "logarithmic", "smooth"), 
      LRtest = TRUE, prob = c(0.1, 0.9), support = NULL, 
      bounds = NULL, add = c(0, 0), order = 6, 
-     negative = TRUE, scale = TRUE, extrapolate = FALSE, 
+     negative = TRUE, scale = TRUE, scale_shift = FALSE, extrapolate = FALSE, 
      log_first = FALSE, sparse_nlevels = Inf,
      model_only = FALSE, constraints = NULL, ...)
 tram_data(formula, data, subset, weights, offset, cluster, na.action = na.omit) 
@@ -81,6 +81,9 @@ tram_data(formula, data, subset, weights, offset, cluster, na.action = na.omit)
                be scaled. Scaling is internally used for model estimation,
                rescaled coefficients are reported in model output.
   }
+  \item{scale_shift}{a logical choosing between two different model types in
+          the presence of a \code{scaling} term, see \code{\link[mlt]{ctm}}.
+  }
   \item{extrapolate}{logical defining the behaviour of the Bernstein transformation
                      function outside \code{support}. The default
                      \code{FALSE} is to extrapolate linearily without requiring the second
@@ -103,9 +106,10 @@ tram_data(formula, data, subset, weights, offset, cluster, na.action = na.omit)
   \item{\dots}{additional arguments.}
 }
 \details{
-The model formula is of the form \code{y | s ~ x} where \code{y} is an at
+The model formula is of the form \code{y | s ~ x | z} where \code{y} is an at
 least ordered response variable, \code{s} are the variables defining strata
-and \code{x} defines the linear predictor. \code{y ~ x} defines a model
+and \code{x} defines the linear predictor. Optionally, \code{z} defines a
+scaling term (see \code{\link[mlt]{ctm}}). \code{y ~ x} defines a model
 without strata (but response-varying intercept function) and \code{y | s ~
 0} sets-up response-varying coefficients for all variables in \code{s}.
 
