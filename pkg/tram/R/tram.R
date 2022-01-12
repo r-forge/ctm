@@ -84,13 +84,14 @@ tram_data <- function(formula, data, subset, weights, offset, cluster, na.action
               terms(formula, data = data, lhs = 0L, rhs = 2L,    dot = "sequential")
     )
 
-    stopifnot(is.null(mt$z))
+    # stopifnot(is.null(mt$z))
     ### ~ 0 or ~ 1: no need to do anything
     if (length(attr(mt$s, "variables")) == 1)
         mt$s <- NULL
-    ### ~ 0 or ~ 1: no need to do anything
     if (length(attr(mt$x, "variables")) == 1)
         mt$x <- NULL
+    if (length(attr(mt$z, "variables")) == 1)
+        mt$z <- NULL
 
     ### Surv(...) etc. will be altered anyway...
     # names(mf) <- make.names(names(mf))
@@ -110,7 +111,7 @@ tram <- function(formula, data, subset, weights, offset, cluster, na.action = na
                  transformation = c("discrete", "linear", "logarithmic", "smooth"),
                  LRtest = TRUE, 
                  prob = c(.1, .9), support = NULL, bounds = NULL, add = c(0, 0), order = 6, negative =
-                 TRUE, scale = TRUE, extrapolate = FALSE, log_first = FALSE, 
+                 TRUE, scale = TRUE, scale_shift = FALSE, extrapolate = FALSE, log_first = FALSE, 
                  sparse_nlevels = Inf, model_only = FALSE, 
                  constraints = NULL, ...) 
 {
@@ -184,7 +185,38 @@ tram <- function(formula, data, subset, weights, offset, cluster, na.action = na
                        negative = negative, ui = ui, ci = ci)
     } 
 
+    isX <- NULL
+    if (!is.null(td$mt$z)) {
+        ### user-supplied constraints
+        if (!is.null(constraints)) {
+            if (is.list(constraints)) {
+                uici <- glht(fitted, linfct = constraints[[1]],
+                                     rhs = constraints[[2]], 
+                                     alternative = "less")
+            } else {
+                if (is.character(constraints)) {
+                    uici <- glht(fitted, linfct = constraints)
+                } else {
+                    uici <- glht(fitted, linfct = constraints, 
+                                 alternative = "less")
+                }
+            }
+            ui <- uici$linfct
+            ci <- uici$rhs
+            if (uici$alternative == "greater") {
+                ui <- -ui
+                ci <- -ci
+            }
+        } else {
+            ui <- ci <- NULL
+        }
+        ### NOTE: this triggers sumconstr = TRUE
+        isX <- as.basis(td$mt$z, data = td$mf, remove_intercept = TRUE, 
+                        negative = FALSE, ui = ui, ci = ci, prefix = "scl_")
+    } 
+
     model <- ctm(response = rbasis, interacting = iS, shifting = iX, 
+                 scaling = isX, scale_shift = scale_shift,
                  todistr = distribution, data = td$mf)
 
     if (model_only) return(model)
@@ -211,6 +243,17 @@ tram <- function(formula, data, subset, weights, offset, cluster, na.action = na
     ### </FIXME>
     fixed <- c(list(...)$fixed, Xfixed)
 
+    if (!is.null(iS) && !is.null(isX)) {
+
+        fm <- as.formula(paste("~", 
+            as.character(as.expression(td$mt$x[[2]])), "+",
+            as.character(as.expression(td$mt$z[[2]]))))
+        nS <- colnames(model.matrix(fm, data = td$mf[1:10,])) 
+        nsX <- colnames(model.matrix(isX, data = td$mf[1:10,]))
+        if (any(xin <- !nsX %in% nS))
+            stop("scaling variables not allowed as stratifying variables")
+    } 
+
     args <- list(...)
     args$model <- model
     args$data <- td$mf
@@ -223,9 +266,15 @@ tram <- function(formula, data, subset, weights, offset, cluster, na.action = na
     ret$cluster <- td$cluster
     if (!is.null(iX))
         ret$shiftcoef <- colnames(model.matrix(iX, data = td$mf))
+    if (!is.null(isX))
+        ret$scalecoef <- colnames(model.matrix(isX, data = td$mf))
     if (!is.null(iS))
         ret$stratacoef <- colnames(model.matrix(iS, data = td$mf))
-    class(ret) <- c("tram", class(ret))
+    if (is.null(isX)) {
+        class(ret) <- c("tram", class(ret))
+    } else {
+        class(ret) <- c("stram", "tram", class(ret))
+    }
     ret$negative <- negative
 
     if (LRtest & !is.null(iX)) {
@@ -236,6 +285,7 @@ tram <- function(formula, data, subset, weights, offset, cluster, na.action = na
             args$fixed <- fixed
         }
         args$model <- nullmodel
+        args$theta <- NULL
         nullret <- do.call("mlt", args)
         nulllogLik <- logLik(nullret)
         fulllogLik <- logLik(ret)
