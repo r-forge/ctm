@@ -113,7 +113,7 @@ predict.cbind_bases <- function(object, newdata, coef,
         if (is.null(nmb)) nmb <- ""
         if (names(object)[b] %in% terms || nmb %in% terms) {
             start <- ifelse(b == 1, 1, sum(unlist(np[names(object)[1:(b - 1)]])) + 1)
-            if (is.matrix(coef) && nrow(coef) == nrow(newdata)) {
+            if (is.matrix(coef) && nrow(coef) > 1) { ### && nrow(coef) == nrow(newdata)) {
                 cf <- coef[,start:sum(unlist(np[names(object)[1:b]])), drop = FALSE]
             } else {
                 cf <- coef[start:sum(unlist(np[names(object)[1:b]]))]
