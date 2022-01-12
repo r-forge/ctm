@@ -2,9 +2,11 @@
 \name{NEWS}
 \title{NEWS file for the tram package}
 
-\section{Changes in Version 0.6-4 (2022-01-05)}{
+\section{Changes in Version 0.7-0 (2022-01-12)}{
   \itemize{
+    \item{Add shift-scale transformation models (experimental).}
     \item{Add methods for probabilistic indices and overlap coefficients + friends.}
+    \item{Export \code{Gradient} and \code{Hessian} methods.}
   }
 }
 
