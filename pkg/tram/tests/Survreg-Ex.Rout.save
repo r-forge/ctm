@@ -1,6 +1,6 @@
 
-R Under development (unstable) (2018-04-18 r74618) -- "Unsuffered Consequences"
-Copyright (C) 2018 The R Foundation for Statistical Computing
+R version 4.1.2 (2021-11-01) -- "Bird Hippie"
+Copyright (C) 2021 The R Foundation for Statistical Computing
 Platform: x86_64-pc-linux-gnu (64-bit)
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
@@ -105,7 +105,7 @@ Loglik(model)= -2606   Loglik(intercept only)= -2636
 n= 686 
 > (Smod <- Survreg(tfms, data = GBSG2, dist = "weibull"))
 
-  Weibull Linear Regression Model 
+ (Stratified) Weibull Linear Regression Model 
 
 Call:
 Survreg(formula = tfms, data = GBSG2, dist = "weibull")
@@ -125,7 +125,7 @@ Error in coef.Lm(object, as.lm = as.survreg, ...) :
                          0.743                          0.737 
 > summary(Smod)
 
-  Weibull Linear Regression Model 
+ (Stratified) Weibull Linear Regression Model 
 
 Call:
 Survreg(formula = tfms, data = GBSG2, dist = "weibull")
@@ -198,7 +198,7 @@ Error in survreg(fms, data = GBSG2, dist = "exponential") :
   The scale argument is not valid with multiple strata
 > (Smod <- Survreg(tfms, data = GBSG2, dist = "exponential"))
 
-  Exponential Linear Regression Model 
+ (Stratified) Exponential Linear Regression Model 
 
 Call:
 Survreg(formula = tfms, data = GBSG2, dist = "exponential")
@@ -218,7 +218,7 @@ Error in coef.Lm(object, as.lm = as.survreg, ...) :
                              1                              1 
 > summary(Smod)
 
-  Exponential Linear Regression Model 
+ (Stratified) Exponential Linear Regression Model 
 
 Call:
 Survreg(formula = tfms, data = GBSG2, dist = "exponential")
@@ -291,7 +291,7 @@ Error in survreg(fms, data = GBSG2, dist = "rayleigh") :
   The scale argument is not valid with multiple strata
 > (Smod <- Survreg(tfms, data = GBSG2, dist = "rayleigh"))
 
-  Rayleigh Linear Regression Model 
+ (Stratified) Rayleigh Linear Regression Model 
 
 Call:
 Survreg(formula = tfms, data = GBSG2, dist = "rayleigh")
@@ -311,7 +311,7 @@ Error in coef.Lm(object, as.lm = as.survreg, ...) :
                            0.5                            0.5 
 > summary(Smod)
 
-  Rayleigh Linear Regression Model 
+ (Stratified) Rayleigh Linear Regression Model 
 
 Call:
 Survreg(formula = tfms, data = GBSG2, dist = "rayleigh")
@@ -393,7 +393,7 @@ Loglik(model)= -2587   Loglik(intercept only)= -2618
 n= 686 
 > (Smod <- Survreg(tfms, data = GBSG2, dist = "lognormal"))
 
-  Lognormal Linear Regression Model 
+ (Stratified) Lognormal Linear Regression Model 
 
 Call:
 Survreg(formula = tfms, data = GBSG2, dist = "lognormal")
@@ -413,7 +413,7 @@ Error in coef.Lm(object, as.lm = as.survreg, ...) :
                           1.02                           1.05 
 > summary(Smod)
 
-  Lognormal Linear Regression Model 
+ (Stratified) Lognormal Linear Regression Model 
 
 Call:
 Survreg(formula = tfms, data = GBSG2, dist = "lognormal")
@@ -498,7 +498,7 @@ Loglik(model)= -2595   Loglik(intercept only)= -2628
 n= 686 
 > (Smod <- Survreg(tfms, data = GBSG2, dist = "loglogistic"))
 
-  Loglogistic Linear Regression Model 
+ (Stratified) Loglogistic Linear Regression Model 
 
 Call:
 Survreg(formula = tfms, data = GBSG2, dist = "loglogistic")
@@ -518,7 +518,7 @@ Error in coef.Lm(object, as.lm = as.survreg, ...) :
                          0.593                          0.608 
 > summary(Smod)
 
-  Loglogistic Linear Regression Model 
+ (Stratified) Loglogistic Linear Regression Model 
 
 Call:
 Survreg(formula = tfms, data = GBSG2, dist = "loglogistic")
@@ -588,4 +588,4 @@ Likelihood-ratio Test: Chisq = 1.1 on 2 degrees of freedom; p = 0.576
 > 
 > proc.time()
    user  system elapsed 
-  7.572   0.224   7.788 
+  5.288   0.196   5.465 
