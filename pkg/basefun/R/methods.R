@@ -9,8 +9,14 @@ predict.basis <- function(object, newdata, coef,
         dim <- NULL
     
     X <- model.matrix(object = object, data = newdata, dim = dim, ...)
-    if (is.matrix(coef) && nrow(coef) == nrow(X)) {
-        lp <- rowSums(X * coef)
+    if (is.matrix(coef)) {
+        if (is.null(dim) || nrow(coef) == nrow(X)) {
+            lp <- rowSums(X * coef)
+        } else {
+            lp <- X %*% t(coef)
+            stopifnot(max(abs(dim - dim(lp))) == 0)
+            return(lp)
+        }
     } else {
         lp <- c(X %*% coef)
     }
