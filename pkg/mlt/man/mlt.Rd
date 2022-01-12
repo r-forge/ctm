@@ -8,7 +8,7 @@
 }
 \usage{
 mlt(model, data, weights = NULL, offset = NULL, fixed = NULL, theta = NULL, 
-    pstart = NULL, scale = FALSE, dofit = TRUE, optim = mltoptim(), ...)
+    pstart = NULL, scale = FALSE, dofit = TRUE, optim = mltoptim())
 }
 \arguments{
   \item{model}{a conditional transformation model as specified by \code{\link{ctm}}}
@@ -26,7 +26,6 @@ mlt(model, data, weights = NULL, offset = NULL, fixed = NULL, theta = NULL,
   \item{dofit}{a logical indicating if the model shall be fitted to the
                data (\code{TRUE}) or not}
   \item{optim}{a list of functions implementing suitable optimisers}
-  \item{\dots}{additional arguments, currently ignored}
 }
 \details{
   This function fits a conditional transformation model by searching for 

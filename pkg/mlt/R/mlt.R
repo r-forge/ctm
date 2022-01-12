@@ -501,7 +501,7 @@
 
 mlt <- function(model, data, weights = NULL, offset = NULL, fixed = NULL,
                 theta = NULL, pstart = NULL, scale = FALSE,
-                dofit = TRUE, optim = mltoptim(), ...) {
+                dofit = TRUE, optim = mltoptim()) {
 
     vars <- as.vars(model)
     response <- variable.names(model, "response")
