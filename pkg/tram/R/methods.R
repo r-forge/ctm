@@ -325,7 +325,7 @@ score_test.tram <- function(object, parm = names(coef(object)),
     theta <- theta[names(theta) != parm]
     m0 <- mlt(object$model, data = object$data, weights = object$weights,
               offset = off, scale = object$scale, fixed = fx,
-              mltoptim = object$optim, theta = theta)
+              optim = object$optim, theta = theta)
 
     cf <- coef(m1)
     X <- model.matrix(object)[, parm]
@@ -521,7 +521,7 @@ perm_test.tram <- function(object, parm = names(coef(object)),
         w <- object$weights
         m0 <- mlt(object$model, data = object$data, weights = object$weights,
                   offset = off, scale = object$scale, fixed = fx,
-                  mltoptim = object$optim, theta = theta)
+                  optim = object$optim, theta = theta)
 
         cf <- coef(m1)
         X <- Xf <- model.matrix(object)[, parm]
@@ -679,7 +679,7 @@ perm_test.tram <- function(object, parm = names(coef(object)),
             fx <- thetafix[-names(theta)]
         m0 <- mlt(object$model, data = object$data, weights = object$weights,
                   offset = off, scale = object$scale, fixed = fx,
-                  mltoptim = object$optim, theta = theta)
+                  optim = object$optim, theta = theta)
         
         if (length(list(...)) == 0) {
             nperm <- 1000
