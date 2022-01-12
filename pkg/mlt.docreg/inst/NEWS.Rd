@@ -3,11 +3,19 @@
 \title{NEWS file for the mlt.docreg package}
 
 
+\section{Changes in Version 1.1-3 (2022-01-12)}{
+  \itemize{
+    \item{Remove ignored arguments from \code{mlt}.}
+  }
+}
+
+
 \section{Changes in Version 1.1-2 (2021-12-16)}{
   \itemize{
     \item{Update reference output for truncation examples.}
   }
 }
+
 
 \section{Changes in Version 1.1-1 (2021-12-07)}{
   \itemize{

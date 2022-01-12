@@ -20,7 +20,7 @@ bx <- as.basis(as.formula(paste("~", paste(xvar, collapse = "+"))), data = GBSG2
 
 m <- ctm(by, shift = bx, todist = "MinEx")
 
-mod <- mlt(m, data = GBSG2, scale = TRUE, check = FALSE)
+mod <- mlt(m, data = GBSG2, scale = TRUE)
 
 n <- names(coef(cmod))
 cf <- coef(mod)[n]
