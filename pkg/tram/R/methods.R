@@ -32,8 +32,12 @@ model.matrix.tram <- function(object, data = object$data,
     ret
 }	
 
-model.matrix.stram <- function(object, ...)
-    stop("no model.matrix method defined for objects of class stram")
+model.matrix.stram <- function(object, with_baseline = FALSE, ...) {
+    if (with_baseline)
+        stop("no model.matrix method for class stram defined")
+    warning("returning model matrix for shift term only")
+    model.matrix.tram(object, with_baseline = with_baseline, ...)
+}
 
 coef.tram <- function(object, with_baseline = FALSE, ...) 
 {
