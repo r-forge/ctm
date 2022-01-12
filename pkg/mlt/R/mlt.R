@@ -593,7 +593,7 @@ fmlt <- function(object, frailty = c("Gamma", "InvGauss", "PositiveStable"),
     model$todistr <- do.call(frailtyfun, list(om$minimum))
     ret <- mlt(model = model, data = object$data, 
                weights = weights(object),
-               subset = object$subset, offset = object$offset, 
+               offset = object$offset, 
                theta = coef(object), fixed = object$fixed, 
                scale = object$scale, optim = object$optim)
     class(ret) <- c("fmlt", class(ret))
@@ -617,7 +617,7 @@ cmlt <- function(object, interval = fr$support, ...) {
     model$todistr <- .CureRate(om$minimum, distr = distr)
     ### </FIXME>
     ret <- mlt(model = model, data = object$data, weights = weights(object),
-               subset = object$subset, offset = object$offset, 
+               offset = object$offset, 
                theta = coef(object), fixed = object$fixed, 
                scale = object$scale, optim = object$optim)
     class(ret) <- c("fmlt", class(ret))
