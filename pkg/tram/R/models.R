@@ -301,7 +301,7 @@ BoxCox <- function(formula, data, subset, weights, offset, cluster, na.action = 
     ret$call <- match.call(expand.dots = TRUE)
     if (!is.null(td$mt$z)) {
         ret$tram <- paste(ifelse(is.null(td$mt$s), "", "(Stratified)"),
-                          "Shift-Scale Normal Regression Model")
+                          "Shift-Scale Transformation Model")
     } else {
         ret$tram <- paste(ifelse(is.null(td$mt$s), "", "(Stratified)"),
                           "Non-normal (Box-Cox-Type) Linear Regression Model")
@@ -328,7 +328,7 @@ Lehmann <- function(formula, data, subset, weights, offset, cluster, na.action =
     ret$call <- match.call(expand.dots = TRUE)
     if (!is.null(td$mt$z)) {
         ret$tram <- paste(ifelse(is.null(td$mt$s), "", "(Stratified)"),
-                          "Shift-Scale Normal Regression Model")
+                          "Shift-Scale Transformation Model")
     } else {
         ret$tram <- paste(ifelse(is.null(td$mt$s), "", "(Stratified)"),
                           "Proportional Reverse Time Hazards Linear Regression Model")
