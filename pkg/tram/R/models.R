@@ -15,11 +15,11 @@ Coxph <- function(formula, data, subset, weights, offset, cluster, na.action = n
                 negative = FALSE, ...)
     if (!inherits(ret, "mlt")) return(ret)
     ret$call <- match.call(expand.dots = TRUE)
-    if (!is.null(td$terms$z)) {
-        ret$tram <- paste(ifelse(is.null(td$terms$s), "", "(Stratified)"),
+    if (!is.null(td$mt$z)) {
+        ret$tram <- paste(ifelse(is.null(td$mt$s), "", "(Stratified)"),
                           "Shift-Scale Transformation Model")
     } else {
-        ret$tram <- paste(ifelse(is.null(td$terms$s), "", "(Stratified)"), 
+        ret$tram <- paste(ifelse(is.null(td$mt$s), "", "(Stratified)"), 
                           "Parametric Linear Cox Regression Model")
     }
     class(ret) <- c("Coxph", class(ret))
@@ -82,11 +82,11 @@ Aareg <- function(formula, data, subset, weights, offset, cluster, na.action = n
 
     if (!inherits(ret, "mlt")) return(ret)
     ret$call <- match.call(expand.dots = TRUE)
-    if (!is.null(td$terms$z)) {
-        ret$tram <- paste(ifelse(is.null(td$terms$s), "", "(Stratified)"),
+    if (!is.null(td$mt$z)) {
+        ret$tram <- paste(ifelse(is.null(td$mt$s), "", "(Stratified)"),
                           "Shift-Scale Transformation Model")
     } else {
-        ret$tram <- paste(ifelse(is.null(td$terms$s), "", "(Stratified)"), 
+        ret$tram <- paste(ifelse(is.null(td$mt$s), "", "(Stratified)"), 
                           "Parametric Linear Aalen Regression Model")
     }
     class(ret) <- c("Aareg", class(ret))
@@ -179,11 +179,11 @@ Survreg <- function(formula, data, subset, weights, offset, cluster, na.action =
                sep = "", collapse = " ")
     }
 
-    if (!is.null(td$terms$z)) {
-        ret$tram <- paste(ifelse(is.null(td$terms$s), "", "(Stratified)"),
+    if (!is.null(td$mt$z)) {
+        ret$tram <- paste(ifelse(is.null(td$mt$s), "", "(Stratified)"),
                           "Shift-Scale Transformation Model")
     } else {
-        ret$tram <- paste(ifelse(is.null(td$terms$s), "", "(Stratified)"),
+        ret$tram <- paste(ifelse(is.null(td$mt$s), "", "(Stratified)"),
                           .simpleCap(dist), "Linear Regression Model")
     }
     class(ret) <- c("Survreg", class(ret))
@@ -206,11 +206,11 @@ Colr <- function(formula, data, subset, weights, offset, cluster, na.action = na
                 distribution = "Logistic", negative = FALSE, ...)
     if (!inherits(ret, "mlt")) return(ret)
     ret$call <- match.call(expand.dots = TRUE)
-    if (!is.null(td$terms$z)) {
-        ret$tram <- paste(ifelse(is.null(td$terms$s), "", "(Stratified)"),
+    if (!is.null(td$mt$z)) {
+        ret$tram <- paste(ifelse(is.null(td$mt$s), "", "(Stratified)"),
                           "Shift-Scale Transformation Model")
     } else {
-        ret$tram <- paste(ifelse(is.null(td$terms$s), "", "(Stratified)"),
+        ret$tram <- paste(ifelse(is.null(td$mt$s), "", "(Stratified)"),
                           "Continuous Outcome Logistic Regression")
     }
     class(ret) <- c("Colr", class(ret))
@@ -240,15 +240,15 @@ Polr <- function(formula, data, subset, weights, offset, cluster, na.action = na
     ret <- tram(td, transformation = "discrete", distribution = distribution, negative = TRUE, ...)
     if (!inherits(ret, "mlt")) return(ret)
     ret$call <- match.call(expand.dots = TRUE)
-    if (!is.null(td$terms$z)) {
-        ret$tram <- paste(ifelse(is.null(td$terms$s), "", "(Stratified)"),
+    if (!is.null(td$mt$z)) {
+        ret$tram <- paste(ifelse(is.null(td$mt$s), "", "(Stratified)"),
                           "Shift-Scale Transformation Model")
     } else {
         if (method != "probit") {
-            ret$tram <- paste(ifelse(is.null(td$terms$s), "", "(Stratified)"),
+            ret$tram <- paste(ifelse(is.null(td$mt$s), "", "(Stratified)"),
                               "Proportional", name[method], "Regression Model")
         } else {
-            ret$tram <- paste(ifelse(is.null(td$terms$s), "", "(Stratified)"),
+            ret$tram <- paste(ifelse(is.null(td$mt$s), "", "(Stratified)"),
                               "Ordered Probit Regression Model")
         }                   
     }
@@ -272,11 +272,11 @@ Lm <- function(formula, data, subset, weights, offset, cluster, na.action = na.o
                 negative = TRUE, ...)
     if (!inherits(ret, "mlt")) return(ret)
     ret$call <- match.call(expand.dots = TRUE)
-    if (!is.null(td$terms$z)) {
-        ret$tram <- paste(ifelse(is.null(td$terms$s), "", "(Stratified)"),
+    if (!is.null(td$mt$z)) {
+        ret$tram <- paste(ifelse(is.null(td$mt$s), "", "(Stratified)"),
                           "Shift-Scale Normal Regression Model")
     } else {
-        ret$tram <- paste(ifelse(is.null(td$terms$s), "", "(Stratified)"),
+        ret$tram <- paste(ifelse(is.null(td$mt$s), "", "(Stratified)"),
                           "Normal Linear Regression Model")
     }
     class(ret) <- c("Lm", class(ret))
@@ -299,11 +299,11 @@ BoxCox <- function(formula, data, subset, weights, offset, cluster, na.action = 
                 negative = TRUE, ...)
     if (!inherits(ret, "mlt")) return(ret)
     ret$call <- match.call(expand.dots = TRUE)
-    if (!is.null(td$terms$z)) {
-        ret$tram <- paste(ifelse(is.null(td$terms$s), "", "(Stratified)"),
+    if (!is.null(td$mt$z)) {
+        ret$tram <- paste(ifelse(is.null(td$mt$s), "", "(Stratified)"),
                           "Shift-Scale Normal Regression Model")
     } else {
-        ret$tram <- paste(ifelse(is.null(td$terms$s), "", "(Stratified)"),
+        ret$tram <- paste(ifelse(is.null(td$mt$s), "", "(Stratified)"),
                           "Non-normal (Box-Cox-Type) Linear Regression Model")
     }
     class(ret) <- c("BoxCox", class(ret))
@@ -326,11 +326,11 @@ Lehmann <- function(formula, data, subset, weights, offset, cluster, na.action =
                 negative = TRUE, ...)
     if (!inherits(ret, "mlt")) return(ret)
     ret$call <- match.call(expand.dots = TRUE)
-    if (!is.null(td$terms$z)) {
-        ret$tram <- paste(ifelse(is.null(td$terms$s), "", "(Stratified)"),
+    if (!is.null(td$mt$z)) {
+        ret$tram <- paste(ifelse(is.null(td$mt$s), "", "(Stratified)"),
                           "Shift-Scale Normal Regression Model")
     } else {
-        ret$tram <- paste(ifelse(is.null(td$terms$s), "", "(Stratified)"),
+        ret$tram <- paste(ifelse(is.null(td$mt$s), "", "(Stratified)"),
                           "Proportional Reverse Time Hazards Linear Regression Model")
     }
     class(ret) <- c("Lehmann", class(ret))
