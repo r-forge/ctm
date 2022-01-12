@@ -16,7 +16,7 @@ tmlt <- function(object, newdata = NULL, q = NULL, ...) {
     cf <- coef(object)
     if ("bscaling" %in% names(model)) {
         cf <- coef(object)
-        X <- model.matrix(model, data = newdata[1,,drop = FALSE])
+        X <- model.matrix(model, data = as.data.frame(mkgrid(object, 2)))
         Assign <- attr(X, "Assign")
         sterm <- sqrt(exp(predict(model, 
                                   newdata = newdata, 
