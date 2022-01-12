@@ -87,7 +87,8 @@
         if (is.null(offset)) {
             offset <- rep(0, nrow(data))
         } else {
-            if (SCALE) warning("offset ignored in scaling term")
+            if (SCALE && max(abs(offset)) > .Machine$double.eps) 
+                warning("offset ignored in scaling term")
         }
         es <- .exact_subset(.exact(y), subset)
         exY <- NULL
