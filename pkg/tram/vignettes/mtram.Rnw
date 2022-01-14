@@ -553,7 +553,7 @@ given for $18$ subjects in Figure~\ref{fig:sleepstudy}.
 \begin{Schunk}
 
 
-{\centering \includegraphics{figure/mtram-sleep-plot-1} 
+{\centering \includegraphics{mtram-sleep-plot-1} 
 
 }
 
@@ -830,7 +830,7 @@ This might also not come as a big surprise to experienced data analysts.
 \begin{Schunk}
 
 
-{\centering \includegraphics{figure/mtram-sleep_BoxCoxPlot-1} 
+{\centering \includegraphics{mtram-sleep_BoxCoxPlot-1} 
 
 }
 
@@ -856,7 +856,7 @@ distribution of reaction times at each single day of study participation.
 \begin{Schunk}
 
 
-{\centering \includegraphics{figure/mtram-sleep_marginal-1} 
+{\centering \includegraphics{mtram-sleep_marginal-1} 
 
 }
 
@@ -955,7 +955,7 @@ advance in patients treated with terbinafine.
 \begin{Schunk}
 
 
-{\centering \includegraphics{figure/mtram-toenail-plot-1} 
+{\centering \includegraphics{mtram-toenail-plot-1} 
 
 }
 
@@ -1394,7 +1394,7 @@ estimators to obtain an idea about the uncertainty
 \begin{Schunk}
 
 
-{\centering \includegraphics{figure/mtram-toenail_OR_2-1} 
+{\centering \includegraphics{mtram-toenail_OR_2-1} 
 
 }
 
@@ -1440,7 +1440,7 @@ very similar as shown in Figure~\ref{fig:toenailprob}.
 \begin{Schunk}
 
 
-{\centering \includegraphics{figure/mtram-toenail_probplot-1} 
+{\centering \includegraphics{mtram-toenail_probplot-1} 
 
 }
 
@@ -1466,7 +1466,7 @@ visual analog scale, that is, on a bounded interval.
 \begin{Schunk}
 
 
-{\centering \includegraphics{figure/mtram-neck_plot-1} 
+{\centering \includegraphics{mtram-neck_plot-1} 
 
 }
 
@@ -1570,7 +1570,7 @@ distribution functions in the two groups, see Figure~\ref{fig:distr_pain}.
 \begin{Schunk}
 
 
-{\centering \includegraphics{figure/mtram-neck_Colr_distr-1} 
+{\centering \includegraphics{mtram-neck_Colr_distr-1} 
 
 }
 
@@ -1607,7 +1607,7 @@ tumour grading, are given in Figure~\ref{fig:CAO}.
 \begin{Schunk}
 
 
-{\centering \includegraphics{figure/mtram-CAO-plot-1} 
+{\centering \includegraphics{mtram-CAO-plot-1} 
 
 }
 
