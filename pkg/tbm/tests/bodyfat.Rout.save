@@ -1,5 +1,5 @@
 
-R version 4.0.4 (2021-02-15) -- "Lost Library Book"
+R version 4.1.2 (2021-11-01) -- "Bird Hippie"
 Copyright (C) 2021 The R Foundation for Statistical Computing
 Platform: x86_64-pc-linux-gnu (64-bit)
 
@@ -17,6 +17,7 @@ Type 'q()' to quit R.
 
 > 
 > suppressPackageStartupMessages(library("tbm"))
+> options(warn = -1L)
 > library("tram")
 > library("partykit")
 Loading required package: grid
@@ -95,9 +96,6 @@ The following object is masked from 'package:mboost':
 > 
 > bf_lin <- stmboost(model = mf, formula = DEXfat ~ . - 1, data = bodyfat, 
 +                    method = quote(mboost:::glmboost.formula))
-Warning message:
-In mboost:::glmboost.formula(formula = DEXfat ~ . - 1, data = bodyfat,  :
-  model with centered covariates does not contain intercept
 > logLik(bf_lin)
 'log Lik.' -195.3941 (df=NULL)
 > table(selected(bf_lin))
@@ -121,11 +119,6 @@ In mboost:::glmboost.formula(formula = DEXfat ~ . - 1, data = bodyfat,  :
 +                   control = bctrl,
 +                   method = quote(mboost:::glmboost.formula), 
 +                   mltargs = list(fixed = c("DEXfat" = 1)))
-Warning messages:
-1: In mboost:::glmboost.formula(formula = DEXfat ~ 0 + ., data = bodyfat,  :
-  model with centered covariates does not contain intercept
-2: In c.basis(bresponse = response, bshifting = shifting) :
-  more than one basis contains an intercept term
 > bf_2 <- glmboost(DEXfat ~ ., data = bodyfat, offset = mean(bodyfat$DEXfat),
 +                   control = bctrl)
 > stopifnot(max(abs(mboost:::coef.glmboost(bf_1) - coef(bf_2)[-1])) < 
@@ -139,4 +132,4 @@ Warning messages:
 > 
 > proc.time()
    user  system elapsed 
-  9.624   0.148   9.741 
+  8.215   0.119   8.311 

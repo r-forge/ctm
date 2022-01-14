@@ -1,5 +1,6 @@
 
 suppressPackageStartupMessages(library("tbm"))
+options(warn = -1L)
 library("tram")
 library("partykit")
 
