@@ -10,6 +10,14 @@
   }
 }
 
+\section{Changes in Version 0.6-4 (2022-01-14)}{
+  \itemize{
+    \item{Remove arguments ignored by \code{mlt}.}
+    \item{Move mtram vignette code to demo as it took too long 
+          on Windows for CRAN.}
+  }
+}
+
 \section{Changes in Version 0.6-3 (2022-01-04)}{
   \itemize{
     \item{Deal with stratum - covariate interactions,
