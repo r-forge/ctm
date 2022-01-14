@@ -2,7 +2,7 @@
 \name{NEWS}
 \title{NEWS file for the mlt package}
 
-\section{Changes in Version 1.4-0 (2022-01-07)}{
+\section{Changes in Version 1.4-0 (2022-01-14)}{
   \subsection{New features}{
     \itemize{
       \item{Add infrastructure for shift-scale transformation models.}
@@ -17,6 +17,7 @@
   \subsection{Bugfixes}{
     \itemize{
       \item{Arguments passed to \code{mlt} via dots were silently ignored.}
+      \item{Remove nloptr dependency for the time being.}
     }
   }
 }
