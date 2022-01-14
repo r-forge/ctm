@@ -139,4 +139,20 @@ if (require("gamlss")) {
       coefAll(gm)[[2]]["x2"] / sqrt(vcov(gm)["x2", "x2"]))
 }
 
+### predict
+
+N <- 10000
+x1 <- runif(N)
+x2 <- runif(N)
+s <- gl(k <- 11, N/k)
+y <- rnorm(N, mean = 2 * x1, sd = sqrt(exp(.5 * x2)))
+d <- data.frame(y = y, x1 = x1, x2 = x2, s = s)
+
+fm <- formula(y ~ s + x1)
+m <- Coxph(fm, data = d)
+try(a <- predict(m, type = "distribution")) ### works
+
+sfm <- as.formula(y ~ s | x1)
+sm <- Coxph(sfm, data = d)
+try(b <- predict(sm, type = "distribution")) ### didn't work
 
