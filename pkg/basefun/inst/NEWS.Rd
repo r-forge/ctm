@@ -2,7 +2,7 @@
 \name{NEWS}
 \title{NEWS file for the basefun package}
 
-\section{Changes in Version 1.1-2 (2022-01-07)}{
+\section{Changes in Version 1.1-2 (2022-01-14)}{
   \itemize{
     \item{Allow coefficients in matrix form.}
   }
