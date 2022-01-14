@@ -2,11 +2,18 @@
 \name{NEWS}
 \title{NEWS file for the \pkg{tbm} package}
 
+\section{Changes in Version 0.3-5 (2022-01-14)}{
+  \itemize{
+    \item Prepare for basefun 1.1-2 release.
+    }
+}
+
 \section{Changes in Version 0.3-4 (2021-03-03)}{
   \itemize{
     \item noLD issue.
     }
 }
+
 
 
 \section{Changes in Version 0.3-3 (2020-11-25)}{
