@@ -193,8 +193,24 @@ Warning messages:
 2: In object$hessian(parm, weights = w) :
   Analytical Hessian not available, using numerical approximation
 > 
+> ### predict
+> 
+> N <- 10000
+> x1 <- runif(N)
+> x2 <- runif(N)
+> s <- gl(k <- 11, N/k)
+> y <- rnorm(N, mean = 2 * x1, sd = sqrt(exp(.5 * x2)))
+> d <- data.frame(y = y, x1 = x1, x2 = x2, s = s)
+> 
+> fm <- formula(y ~ s + x1)
+> m <- Coxph(fm, data = d)
+> try(a <- predict(m, type = "distribution")) ### works
+> 
+> sfm <- as.formula(y ~ s | x1)
+> sm <- Coxph(sfm, data = d)
+> try(b <- predict(sm, type = "distribution")) ### didn't work
 > 
 > 
 > proc.time()
    user  system elapsed 
-  2.671   0.136   2.791 
+  4.308   0.154   4.445 
