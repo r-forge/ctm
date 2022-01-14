@@ -8,6 +8,17 @@
       \item{Add infrastructure for shift-scale transformation models.}
     }
   }
+  \subsection{Documentation}{
+    \itemize{
+      \item{\code{Gradient} and \code{estfun} always returned 
+            negative scores, this is documented now.}
+    }
+  }
+  \subsection{Bugfixes}{
+    \itemize{
+      \item{Arguments passed to \code{mlt} via dots were silently ignored.}
+    }
+  }
 }
 
 \section{Changes in Version 1.3-2 (2021-08-24)}{
