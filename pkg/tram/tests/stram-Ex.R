@@ -156,3 +156,8 @@ sfm <- as.formula(y ~ s | x1)
 sm <- Coxph(sfm, data = d)
 try(b <- predict(sm, type = "distribution")) ### didn't work
 
+### check discrete models
+data("wine", package = "ordinal")
+m <- Polr(rating ~ temp | contact, data = wine, 
+          optim = mltoptim(spg = list(maxit = 10000, checkGrad = TRUE)))
+

@@ -18,6 +18,7 @@
     }
     Assign <- attr(Y, "Assign")
     SCALE <- "bscaling" %in% Assign[2,]
+    if (SCALE) Z <- model.matrix(model$model$bscaling, data = data)
 
     ui <- attr(Y, "constraint")$ui
     ci <- attr(Y, "constraint")$ci
@@ -63,8 +64,8 @@
     .sparm <- function(beta) {
         if (SCALE) {
             sparm <- .parm(beta)
-            sparm[Assign[2,] != "bscaling"] <- 0L
-            sterm <- c(sqrt(exp(Y %*% sparm)))
+            slp <- c(Z %*% sparm[Assign[2,] == "bscaling"])
+            sterm <- exp(.5 * slp)
             parm <- beta
             parm[Assign[2,] == "bscaling"] <- 0L
             Parm <- matrix(parm, nrow = nrow(Y), ncol = length(parm), byrow = TRUE)
@@ -290,8 +291,8 @@
                 return(weights * of$sc(beta, Xmult = Xmult))
             sc <- weights * of$sc(beta, Xmult = Xmult, ret_all = TRUE)
             sparm <- .parm(beta)
-            sparm[Assign[2,] != "bscaling"] <- 0L
-            sterm <- c(sqrt(exp(Y %*% sparm)))
+            slp <- c(Z %*% sparm[Assign[2,] == "bscaling"])
+            sterm <- exp(.5 * slp)
             if (model$scale_shift) {
                 idx <- (!Assign[2,] %in% "bscaling")
             } else {
@@ -299,7 +300,7 @@
             }
             ret <- cbind(sterm * sc[, idx],
                   if (!model$scale_shift) sc[, Assign[2, ] == "bshifting"],
-                  sterm * c(sc[, idx] %*% .parm(beta)[idx]) * .5 * Y[, Assign[2,] == "bscaling"])
+                  sterm * c(sc[, idx] %*% .parm(beta)[idx]) * .5 * Z)
             if (!is.null(fixed)) {
                 if (all(names(fixed) %in% names(beta)))
                     return(ret)
