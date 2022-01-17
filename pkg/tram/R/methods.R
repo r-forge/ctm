@@ -212,13 +212,6 @@ profile.tram <- function(fitted, which = 1:p, alpha = 0.01,
     diff <- sqrt(diag(vcov(fitted)))
     names(diff) <- Pnames
 
-    X <- model.matrix(fitted)
-    n <- NROW(X)
-    O <- fitted$offset
-    if(!length(O)) O <- rep(0, n)
-    W <- fitted$weights
-    if(length(W) == 0L) W <- rep(1, n)
-
     OriginalDeviance <- -2 * logLik(fitted)
     zmax <- sqrt(qchisq(1 - alpha, 1))
 
@@ -232,15 +225,6 @@ profile.tram <- function(fitted, which = 1:p, alpha = 0.01,
         fx <- 0
         names(fx) <- pi
 
-        ### set-up new model with fixed parameter pi such that
-        ### update can be called
-        theta <- coef(as.mlt(fitted))
-        theta <- theta[!names(theta) %in% pi]
-        fm <- m <- mlt(fitted$model, data = fitted$data, weights = W, 
-                       fixed = fx, theta = theta,
-                       scale = fitted$scale, 
-                       optim = fitted$optim)
-
         for(sgn in c(-1, 1)) {
             if(trace)
                 message("\nParameter: ", pi, " ",
@@ -250,11 +234,9 @@ profile.tram <- function(fitted, which = 1:p, alpha = 0.01,
 
             while((step <- step + 1) < maxsteps && abs(z) < zmax) {
                 bi <- B0[i] + sgn * step * del * diff[i]
-                o <- O + X[, i] * bi
-
+                fx[] <- bi
                 ### compute profile likelihood
-                fm <- update(m, weights = W, offset = o, 
-                             theta = coef(fm, fixed = FALSE))
+                fm <- update(fitted, fixed = fx)
                 pl <- logLik(fm)
 
                 ri <- pv0
@@ -279,12 +261,6 @@ profile.tram <- function(fitted, which = 1:p, alpha = 0.01,
     ### _currently_ works when calling MASS::confint.profile.glm
     class(val) <- c("profile.tram", "profile.glm", "profile")
     val
-}
-
-profile.stram <- function(fitted, which = fitted$shiftcoef, ...) {
-    if (any(which %in% fitted$scalecoef))
-        stop("cannot compute profile likelihood for scale coefficients")
-    profile.tram(fitted = fitted, which = which, ...)
 }
 
 ### score tests and confidence intervals
@@ -320,19 +296,13 @@ score_test.tram <- function(object, parm = names(coef(object)),
 
     fx <- 0
     names(fx) <- parm
-    off <- object$offset
-    theta <- coef(as.mlt(object))
-    theta <- theta[names(theta) != parm]
-    m0 <- mlt(object$model, data = object$data, weights = object$weights,
-              offset = off, scale = object$scale, fixed = fx,
-              optim = object$optim, theta = theta)
-
     cf <- coef(m1)
-    X <- model.matrix(object)[, parm]
 
     sc <- function(b) {
-        cf[] <- coef(update(m0, offset = off + b * X))
+        fx[] <- b
+        cf[] <- coef(update(m1, fixed = fx)) ### works since mlt 1.4-1
         cf[parm] <- b
+        ### evaluate estfun/vcov for fixed parameter in m1
         coef(m1) <- cf
         ### see Lehmann, Elements of Large-sample Theory,
         ### 1999, 539-540, for score tests in the presence
@@ -421,12 +391,6 @@ score_test.tram <- function(object, parm = names(coef(object)),
     ret$parm <- parm
     class(ret) <- "htest"
     ret
-}
-
-score_test.stram <- function(object, parm = object$shiftcoef, ...) {
-    if (any(parm %in% object$scalecoef))
-        stop("cannot compute score test for scale coefficients")
-    score_test.tram(object = object, parm = parm, ...)
 }
 
 confint.htest <- function(object, parm, level = .95, ...) {
@@ -532,7 +496,7 @@ perm_test.tram <- function(object, parm = names(coef(object)),
             Xf <- relevel(factor(X, levels = sort(unique(X)), 
                           labels = 0:1), "1")
 
-        cf[] <- c(coef(m0, fixed = FALSE), 0)
+        cf[] <- coef(m0)
         coef(m1) <- cf
         ### resid is weighted, remove weights and feed them to coin
         r0 <- (resid(m1) / w) * sqrt(vcov.tram(m1)[parm,parm])
