@@ -48,8 +48,8 @@
             ret <- numeric(ncol(Y))
             ret[fix] <- fixed
             if (is.matrix(beta)) {
-                ret <- matrix(ret, nrow = 1)
-                ret <- ret[rep(1L, NROW(beta)),,drop = FALSE]
+                ret <- matrix(ret, nrow = nrow(beta), 
+                              ncol = length(ret), byrow = TRUE)
                 ret[,!fix] <- beta
             } else {
                 ret[!fix] <- beta
@@ -66,7 +66,7 @@
             sparm <- .parm(beta)
             slp <- c(Z %*% sparm[Assign[2,] == "bscaling"])
             sterm <- exp(.5 * slp)
-            parm <- beta
+            parm <- .parm(beta)
             parm[Assign[2,] == "bscaling"] <- 0L
             Parm <- matrix(parm, nrow = nrow(Y), ncol = length(parm), byrow = TRUE)
             if (model$scale_shift) {
@@ -301,6 +301,7 @@
             ret <- cbind(sterm * sc[, idx],
                   if (!model$scale_shift) sc[, Assign[2, ] == "bshifting"],
                   sterm * c(sc[, idx] %*% .parm(beta)[idx]) * .5 * Z)
+            colnames(ret) <- colnames(sc)
             if (!is.null(fixed)) {
                 if (all(names(fixed) %in% names(beta)))
                     return(ret)
