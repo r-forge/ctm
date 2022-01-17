@@ -9,6 +9,7 @@
 \alias{logLik.tram}
 \alias{estfun.tram}
 \alias{predict.tram}
+\alias{residuals.tram}
 \alias{plot.tram}
 \alias{plot.ROCtram}
 \alias{PI}
@@ -47,6 +48,7 @@
      which = c("QQ-PIT", "baseline only", "distribution"), 
      confidence = c("none", "interval", "band"), level = 0.95, 
      K = 50, cheat = K, col = "black", fill = "lightgrey", lwd = 1, ...)
+\method{residuals}{tram}(object, ...)
 \method{PI}{tram}(object, newdata = model.frame(object), reference = 0,
                   \dots)
 \method{PI}{default}(object, prob, link = "logistic", ...)
