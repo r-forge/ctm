@@ -55,6 +55,7 @@ mltoptim <- function(auglag = list(maxtry = 5, kkt2.check = FALSE),
                 ret <- list(par = theta, convergence = 1)
             return(ret)
         }
+    nloptr <- NULL
     if (!is.null(nloptr))
         stop("nloptr is currently not supported")
 #        ### Note: This is still experimental (and switched off by default)
