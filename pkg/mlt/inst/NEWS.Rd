@@ -5,6 +5,7 @@
 \section{Changes in Version 1.4-1 (2022-01-16)}{
   \subsection{New features}{
     \itemize{
+      \item{\code{update} allows fixing parameters.}
     }
   }
   \subsection{Bugfixes}{

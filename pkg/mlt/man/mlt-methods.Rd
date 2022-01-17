@@ -39,13 +39,16 @@ Gradient(object, ...)
 \method{variable.names}{mlt}(object, ...)
 \method{update}{mlt_fit}(object, weights = stats::weights(object), 
        subset = NULL, offset = object$offset, theta = coef(object, fixed = FALSE), 
+       fixed = object$fixed, 
        ...)
 \method{as.mlt}{mlt}(object)
 }
 \arguments{
   \item{object}{a fitted conditional transformation model as returned by \code{\link{mlt}}}
   \item{fixed}{a logical indicating if only estimated coefficients (\code{fixed = FALSE}) 
-               should be returned}
+               should be returned OR (for \code{update})
+               a named vector of fixed regression coefficients; the names
+               need to correspond to column names of the design matrix}
   \item{value}{coefficients to be assigned to the model}
   \item{parm}{model parameters}
   \item{w}{model weights}

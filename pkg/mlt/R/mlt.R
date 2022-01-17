@@ -281,7 +281,7 @@
     }
 
     optimfct <- function(theta, weights, subset = NULL, offset = NULL, 
-                         scale = FALSE, optim, ...) {
+                         scale = FALSE, optim, fixed = NULL, ...) {
         of <- .ofuns(weights = weights, subset = subset, 
                      offset = offset, ...)
         loglikfct <- function(beta, weights)  
@@ -323,8 +323,16 @@
             gt1 <- sc >= 1.1
             sc[gt1] <- 1 / sc[gt1]
             sc[lt1] <- 1
-            f <- function(gamma) loglikfct(sc * gamma, weights)
-            g <- function(gamma) scorefct(sc * gamma, weights) * sc
+            f <- function(gamma) {
+                gamma[names(sc)] <- gamma[names(sc)] * sc
+                loglikfct(gamma, weights)
+            }
+            g <- function(gamma) {
+                gamma[names(sc)] <- gamma[names(sc)] * sc
+                ret <- scorefct(gamma, weights)
+                ret[names(sc)] <- ret[names(sc)] * sc
+                ret
+            }
             theta <- theta / sc
             if (!is.null(ui))
                 ui <- t(t(ui) * sc)
@@ -332,8 +340,31 @@
             f <- function(gamma) loglikfct(gamma, weights)
             g <- function(gamma) scorefct(gamma, weights)
         }
+
+        ff <- f
+        gg <- g
+        if (!is.null(fixed)) {
+            fixed <- fixed[!is.na(fixed)]
+            if (length(fixed) == 0) fixed <- NULL
+            stopifnot(all(names(fixed) %in% colnames(Y)))
+            if (sum(fix) > 0L)
+                stopifnot(all(names(fixed) %in% colnames(Y)[fix]))
+            prm <- scl <- numeric(ncol(Y))
+            names(prm) <- colnames(Y)
+            ff <- function(parm) {
+                prm[!fix] <- parm
+                prm[fix] <- fixed
+                f(prm)
+            }
+            gg <- function(parm) {
+                prm[!fix] <- parm
+                prm[fix] <- fixed
+                g(prm)[!fix]
+            }
+        }
+
         for (i in 1:length(optim)) {
-            ret <- optim[[i]](theta, f, g, ui, ci)
+            ret <- optim[[i]](theta, ff, gg, ui, ci)
             if (ret$convergence == 0) break()
         }
         if (ret$convergence != 0)
@@ -470,7 +501,7 @@
 }
 
 .mlt_fit <- function(object, weights, subset = NULL, offset = NULL, 
-                     theta = NULL, scale = FALSE, optim, ...) {
+                     theta = NULL, scale = FALSE, optim, fixed = NULL, ...) {
 
     if (is.null(theta))
         stop(sQuote("mlt"), "needs suitable starting values")
@@ -478,7 +509,7 @@
     ### BBoptim issues a warning in case of unsuccessful convergence
     ret <- try(object$optimfct(theta, weights = weights, 
         subset = subset, offset = offset, scale = scale, 
-        optim = optim, ...))    
+        optim = optim, fixed = fixed, ...))    
 
     cls <- class(object)
     object[names(ret)] <- NULL
@@ -540,6 +571,7 @@ mlt <- function(model, data, weights = NULL, offset = NULL, fixed = NULL,
     args$subset <- NULL ### only available in update()
     args$scale <- scale
     args$optim <- optim
+    args$fixed <- fixed
     ret <- do.call(".mlt_fit", args)
     ret$call <- match.call()
     ret$bounds <- bounds
@@ -550,6 +582,7 @@ mlt <- function(model, data, weights = NULL, offset = NULL, fixed = NULL,
 update.mlt_fit <- function(object, weights = stats::weights(object), 
                            subset = NULL, offset = object$offset,
                            theta = coef(object, fixed = FALSE), 
+                           fixed = object$fixed,
                            ...) {
 
     stopifnot(length(weights) == NROW(object$data))
@@ -571,6 +604,7 @@ update.mlt_fit <- function(object, weights = stats::weights(object),
     args$theta <- theta
     args$scale <- object$scale
     args$optim <- object$optim
+    args$fixed <- fixed
     ret <- do.call(".mlt_fit", args)
     ret$call <- match.call()
     ret
