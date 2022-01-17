@@ -119,7 +119,7 @@ estfun.mlt <- function(object, parm = coef(object, fixed = FALSE),
 }
 
 residuals.mlt <- function(object, parm = coef(object, fixed = FALSE), 
-                          w = NULL, newdata, ...) {
+                          w = NULL, newdata, what = c("shifting", "scaling"), ...) {
     args <- list(...)
     if (length(args) > 0)
         warning("Arguments ", names(args), " are ignored")
@@ -132,7 +132,11 @@ residuals.mlt <- function(object, parm = coef(object, fixed = FALSE),
         w <- weights(object)
     sc <- -object$score(parm, weights = w, Xmult = FALSE)
     if (!is.null(object$subset))
-        sc <- sc[object$subset,,drop = TRUE]
+        sc <- sc[object$subset,,drop = FALSE]
+    if (!is.null(object$model$model$bscaling)) {
+        what <- match.arg(what)
+        return(sc[, what])
+    }
     if (inherits(sc, "matrix"))
         return(sc[, 1L, drop = TRUE])
     return(sc)

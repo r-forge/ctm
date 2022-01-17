@@ -10,6 +10,7 @@
 \alias{Hessian.mlt}
 \alias{Gradient.mlt}
 \alias{estfun.mlt}
+\alias{residuals.mlt}
 \alias{mkgrid.mlt}
 \alias{bounds.mlt}
 \alias{variable.names.mlt}
@@ -34,6 +35,8 @@ Gradient(object, ...)
 \method{Gradient}{mlt}(object, parm = coef(object, fixed = FALSE), ...)
 \method{estfun}{mlt}(object, parm = coef(object, fixed = FALSE),
        w = NULL, newdata, ...)
+\method{residuals}{mlt}(object, parm = coef(object, fixed = FALSE), 
+       w = NULL, newdata, what = c("shifting", "scaling"), ...)
 \method{mkgrid}{mlt}(object, n, ...)
 \method{bounds}{mlt}(object)
 \method{variable.names}{mlt}(object, ...)
@@ -51,6 +54,10 @@ Gradient(object, ...)
   \item{value}{coefficients to be assigned to the model}
   \item{parm}{model parameters}
   \item{w}{model weights}
+  \item{what}{type of residual: \code{shifting} means score with respect to
+      a constant intercept for the shift term and \code{scaling} means 
+      score with respect to a constant intercept in the scaling term if such
+      a term is present.}
   \item{weights}{model weights}
   \item{newdata}{an optional data frame of new observations. Allows
                  evaluation of the log-likelihood for a given
