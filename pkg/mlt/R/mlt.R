@@ -361,7 +361,7 @@
         wfit <- weights
         if (SCALE) {
             ret$hessian <- function(beta, weights) {
-                warning("Analytical Hessian not available, using numerical approximation")
+                # warning("Analytical Hessian not available, using numerical approximation")
                 ret <- numDeriv::hessian(loglikfct, beta, weights = weights)
                 rownames(ret) <- colnames(ret) <- colnames(Y)
                 return(ret)
@@ -567,8 +567,10 @@ update.mlt_fit <- function(object, weights = stats::weights(object),
     if (!is.null(fixed)) {
         ### refit completely, because fixed needs to be handled
         ### by .mlt_setup
+        strt <- theta
+        strt <- strt[!names(strt) %in% names(fixed)]
         return(mlt(object$model, data = object$data, weights = weights,
-            offset = offset, theta = theta, fixed = fixed,
+            offset = offset, theta = strt, fixed = fixed,
             scale = object$scale, optim = object$optim))
     }
 
