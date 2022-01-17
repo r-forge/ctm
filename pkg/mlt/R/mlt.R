@@ -281,7 +281,7 @@
     }
 
     optimfct <- function(theta, weights, subset = NULL, offset = NULL, 
-                         scale = FALSE, optim, fixed = NULL, ...) {
+                         scale = FALSE, optim, ...) {
         of <- .ofuns(weights = weights, subset = subset, 
                      offset = offset, ...)
         loglikfct <- function(beta, weights)  
@@ -341,30 +341,8 @@
             g <- function(gamma) scorefct(gamma, weights)
         }
 
-        ff <- f
-        gg <- g
-        if (!is.null(fixed)) {
-            fixed <- fixed[!is.na(fixed)]
-            if (length(fixed) == 0) fixed <- NULL
-            stopifnot(all(names(fixed) %in% colnames(Y)))
-            if (sum(fix) > 0L)
-                stopifnot(all(names(fixed) %in% colnames(Y)[fix]))
-            prm <- scl <- numeric(ncol(Y))
-            names(prm) <- colnames(Y)
-            ff <- function(parm) {
-                prm[!fix] <- parm
-                prm[fix] <- fixed
-                f(prm)
-            }
-            gg <- function(parm) {
-                prm[!fix] <- parm
-                prm[fix] <- fixed
-                g(prm)[!fix]
-            }
-        }
-
         for (i in 1:length(optim)) {
-            ret <- optim[[i]](theta, ff, gg, ui, ci)
+            ret <- optim[[i]](theta, f, g, ui, ci)
             if (ret$convergence == 0) break()
         }
         if (ret$convergence != 0)
@@ -509,7 +487,7 @@
     ### BBoptim issues a warning in case of unsuccessful convergence
     ret <- try(object$optimfct(theta, weights = weights, 
         subset = subset, offset = offset, scale = scale, 
-        optim = optim, fixed = fixed, ...))    
+        optim = optim, ...))    
 
     cls <- class(object)
     object[names(ret)] <- NULL
@@ -582,8 +560,17 @@ mlt <- function(model, data, weights = NULL, offset = NULL, fixed = NULL,
 update.mlt_fit <- function(object, weights = stats::weights(object), 
                            subset = NULL, offset = object$offset,
                            theta = coef(object, fixed = FALSE), 
-                           fixed = object$fixed,
+                           fixed = NULL,
                            ...) {
+
+    stopifnot(is.null(subset) || is.null(fixed))
+    if (!is.null(fixed)) {
+        ### refit completely, because fixed needs to be handled
+        ### by .mlt_setup
+        return(mlt(object$model, data = object$data, weights = weights,
+            offset = offset, theta = theta, fixed = fixed,
+            scale = object$scale, optim = object$optim))
+    }
 
     stopifnot(length(weights) == NROW(object$data))
     if (!is.null(subset))
@@ -604,7 +591,6 @@ update.mlt_fit <- function(object, weights = stats::weights(object),
     args$theta <- theta
     args$scale <- object$scale
     args$optim <- object$optim
-    args$fixed <- fixed
     ret <- do.call(".mlt_fit", args)
     ret$call <- match.call()
     ret
