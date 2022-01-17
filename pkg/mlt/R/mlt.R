@@ -289,7 +289,7 @@
         score <- function(beta, weights, Xmult = TRUE) {
             if (!"bscaling" %in% Assign[2,])
                 return(weights * of$sc(beta, Xmult = Xmult))
-            sc <- weights * of$sc(beta, Xmult = Xmult, ret_all = TRUE)
+            sc <- weights * of$sc(beta, Xmult = TRUE, ret_all = TRUE)
             sparm <- .parm(beta)
             slp <- c(Z %*% sparm[Assign[2,] == "bscaling"])
             sterm <- exp(.5 * slp)
@@ -297,6 +297,11 @@
                 idx <- (!Assign[2,] %in% "bscaling")
             } else {
                 idx <- (!Assign[2,] %in% c("bshifting", "bscaling"))
+            }
+            if (!Xmult) {
+                fct <- weights * of$sc(beta, Xmult = FALSE)
+                return(cbind(shifting = if (model$scale_shift) sterm * fct else fct,
+                             scaling = sterm * c(sc[, idx] %*% .parm(beta)[idx]) * .5))
             }
             ret <- cbind(sterm * sc[, idx],
                   if (!model$scale_shift) sc[, Assign[2, ] == "bshifting"],
