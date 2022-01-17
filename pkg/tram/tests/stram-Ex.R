@@ -1,5 +1,6 @@
 
 library("tram")
+library("sandwich")
 set.seed(29)
 
 chk <- function(x, y, tol = 1e-3) 
@@ -161,3 +162,52 @@ data("wine", package = "ordinal")
 m <- Polr(rating ~ temp | contact, data = wine, 
           optim = mltoptim(spg = list(maxit = 10000, checkGrad = TRUE)))
 
+### inference methods & residuals
+N <- 1000
+x1 <- runif(N)
+x2 <- runif(N)
+z <- rnorm(N)
+y <- (z + .2 * x1) * sqrt(exp(.5 * x2))
+d <- data.frame(y = y, x1 = x1, x2 = x2, one = 1)
+
+### Wald, Score and Likelihood intervals
+m2 <- Lm(y ~ x1 | x2, data = d)
+ciW <- confint(m2)
+ciL <- confint(profile(m2))
+ciS <- rbind(score_test(m2, "x1")$conf,
+             score_test(m2, "scl_x2")$conf)
+
+chk(ciW, ciL, tol = 1e-3)
+chk(ciW, ciS, tol = 1e-3)
+
+### not quite the same!
+round(ciW[1,], 3)
+round(perm_test(m2, "x1")$conf, 3)
+
+### check residuals
+m0 <- Lm(y ~ 1, data = d)
+r <- resid(m0)
+rs <- c(estfun(as.mlt(m0)) %*% coef(as.mlt(m0))) * .5
+m <- Lm(y ~ one | one, data = d, fixed = c("one" = 0, "scl_one" = 0))
+r2 <- resid(m)
+rs2 <- resid(m, what = "scaling")
+chk(r, r2)
+chk(rs, rs2)
+
+### residuals, nonparametrically
+N <- 50
+x1 <- runif(N)
+x2 <- runif(N)
+z <- rnorm(N)
+y <- (z + .2 * x1) * sqrt(exp(.5 * x2))
+d <- data.frame(y = y, x1 = x1, x2 = x2, one = 1)
+
+d$yR <- R(y, as.R.ordered = TRUE)
+m0 <- Polr(yR ~ 1, data = d)
+r <- resid(m0)
+rs <- c(estfun(as.mlt(m0)) %*% coef(as.mlt(m0))) * .5
+m <- Polr(yR ~ one | one, data = d, fixed = c("one" = 0, "scl_one" = 0))
+r2 <- resid(m)
+rs2 <- resid(m, what = "scaling")
+chk(r, r2)
+chk(rs, rs2)
