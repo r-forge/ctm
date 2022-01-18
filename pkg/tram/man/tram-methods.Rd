@@ -2,6 +2,7 @@
 \alias{as.mlt.tram}
 \alias{model.frame.tram}
 \alias{model.matrix.tram}
+\alias{model.matrix.stram}
 \alias{coef.tram}
 \alias{coef.Lm}
 \alias{coef.Survreg}
@@ -33,6 +34,8 @@
 \method{as.mlt}{tram}(object)
 \method{model.frame}{tram}(formula, ...)
 \method{model.matrix}{tram}(object, data = object$data, with_baseline = FALSE, ...) 
+\method{model.matrix}{tram}(object, data = object$data, with_baseline = FALSE, 
+       what = c("shifting", "scaling"), ...) 
 \method{coef}{tram}(object, with_baseline = FALSE, ...) 
 \method{coef}{Lm}(object, as.lm = FALSE, ...)
 \method{coef}{Survreg}(object, as.survreg = FALSE, ...)
@@ -91,6 +94,8 @@
   \item{which}{type of plot, either a QQ plot of the probability-integral
                transformed observations (\code{"QQ-PIT"}), of the
                baseline transformation of the whole distribution.}
+  \item{what}{type of model matrix: \code{shifting} returns model
+      model matrix for shift term, \code{scaling} for the scale term.}
   \item{confidence}{type of uncertainty assessment.}
   \item{level}{confidence level.}
   \item{K}{number of grid points in the response, see

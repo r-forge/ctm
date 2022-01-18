@@ -32,11 +32,15 @@ model.matrix.tram <- function(object, data = object$data,
     ret
 }	
 
-model.matrix.stram <- function(object, with_baseline = FALSE, ...) {
+model.matrix.stram <- function(object, with_baseline = FALSE, 
+    what = c("shifting", "scaling"), ...) {
     if (with_baseline)
         stop("no model.matrix method for class stram defined")
-    warning("returning model matrix for shift term only")
-    model.matrix.tram(object, with_baseline = with_baseline, ...)
+    what <- match.arg(what)
+    switch(what, 
+        "shifting" = model.matrix.tram(object, 
+                                       with_baseline = with_baseline, ...),
+        "scaling" = model.matrix(object$model$model$bscaling, ...))
 }
 
 coef.tram <- function(object, with_baseline = FALSE, ...) 
