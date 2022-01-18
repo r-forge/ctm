@@ -10,6 +10,7 @@
 
     eY <- .mm_exact(model, data = data, response = response, object = y)
     iY <- .mm_interval(model, data = data, response = response, object = y)
+    N <- length(eY$which) * length(iY$which)
 
     if (is.null(eY)) {
         Y <- iY$Yleft
@@ -68,7 +69,7 @@
             sterm <- exp(.5 * slp)
             parm <- .parm(beta)
             parm[Assign[2,] == "bscaling"] <- 0L
-            Parm <- matrix(parm, nrow = nrow(Y), ncol = length(parm), byrow = TRUE)
+            Parm <- matrix(parm, nrow = nrow(Z), ncol = length(parm), byrow = TRUE)
             if (model$scale_shift) {
                 idx <- !Assign[2,] %in% "bscaling"
             } else {
@@ -104,7 +105,7 @@
         if (!is.null(perm)) {
             stopifnot(all(perm %in% nm))
             if (is.null(permutation)) 
-                permutation <- sample(1:NROW(Y))
+                permutation <- sample(1:N)
             X <- matrix(0, nrow = NROW(y), ncol = ncol(Y))
             if (!is.null(eY)) {
                 X[eY$which,] <- eY$Y
@@ -175,6 +176,7 @@
         return(list(
             ll = function(beta) {
                 ret <- ret_ll 
+                beta <- .sparm(beta)
                 if (is.matrix(beta)) {
                     beta_ex <- beta[es$full_ex,,drop = FALSE]
                     beta_nex <- beta[es$full_nex,,drop = FALSE]
@@ -183,10 +185,10 @@
                 }
                 if (!is.null(es$full_ex))
                     ret[es$full_ex] <- .mlt_loglik_exact(distr, 
-                        exY, exYprime, exoffset, extrunc)(.sparm(beta_ex))
+                        exY, exYprime, exoffset, extrunc)(beta_ex)
                 if (!is.null(es$full_nex))
                     ret[es$full_nex] <- .mlt_loglik_interval(distr, 
-                        iYleft, iYright, ioffset, itrunc)(.sparm(beta_nex))
+                        iYleft, iYright, ioffset, itrunc)(beta_nex)
                 return(ret)
             },
             sc = function(beta, Xmult = TRUE, ret_all = FALSE) {
@@ -199,6 +201,7 @@
                 } else {
                     ret <- ret_sc
                 }
+                beta <- .sparm(beta)
                 if (is.matrix(beta)) {
                     beta_ex <- beta[es$full_ex,,drop = FALSE]
                     beta_nex <- beta[es$full_nex,,drop = FALSE]
@@ -209,7 +212,7 @@
                 }
                 if (!is.null(es$full_ex)) {
                     scr <- .mlt_score_exact(distr, 
-                        exY, exYprime, exoffset, extrunc)(.sparm(beta_ex), Xmult)
+                        exY, exYprime, exoffset, extrunc)(beta_ex, Xmult)
                     if (EX_ONLY) {
                         ret <- scr
                     } else {
@@ -218,7 +221,7 @@
                 }
                 if (!is.null(es$full_nex)) {
                     scr <- .mlt_score_interval(distr, 
-                        iYleft, iYright, ioffset, itrunc)(.sparm(beta_nex), Xmult)
+                        iYleft, iYright, ioffset, itrunc)(beta_nex, Xmult)
                     if (IN_ONLY) {
                         ret <- scr
                     } else {
@@ -299,7 +302,7 @@
                 idx <- (!Assign[2,] %in% c("bshifting", "bscaling"))
             }
             if (!Xmult) {
-                fct <- weights * of$sc(beta, Xmult = FALSE)
+                fct <- c(weights * of$sc(beta, Xmult = FALSE))
                 return(cbind(shifting = if (model$scale_shift) sterm * fct else fct,
                              scaling = sterm * c(sc[, idx] %*% .parm(beta)[idx]) * .5))
             }
