@@ -1,0 +1,87 @@
+
+R version 4.1.2 (2021-11-01) -- "Bird Hippie"
+Copyright (C) 2021 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> 
+> set.seed(290875)
+> 
+> ret <- TRUE
+> 
+> if (require("rms") && require("tram")) {
++ 
++     x <- runif(2000)
++     y <- round(rnorm(length(x), mean = 2 * x, sd = .25), 1)
++     d <- data.frame(y = y, x = x)
++     d$Ry <- with(d, R(y, as.R.ordered = TRUE))
++ 
++     mP <- Polr(Ry ~ x, data = d)
++     mM <- Polr(Ry ~ x, data = d, sparse_nlevels = 2)
++     mO <- orm(y ~ x, data = d)
++ 
++     tol <- 1e-4
++     ret <- 
++       isTRUE(all.equal(coef(mP), coef(mM), tol = tol)) && 
++       isTRUE(all.equal(coef(mP), coef(mO)["x"], tol = tol)) && 
++       isTRUE(all.equal(coef(as.mlt(mP)), coef(as.mlt(mM)), tol = tol)) &&
++       isTRUE(all.equal(rev(coef(as.mlt(mP)))[-1L], 
++                        -rev(coef(mO))[-1L], tol = tol, 
++                        check.attributes = FALSE)) &&
++       isTRUE(all.equal(logLik(mP), logLik(mM), tol = tol)) &&
++       isTRUE(all.equal(c(logLik(mP)), c(logLik(mO)), tol = tol)) &&
++ 
++       isTRUE(all.equal(c(vcov(mP)), as.numeric(vcov(mM)), tol = tol)) &&
++       isTRUE(all.equal(c(vcov(mP)), vcov(mO)["x", "x"], tol = tol))
++ 
++ }
+Loading required package: rms
+Loading required package: Hmisc
+Loading required package: lattice
+Loading required package: survival
+Loading required package: Formula
+Loading required package: ggplot2
+
+Attaching package: 'Hmisc'
+
+The following objects are masked from 'package:base':
+
+    format.pval, units
+
+Loading required package: SparseM
+
+Attaching package: 'SparseM'
+
+The following object is masked from 'package:base':
+
+    backsolve
+
+Loading required package: tram
+Loading required package: mlt
+Loading required package: basefun
+Loading required package: variables
+
+Attaching package: 'variables'
+
+The following object is masked from 'package:ggplot2':
+
+    unit
+
+> 
+> ret
+[1] TRUE
+> 
+> proc.time()
+   user  system elapsed 
+ 13.739   0.423  14.151 
