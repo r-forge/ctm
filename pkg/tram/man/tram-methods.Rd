@@ -34,7 +34,7 @@
 \method{as.mlt}{tram}(object)
 \method{model.frame}{tram}(formula, ...)
 \method{model.matrix}{tram}(object, data = object$data, with_baseline = FALSE, ...) 
-\method{model.matrix}{tram}(object, data = object$data, with_baseline = FALSE, 
+\method{model.matrix}{stram}(object, data = object$data, with_baseline = FALSE, 
        what = c("shifting", "scaling"), ...) 
 \method{coef}{tram}(object, with_baseline = FALSE, ...) 
 \method{coef}{Lm}(object, as.lm = FALSE, ...)
