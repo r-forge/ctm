@@ -14,7 +14,7 @@ importFrom("utils",
 import("grid")
 importFrom("graphics", "plot")
 importFrom("stats", "coef", "logLik", "model.frame", "model.weights",
-           "na.pass", "predict", "update", "simulate", "variable.names")
+           "na.pass", "predict", "update", "simulate", "variable.names", "resid")
 
 
 export(trafotree, traforest)

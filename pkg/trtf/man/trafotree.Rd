@@ -8,6 +8,7 @@
 }
 \usage{
 trafotree(object, parm = 1:length(coef(object)), reparm = NULL,
+          intercept = c("none", "shift", "scale", "shift-scale"),
           min_update = length(coef(object)) * 2,
           mltargs = list(), ...)
 \method{predict}{trafotree}(object, newdata, K = 20, q = NULL,
@@ -26,6 +27,8 @@ trafotree(object, parm = 1:length(coef(object)), reparm = NULL,
                 \code{teststat = "quadratic"} is invariant to this operation
                 but \code{teststat = "max"} might be more powerful for
                 example when formulating an implicit into an explicit intercept term.}
+  \item{intercept}{add optional intercept parameters (constraint to zero) to
+                   the model.}
   \item{min_update}{number of observations necessary to refit the model in a
                     node. If less observations are available, the parameters from the parent
                     node will be reused.}
@@ -113,19 +116,14 @@ plot(part_cmod, newdata = nd,
 
 ### same model, but with explicit intercept term and max-type statistic
 ### for _variable_ selection
-K <- diag(length(coef(m)) - 1)
-K[upper.tri(K)] <- 1
-K <- cbind(rbind(K, 0), 0)
-K[nrow(K), nrow(K)] <- 1
-### horThyes is not touched, 6th parameter is intercept
-coef(cmod) %*% K 
 (part_cmod_max <- trafotree(m, formula = y ~ horTh | age + menostat + tsize + 
-    tgrade + pnodes + progrec + estrec, data = GBSG2, reparm = K,
+    tgrade + pnodes + progrec + estrec, data = GBSG2, intercept = "shift",
     control = ctree_control(teststat = "max")))
 logLik(part_cmod_max)
+coef(part_cmod_max)[, "horThyes"]
 
 ### the trees (and log-likelihoods are the same) but the
-### p-values are sometines much smaller in the latter tree
+### p-values are sometimes much smaller in the latter tree
 cbind(format.pval(info_node(node_party(part_cmod))$criterion["p.value",]),
       format.pval(info_node(node_party(part_cmod_max))$criterion["p.value",]))
 
