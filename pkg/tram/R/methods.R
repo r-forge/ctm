@@ -32,15 +32,16 @@ model.matrix.tram <- function(object, data = object$data,
     ret
 }	
 
-model.matrix.stram <- function(object, with_baseline = FALSE, 
-    what = c("shifting", "scaling"), ...) {
+model.matrix.stram <- function(object, data = object$data, 
+    with_baseline = FALSE, what = c("shifting", "scaling"), ...) {
     if (with_baseline)
         stop("no model.matrix method for class stram defined")
     what <- match.arg(what)
     switch(what, 
         "shifting" = model.matrix.tram(object, 
                                        with_baseline = with_baseline, ...),
-        "scaling" = model.matrix(object$model$model$bscaling, ...))
+        "scaling" = model.matrix(object$model$model$bscaling, data = data,
+                                       with_baseline = FALSE, ...))
 }
 
 coef.tram <- function(object, with_baseline = FALSE, ...) 
@@ -492,7 +493,12 @@ perm_test.tram <- function(object, parm = names(coef(object)),
                   optim = object$optim, theta = theta)
 
         cf <- coef(m1)
-        X <- Xf <- model.matrix(object)[, parm]
+        SCALE <- inherits(object, "stram") && parm %in% object$scalecoef
+        if (SCALE) {
+            X <- Xf <- model.matrix(object, what = "scaling")[, parm]
+        } else {
+            X <- Xf <- model.matrix(object)[, parm]
+        }
         ### this is a hack and not really necessary but
         ### distribution = "exact" needs factors @ 2 levels
         ### use baseline level 1 such that p-values are increasing
@@ -503,7 +509,12 @@ perm_test.tram <- function(object, parm = names(coef(object)),
         cf[] <- coef(m0)
         coef(m1) <- cf
         ### resid is weighted, remove weights and feed them to coin
-        r0 <- (resid(m1) / w) * sqrt(vcov.tram(m1)[parm,parm])
+        if (SCALE) {
+            rs <- resid(m1, what = "scaling")
+        } else {
+            rs <- resid(m1)
+        }
+        r0 <- (rs / w) * sqrt(vcov.tram(m1)[parm,parm])
         ###                          ^^^^^^^^^ uses Schur complement
         if (is.null(block)) {
             it0 <- coin::independence_test(r0 ~ Xf, teststat = "scalar", 
@@ -547,9 +558,10 @@ perm_test.tram <- function(object, parm = names(coef(object)),
             Sci <- NULL
             if (!Taylor) {
                 sc <- function(b) {
-                    cf[] <- coef(update(m0, offset = off + b * X, 
-                                        theta = theta))
+                    fx[] <- b
+                    cf[] <- coef(update(m1, fixed = fx)) ### since 1.4-1
                     cf[parm] <- b
+                    ### evaluate estfun/vcov for fixed parameter in m1
                     coef(m1) <- cf
                     ### see Lehmann, Elements of Large-sample Theory,
                     ### 1999, 539-540, for score tests in the presence
@@ -623,6 +635,9 @@ perm_test.tram <- function(object, parm = names(coef(object)),
         return(ret)
 
     } else {
+
+        if (inherits(object, "stram") && parm %in% object$scalecoef)
+            stop("Permutation Wald and Likelihood inference not implemented for scale parameters")
 
         if ("Wald" %in% statistic) {
             stopifnot(length(parm) == 1)
@@ -746,12 +761,6 @@ perm_test.tram <- function(object, parm = names(coef(object)),
          }
          return(list(Likelihood = retL, Wald = retW))
     }
-}
-
-perm_test.stram <- function(object, parm = object$shiftcoef, ...) {
-    if (any(parm %in% object$scalecoef))
-        stop("cannot compute permutation test for scale coefficients")
-    perm_test.tram(object = object, parm = parm, ...)
 }
 
 ### score_test and perm_test for survival::coxph
