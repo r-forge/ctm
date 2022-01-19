@@ -62,13 +62,13 @@
         fix <- rep(FALSE, ncol(Y))
     } 
 
-    .sparm <- function(beta) {
+    .sparm <- function(beta, soffset = 0) {
         if (SCALE) {
             sparm <- .parm(beta)
             if (is.matrix(sparm)) {
-                slp <- rowSums(Z * sparm[,Assign[2,] == "bscaling"])
+                slp <- rowSums(soffset + Z * sparm[,Assign[2,] == "bscaling"])
             } else {
-                slp <- c(Z %*% sparm[Assign[2,] == "bscaling"])
+                slp <- c(soffset + Z %*% sparm[Assign[2,] == "bscaling"])
             }
             sterm <- exp(.5 * slp)
             parm <- .parm(beta)
@@ -98,9 +98,19 @@
     {
         if (is.null(offset)) {
             offset <- rep(0, nrow(data))
+            soffset <- rep(0, nrow(data))
+        }
+
+        if (SCALE) {
+            if (is.matrix(offset)) {
+                stopifnot(ncol(offset) == 2 && nrow(offset) == nrow(data))
+                soffset <- offset[,2]
+                offset <- offset[1]
+            } else {
+                soffset <- rep(0, nrow(data))
+            }
         } else {
-            if (SCALE && max(abs(offset)) > .Machine$double.eps) 
-                warning("offset ignored in scaling term")
+            soffset <- rep(0, nrow(data))
         }
         es <- .exact_subset(.exact(y), subset)
         exY <- NULL
@@ -184,9 +194,11 @@
         EX_ONLY <- isTRUE(all.equal(es$full_ex, 1:nrow(data)))
         IN_ONLY <- isTRUE(all.equal(es$full_nex, 1:nrow(data)))
         return(list(
+            offset = offset,
+            soffset = soffset,
             ll = function(beta) {
                 ret <- ret_ll 
-                beta <- .sparm(beta)
+                beta <- .sparm(beta, soffset)
                 if (is.matrix(beta)) {
                     beta_ex <- beta[es$full_ex,,drop = FALSE]
                     beta_nex <- beta[es$full_nex,,drop = FALSE]
@@ -211,7 +223,7 @@
                 } else {
                     ret <- ret_sc
                 }
-                beta <- .sparm(beta)
+                beta <- .sparm(beta, soffset)
                 if (is.matrix(beta)) {
                     beta_ex <- beta[es$full_ex,,drop = FALSE]
                     beta_nex <- beta[es$full_nex,,drop = FALSE]
@@ -263,11 +275,11 @@
                 if (!is.null(es$full_ex))
                     ret <- ret + .mlt_hessian_exact(distr, 
                         exY, exYprime, exoffset, extrunc, 
-                        exweights)(.sparm(beta_ex))
+                        exweights)(.sparm(beta_ex, soffset))
                 if (!is.null(es$full_nex))
                     ret <- ret + .mlt_hessian_interval(distr, 
                         iYleft, iYright, ioffset, itrunc, 
-                        iweights)(.sparm(beta_nex))
+                        iweights)(.sparm(beta_nex, soffset))
                 colnames(ret) <- rownames(ret) <- colnames(Y)
                 ### in case beta contains fix parameters,
                 ### return all scores
@@ -304,7 +316,7 @@
                 return(weights * of$sc(beta, Xmult = Xmult))
             sc <- weights * of$sc(beta, Xmult = TRUE, ret_all = TRUE)
             sparm <- .parm(beta)
-            slp <- c(Z %*% sparm[Assign[2,] == "bscaling"])
+            slp <- c(of$soffset + Z %*% sparm[Assign[2,] == "bscaling"])
             sterm <- exp(.5 * slp)
             if (model$scale_shift) {
                 idx <- (!Assign[2,] %in% "bscaling")
