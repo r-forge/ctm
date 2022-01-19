@@ -239,7 +239,6 @@ attr(,"conf.level")
 [1] 0.95
 attr(,"achieved.conf.level")
 [1] 0.9501
-There were 25 warnings (use warnings() to see them)
 > 
 > ### check residuals
 > m0 <- Lm(y ~ 1, data = d)
@@ -271,4 +270,4 @@ There were 25 warnings (use warnings() to see them)
 > 
 > proc.time()
    user  system elapsed 
- 12.265   0.239  12.505 
+ 26.732   0.637  31.891 
