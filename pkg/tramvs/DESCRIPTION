@@ -1,0 +1,17 @@
+Package: tramvs
+Type: Package
+Title: Optimal Subset Selection for Transformation Models
+Version: 0.0-1
+Authors@R: c(person("Lucas", "Kook", email = "lucasheinrich.kook@uzh.ch", 
+    role = c("aut", "cre")),
+    person("Sandra", "Siegfried", role = "ctb"))
+Description: Optimal subset selection for transformation models based on the
+    abess algorithm.
+Depends: R (>= 4.0), tram (>= 0.6-1)
+Imports: stats, variables, methods
+Suggests: abess, tramnet, colorspace, knitr, cotram, mlt, TH.data
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.1.2
+VignetteBuilder: knitr

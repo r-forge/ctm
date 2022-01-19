@@ -1,0 +1,395 @@
+%\VignetteIndexEntry{tramvs}
+%\VignetteEngine{knitr::knitr}
+%\VignetteDepends{tramvs, abess, tramnet, colorspace, cotram, mlt, TH.data}
+
+\documentclass[a4paper,11pt]{article}
+\usepackage{natbib}
+\usepackage{hyperref}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=2cm]{geometry}
+\usepackage{amsfonts,amstext,amsmath,amssymb,amsthm}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{wrapfig}
+\usepackage{float}
+\usepackage{colortbl}
+\usepackage{pdflscape}
+\usepackage{tabu}
+\usepackage{threeparttable}
+\usepackage{threeparttablex}
+\usepackage[normalem]{ulem}
+\usepackage{makecell}
+\usepackage{xcolor}
+\usepackage{pifont}
+\setcitestyle{authoryear,open={(},close={)}}
+\newcommand*{\doi}[1]{\href{http://dx.doi.org/#1}{doi: #1}}
+\newcommand{\cmark}{\ding{51}}
+\newcommand{\xmark}{\ding{55}}
+\newcommand{\todo}[1]{\textcolor{red!80}{\textsc{todo}:~#1}}
+\newcommand{\1}{\mathds{1}}
+\DeclareMathOperator{\supp}{supp}
+\DeclareMathOperator{\SIC}{SIC}
+
+\input{defs}
+
+\title{\bf Best subset selection for transformation models}
+\author{Lucas Kook}
+
+<<setup, echo = FALSE, results = "hide", message = FALSE>>=
+set.seed(241068)
+
+knitr::opts_chunk$set(echo = TRUE, results = 'markup', error = FALSE,
+                      warning = FALSE, message = FALSE,
+                      tidy = FALSE, cache = TRUE, size = "small",
+                      fig.width = 5, fig.height = 4, fig.align = "center",
+                      out.width = NULL, ###'.6\\linewidth',
+                      out.height = NULL,
+                      fig.scap = NA)
+## R settings
+options(width = 80, digits = 3)
+
+library(tramvs)
+library(tramnet)
+library(abess)
+library(colorspace)
+
+# Colors
+
+col <- diverge_hcl(2, h = c(246, 40), c = 96, l = c(65, 90))
+fill <- diverge_hcl(2, h = c(246, 40), c = 96, l = c(65, 90), alpha = .3)
+@
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+  The \pkg{tramvs} package implements best subset selection for various kinds of
+  transformation models via the \textsf{abess} algorithm. The optimal subset is
+  elicited based on greedily updating the active set of covariates via changes
+  in log-likelihood when in- or excluding a variable. This vignette illustrates
+  the package's functionalities, \code{S3}~classes and -methods using simulated
+  and real datasets.
+\end{abstract}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Introduction} \label{sec:intro}
+%-------------------------------------------------------------------------------
+
+After introducing notation, the \textsf{abess} algorithm is described for linear
+transformation models. Extensions to more general transformation models are
+presented thereafter.
+
+%-------------------------------------------------------------------------------
+\subsection{Notation} \label{sec:notation}
+%-------------------------------------------------------------------------------
+
+Let $\rY$ denote a univariate response, $\rx \in \RR^p$ the observed covariates,
+$\pZ$ an inverse link function, and $\h$ the transformation function.
+We model the conditional distribution of $\rY \given \rX = \rx$ via
+\citep{hothorn2014conditional,hothorn2018most}
+\begin{align}
+  \pY(\ry \given \rx) = \pZ(\h(\ry) \pm \rx^\top\shiftparm).
+\end{align}
+The parameters in the baseline transformation $\h$ remain unpenalized. We then
+take a shorthand in writing $\ell(\shiftparm) := - \sum_{i=1}^n \ell_i(\parm,
+\shiftparm; \ry_i, \rx_i)$ for the negative log-likelihood of a transformation
+model. Note that the likelihood can handle any outcome with at least ordered
+sample space and any type of uninformative censoring \citep{hothorn2018most}.
+
+Because the parameters in $\h$ should remain unpenalized, we consider only
+$\shiftparm = (\eshiftparm_1, \dots, \eshiftparm_p)^\top$ for selection.
+Let $\calS = [p]$, \ie the set of all integers $1, \dots, p$. For any
+$\calA \subset \calS$, $\calA^c = \calS\backslash\calA$ denotes the complement
+of $\calA$ and $\lvert\calA\rvert$ its cardinality. The support (or active set)
+of $\shiftparm$ is denoted by $\supp\shiftparm = \{j : \eshiftparm_j \neq 0\}$.
+By $\shiftparm^\calA$ we denote the restriction of $\shiftparm$ to the support
+set $\calA$, \ie $\eshiftparm_j^\calA = 0$ if $j \not\in \calA$.
+The $\ell_0$ norm can be written as $\norm{\shiftparm}_0 = \lvert\supp\shiftparm
+\rvert$, \ie the number of non-zero entries in $\shiftparm$.
+
+%-------------------------------------------------------------------------------
+\subsection{The abess algorithm} \label{sec:abess}
+%-------------------------------------------------------------------------------
+
+The \textsf{abess} algorithm \citep{Zhu2020abess} performs best subset selection
+for a fixed support size $s \in [p]$,
+\begin{align}
+  \min_\shiftparm \ell(\shiftparm), \quad \mbox{s.t. } \norm{\shiftparm}_0 \leq s,
+\end{align}
+for a general class of models.
+It requires the computation of two ``sacrifices'', namely a backward sacrifice
+$\xi_j$ and a forward sacrifice $\zeta_j$. The backward sacrifice measures the
+drop in goodness of fit (as measured by the negative log-likelihood, \ie smaller
+is better) when discarding variable $j$ via
+\begin{align}
+  \xi_j = \ell(\hat\shiftparm^\calA) -
+    \ell(\hat\shiftparm^{\calA \backslash \{j\}}).
+\end{align}
+The forward sacrifice measures the benefit of adding variable $j$ via
+\begin{align}
+  \zeta_j = \ell(\hat\shiftparm^{\{j\}}) \big\rvert_{\hat\shiftparm^\calA} -
+    \ell(\hat\shiftparm^\calA),
+\end{align}
+where $\ell(\hat\shiftparm^{\{j\}}) \big\rvert_{\hat\shiftparm^\calA}$ denotes
+the maximum likelihood when estimating $\shiftparm^{\{j\}}$ while keeping
+$\hat\shiftparm^\calA$ fixed.
+
+Based on both sacrifices, the \textsf{abess} algorithm looks for improvements of
+the active (and inactive) set for any splicing size $k \leq s$ via
+\begin{align}
+  \calA_k = \left\{j \in \calA : \sum_{i \in \calA} \1(\xi_j \geq \xi_i) \leq k\right\},
+\end{align}
+and
+\begin{align}
+  \calI_k = \left\{j \in \calI : \sum_{i \in \calI} \1(\zeta_j \leq \zeta_i) \leq k\right\},
+\end{align}
+where $\calI = \calS \backslash \calA$ denotes the inactive set.
+Then, the active set is updated via
+\begin{align}
+  \tilde\calA = (\calA \backslash \calA_k) \cup \calI_k,
+\end{align}
+if there is an improvement in the negative log-likelihood (controlled via a
+tuning parameter $\tau_s$. We choose $\tau_s = 0.01 s \log(p) \log(\log(n)) / n$
+per default.
+Further detail can be found in \citet{Zhu2020abess}.
+
+When the support size $s$ is unknown, \citet{Zhu2020abess} recommend tuning $s$
+via a high-dimensional Bayesian information criterion (SIC), given by
+\begin{align}
+  \SIC(\calA) = \ell(\shiftparm^\calA) + \norm{\shiftparm^\calA}_0 \log(p)
+    \log\log n.
+\end{align}
+For varying support sizes $s$, the model with minimal SIC is selected. We
+illustrate this tuning in Section~\ref{sec:cotram} and plot regularization and
+tuning paths.
+
+\paragraph{Choosing the initial support.} For choosing the initial $\calA$,
+\citet{Zhu2020abess} recommend choosing those $k$ covariates most correlated with
+the response $\rY$. For transformation models this is problematic because
+empirical correlations are not well-defined for censored responses.
+Instead, the default in the \pkg{tramvs} package is to choose those $k$ covariates
+most correlated with the score residuals of an unconditional transformation
+model, \ie for a single observation $\ry$, we compute
+\begin{align}
+  s(\ry; \hat\h) = \partial_\alpha \ell(\alpha; \ry, \h) \big\rvert_{\alpha = 0,~\h = \hat\h},
+\end{align}
+where $\ell(\alpha; \ry, \h)$ is the likelihood contribution of the observation
+for the transformation model $\pY(\ry) = \pZ(\h(\ry) - \alpha)$ and $\hat\h$
+the most likely unconditional transformation \citep[see, \eg ][]{kook2021danchor}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Illustrations} \label{sec:illustrations}
+%-------------------------------------------------------------------------------
+
+First, the basic usage of \pkg{tramvs} is explained. Then, we illustrate the
+package using various simulated and real datasets.
+
+%-------------------------------------------------------------------------------
+\subsection{Basic usage} \label{sec:usage}
+%-------------------------------------------------------------------------------
+
+The function \cmd{abess\_tram} implements the core algorithm for best subset
+selection for a fixed support size $s$.
+<<>>=
+args(abess_tram)
+@
+
+\cmd{abess\_tram} is called by the main function \cmd{tramvs}, which loops over
+the possible range of supports supplied to the function. It computes a
+high-dimensional information criterion (SIC) for model selection.
+<<>>=
+args(tramvs)
+@
+
+However, instead of supplying \code{modFUN} (a transformation model function),
+one can call the respective aliases, \cmd{<tram>VS}, \eg \cmd{CoxphVS}, to skip
+this step. Further arguments to \code{modFUN} can be supplied via the \code{...}
+argument.
+
+%-------------------------------------------------------------------------------
+\subsection{Interfacing \pkg{tram}} \label{sec:tram}
+%-------------------------------------------------------------------------------
+
+We generate a toy example with three out of ten non-zero coefficients in a
+normal linear regression model. We benchmark directly against the OLS alternative
+in the \pkg{abess} package \citep{Zhu2020abess}.
+
+<<results='hide'>>=
+N <- 1e2; P <- 10; nz <- 3
+beta <- rep(c(3, 0), c(nz, P - nz))
+X <- matrix(rnorm(N * P), nrow = N, ncol = P)
+Y <- 1 + X %*% beta + rnorm(N)
+
+dat <- data.frame(y = Y, x = X)
+cont_res <- tramvs(y ~ ., data = dat, modFUN = Lm)
+res_abess <- abess(y ~ ., data = dat, family = "gaussian")
+@
+
+The two methods agree on the optimal subset, which can be easily extracted using
+\cmd{support}.
+
+<<>>=
+support(cont_res)
+extract(res_abess, support.size = res_abess$best.size)$support.vars
+@
+
+However, one can leave the Gaussian world behind by using a more flexible
+transformation function and a simple alias, like \cmd{BoxCoxVS}.
+
+<<eval=FALSE>>=
+BoxCoxVS(y ~ ., data = dat)
+@
+
+More low-level arguments to \cmd{BoxCox} such as \code{order} or \code{extrapolate}
+can be supplied via the \code{...} argument, as shown below.
+
+<<eval=FALSE>>=
+BoxCoxVS(y ~ ., data = dat, order = 3, extrapolate = TRUE)
+@
+
+%-------------------------------------------------------------------------------
+\subsection{Interfacing \pkg{cotram}} \label{sec:cotram}
+%-------------------------------------------------------------------------------
+
+Other transformation model add-on packages can be easily included in \pkg{tramvs}.
+The only requirements are a \code{logLik} method with arguments \code{newdata}
+and \code{parm}, and a \code{fixed} argument in \cmd{modFUN}. For instance, best
+subset selection for models in the \pkg{cotram} add-on package \citep{siegfried2020count}
+can be done as shown below.
+
+<<results="hide">>=
+library(cotram)
+
+data("birds", package = "TH.data")
+birds$noise <- rnorm(nrow(birds), sd = 10)
+
+# Fixed support size
+abess_tram(SG5 ~ AOT + AFS + GST + DBH + DWC + LOG + noise, data = birds,
+           modFUN = cotram, supp = 4)
+
+# Estimate support sice via HBIC
+count_res <- tramvs(SG5 ~ AOT + AFS + GST + DBH + DWC + LOG + noise, data = birds,
+                       modFUN = cotram)
+@
+
+%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---
+\begin{figure}
+<<out.width="49%", echo=FALSE, fig.show='hold'>>=
+plot(count_res, type = "b")
+plot(count_res, which = "path")
+@
+\caption{Demonstrating the plotting methods in a \pkg{cotram} example.}
+\label{fig:plot}
+\end{figure}
+%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---
+
+%-------------------------------------------------------------------------------
+\subsection{Interfacing \pkg{sstram}} \label{sec:sstram}
+%-------------------------------------------------------------------------------
+
+\todo{Example.}
+
+%-------------------------------------------------------------------------------
+\subsection{Comparison with \pkg{tramnet}} \label{sec:tramnet}
+%-------------------------------------------------------------------------------
+
+Transformation models with $\ell_1$- and $\ell_2$-penalties have been described
+previously and implemented in the \pkg{tramnet} package
+\citep{kook2020regularized}. The LASSO and elastic net penalties can be used for
+variable selection, but also shrink the regression coefficients. Especially the
+LASSO has trouble dealing with highly correlated covariates and tends to select
+a single random covariate from a group of highly correlated ones
+\citep{zou2005regularization}. Figure~\ref{fig:tramnet} juxtaposes $\ell_0$- and
+$\ell_1$-regularization paths in the example with continuous response from
+Section~\ref{sec:tram}.
+
+<<profile>>=
+m0 <- Lm(y ~ 1, data = dat)
+X <- model.matrix(y ~ 0 + ., data = dat)
+mt <- tramnet(m0, X, lambda = 0, alpha = 1)
+pfl <- prof_lambda(mt, nprof = 10)
+@
+
+%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---
+\begin{figure}
+<<out.width="49%", fig.show='hold', echo=FALSE>>=
+plot(cont_res, which = "path")
+opar <- par(no.readonly = TRUE)
+par(mar = c(5.1, 5.1, 4.1, 2.1), las = 1)
+matplot(pfl$lambdas, pfl$cfx, type = "l", xlab = expression(lambda),
+        ylab = expression(hat(beta)[j]), xlim = rev(range(pfl$lambdas)))
+text(min(pfl$lambdas) - 0.25, pfl$cfx[1, ], colnames(pfl$cfx),
+     cex = 0.8)
+par(opar)
+@
+\caption{Comparing $\ell_0$- and $\ell_1$-regularized transformation models from
+\pkg{tramvs} and \pkg{tramnet}, respectively.}
+\label{fig:tramnet}
+\end{figure}
+%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---
+
+%-------------------------------------------------------------------------------
+\subsection{\code{S3} methods} \label{sec:s3}
+%-------------------------------------------------------------------------------
+
+Below, all \code{S3} methods for \cls{tramvs} are showcased. Further arguments
+to the \code{tram}-specific methods can again be supplied via the ellipses.
+The plotting methods are illustrated in Fig.~\ref{fig:plot}.
+
+The \code{summary} method prints the full regularization path alongside a standard
+\code{summary.tram} of the best model.
+<<>>=
+# More elaborate summary
+summary(cont_res)
+@
+
+The log-likelihood can be computed in and out-of-sample for the best model
+(\code{best\_only=TRUE}) or all models. Additional arguments to \code{modFUN}
+can be supplied, \eg \code{with\_baseline=TRUE}.
+<<>>=
+# logLik of best model
+logLik(cont_res)
+nparm <- coef(cont_res, with_baseline = TRUE, best_only = TRUE)
+logLik(cont_res, newdata = dat[1:5, ], parm = nparm)
+@
+
+The SIC that is printed in the summary can be obtained via \cmd{SIC}.
+<<>>=
+# High-dimensional information criterion
+SIC(cont_res)
+SIC(cont_res, best_only = TRUE)
+@
+
+Coefficients are returned as a sparse matrix for all model. In case of
+\code{best\_only=TRUE}, a numeric vector is returned. Additional arguments
+to \code{coef.tram} can be supplied, as shown below.
+<<>>=
+coef(cont_res)
+coef(cont_res, best_only = TRUE)
+coef(cont_res, as.lm = TRUE)
+@
+
+Several \code{tram} methods are applicable for the best model in an object
+of class \cls{tramvs}, such as \code{predict}, \code{simulate}, and
+\code{residuals}.
+<<>>=
+head(predict(cont_res, which = "distribution", type = "trafo"))
+mlt:::print.response(simulate(cont_res)[1:5])
+head(residuals(cont_res))
+@
+
+\bibliographystyle{plainnat}
+\bibliography{bibliography}
+
+% \clearpage
+\section{Session info}
+<<sesinf, echo=FALSE>>=
+sessionInfo()
+@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\end{document}
