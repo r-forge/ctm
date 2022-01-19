@@ -56,8 +56,8 @@ Gradient(object, ...)
   \item{w}{model weights}
   \item{what}{type of residual: \code{shifting} means score with respect to
       a constant intercept for the shift term and \code{scaling} means 
-      score with respect to a constant intercept in the scaling term if such
-      a term is present.}
+      score with respect to a constant intercept in the scaling term. 
+      This works whether or not such terms are actually present in the model}
   \item{weights}{model weights}
   \item{newdata}{an optional data frame of new observations. Allows
                  evaluation of the log-likelihood for a given
