@@ -8,6 +8,7 @@
 }
 \usage{
 traforest(object, parm = 1:length(coef(object)), reparm = NULL,
+          intercept = c("none", "shift", "scale", "shift-scale"),
           update = TRUE, min_update = length(coef(object)) * 2,
           mltargs = list(),  ...)
 \method{predict}{traforest}(object,  newdata, mnewdata = data.frame(1), K = 20, q = NULL,
@@ -26,6 +27,8 @@ traforest(object, parm = 1:length(coef(object)), reparm = NULL,
                 \code{teststat = "quadratic"} is invariant to this operation
                 but \code{teststat = "max"} might be more powerful for
                 example when formulating an implicit into an explicit intercept term.}
+  \item{intercept}{add optional intercept parameters (constraint to zero) to
+                   the model.}
   \item{mltargs}{arguments to \code{\link[mlt]{mlt}} for fitting the
                  transformation models.}
   \item{update}{logical, if \code{TRUE}, models and thus scores are updated in
