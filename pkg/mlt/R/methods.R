@@ -126,17 +126,31 @@ residuals.mlt <- function(object, parm = coef(object, fixed = FALSE),
     if (!missing(newdata)) {
         tmpmod <- mlt(object$model, data = newdata, dofit = FALSE)
         coef(tmpmod) <- coef(object)
-        return(resid(tmpmod, parm = parm, w = w))
+        return(resid(tmpmod, parm = parm, w = w, what = what, ...))
     }
-        if (is.null(w))
+    if (is.null(w))
         w <- weights(object)
+    what <- match.arg(what)
+    if (what == "scaling") {
+        if (!is.null(object$model$model$bscaling)) {
+            sc <- -object$score(parm, weights = w, Xmult = FALSE)
+            if (!is.null(object$subset))
+                sc <- sc[object$subset,,drop = FALSE]
+            return(sc[, "scaling"])
+        } else {
+            sc <- estfun(object, parm = parm, w = w, newdata = newdata, ...)
+            br <- grep(object$model$response, names(parm))
+            if (object$model$scale_shift && (length(br) < length(parm)))
+                ### <FIXME>: better evaluate Assign
+                parm[-br] <- 0
+                ### </FIXME>
+            return(c(sc %*% parm * .5))
+        }
+    }
+
     sc <- -object$score(parm, weights = w, Xmult = FALSE)
     if (!is.null(object$subset))
         sc <- sc[object$subset,,drop = FALSE]
-    if (!is.null(object$model$model$bscaling)) {
-        what <- match.arg(what)
-        return(sc[, what])
-    }
     if (inherits(sc, "matrix"))
         return(sc[, 1L, drop = TRUE])
     return(sc)

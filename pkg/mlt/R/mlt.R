@@ -65,11 +65,21 @@
     .sparm <- function(beta) {
         if (SCALE) {
             sparm <- .parm(beta)
-            slp <- c(Z %*% sparm[Assign[2,] == "bscaling"])
+            if (is.matrix(sparm)) {
+                slp <- rowSums(Z * sparm[,Assign[2,] == "bscaling"])
+            } else {
+                slp <- c(Z %*% sparm[Assign[2,] == "bscaling"])
+            }
             sterm <- exp(.5 * slp)
             parm <- .parm(beta)
-            parm[Assign[2,] == "bscaling"] <- 0L
-            Parm <- matrix(parm, nrow = nrow(Z), ncol = length(parm), byrow = TRUE)
+            if (is.matrix(parm)) {
+                parm[,Assign[2,] == "bscaling"] <- 0L
+                Parm <- parm
+            } else {
+                parm[Assign[2,] == "bscaling"] <- 0L
+                Parm <- matrix(parm, nrow = nrow(Z), ncol = length(parm), 
+                               byrow = TRUE)
+            }
             if (model$scale_shift) {
                 idx <- !Assign[2,] %in% "bscaling"
             } else {
