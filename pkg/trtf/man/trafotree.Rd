@@ -84,21 +84,19 @@ library("trtf")
 library("survival")
 ### German Breast Cancer Study Group 2 data set
 data("GBSG2", package = "TH.data")
-
-### set-up Cox model with overall treatment effect in hormonal therapy
-yvar <- numeric_var("y", support = c(100, 2000), bounds = c(0, Inf))
-By <- Bernstein_basis(yvar, order = 5, ui = "incre")
-m <- ctm(response = By, shifting = ~ horTh, todistr = "MinExt", data = GBSG2)
 GBSG2$y <- with(GBSG2, Surv(time, cens))
 
+### set-up Cox model with overall treatment effect in hormonal therapy
+cmod <- Coxph(y ~ horTh, data = GBSG2, support = c(100, 2000), order = 5)
+
 ### overall log-hazard ratio
-coef(cmod <- mlt(m, data = GBSG2))["horThyes"]
+coef(cmod)
 ### roughly the same as 
 coef(coxph(y ~ horTh, data = GBSG2))
 
 ### partition the model, ie both the baseline hazard function AND the
 ### treatment effect
-(part_cmod <- trafotree(m, formula = y ~ horTh | age + menostat + tsize + 
+(part_cmod <- trafotree(cmod, formula = y ~ horTh | age + menostat + tsize + 
     tgrade + pnodes + progrec + estrec, data = GBSG2))
 
 ### compare the log-likelihoods
@@ -116,7 +114,7 @@ plot(part_cmod, newdata = nd,
 
 ### same model, but with explicit intercept term and max-type statistic
 ### for _variable_ selection
-(part_cmod_max <- trafotree(m, formula = y ~ horTh | age + menostat + tsize + 
+(part_cmod_max <- trafotree(cmod, formula = y ~ horTh | age + menostat + tsize + 
     tgrade + pnodes + progrec + estrec, data = GBSG2, intercept = "shift",
     control = ctree_control(teststat = "max")))
 logLik(part_cmod_max)
