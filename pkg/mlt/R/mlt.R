@@ -236,7 +236,7 @@
                     scr <- .mlt_score_exact(distr, 
                         exY, exYprime, exoffset, extrunc)(beta_ex, Xmult)
                     if (EX_ONLY) {
-                        ret <- scr
+                        ret <- matrix(scr, nrow = NROW(scr))
                     } else {
                         ret[es$full_ex,] <- scr
                     }
@@ -245,7 +245,7 @@
                     scr <- .mlt_score_interval(distr, 
                         iYleft, iYright, ioffset, itrunc)(beta_nex, Xmult)
                     if (IN_ONLY) {
-                        ret <- scr
+                        ret <- matrix(scr, nrow = NROW(scr))
                     } else {
                         ret[es$full_nex,] <- scr
                     }
