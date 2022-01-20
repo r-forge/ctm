@@ -65,7 +65,7 @@ X <- matrix(rnorm(N * P), nrow = N, ncol = P)
 Y <- 1 + X \%*\% beta + rnorm(N)
 
 dat <- data.frame(y = Y, x = X)
-res <- tramvs(y ~ ., data = dat, modFUN = Lm, as.lm = TRUE)
+res <- tramvs(y ~ ., data = dat, modFUN = Lm)
 plot(res, type = "s")
 plot(res, which = "path")
 
