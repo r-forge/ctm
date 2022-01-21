@@ -1402,10 +1402,11 @@ PI <- function(object, ...)
     UseMethod("PI")
 
 PI.tram <- function(object, newdata = model.frame(object), 
-                    reference = 0, ...) {
+                    reference = 0, one2one = FALSE, ...) {
 
     .lp2x(object = object, newdata = newdata, reference = reference, 
-          FUN = .lp2PI(link = object$model$todistr$name), ...)
+          FUN = .lp2PI(link = object$model$todistr$name), 
+          one2one = one2one, ...)
 }
 
 PI.stram <- function(object, ...)
@@ -1435,12 +1436,13 @@ OVL <- function(object, ...)
     UseMethod("OVL")
 
 OVL.tram <- function(object, newdata = model.frame(object), 
-                     reference = 0, ...) {
+                     reference = 0, one2one = FALSE, ...) {
 
      ### <FIXME> handle confidence intervals including 1;
      ### make sure lwr < upr </FIXME>
     .lp2x(object = object, newdata = newdata, reference = reference, 
-          FUN = .lp2OVL(link = object$model$todistr$name), ...)
+          FUN = .lp2OVL(link = object$model$todistr$name), 
+          one2one = one2one, ...)
 }
 
 OVL.stram <- function(object, ...)
@@ -1450,9 +1452,10 @@ TV <- function(object, ...)
     UseMethod("TV")
 
 TV.tram <- function(object, newdata = model.frame(object), 
-                    reference = 0, ...) {
+                    reference = 0, one2one = FALSE, ...) {
 
-    ret <- OVL(object = object, newdata = newdata, reference = reference, ...)
+    ret <- OVL(object = object, newdata = newdata, reference = reference, 
+               one2one = one2one, ...)
     ### <FIXME> make sure lwr < upr </FIXME>
     1 - ret    
 }
@@ -1464,9 +1467,10 @@ L1 <- function(object, ...)
     UseMethod("L1")
 
 L1.tram <- function(object, newdata = model.frame(object), 
-                    reference = 0, ...) {
+                    reference = 0, one2one = FALSE, ...) {
 
-    ret <- OVL(object = object, newdata = newdata, reference = reference, ...)
+    ret <- OVL(object = object, newdata = newdata, reference = reference, 
+               one2one = one2one, ...)
     ### <FIXME> make sure lwr < upr </FIXME>
     2 * (1 - ret)
 }
@@ -1478,10 +1482,10 @@ ROC <- function(object, ...)
     UseMethod("ROC")
 
 ROC.tram <- function(object, newdata = model.frame(object), reference = 0,
-                     prob = 1:99 / 100, ...) {
+                     prob = 1:99 / 100, one2one = FALSE, ...) {
 
     beta <- .lp2x(object = object, newdata = newdata, reference = reference, 
-                  FUN = function(x) x, ...)
+                  FUN = function(x) x, one2one = one2one, ...)
     roc <- function(prob, beta) 
         1 - object$model$todistr$p(object$model$todistr$q(1 - prob) - beta)
 
@@ -1510,7 +1514,7 @@ ROC.stram <- function(object, ...)
     stop("no ROC method defined for objects of class stram")
 
 .lp2x <- function(object, newdata = model.frame(object), reference = 0, FUN, 
-                  conf.level = 0, ...) {
+                  conf.level = 0, one2one = FALSE, ...) {
 
     ### <FIXME>: applies within strata, but response-varying coefficients
     ### are not allowed -> add check </FIXME>
@@ -1530,12 +1534,16 @@ ROC.stram <- function(object, ...)
             }
         }
 
-        i1 <- matrix(1:nrow(X), nrow = nrow(X), ncol = nrow(Xr))
-        i2 <- matrix(rep(1:nrow(Xr), each = nrow(X)), nrow = nrow(X))
-
-        if (isTRUE(all.equal(X, Xr))) {
-            i1 <- i1[upper.tri(i1)]
-            i2 <- i2[upper.tri(i2)]
+        if (one2one) {
+            stopifnot(nrow(X) == nrow(Xr))
+            i1 <- i2 <- 1:nrow(X)
+        } else {
+            i1 <- matrix(1:nrow(X), nrow = nrow(X), ncol = nrow(Xr))
+            i2 <- matrix(rep(1:nrow(Xr), each = nrow(X)), nrow = nrow(X))
+            if (isTRUE(all.equal(X, Xr))) {
+                i1 <- i1[upper.tri(i1)]
+                i2 <- i2[upper.tri(i2)]
+            }
         }
         K <- Xr[c(i2),, drop = FALSE] - X[c(i1),, drop = FALSE]
         rownames(K) <- paste0(rownames(Xr)[i2], "-", rownames(X)[i1])
@@ -1554,10 +1562,14 @@ ROC.stram <- function(object, ...)
         }
     }
 
-    if (isTRUE(all.equal(lp, rf))) {
-        ret <- c(1, -1)[object$negative + 1L] * dist(lp, diag = FALSE)
+    if (one2one) {
+        ret <- c(rf - lp)
     } else {
-        ret <- outer(c(rf), c(lp), "-")
+        if (isTRUE(all.equal(lp, rf))) {
+            ret <- c(1, -1)[object$negative + 1L] * dist(lp, diag = FALSE)
+        } else {
+            ret <- outer(c(rf), c(lp), "-")
+        }
     }
     FUN(c(-1, 1)[object$negative + 1L] * ret)
 }

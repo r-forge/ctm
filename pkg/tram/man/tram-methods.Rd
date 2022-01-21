@@ -53,16 +53,16 @@
      K = 50, cheat = K, col = "black", fill = "lightgrey", lwd = 1, ...)
 \method{residuals}{tram}(object, ...)
 \method{PI}{tram}(object, newdata = model.frame(object), reference = 0,
-                  \dots)
+                  one2one = FALSE, \dots)
 \method{PI}{default}(object, prob, link = "logistic", ...)
 \method{OVL}{tram}(object, newdata = model.frame(object), reference = 0,
-                  \dots)
+                  one2one = FALSE, \dots)
 \method{TV}{tram}(object, newdata = model.frame(object), reference = 0,
-                  \dots)
+                  one2one = FALSE, \dots)
 \method{L1}{tram}(object, newdata = model.frame(object), reference = 0,
-                  \dots)
+                  one2one = FALSE, \dots)
 \method{ROC}{tram}(object, newdata = model.frame(object), reference = 0,
-                   prob = 1:99 / 100, \dots)
+                   prob = 1:99 / 100, one2one = FALSE, \dots)
 \method{plot}{ROCtram}(x, lty = 1:ncol(x), col = "black", 
      fill = "lightgrey", lwd = 1, ...) 
 }
@@ -108,6 +108,10 @@
   \item{lty}{line type.}
   \item{prob}{a numeric vector of probabilities..}
   \item{link}{a character identifying a link function.}
+  \item{one2one}{logical, compute the ROC curve (and derived measures) 
+                 comparing each row in \code{newdata} with each row in
+                 \code{reference} (\code{FALSE}, the default),
+                 or compare observations rowwise (\code{TRUE}).}
   \item{\dots}{additional arguments to the underlying methods for class
                \code{mlt}, see \code{\link[mlt]{mlt-methods}}.}
 }
@@ -139,8 +143,6 @@
   triggers computation of simultaneous 
   Wald confidence intervals for these measures.
   Arguments in \dots are forwarded to \code{\link[multcomp]{glht}}.
-
-  
 
 }
 \seealso{
@@ -233,4 +235,51 @@
     # Overlap of conditional densities at speed s and s' 
     OVL(m, newdata = nd, reference = nd)
 
+    ### ROC analysis
+    if (require("mlbench")) {
+
+        layout(matrix(1:4, nrow = 2))
+        data("PimaIndiansDiabetes2", package = "mlbench")
+        dia <- sort(unique(PimaIndiansDiabetes2$diabetes))
+        nd <- data.frame(diabetes = dia, 
+                         age = 29, mass = 32) ### median values
+
+        ### unconditional ROC analysis: glucose tolerance test
+        m0 <- Colr(glucose ~ diabetes, data = PimaIndiansDiabetes2)
+        # ROC curve + confidence band
+        plot(ROC(m0, newdata = nd[2,,drop = FALSE], conf.level = .95)) 
+        # Wald interval for AUC
+        PI(m0, newdata = nd[2,,drop = FALSE], conf.level = .95)
+        # score interval for AUC
+        PI(-c(coef(m0), score_test(m0)$conf.int[2:1]))
+
+        ### adjusted ROC analysis for age and mass
+        m1 <- Colr(glucose ~ diabetes + age + mass, data = PimaIndiansDiabetes2)
+        # ROC curve + confidence band (this is the same for all ages /
+        # masses)
+        plot(ROC(m1, newdata = nd[2,,drop = FALSE], 
+                     reference = nd[1,,drop = FALSE], 
+                 conf.level = .95))
+        # Wald interval for adjusted AUC
+        PI(m1, newdata = nd[2,,drop = FALSE], reference = nd[1,,drop = FALSE], 
+           conf.level = .95)
+        # Score interval for adjusted AUC
+        PI(-c(coef(m1)[1], score_test(m1, names(coef(m1))[1])$conf.int[2:1]))
+
+        ### conditional ROC analysis: AUC regression ~ age + mass
+        m2 <- Colr(glucose ~ diabetes * (age + mass), data = PimaIndiansDiabetes2)
+        # ROC curve for a person with age = 29 and mass = 32
+        plot(ROC(m2, newdata = nd[2,,drop = FALSE], 
+                     reference = nd[1,,drop = FALSE], 
+                 conf.level = .95))
+        # AUC for persons ages 21:81, all with mass = 32
+        nd1 <- data.frame(diabetes = nd[1,"diabetes"], age = 21:81, mass = 32)
+        nd2 <- data.frame(diabetes = nd[2,"diabetes"], age = 21:81, mass = 32)
+        auc <- PI(m2, newdata = nd2, reference = nd1, one2one = TRUE,
+                  conf.level = 0.95)
+        plot(nd1$age, auc[, "Estimate"], xlab = "Age (in years)", ylab =
+             "AUC", ylim = c(0, 1), type = "l")
+        lines(nd1$age, auc[, "lwr"], lty = 3)
+        lines(nd1$age, auc[, "upr"], lty = 3)
+    }
 }
