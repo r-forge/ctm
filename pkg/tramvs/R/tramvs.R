@@ -92,7 +92,9 @@ abess_tram <- function(formula, data, modFUN, supp, mandatory = NULL, k_max = su
   I0 <- setdiff(ncfs, A0)
   fix0 <- numeric(length(I0))
   names(fix0) <- I0
-  m0 <- modFUN(formula, data, fixed = fix0, ... = ...)
+  m0 <- modFUN(formula, data, fixed = fix0,
+               # theta = m0$theta[!names(m0$theta) %in% I0],
+               ... = ...)
 
   sm <- s0 <- .splicing(m0, A0, I0, k_max, thresh, modFUN, formula, data,
                         mcfs = mcfs, ... = ...)
@@ -198,7 +200,9 @@ tramvs <- function(formula, data, modFUN, mandatory = NULL, supp_max = NULL,
 
   fwd_sacrifice <- sapply(seq_along(cfs), \(parm) {
     ncfs <- cfs[-parm]
-    m_retrained <- modFUN(formula, data, fixed = ncfs, ... = ...)
+    m_retrained <- modFUN(formula, data, fixed = ncfs,
+                          # theta = m0$theta[!names(m0$theta) %in% names(ncfs)],
+                          ... = ...)
     nll_wo <- - logLik(m_retrained) / nrow(m$data)
     L - nll_wo
   })
