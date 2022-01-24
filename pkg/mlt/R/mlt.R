@@ -66,7 +66,8 @@
         if (SCALE) {
             sparm <- .parm(beta)
             if (is.matrix(sparm)) {
-                slp <- rowSums(soffset + Z * sparm[,Assign[2,] == "bscaling"])
+#                slp <- base::rowSums(soffset + Z * sparm[,Assign[2,] == "bscaling"])
+                slp <- .Call("R_offrowSums", soffset, Z, sparm[,Assign[2,] == "bscaling"])
             } else {
                 slp <- c(soffset + Z %*% sparm[Assign[2,] == "bscaling"])
             }
@@ -236,7 +237,8 @@
                     scr <- .mlt_score_exact(distr, 
                         exY, exYprime, exoffset, extrunc)(beta_ex, Xmult)
                     if (EX_ONLY) {
-                        ret <- matrix(scr, nrow = NROW(scr))
+                        ret <- matrix(scr, nrow = NROW(scr), 
+                                      dimnames = dimnames(scr))
                     } else {
                         ret[es$full_ex,] <- scr
                     }
@@ -245,7 +247,8 @@
                     scr <- .mlt_score_interval(distr, 
                         iYleft, iYright, ioffset, itrunc)(beta_nex, Xmult)
                     if (IN_ONLY) {
-                        ret <- matrix(scr, nrow = NROW(scr))
+                        ret <- matrix(scr, nrow = NROW(scr), 
+                                      dimnames = dimnames(scr))
                     } else {
                         ret[es$full_nex,] <- scr
                     }

@@ -12,7 +12,8 @@
 .xmb <- function(X, beta) {
     if (is.matrix(beta)) {
         stopifnot(NROW(beta) == NROW(X))
-        return(rowSums(X * beta))
+        return(.Call("R_rowSums", X, beta))
+#        return(base::rowSums(X * beta))
     }
     return(X %*% beta)
 }
@@ -38,18 +39,8 @@
     return(ret)
 }
 
-.log <- function(x) {
+.log <- function(x)
     return(log(.pmax(.Machine$double.eps, x)))
-    pos <- (x > .Machine$double.eps)
-    if (all(pos)) return(log(x))
-#    mx <- min(x)
-#    if (mx < -.Machine$double.eps)
-#        warning(paste("negative contribution to likelihood (", mx, "); 
-#                      constraints violated!"))
-    ret <- rep(log(.Machine$double.eps), length(x))
-    ret[pos] <- log(x[pos])
-    return(ret)
-}
 
 ..mlt_loglik_interval <- function(d, mml, mmr, offset = 0, beta) {
     RC <- !is.finite(mmr[,1])
