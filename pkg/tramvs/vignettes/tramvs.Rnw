@@ -194,14 +194,14 @@ package using various simulated and real datasets.
 
 The function \cmd{abess\_tram} implements the core algorithm for best subset
 selection for a fixed support size $s$.
-<<>>=
+<<args>>=
 args(abess_tram)
 @
 
 \cmd{abess\_tram} is called by the main function \cmd{tramvs}, which loops over
 the possible range of supports supplied to the function. It computes a
 high-dimensional information criterion (SIC) for model selection.
-<<>>=
+<<args2>>=
 args(tramvs)
 @
 
@@ -218,7 +218,7 @@ We generate a toy example with three out of ten non-zero coefficients in a
 normal linear regression model. We benchmark directly against the OLS alternative
 in the \pkg{abess} package \citep{Zhu2020abess}.
 
-<<results='hide'>>=
+<<tram1, results='hide'>>=
 N <- 1e2; P <- 10; nz <- 3
 beta <- rep(c(3, 0), c(nz, P - nz))
 X <- matrix(rnorm(N * P), nrow = N, ncol = P)
@@ -232,7 +232,7 @@ res_abess <- abess(y ~ ., data = dat, family = "gaussian")
 The two methods agree on the optimal subset, which can be easily extracted using
 \cmd{support}.
 
-<<>>=
+<<tram2>>=
 support(cont_res)
 extract(res_abess, support.size = res_abess$best.size)$support.vars
 @
@@ -240,16 +240,34 @@ extract(res_abess, support.size = res_abess$best.size)$support.vars
 However, one can leave the Gaussian world behind by using a more flexible
 transformation function and a simple alias, like \cmd{BoxCoxVS}.
 
-<<eval=FALSE>>=
+<<tram3, eval=FALSE>>=
 BoxCoxVS(y ~ ., data = dat)
 @
 
 More low-level arguments to \cmd{BoxCox} such as \code{order} or \code{extrapolate}
 can be supplied via the \code{...} argument, as shown below.
 
-<<eval=FALSE>>=
+<<tram4, eval=FALSE>>=
 BoxCoxVS(y ~ ., data = dat, order = 3, extrapolate = TRUE)
 @
+
+%-------------------------------------------------------------------------------
+\subsection{Handling mandatory covariates} \label{sec:mandatory}
+%-------------------------------------------------------------------------------
+
+Mandatory covariates are covariates which should remain in the active set at
+all times. However, their coefficient estimates do not stay constant when other
+covariates are in- or excluded. In \pkg{tramvs}, mandatory covariates can be
+specified via a formula supplied to the \texttt{mandatory} argument.
+
+<<mandatory, eval=FALSE>>=
+BoxCoxVS(y ~ ., data = dat, mandatory = y ~ x.1)
+@
+
+Note that supplying mandatory covariates also alters the initialization of the
+active set for the \textsf{abess} algorithm. Now, instead of the residuals of
+the unconditional model, the residuals of \code{modFUN(mandatory, ...)} will
+be used.
 
 %-------------------------------------------------------------------------------
 \subsection{Interfacing \pkg{cotram}} \label{sec:cotram}
@@ -261,7 +279,7 @@ and \code{parm}, and a \code{fixed} argument in \cmd{modFUN}. For instance, best
 subset selection for models in the \pkg{cotram} add-on package \citep{siegfried2020count}
 can be done as shown below.
 
-<<results="hide">>=
+<<cotram, results="hide">>=
 library(cotram)
 
 data("birds", package = "TH.data")
@@ -278,7 +296,7 @@ count_res <- tramvs(SG5 ~ AOT + AFS + GST + DBH + DWC + LOG + noise, data = bird
 
 %---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---
 \begin{figure}
-<<out.width="49%", echo=FALSE, fig.show='hold'>>=
+<<pcotram, out.width="49%", echo=FALSE, fig.show='hold'>>=
 plot(count_res, type = "b")
 plot(count_res, which = "path")
 @
@@ -334,7 +352,7 @@ pfl <- prof_lambda(mt, nprof = 10)
 
 %---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---
 \begin{figure}
-<<out.width="49%", fig.show='hold', echo=FALSE>>=
+<<pprofile, out.width="49%", fig.show='hold', echo=FALSE>>=
 plot(cont_res, which = "path")
 opar <- par(no.readonly = TRUE)
 par(mar = c(5.1, 5.1, 4.1, 2.1), las = 1)
@@ -360,7 +378,7 @@ The plotting methods are illustrated in Fig.~\ref{fig:plot}.
 
 The \code{summary} method prints the full regularization path alongside a standard
 \code{summary.tram} of the best model.
-<<>>=
+<<methods1>>=
 # More elaborate summary
 summary(cont_res)
 @
@@ -368,7 +386,7 @@ summary(cont_res)
 The log-likelihood can be computed in and out-of-sample for the best model
 (\code{best\_only=TRUE}) or all models. Additional arguments to \code{modFUN}
 can be supplied, \eg \code{with\_baseline=TRUE}.
-<<>>=
+<<methods2>>=
 # logLik of best model
 logLik(cont_res)
 nparm <- coef(cont_res, with_baseline = TRUE, best_only = TRUE)
@@ -376,7 +394,7 @@ logLik(cont_res, newdata = dat[1:5, ], parm = nparm)
 @
 
 The SIC that is printed in the summary can be obtained via \cmd{SIC}.
-<<>>=
+<<methods3>>=
 # High-dimensional information criterion
 SIC(cont_res)
 SIC(cont_res, best_only = TRUE)
@@ -385,7 +403,7 @@ SIC(cont_res, best_only = TRUE)
 Coefficients are returned as a sparse matrix for all model. In case of
 \code{best\_only=TRUE}, a numeric vector is returned. Additional arguments
 to \code{coef.tram} can be supplied, as shown below.
-<<>>=
+<<methods4>>=
 coef(cont_res)
 coef(cont_res, best_only = TRUE)
 coef(cont_res, as.lm = TRUE)
@@ -394,7 +412,7 @@ coef(cont_res, as.lm = TRUE)
 Several \code{tram} methods are applicable for the best model in an object
 of class \cls{tramvs}, such as \code{predict}, \code{simulate}, and
 \code{residuals}.
-<<>>=
+<<methods5>>=
 head(predict(cont_res, which = "distribution", type = "trafo"))
 mlt:::print.response(simulate(cont_res)[1:5])
 head(residuals(cont_res))
