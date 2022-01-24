@@ -288,10 +288,28 @@ plot(count_res, which = "path")
 %---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---
 
 %-------------------------------------------------------------------------------
-\subsection{Interfacing \pkg{sstram}} \label{sec:sstram}
+\subsection{Shift-scale transformation models} \label{sec:sstram}
 %-------------------------------------------------------------------------------
 
-\todo{Example.}
+For shift-scale transformation models,
+\begin{align}
+  \pY(\ry \given \rx) = \pZ\left(\sqrt{\exp(x^\top\gammavec)}h(\ry) \pm
+  \rx^\top\shiftparm\right),
+\end{align}
+the initialization of the active set involves the model matrix for the shift- and
+scale-terms and the correlation with the shift- and scale-residuals, respectively.
+Thus, the residuals for the scale term are computed w.r.t. to an intercept in the
+scale term which is constrained to zero,
+\begin{align}
+  r = \partial_\sigma \ell(\sigma; \ry, \rx, \hat\h) \big\rvert_{\sigma = 1},
+\end{align}
+for the unconditional transformation model (with $\sigma > 0$)
+\begin{align}
+  \pY(\ry) = \pZ\left(\sigma h(\ry)\right).
+\end{align}
+Shift-scale transformation models can be specified via the formula interface of
+the usual \pkg{tram} functions by using a pipe on the right-hand side of the
+formula.
 
 %-------------------------------------------------------------------------------
 \subsection{Comparison with \pkg{tramnet}} \label{sec:tramnet}
