@@ -8,6 +8,7 @@ tramvs(
   formula,
   data,
   modFUN,
+  mandatory = NULL,
   supp_max = NULL,
   k_max = NULL,
   thresh = NULL,
@@ -23,6 +24,12 @@ tramvs(
 \item{data}{data frame containing the variables in the model.}
 
 \item{modFUN}{function for fitting a transformation model, e.g., \code{BoxCox()}.}
+
+\item{mandatory}{formula of mandatory covariates, which will always be included
+and estimated in the model. Note that this also changes the intialization
+of the active set. The active set is then computed with regards to the
+model residuals of \code{modFUN(mandatory, ...)} instead of the unconditional
+model.}
 
 \item{supp_max}{maximum support which to call \code{abess_tram} with.}
 
