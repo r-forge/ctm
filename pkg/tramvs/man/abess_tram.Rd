@@ -9,6 +9,7 @@ abess_tram(
   data,
   modFUN,
   supp,
+  mandatory = NULL,
   k_max = supp,
   thresh = NULL,
   init = TRUE,
@@ -25,6 +26,12 @@ abess_tram(
 \item{modFUN}{function for fitting a transformation model, e.g., \code{BoxCox()}.}
 
 \item{supp}{support size of the coefficient vector}
+
+\item{mandatory}{formula of mandatory covariates, which will always be included
+and estimated in the model. Note that this also changes the intialization
+of the active set. The active set is then computed with regards to the
+model residuals of \code{modFUN(mandatory, ...)} instead of the unconditional
+model.}
 
 \item{k_max}{maximum support size to consider during the splicing algorithm.
 Defaults to \code{supp}.}

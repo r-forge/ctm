@@ -3,6 +3,11 @@
 #' @param formula object of class \code{"formula"}.
 #' @param data data frame containing the variables in the model.
 #' @param modFUN function for fitting a transformation model, e.g., \code{BoxCox()}.
+#' @param mandatory formula of mandatory covariates, which will always be included
+#'     and estimated in the model. Note that this also changes the intialization
+#'     of the active set. The active set is then computed with regards to the
+#'     model residuals of \code{modFUN(mandatory, ...)} instead of the unconditional
+#'     model.
 #' @param supp support size of the coefficient vector
 #' @param k_max maximum support size to consider during the splicing algorithm.
 #'     Defaults to \code{supp}.
@@ -37,8 +42,8 @@
 #'
 #' @importFrom stats coef update residuals cor model.matrix
 #' @export
-abess_tram <- function(formula, data, modFUN, supp, k_max = supp, thresh = NULL,
-                       init = TRUE, m_max = 10, m0 = NULL, ...) {
+abess_tram <- function(formula, data, modFUN, supp, mandatory = NULL, k_max = supp,
+                       thresh = NULL, init = TRUE, m_max = 10, m0 = NULL, ...) {
   if (is.null(k_max))
     k_max <- supp
 
@@ -54,7 +59,14 @@ abess_tram <- function(formula, data, modFUN, supp, k_max = supp, thresh = NULL,
   if (is.null(thresh))
     thresh <- 0.01 * supp * log(p) * log(log(n)) / n
 
-  mb <- modFUN(update(formula, . ~ 1), data, ... = ...)
+  ### Model for initialization
+  if (is.null(mandatory)) {
+    fmb <- update(formula, . ~ 1)
+  } else {
+    fmb <- mandatory
+  }
+  mb <- modFUN(fmb, data, ... = ...)
+  mcfs <- names(coef(mb))
 
   if (!is.null(m0$scalecoef)) {
     mshift <- model.matrix(m0, what = "shifting")
@@ -74,6 +86,8 @@ abess_tram <- function(formula, data, modFUN, supp, k_max = supp, thresh = NULL,
     A0 <- ncfs[.a0_init(cors, supp)]
   else
     A0 <- ncfs[sample.int(ceiling(length(ncfs) / 2), 1)]
+  if (!is.null(mcfs))
+    A0 <- sort(union(mcfs, A0))
 
   I0 <- setdiff(ncfs, A0)
   fix0 <- numeric(length(I0))
@@ -81,7 +95,7 @@ abess_tram <- function(formula, data, modFUN, supp, k_max = supp, thresh = NULL,
   m0 <- modFUN(formula, data, fixed = fix0, ... = ...)
 
   sm <- s0 <- .splicing(m0, A0, I0, k_max, thresh, modFUN, formula, data,
-                        ... = ...)
+                        mcfs = mcfs, ... = ...)
 
   if (length(s0$A) == length(A0) && all(s0$A == A0)) {
     return(structure(s0, class = "abess_tram"))
@@ -90,7 +104,7 @@ abess_tram <- function(formula, data, modFUN, supp, k_max = supp, thresh = NULL,
   for (m in seq_len(m_max)) {
     Am <- sm$A
     sm <- .splicing(sm$mod, sm$A, sm$I, k_max, thresh, modFUN, formula, data,
-                    ... = ...)
+                    mcfs = mcfs, ... = ...)
     if (all(sm$A == Am))
       return(structure(s0, class = "abess_tram"))
   }
@@ -125,8 +139,9 @@ abess_tram <- function(formula, data, modFUN, supp, k_max = supp, thresh = NULL,
 #' @importFrom methods as
 #' @importFrom utils txtProgressBar setTxtProgressBar
 #' @export
-tramvs <- function(formula, data, modFUN, supp_max = NULL, k_max = NULL,
-                   thresh = NULL, init = TRUE, m_max = 10, m0 = NULL, ...) {
+tramvs <- function(formula, data, modFUN, mandatory = NULL, supp_max = NULL,
+                   k_max = NULL, thresh = NULL, init = TRUE, m_max = 10,
+                   m0 = NULL, ...) {
   if (is.null(supp_max)) {
     m0 <- modFUN(formula, data, ... = ...)
     supp_max <- length(coef(m0))
@@ -138,8 +153,9 @@ tramvs <- function(formula, data, modFUN, supp_max = NULL, k_max = NULL,
   for (ts in seq_len(supp_max)) {
     setTxtProgressBar(pb, ts)
     fit <- abess_tram(formula = formula, data = data, modFUN = modFUN,
-                      supp = ts, k_max = k_max, thresh = thresh, init = init,
-                      m_max = m_max, m0 = m0, ... = ...)
+                      mandatory = mandatory, supp = ts, k_max = k_max,
+                      thresh = thresh, init = init, m_max = m_max, m0 = m0,
+                      ... = ...)
     fits[[ts]] <- fit
     SIC[ts] <- -logLik(fit$m) + length(fit$A) * log(length(coef(fit$m))) *
       log(log(nrow(fit$m$data)))
@@ -162,7 +178,8 @@ tramvs <- function(formula, data, modFUN, supp_max = NULL, k_max = NULL,
 }
 
 #' @importFrom stats logLik coef
-.splicing <- function(m, A, I, k_max, thresh, modFUN, formula, data, ...) {
+.splicing <- function(m, A, I, k_max, thresh, modFUN, formula, data, mcfs,
+                      ...) {
   m0 <- m
   A0 <- A
   I0 <- I
@@ -191,6 +208,8 @@ tramvs <- function(formula, data, modFUN, supp_max = NULL, k_max = NULL,
     Ik <- ncfs[.ik_compute(bwd_sacrifice, k)]
 
     newA <- sort(union(setdiff(A, Ak), Ik))
+    if (!is.null(mcfs))
+      newA <- sort(union(newA, mcfs))
     newI <- setdiff(ncfs, newA)
 
     newcfs <- numeric(length(newI))
