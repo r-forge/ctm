@@ -218,7 +218,7 @@ Omlt <- function(object, newdata = NULL, q = NULL, log = FALSE, ...) {
         ### use "old" code
         f <- f[rep(1:N, nsim), , drop = FALSE]
         f <- cbind(-Inf, f, Inf)
-        i <- rowSums(f < as.vector(z))
+        i <- base::rowSums(f < as.vector(z))
         return(q[i])
     }
 
