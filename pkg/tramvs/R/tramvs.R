@@ -62,10 +62,12 @@ abess_tram <- function(formula, data, modFUN, supp, k_max = supp, thresh = NULL,
     rshift <- residuals(mb, what = "shifting")
     rscale <- residuals(mb, what = "scaling")
     cors <- abs(c(cor(rshift, mshift), cor(rscale, mscale)))
+    cors[is.na(cors)] <- 0
   } else {
     res <- residuals(mb)
     mm <- model.matrix(m0)
     cors <- abs(c(cor(res, mm)))
+    cors[is.na(cors)] <- 0
   }
 
   if (init)
