@@ -55,13 +55,18 @@ abess_tram <- function(formula, data, modFUN, supp, k_max = supp, thresh = NULL,
     thresh <- 0.01 * supp * log(p) * log(log(n)) / n
 
   mb <- modFUN(update(formula, . ~ 1), data, ... = ...)
-  res <- residuals(mb)
-  if (!is.null(m0$scalecoef))
-    mm <- cbind(model.matrix(m0, what = "shifting"),
-                model.matrix(m0, what = "scaling"))
-  else
+
+  if (!is.null(m0$scalecoef)) {
+    mshift <- model.matrix(m0, what = "shifting")
+    mscale <- model.matrix(m0, what = "scaling")
+    rshift <- residuals(mb, what = "shifting")
+    rscale <- residuals(mb, what = "scaling")
+    cors <- abs(c(cor(rshift, mshift), cor(rscale, mscale)))
+  } else {
+    res <- residuals(mb)
     mm <- model.matrix(m0)
-  cors <- abs(c(cor(res, ifelse(m0$negative, -1, 1) * mm)))
+    cors <- abs(c(cor(res, mm)))
+  }
 
   if (init)
     A0 <- ncfs[.a0_init(cors, supp)]
