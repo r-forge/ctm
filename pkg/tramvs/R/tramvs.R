@@ -56,7 +56,12 @@ abess_tram <- function(formula, data, modFUN, supp, k_max = supp, thresh = NULL,
 
   mb <- modFUN(update(formula, . ~ 1), data, ... = ...)
   res <- residuals(mb)
-  cors <- abs(c(cor(res, ifelse(m0$negative, -1, 1) * model.matrix(m0))))
+  if (!is.null(m0$scalecoef))
+    mm <- cbind(model.matrix(m0, what = "shifting"),
+                model.matrix(m0, what = "scaling"))
+  else
+    mm <- model.matrix(m0)
+  cors <- abs(c(cor(res, ifelse(m0$negative, -1, 1) * mm)))
 
   if (init)
     A0 <- ncfs[.a0_init(cors, supp)]
