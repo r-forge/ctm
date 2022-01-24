@@ -298,8 +298,8 @@ For shift-scale transformation models,
 \end{align}
 the initialization of the active set involves the model matrix for the shift- and
 scale-terms and the correlation with the shift- and scale-residuals, respectively.
-Thus, the residuals for the scale term are computed w.r.t. to an intercept in the
-scale term which is constrained to zero,
+Thus, the residuals for the scale term are computed w.r.t. an intercept on
+the scale of the linear predictor in the scale term which is constrained to zero,
 \begin{align}
   r = \partial_\sigma \ell(\sigma; \ry, \rx, \hat\h) \big\rvert_{\sigma = 1},
 \end{align}
