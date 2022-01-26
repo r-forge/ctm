@@ -68,19 +68,7 @@ abess_tram <- function(formula, data, modFUN, supp, mandatory = NULL, k_max = su
   mb <- modFUN(fmb, data, ... = ...)
   mcfs <- names(coef(mb))
 
-  if (!is.null(m0$scalecoef)) {
-    mshift <- model.matrix(m0, what = "shifting")
-    mscale <- model.matrix(m0, what = "scaling")
-    rshift <- residuals(mb, what = "shifting")
-    rscale <- residuals(mb, what = "scaling")
-    cors <- abs(c(cor(rshift, mshift), cor(rscale, mscale)))
-    cors[is.na(cors)] <- 0
-  } else {
-    res <- residuals(mb)
-    mm <- model.matrix(m0)
-    cors <- abs(c(cor(res, mm)))
-    cors[is.na(cors)] <- 0
-  }
+  cors <- cor_init(m0, mb)
 
   if (init)
     A0 <- ncfs[.a0_init(cors, supp)]
@@ -110,6 +98,38 @@ abess_tram <- function(formula, data, modFUN, supp, mandatory = NULL, k_max = su
     if (all(sm$A == Am))
       return(structure(s0, class = "abess_tram"))
   }
+}
+
+#' Compute correlation for initializing the active set
+#' @param m0 modFUN(formula, data)
+#' @param mb modFUN(mandatory, data)
+#' @export
+cor_init <- function(m0, mb) {
+  UseMethod("cor_init")
+}
+
+#' Default method for computing correlation
+#' @inheritParams cor_init
+#' @exportS3Method cor_init default
+cor_init.default <- function(m0, mb) {
+  res <- residuals(mb)
+  mm <- model.matrix(m0)
+  cors <- abs(c(cor(res, mm)))
+  cors[is.na(cors)] <- 0
+  cors
+}
+
+#' Shit-scale tram method for computing correlation
+#' @inheritParams cor_init
+#' @exportS3Method cor_init stram
+cor_init.stram <- function(m0, mb) {
+  mshift <- model.matrix(m0, what = "shifting")
+  mscale <- model.matrix(m0, what = "scaling")
+  rshift <- residuals(mb, what = "shifting")
+  rscale <- residuals(mb, what = "scaling")
+  cors <- abs(c(cor(rshift, mshift), cor(rscale, mscale)))
+  cors[is.na(cors)] <- 0
+  cors
 }
 
 #' Select optimal subset based on high dimensional BIC
