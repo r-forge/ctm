@@ -18,12 +18,16 @@
 \alias{PI.default}
 \alias{OVL}
 \alias{OVL.tram}
+\alias{OVL.default}
 \alias{TV}
 \alias{TV.tram}
+\alias{TV.default}
 \alias{L1}
 \alias{L1.tram}
+\alias{L1.default}
 \alias{ROC}
 \alias{ROC.tram}
+\alias{ROC.default}
 \title{
   Methods for Stratified Linear Transformation Models
 }
@@ -57,12 +61,16 @@
 \method{PI}{default}(object, prob, link = "logistic", ...)
 \method{OVL}{tram}(object, newdata = model.frame(object), reference = 0,
                   one2one = FALSE, \dots)
+\method{OVL}{default}(object, link = "logistic", ...)
 \method{TV}{tram}(object, newdata = model.frame(object), reference = 0,
                   one2one = FALSE, \dots)
+\method{TV}{default}(object, link = "logistic", ...)
 \method{L1}{tram}(object, newdata = model.frame(object), reference = 0,
                   one2one = FALSE, \dots)
+\method{L1}{default}(object, link = "logistic", ...)
 \method{ROC}{tram}(object, newdata = model.frame(object), reference = 0,
                    prob = 1:99 / 100, one2one = FALSE, \dots)
+\method{ROC}{default}(object, prob = 1:99 / 100, link = "logistic", ...)
 \method{plot}{ROCtram}(x, lty = 1:ncol(x), col = "black", 
      fill = "lightgrey", lwd = 1, ...) 
 }
@@ -209,30 +217,30 @@
 
     nd <- data.frame(speed = s <- as.double(1:5 * 5))
     
-    # Prob(dist at speed s <= dist at speed 0)
+    # Prob(dist at speed s > dist at speed 0)
     # speed 0 is reference, not a good choice here
     PI(m, newdata = nd)
 
-    # Prob(dist at speed s <= dist at speed 15)
+    # Prob(dist at speed s > dist at speed 15)
     lp15 <- c(predict(m, newdata = data.frame(speed = 15)))
     PI(m, newdata = nd, reference = lp15)
     PI(m, newdata = nd, reference = nd[3,,drop = FALSE])
 
-    # Prob(dist at speed s <= dist at speed s')
+    # Prob(dist at speed s' > dist at speed s)
     PI(m, newdata = nd, reference = nd)
-    # essentically:
+    # essentially:
     lp <- predict(m, newdata = nd)
-    PI(object = -dist(lp))
+    PI(object = dist(lp))
     # same, with simultaneous confidence intervals
     PI(m, newdata = nd, reference = nd, conf.level = .95)
 
     # plot ROC curves + confidence bands
-    # compare speed 5 and 10 to speed 15
-    plot(ROC(m, newdata = nd[1:2,,drop = FALSE],
+    # compare speed 20 and 25 to speed 15
+    plot(ROC(m, newdata = nd[4:5,,drop = FALSE],
              reference = nd[3,,drop = FALSE],
              conf.level = 0.95))
 
-    # Overlap of conditional densities at speed s and s' 
+    # Overlap of conditional densities at speed s' and s
     OVL(m, newdata = nd, reference = nd)
 
     ### ROC analysis
