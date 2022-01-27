@@ -9,7 +9,6 @@
   cumulative hazard functions
 }
 \usage{
-confband(object, newdata, level = 0.95, ...)
 \method{confband}{cotram}(object, newdata,  level = 0.95, 
        type = c("trafo", "distribution", "survivor", "cumhazard"), 
        smooth = FALSE, q = NULL, K = 20, cheat = K, ...)

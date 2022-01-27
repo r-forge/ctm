@@ -1,5 +1,5 @@
 
-R version 4.1.1 (2021-08-10) -- "Kick Things"
+R version 4.1.2 (2021-11-01) -- "Bird Hippie"
 Copyright (C) 2021 The R Foundation for Statistical Computing
 Platform: x86_64-pc-linux-gnu (64-bit)
 
@@ -21,13 +21,6 @@ Loading required package: tram
 Loading required package: mlt
 Loading required package: basefun
 Loading required package: variables
-
-Attaching package: 'cotram'
-
-The following object is masked from 'package:mlt':
-
-    confband
-
 > options(digits = 2)
 > 
 > set.seed(25)
@@ -149,4 +142,4 @@ The following object is masked from 'package:mlt':
 > 
 > proc.time()
    user  system elapsed 
-    3.6     1.8     2.2 
+  1.278   0.044   1.316 

@@ -2,7 +2,7 @@
 \name{NEWS}
 \title{NEWS file for the cotram package}
 
-\section{Changes in Version 0.3-2 (2021-11-08)}{
+\section{Changes in Version 0.3-2 (2022-01-27)}{
   \itemize{
     \item{Import \code{confband} generic from \pkg{mlt}.}
   }
