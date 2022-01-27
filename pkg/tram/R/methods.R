@@ -1404,9 +1404,10 @@ PI <- function(object, ...)
 PI.tram <- function(object, newdata = model.frame(object), 
                     reference = 0, one2one = FALSE, ...) {
 
-    .lp2x(object = object, newdata = newdata, reference = reference, 
-          FUN = .lp2PI(link = object$model$todistr$name), 
-          one2one = one2one, ...)
+    beta <- .lp2x(object = object, newdata = newdata, reference = reference, 
+                FUN = .lp2PI(link = object$model$todistr$name), 
+                one2one = one2one, ...)
+    return(beta)
 }
 
 PI.stram <- function(object, ...)
@@ -1438,15 +1439,37 @@ OVL <- function(object, ...)
 OVL.tram <- function(object, newdata = model.frame(object), 
                      reference = 0, one2one = FALSE, ...) {
 
-     ### <FIXME> handle confidence intervals including 1;
-     ### make sure lwr < upr </FIXME>
-    .lp2x(object = object, newdata = newdata, reference = reference, 
-          FUN = .lp2OVL(link = object$model$todistr$name), 
-          one2one = one2one, ...)
+    FUN <- .lp2OVL(link = object$model$todistr$name)
+    beta <- .lp2x(object = object, newdata = newdata, reference = reference, 
+                  FUN = function(x) x, one2one = one2one, ...)
+    
+    if ("Estimate" %in% colnames(beta)) {
+      # check if CI includes 0 and convert to OVL
+      lwr <- beta[, "lwr"]
+      upr <- beta[, "upr"]
+      olwr <- FUN(beta[, "lwr"])
+      oupr <- FUN(beta[, "upr"])
+      beta[, "upr"] <- ifelse(lwr > 0 & upr > 0, olwr,
+                              ifelse(lwr < 0 & upr < 0, oupr, 1))
+      beta[, "lwr"] <- ifelse(lwr > 0 & upr > 0, oupr,
+                              ifelse(lwr < 0 & upr < 0, olwr,
+                                     pmin(olwr, oupr)))
+      beta[, "Estimate"] <- FUN(beta[, "Estimate"])
+      return(beta)
+    } else {
+      return(FUN(beta))
+    }
 }
 
 OVL.stram <- function(object, ...)
     stop("no OVL method defined for objects of class stram")
+
+### convert lp to OVL
+OVL.default <- function(object, link = "logistic", ...) {
+  
+    FUN <- .lp2OVL(link = link)
+    FUN(object)
+}
 
 TV <- function(object, ...)
     UseMethod("TV")
@@ -1463,6 +1486,12 @@ TV.tram <- function(object, newdata = model.frame(object),
 TV.stram <- function(object, ...)
     stop("no TV method defined for objects of class stram")
 
+### convert lp to TV
+TV.default <- function(object, link = "logistic", ...) {
+  
+    1 - OVL(object, link)
+}
+
 L1 <- function(object, ...)
     UseMethod("L1")
 
@@ -1477,6 +1506,12 @@ L1.tram <- function(object, newdata = model.frame(object),
 
 L1.stram <- function(object, ...)
     stop("no L1 method defined for objects of class stram")
+
+### convert lp to L1
+L1.default <- function(object, link = "logistic", ...) {
+  
+    2 * (1 - OVL(object, link))
+}
 
 ROC <- function(object, ...)
     UseMethod("ROC")
@@ -1496,12 +1531,9 @@ ROC.tram <- function(object, newdata = model.frame(object), reference = 0,
         lwr <- beta[, "lwr"]
         upr <- beta[, "upr"]
         beta <- beta[, "Estimate"]
-        tmp <- lwr
-        lwr[beta < 0] <- abs(upr[beta < 0])
-        upr[beta < 0] <- abs(tmp[beta < 0])
     }
 
-    ret <- outer(c(prob), abs(c(beta)), roc)
+    ret <- outer(c(prob), c(beta), roc)
     if (!is.null(lwr) & !is.null(upr))
         attr(ret, "conf.band") <- list(lwr = outer(prob, lwr, roc), 
                                        upr = outer(prob, upr, roc))
@@ -1512,6 +1544,18 @@ ROC.tram <- function(object, newdata = model.frame(object), reference = 0,
 
 ROC.stram <- function(object, ...)
     stop("no ROC method defined for objects of class stram")
+
+### lp to ROC
+ROC.default <- function(object, prob = 1:99 / 100, link = "logistic", ...){
+    
+    pfun <- .pfun(link)
+    qfun <- .qfun(link)
+    roc <- function(prob, beta) 1 - pfun(qfun(1 - prob) - beta)
+    ret <- outer(c(prob), c(object), roc)
+    attr(ret, "prob") <- prob
+    class(ret) <- "ROCtram"
+    ret
+}
 
 .lp2x <- function(object, newdata = model.frame(object), reference = 0, FUN, 
                   conf.level = 0, one2one = FALSE, ...) {
@@ -1527,28 +1571,29 @@ ROC.stram <- function(object, ...)
             if (is.null(reference)) {
                 Xr <- X
             } else {
-                ret <- confint(glht(object, linfct = X), ...)
-                ret$confint <- ret$confint + 
-                    c(-1, 1)[object$negative + 1L] * reference
-                return(FUN(c(-1, 1)[object$negative + 1L] * ret$confint))
+                Xr <- reference
+                K <- Xr - X
+                ret <- confint(glht(object, linfct = K), ...)
+                return(FUN(ret$confint))
             }
         }
 
         if (one2one) {
             stopifnot(nrow(X) == nrow(Xr))
             i1 <- i2 <- 1:nrow(X)
+
         } else {
-            i1 <- matrix(1:nrow(X), nrow = nrow(X), ncol = nrow(Xr))
-            i2 <- matrix(rep(1:nrow(Xr), each = nrow(X)), nrow = nrow(X))
+            i1 <- matrix(1:nrow(Xr), nrow = nrow(Xr), ncol = nrow(X))
+            i2 <- matrix(rep(1:nrow(X), each = nrow(Xr)), nrow = nrow(Xr))
             if (isTRUE(all.equal(X, Xr))) {
                 i1 <- i1[upper.tri(i1)]
                 i2 <- i2[upper.tri(i2)]
             }
         }
-        K <- Xr[c(i2),, drop = FALSE] - X[c(i1),, drop = FALSE]
-        rownames(K) <- paste0(rownames(Xr)[i2], "-", rownames(X)[i1])
+        K <- Xr[c(i1),, drop = FALSE] - X[c(i2),, drop = FALSE]
+        rownames(K) <- paste0(rownames(Xr)[i1], "-", rownames(X)[i2])
         ret <- confint(glht(object, linfct = K), ...)
-        return(FUN(c(-1, 1)[object$negative + 1L] * ret$confint))
+        return(FUN(ret$confint))
     }
 
     lp <- predict(object, newdata = newdata, type = "lp")
@@ -1571,7 +1616,7 @@ ROC.stram <- function(object, ...)
             ret <- outer(c(rf), c(lp), "-")
         }
     }
-    FUN(c(-1, 1)[object$negative + 1L] * ret)
+    FUN(c(1, -1)[object$negative + 1L] * ret)
 }
 
 .lp2PI <- function(link = c("normal", "logistic", "minimum extreme value", 
@@ -1615,4 +1660,24 @@ ROC.stram <- function(object, ...)
             x[] <- ret
             return(x)
         })
+}
+
+.pfun <- function(link = c("normal", "logistic", "minimum extreme value", 
+                          "maximum extreme value")) {
+    switch(link,
+           "normal" = pnorm,
+           "logistic" = plogis,
+           "minimum extreme value" = function(z) 1 - exp(-exp(z)),
+           "maximum extreme value" = function(z) exp(-exp(-z))
+           )
+}
+
+.qfun <- function(link = c("normal", "logistic", "minimum extreme value", 
+                           "maximum extreme value")) {
+    switch(link, 
+           "normal" = qnorm,
+           "logistic" = qlogis,
+           "minimum extreme value" = function(p) log(-log1p(- p)),
+           "maximum extreme value" = function(p) -log(-log(p))
+           )
 }
