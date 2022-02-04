@@ -52,6 +52,8 @@ abess_tram <- function(formula, data, modFUN, supp, mandatory = NULL, k_max = su
   if (is.null(m0))
     m0 <- modFUN(formula, data, ... = ...)
 
+  theta_init <- m0$theta
+
   ncfs <- names(coef(m0))
   p <- length(ncfs)
   n <- nrow(m0$data)
@@ -81,11 +83,11 @@ abess_tram <- function(formula, data, modFUN, supp, mandatory = NULL, k_max = su
   fix0 <- numeric(length(I0))
   names(fix0) <- I0
   m0 <- modFUN(formula, data, fixed = fix0,
-               # theta = m0$theta[!names(m0$theta) %in% I0],
+               theta = theta_init[!names(theta_init) %in% I0],
                ... = ...)
 
   sm <- s0 <- .splicing(m0, A0, I0, k_max, thresh, modFUN, formula, data,
-                        mcfs = mcfs, ... = ...)
+                        mcfs = mcfs, theta_init = theta_init, ... = ...)
 
   if (length(s0$A) == length(A0) && all(s0$A == A0)) {
     return(structure(s0, class = "abess_tram"))
@@ -94,8 +96,8 @@ abess_tram <- function(formula, data, modFUN, supp, mandatory = NULL, k_max = su
   for (m in seq_len(m_max)) {
     Am <- sm$A
     sm <- .splicing(sm$mod, sm$A, sm$I, k_max, thresh, modFUN, formula, data,
-                    mcfs = mcfs, ... = ...)
-    if (all(sm$A == Am))
+                    mcfs = mcfs, theta_init = theta_init, ... = ...)
+    if (length(sm$A) == length(Am) && all(sm$A == Am))
       return(structure(s0, class = "abess_tram"))
   }
 }
@@ -201,7 +203,7 @@ tramvs <- function(formula, data, modFUN, mandatory = NULL, supp_max = NULL,
 
 #' @importFrom stats logLik coef
 .splicing <- function(m, A, I, k_max, thresh, modFUN, formula, data, mcfs,
-                      ...) {
+                      theta_init, ...) {
   m0 <- m
   A0 <- A
   I0 <- I
@@ -217,7 +219,7 @@ tramvs <- function(formula, data, modFUN, mandatory = NULL, supp_max = NULL,
     ncfs <- cfs
     ncfs[parm] <- 0
     m_retrained <- modFUN(formula, data, fixed = ncfs,
-                          # theta = m0$theta[!names(m0$theta) %in% names(ncfs)],
+                          theta = theta_init[!names(theta_init) %in% names(ncfs)],
                           ... = ...)
     nll_wo <- - logLik(m_retrained) / nrow(m$data)
     nll_wo - L
@@ -226,7 +228,7 @@ tramvs <- function(formula, data, modFUN, mandatory = NULL, supp_max = NULL,
   fwd_sacrifice <- sapply(seq_along(cfI), \(parm) {
     ncfs <- cfs[-parm]
     m_retrained <- modFUN(formula, data, fixed = ncfs,
-                          # theta = m0$theta[!names(m0$theta) %in% names(ncfs)],
+                          theta = theta_init[!names(theta_init) %in% names(ncfs)],
                           ... = ...)
     nll_wo <- - logLik(m_retrained) / nrow(m$data)
     L - nll_wo
@@ -241,12 +243,16 @@ tramvs <- function(formula, data, modFUN, mandatory = NULL, supp_max = NULL,
       newA <- sort(union(newA, mcfs))
     newI <- setdiff(ncfs, newA)
 
-    if (length(newI) == length(I) && all(sort(newI) == sort(I)))
+    if (length(newI) == length(I) && all(sort(newI) == sort(I)) |
+        length(newI) == length(I0) && all(sort(newI) == sort(I0)) |
+        length(newA) > k_max)
       next
 
     newcfs <- numeric(length(newI))
     names(newcfs) <- newI
-    newm <- modFUN(formula, data, fixed = newcfs, ... = ...)
+    newm <- modFUN(formula, data, fixed = newcfs,
+                   theta = theta_init[!names(theta_init) %in% names(newcfs)],
+                   ... = ...)
     newL <- -logLik(newm) / nrow(m$data)
 
     if (L > newL) {
