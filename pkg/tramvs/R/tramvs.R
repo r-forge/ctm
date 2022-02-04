@@ -210,15 +210,20 @@ tramvs <- function(formula, data, modFUN, mandatory = NULL, supp_max = NULL,
   cfs <- cfs0 <- coef(m)
   cfb <- cfb0 <- cf0[!names(cf0) %in% names(cfs0)]
   ncfs <- names(cfs0)
+  cfA <- cfs[names(cfs) %in% A0]
+  cfI <- cfs[names(cfs) %in% I0]
 
-  bwd_sacrifice <- sapply(seq_along(cfs), \(parm) {
+  bwd_sacrifice <- sapply(seq_along(cfA), \(parm) {
     ncfs <- cfs
     ncfs[parm] <- 0
-    nll_wo <- - logLik(m, parm = c(cfb, ncfs)) / nrow(m$data)
+    m_retrained <- modFUN(formula, data, fixed = ncfs,
+                          # theta = m0$theta[!names(m0$theta) %in% names(ncfs)],
+                          ... = ...)
+    nll_wo <- - logLik(m_retrained) / nrow(m$data)
     nll_wo - L
   })
 
-  fwd_sacrifice <- sapply(seq_along(cfs), \(parm) {
+  fwd_sacrifice <- sapply(seq_along(cfI), \(parm) {
     ncfs <- cfs[-parm]
     m_retrained <- modFUN(formula, data, fixed = ncfs,
                           # theta = m0$theta[!names(m0$theta) %in% names(ncfs)],
@@ -228,13 +233,16 @@ tramvs <- function(formula, data, modFUN, mandatory = NULL, supp_max = NULL,
   })
 
   for (k in seq_len(k_max)) {
-    Ak <- ncfs[.ak_compute(fwd_sacrifice, k)]
-    Ik <- ncfs[.ik_compute(bwd_sacrifice, k)]
+    Ak <- ncfs[.ak_compute(bwd_sacrifice, k)]
+    Ik <- ncfs[.ik_compute(fwd_sacrifice, k)]
 
     newA <- sort(union(setdiff(A, Ak), Ik))
     if (!is.null(mcfs))
       newA <- sort(union(newA, mcfs))
     newI <- setdiff(ncfs, newA)
+
+    if (length(newI) == length(I) && all(sort(newI) == sort(I)))
+      next
 
     newcfs <- numeric(length(newI))
     names(newcfs) <- newI
