@@ -29,8 +29,13 @@
                 w[-subset] <- 0 ### mlt >= 1.0-3 allows subset but we
                 ### still need the weights to be zero for some operations below
             }
-            if (!is.null(info$coef)) {
-                thetastart <- info$coef
+            if (missing(info)) info <- NULL
+            if (!is.null(info)) {
+                if (!is.null(info$coef)) {
+                    thetastart <- info$coef
+                } else {
+                    thetastart <- coef(ctmobject, fixed = FALSE)
+                }
             } else {
                 thetastart <- coef(ctmobject, fixed = FALSE)
             }
