@@ -27,7 +27,10 @@
         ret <- fun(lpr)
     } else {
         ret <- rep(value, length(lpr))
-        if (all(!OK)) return(ret)
+        if (all(!OK)) {
+            if (!Xmult) return(ret)
+            return(ret * X)
+        }
         ret[OK] <- fun(lpr[OK])
     }
     if (Xmult) {
