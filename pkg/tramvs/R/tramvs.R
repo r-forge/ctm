@@ -99,6 +99,8 @@ abess_tram <- function(formula, data, modFUN, supp, mandatory = NULL, k_max = su
                     mcfs = mcfs, theta_init = theta_init, ... = ...)
     if (length(sm$A) == length(Am) && all(sm$A == Am))
       return(structure(s0, class = "abess_tram"))
+    else
+      return(structure(sm, class = "abess_tram"))
   }
 }
 
