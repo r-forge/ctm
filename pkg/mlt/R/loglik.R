@@ -29,7 +29,7 @@
         ret <- rep(value, length(lpr))
         if (all(!OK)) {
             if (!Xmult) return(ret)
-            return(ret * X)
+            return(matrix(ret, nrow = nrow(X), ncol = ncol(X)))
         }
         ret[OK] <- fun(lpr[OK])
     }
