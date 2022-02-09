@@ -3,8 +3,9 @@ mkgrid.cotram <- function(object, n, ...)
   mkgrid(object$count_response, n = n, ...)
 
 as.mlt.cotram <- function(object) {
-  class(object) <- class(object)[-(1:2)]
-  return(object)
+  cls <- which(class(object) == "mlt_fit")
+  class(object) <- class(object)[-(1:(cls - 1))]
+  object
 }
 
 logLik.cotram <- function(object, parm = coef(as.mlt(object), fixed = FALSE), newdata,...){
