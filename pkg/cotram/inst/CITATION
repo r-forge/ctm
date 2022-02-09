@@ -13,7 +13,7 @@ citEntry(entry = "Article",
          textVersion  = 
          paste("Sandra Siegfried, Torsten Hothorn (2020).",
                "Count Transformation Models.",
-               "Methods in Ecology and Evolution, 2020; 11: 818– 827.", 
+               "Methods in Ecology and Evolution, 2020; 11:7 818-827.", 
                "https://doi.org/10.1111/2041-210X.13383")
 )
 
