@@ -1,9 +1,11 @@
 
-This folder contains R code necessary to reproduce the empirical results
-presented in Section 3 of "Count Transformation Models". Simple run
+This folder contains replication material for the empirical results presented
+in Section 3 of "Count Transformation Models" (https://doi.org/10.1111/2041-210X.13383"). 
+
+To reproduce the results, run
   
   R CMD BATCH SIM_countDGP.R
 
   R CMD BATCH DVC_analysis.R
 
-in either sub-folder (after installing the cotram R add-on package).
+in either sub-folder (after installing the "cotram" R add-on package).
