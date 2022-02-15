@@ -19,10 +19,11 @@ cotram <- function(formula, data, method = c("logit", "cloglog", "loglog", "prob
     stopifnot(inherits(td$response, "response") || is.numeric(td$response))
     
     ## check whether response is positive integer
-    if (any(td$response < 0))
-        stop("response is not a positive number")
-    if (!all(td$response %% 1 == 0))
-        stop("response is not an integer number")
+    .check_count_var(td$response)
+    # if (any(td$response < 0))
+    #     stop("response is not a positive number")
+    # if (!all(td$response %% 1 == 0))
+    #     stop("response is not an integer number")
     
     ## as.integer for correct likelihood
     td$response <- as.integer(td$response)
@@ -58,4 +59,11 @@ cotram <- function(formula, data, method = c("logit", "cloglog", "loglog", "prob
     ret$count_response <- numeric_var(td$rname, support = min(td$response):max(td$response))
     class(ret) <- c("cotram", class(ret))
     ret
+}
+
+.check_count_var <- function(y) {
+  if (any(y < 0))
+    stop("response is non-positive")
+  if (!all(y %% 1 == 0))
+    stop("response is non-integer")
 }
