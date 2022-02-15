@@ -8,16 +8,17 @@ as.mlt.cotram <- function(object) {
   object
 }
 
-logLik.cotram <- function(object, parm = coef(as.mlt(object), fixed = FALSE), newdata,...){
+logLik.cotram <- function(object, parm = coef(as.mlt(object), fixed = FALSE), newdata, ...){
   response <- variable.names(object, "response")
   
-  if(!missing(newdata)){
+  if (!missing(newdata)) {
     ## check whether response is non-negative integer
-    if (any(newdata[response] < 0))
+    if (any(newdata[, response] < 0))
       stop("response is non-positive")
-    if(isTRUE(newdata[response] %% 1 == 0))
+    if (!all(newdata[, response] %% 1 == 0))
       stop("response is non-integer")
-    newdata[,response] <- as.integer(newdata[,response]) + as.integer(object$plus_one)
+    
+    newdata[, response] <- as.integer(newdata[, response]) + as.integer(object$log_first)
     return(logLik(as.mlt(object), parm = parm, newdata = newdata, ...))
   }
   logLik(as.mlt(object), parm = parm, ...)
