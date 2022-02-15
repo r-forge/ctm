@@ -17,15 +17,16 @@ predict.cotram <- function(object, newdata = model.frame(object),
     if (y %in% names(newdata)) {
         if (any(newdata[,y] < 0)) stop("response is non-positive")
         if (!smooth && !all(newdata[,y] %% 1 == 0)) stop("response is non-integer")
-        newdata[,y] <- newdata[,y] + plus_one
+        newdata[,y] <- as.integer(newdata[,y]) + plus_one
     }
     
     if (!is.null(q)) {
         if (any(q < 0)) stop("q is non-positive")
         if (!smooth && !all(q %% 1 == 0)) stop("q is non-integer")
-        q <- q + plus_one 
+        q <- as.integer(q) + plus_one 
     }
     
+    ## generate quantiles if response not in newdata & no q given
     if (!(y %in% names(newdata)) && is.null(q)) {
         q <- mkgrid(object, n = K)[[y]] + plus_one
         if (smooth)
