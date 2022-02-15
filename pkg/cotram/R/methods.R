@@ -12,14 +12,20 @@ logLik.cotram <- function(object, parm = coef(as.mlt(object), fixed = FALSE), ne
   response <- variable.names(object, "response")
   if (!missing(newdata)) {
     ## check that response is non-negative integer
-    .check_count_var(newdata[, response])
-    # if (any(newdata[, response] < 0))
-    #   stop("response is non-positive")
-    # if (!all(newdata[, response] %% 1 == 0))
-    #   stop("response is non-integer")
+    if (any(newdata[, response] < 0)) stop("response is non-positive")
+    if (!all(newdata[, response] %% 1 == 0)) stop("response is non-integer")
     
     newdata[, response] <- .count_var(y = newdata[, response], plus_one = as.integer(object$log_first))
     return(logLik(as.mlt(object), parm = parm, newdata = newdata, ...))
   }
   logLik(as.mlt(object), parm = parm, ...)
+}
+
+.count_var <- function(y, plus_one) {
+  ## count response as interval-censored object
+  y <- as.integer(y)
+  yleft <- y - 1L
+  yleft[yleft < 0] <- -Inf
+  
+  Surv(yleft + plus_one, y + plus_one, type = "interval2")
 }
