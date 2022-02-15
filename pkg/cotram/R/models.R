@@ -30,6 +30,7 @@ cotram <- function(formula, data, method = c("logit", "cloglog", "loglog", "prob
     td$mf[, td$rname] <- as.integer(td$mf[, td$rname])
     
     ## y + 1 for log_first
+    stopifnot(is.logical(log_first))
     plus_one <- as.integer(log_first)
     
     td$response <- td$response + plus_one
@@ -62,6 +63,7 @@ cotram <- function(formula, data, method = c("logit", "cloglog", "loglog", "prob
 }
 
 .check_count_var <- function(y) {
+  ## check whether response is positive integer
   if (any(y < 0))
     stop("response is non-positive")
   if (!all(y %% 1 == 0))
