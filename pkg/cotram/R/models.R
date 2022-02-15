@@ -31,8 +31,8 @@ cotram <- function(formula, data, method = c("logit", "cloglog", "loglog", "prob
     ## y + 1 for log_first
     plus_one <- as.integer(log_first)
     
-    td$response <- td$response + as.integer(plus_one)
-    td$mf[, td$rname] <- td$mf[, td$rname] + as.integer(plus_one)
+    td$response <- td$response + plus_one
+    td$mf[, td$rname] <- td$mf[, td$rname] + plus_one
     
     # support & bounds
     support <- c(-.5 + as.integer(log_first), quantile(td$response, probs = prob))
@@ -54,7 +54,7 @@ cotram <- function(formula, data, method = c("logit", "cloglog", "loglog", "prob
         ret$tram <- paste(ifelse(is.null(td$terms$s), "", "(Stratified)"),
                           "Transformed Counts Probit Transformation Model")
     }
-    ret$data[, td$rname] <- ret$data[, td$rname] - as.integer(plus_one)
+    ret$data[, td$rname] <- ret$data[, td$rname] - plus_one
     ret$count_response <- numeric_var(td$rname, support = min(td$response):max(td$response))
     class(ret) <- c("cotram", class(ret))
     ret
