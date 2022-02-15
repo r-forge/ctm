@@ -22,7 +22,7 @@ Description: Count transformation models featuring
         multivariate count transformation models with an application
         to multi-species distribution models.
 Depends: R (>= 3.5.0), tram (>= 0.2-6), mlt (>= 1.2-1)
-Imports: variables (>= 1.0-2), basefun (>= 1.0-5), alabama, Matrix, methods
+Imports: variables (>= 1.0-2), basefun (>= 1.0-5), alabama, Matrix, methods, survival
 Suggests: TH.data, knitr, lattice, colorspace, multcomp, mvtnorm, numDeriv
 VignetteBuilder: knitr
 URL: http://ctm.R-forge.R-project.org
