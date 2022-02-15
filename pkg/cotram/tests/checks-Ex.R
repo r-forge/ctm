@@ -42,6 +42,9 @@ stopifnot(logLik(m) == logLik(m, newdata = nd))
 stopifnot(logLik(mm) == logLik(mm, newdata = nd))
 
 ## predict
+stopifnot(all.equal(predict(m, type = "density"), predict(m, newdata = data.frame(y = y, x = x), type = "density")))
+stopifnot(all.equal(predict(m, type = "density"), predict(m, newdata = model.frame(m), type = "density")))
+
 ppr <- predict(mm, newdata = nd, type = "density")
 pr <- predict(m, newdata = nd, type = "density")
 
