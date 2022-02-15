@@ -36,7 +36,7 @@ try(plot(m, q = yn, newdata = model.frame(m, x = x)))
 ## --- checks for plus_one ----
 stopifnot(all(model.frame(m)["y"] == y)) ## model.frame of y for log_first
 
-if (all(mkgrid(m)$y == y + as.integer(m$log_first))) warning("mkgrid of (y + 1) for log_first")
+stopifnot(all(mkgrid(m)$y == y))
 
 stopifnot(logLik(m) == logLik(m, newdata = nd))
 stopifnot(logLik(mm) == logLik(mm, newdata = nd))

@@ -32,6 +32,8 @@ sum(log(L1))
 logLik(m1)
 logLik(mc1)
 
+stopifnot(logLik(mc1) == logLik(mc1, newdata = model.frame(mc1)))
+
 stopifnot(all.equal(log(L1), mc1$logliki(coef(as.mlt(mc1)), mc1$weights), check.attributes = FALSE))
 
 stopifnot(all.equal(m1$logliki(coef(as.mlt(m1)), m1$weight), mc1$logliki(coef(as.mlt(mc1)), mc1$weight)))
@@ -52,6 +54,8 @@ L2 <- predict(m2, newdata = data.frame(yi2 = y + plus_one, x = x), type = "distr
 sum(log(L2))
 logLik(m2)
 logLik(mc2)
+
+stopifnot(logLik(mc2) == logLik(mc2, newdata = model.frame(mc2)))
 
 stopifnot(all.equal(log(L2), mc2$logliki(coef(as.mlt(mc2)), mc2$weights), check.attributes = FALSE))
 
