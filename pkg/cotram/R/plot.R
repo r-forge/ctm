@@ -30,11 +30,8 @@ plot.cotram <- function(x, newdata,
     args <- list(...)
     y <- variable.names(x, "response")
     
-    ## y + 1 for log_first
-    plus_one <- as.integer(x$log_first)
-    
     if (is.null(q)){
-        q <- mkgrid(x, n = K)[[y]] - plus_one
+        q <- mkgrid(x, n = K)[[y]]
         if (smooth)
             q <- seq(from = min(q), to = max(q), length.out = K)
     }
