@@ -17,6 +17,7 @@ yleft <- y - 1L
 yleft[yleft < 0] <- -Inf
 yi1 <- Surv(yleft, y, type = "interval2")
 
+
 ##---- log_first = FALSE ----
 log_first <- FALSE
 

@@ -1,55 +1,60 @@
+## comparing log-likelihoods and coefficients
+
 library("cotram")
 
 set.seed(29)
 
-## 
-
 ## dgp
-dgp <- function(n = 200){
-  x <- runif(n)
-  yd <- as.integer(rnbinom(n, mu = exp(.5 + .8 * x), size = 10))
-  yn <- as.numeric(yd)
-  yd.p1 <- yd + 1L
-  data.frame(x = x, yd = yd, yn = yn, yd.p1 = yd.p1)
-}
+n <- 200
+x <- runif(n)
+y <- as.integer(rnbinom(n, mu = exp(.5 + .8 * x), size = 10))
+yn <- as.numeric(y)
 
-df <- dgp()
+## interval censored counts
+yleft <- y - 1L
+yleft[yleft < 0] <- -Inf
+yi1 <- Surv(yleft, y, type = "interval2")
+yip1 <- Surv(yleft + 1L, y + 1L, type = "interval2")
+
+df <- data.frame(x = x, y = y, yn = yn, yip1 = yip1)
+
 trainID <- sample(1:nrow(df), size = 0.25 * nrow(df))
-df.train <- df[trainID,]
-df.test <- df[-trainID,]
+d <- df[trainID,]
+nd <- df[-trainID,]
 
 ## test model
-m1d <- cotram(yd ~ x, data = df.train, method = "cloglog")
+m1 <- cotram(y ~ x, data = d, method = "cloglog", 
+              log_first = TRUE)
 
-m1n <- cotram(yn ~ x, data = df.train, method = "cloglog")
+m1n <- cotram(yn ~ x, data = d, method = "cloglog",
+              log_first = TRUE)
 
-m3d <- cotram(yd ~ x , data = df.train,
-              log_first = FALSE, method = "cloglog")
+m2 <- Coxph(yip1 ~ x, data = d, support = m1$support, bounds = m1$bounds,
+            log_first = TRUE)
 
-m2 <- Coxph(yd.p1 ~ x, data = df.train,
-             support = m1d$support,
-             bounds = m1d$bounds,
-             log_first = TRUE)
+m3 <- cotram(y ~ x , data = d, method = "cloglog",
+              log_first = FALSE)
 
-# compare coefficients
-cf1n <- coef(as.mlt(m1n))
-cf1d <- coef(as.mlt(m1d))
-stopifnot(all.equal(cf1n, cf1d, check.attributes = FALSE))
+
+## compare coefficients
+# cf1n <- coef(as.mlt(m1n))
+# cf1 <- coef(as.mlt(m1))
+# stopifnot(all.equal(cf1n, cf1, check.attributes = FALSE))
 
 c2 <- as.mlt(m2)
 cf2 <- coef(c2)
 cf2[c2$shiftcoef] <- -cf2[c2$shiftcoef]
-stopifnot(all.equal(cf1n, cf2, check.attributes = FALSE))
+stopifnot(all.equal(cf1, cf2, check.attributes = FALSE))
 
 # compare likelihoods
-l1d <- m1d$logliki(coef(as.mlt(m1d)), rep(1, length(df.train$yd)))
-l1n <- m1d$logliki(coef(as.mlt(m1n)), rep(1, length(df.train$yn)))
-stopifnot(all.equal(l1d, l1n))
+l1 <- m1$logliki(coef(as.mlt(m1)), rep(1, length(d$y)))
+l1n <- m1$logliki(coef(as.mlt(m1n)), rep(1, length(d$yn)))
+stopifnot(all.equal(l1, l1n))
 
-l2 <- m2$logliki(coef(as.mlt(m2)), rep(1, length(df.train$yd.p1)))
-stopifnot(all.equal(l1d, l2))
+l2 <- m2$logliki(coef(as.mlt(m2)), rep(1, length(d$yp1)))
+stopifnot(all.equal(l1, l2))
 
 # logLik for newdata
-stopifnot(isTRUE(logLik(m1d) == logLik(m1d, newdata = df.train)))
-stopifnot(isTRUE(logLik(m1d, newdata = df.test) == logLik(m2, newdata = df.test)))
-stopifnot(isTRUE(logLik(m1d, newdata = df.test) == logLik(m1n, newdata = df.test)))
+stopifnot(isTRUE(logLik(m1) == logLik(m1, newdata = d)))
+stopifnot(isTRUE(logLik(m1, newdata = nd) == logLik(m2, newdata = nd)))
+stopifnot(isTRUE(logLik(m1, newdata = nd) == logLik(m1n, newdata = nd)))
