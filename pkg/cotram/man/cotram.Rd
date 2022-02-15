@@ -11,8 +11,8 @@
 }
 \usage{
 cotram(formula, data, method = c("logit", "cloglog", "loglog", "probit"),
-       log_first = TRUE, plus_one = log_first, prob = 0.9,	
-       subset, weights, offset, cluster, na.action = na.omit, ...)
+       log_first = TRUE, prob = 0.9, subset, weights, offset, cluster,
+       na.action = na.omit, ...)
 }
 \arguments{
   \item{formula}{an object of class \code{"formula"}: a symbolic description 
@@ -36,10 +36,7 @@ cotram(formula, data, method = c("logit", "cloglog", "loglog", "probit"),
   	support of a smooth Bernstein polynomial.
   }
   \item{log_first}{logical; if \code{TRUE}, a Bernstein polynomial is
-  			defined on the log-scale.
-  }
-  \item{plus_one}{logical; if \code{TRUE}, a Bernstein polynomial of (y + 1)
-  			is defined.
+  			defined on the log-scale for (y + 1).
   }
   \item{subset}{an optional vector specifying a subset of observations to be
           used in the fitting process.
