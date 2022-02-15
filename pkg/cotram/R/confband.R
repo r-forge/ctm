@@ -23,7 +23,7 @@ confband.cotram <- function(object, newdata,  level = 0.95,
         q <- q + plus_one
         ## <FIXME> What to do, when length(q) > 20? <\FIXME> 
     } else {
-        q <- mkgrid(object, n = K)[[y]]
+        q <- mkgrid(object, n = K)[[y]] + plus_one
         
         if (smooth)
             q <- seq(from = min(q), to = max(q), length.out = K)

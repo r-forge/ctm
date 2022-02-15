@@ -27,7 +27,7 @@ predict.cotram <- function(object, newdata = model.frame(object),
     }
     
     if (!(y %in% names(newdata)) && is.null(q)) {
-        q <- mkgrid(object, n = K)[[y]]
+        q <- mkgrid(object, n = K)[[y]] + plus_one
         if (smooth)
             q <- seq(from = min(q), to = max(q), length.out = K)
     }
