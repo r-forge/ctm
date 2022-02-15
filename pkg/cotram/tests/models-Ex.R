@@ -1,6 +1,7 @@
 ## comparing log-likelihoods and coefficients
 
 library("cotram")
+library("survival")
 
 set.seed(29)
 
