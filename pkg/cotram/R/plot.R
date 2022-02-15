@@ -26,7 +26,9 @@ plot.cotram <- function(x, newdata,
                         confidence = c("none", "band"), level = 0.95, 
                         smooth = FALSE, q = NULL, K = 20, cheat = K, prob = 1:(10-1)/10,
                         col = "black", fill = "lightgrey", lty = 1, lwd = 1, add = FALSE, ...) {
-    
+    ## <FIXME> line-type for logdensity <\FIXME>
+    ## <FIXME> allow to plot hazard and loghazard <\FIXME>
+  
     args <- list(...)
     y <- variable.names(x, "response")
     
