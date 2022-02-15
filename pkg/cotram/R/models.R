@@ -1,7 +1,7 @@
 
 cotram <- function(formula, data, method = c("logit", "cloglog", "loglog", "probit"),
-                   log_first = TRUE, plus_one = log_first, prob = 0.9,
-                   subset, weights, offset, cluster, na.action = na.omit, ...)
+                   log_first = TRUE, prob = 0.9, subset, weights, offset, cluster,
+                   na.action = na.omit, ...)
 {
     mf <- match.call(expand.dots = FALSE)
     m <- match(c("formula", "data", "subset", "na.action", "weights", "offset", "cluster"), names(mf), 0L)
@@ -21,16 +21,18 @@ cotram <- function(formula, data, method = c("logit", "cloglog", "loglog", "prob
     ## check whether response is positive integer
     if (any(td$response < 0))
         stop("response is not a positive number")
-    if(!all(td$response %% 1 == 0))
+    if (!all(td$response %% 1 == 0))
         stop("response is not an integer number")
     
     ## as.integer for correct likelihood
     td$response <- as.integer(td$response)
-    td$mf[,td$rname] <- as.integer(td$mf[,td$rname])
+    td$mf[, td$rname] <- as.integer(td$mf[, td$rname])
     
     ## y + 1 for log_first
+    plus_one <- as.integer(log_first)
+    
     td$response <- td$response + as.integer(plus_one)
-    td$mf[,td$rname] <- td$mf[,td$rname] + as.integer(plus_one)
+    td$mf[, td$rname] <- td$mf[, td$rname] + as.integer(plus_one)
     
     # support & bounds
     support <- c(-.5 + as.integer(log_first), quantile(td$response, probs = prob))
@@ -42,7 +44,7 @@ cotram <- function(formula, data, method = c("logit", "cloglog", "loglog", "prob
     if (!inherits(ret, "mlt")) return(ret)
     
     ret$call <- match.call(expand.dots = TRUE)
-    ret$plus_one <- plus_one
+    ret$log_first <- log_first
     ret$support <- support
     ret$bounds <- bounds
     if (method != "probit") {
