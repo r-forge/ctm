@@ -13,6 +13,8 @@ importFrom("stats", "update", "residuals", "pnorm", "weights")
 importFrom("graphics", "axis", "box", "points")
 importFrom("grDevices", "rgb")
 
+importFrom("survival", "Surv")
+
 export(cotram, mcotram)
 
 S3method("as.mlt", "cotram")
