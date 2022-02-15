@@ -25,16 +25,19 @@ cotram <- function(formula, data, method = c("logit", "cloglog", "loglog", "prob
     # if (!all(td$response %% 1 == 0))
     #     stop("response is not an integer number")
     
+    y <- as.integer(td$response)
+    
     ## y + 1 for log_first
     stopifnot(is.logical(log_first))
     plus_one <- as.integer(log_first)
     
-    td$response <- as.integer(td$response) + plus_one
-    td$mf[, td$rname] <- as.integer(td$mf[, td$rname]) + plus_one
+    ## interval-censored count response for correct likelihood
+    td$response <- .count_var(td$response, plus_one = plus_one)
+    td$mf[, td$rname] <- .count_var(td$mf[, td$rname], plus_one = plus_one)
     
     # support & bounds
-    support <- c(-.5 + plus_one, quantile(td$response, probs = prob))
-    bounds <- c(-.9 + plus_one, Inf)
+    support <- c(0, quantile(y, probs = prob)) + plus_one
+    bounds <- c(-0.01, Inf) + plus_one
     
     ret <- tram(td, transformation = "smooth", distribution = distribution, 
                 log_first = log_first, support = support, bounds = bounds, 
@@ -52,10 +55,21 @@ cotram <- function(formula, data, method = c("logit", "cloglog", "loglog", "prob
         ret$tram <- paste(ifelse(is.null(td$terms$s), "", "(Stratified)"),
                           "Transformed Counts Probit Transformation Model")
     }
-    ret$data[, td$rname] <- ret$data[, td$rname] - plus_one
-    ret$count_response <- numeric_var(td$rname, support = min(td$response):max(td$response))
+    
+    ## <FIXME> return Surv object or count response? <\FIXME>
+    ret$data[, td$rname] <- y
+    ret$count_response <- numeric_var(td$rname, support = min(y):max(y))
     class(ret) <- c("cotram", class(ret))
     ret
+}
+
+.count_var <- function(y, plus_one) {
+  ## count response as interval-censored object
+  y <- as.integer(y)
+  yleft <- y - 1L
+  yleft[yleft < 0] <- -Inf
+  
+  Surv(yleft + plus_one, y + plus_one, type = "interval2")
 }
 
 .check_count_var <- function(y) {
