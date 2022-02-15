@@ -38,8 +38,8 @@ m3 <- cotram(y ~ x , data = d, method = "cloglog",
 
 
 ## compare coefficients
+cf1 <- coef(as.mlt(m1))
 # cf1n <- coef(as.mlt(m1n))
-# cf1 <- coef(as.mlt(m1))
 # stopifnot(all.equal(cf1n, cf1, check.attributes = FALSE))
 
 c2 <- as.mlt(m2)

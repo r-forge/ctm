@@ -12,7 +12,6 @@ pr <- 1:9/10
 ## cotram: log_first = FALSE
 m0 <- cotram(yr ~ 1, log_first = FALSE, extrapolate = TRUE, prob = .99)
 
-
 stopifnot(all.equal(predict(m0, newdata = data.frame(1), q = 0, type = "density"), 
                     predict(m0, newdata = data.frame(1), q = 0, type = "distribution")))
 
@@ -147,7 +146,6 @@ plot(m0_lf, newdata = data.frame(1), type = "distribution",
 #         check.attributes = FALSE
 # ))
 
-stopifnot(all.equal(predict(m1, type = "trafo"), predict(m1, newdata = df, type = "trafo")))
 
 ### some basic checks for predictions wrt discrete distributions
 n <- 50
