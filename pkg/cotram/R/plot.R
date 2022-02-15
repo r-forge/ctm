@@ -6,8 +6,8 @@
     est <- object[, "Estimate"]
     polyx <- c(q[1], rep(q[2:length(q)], each = 2), q[length(q)],
                rep(rev(q)[2:length(rev(q))], each = 2))
-    polyy <-  c(rep(lwr[1:(length(lwr)-1)], each = 2), rev(upr)[1], 
-                rep(rev(upr)[2:length(rev(upr))], each = 2), lwr[1])
+    polyy <- c(rep(lwr[1:(length(lwr)-1)], each = 2), rev(upr)[1], 
+               rep(rev(upr)[2:length(rev(upr))], each = 2), lwr[1])
     type <- "s"
     if (smooth) {
         polyx <- c(q, rev(q))
@@ -30,8 +30,11 @@ plot.cotram <- function(x, newdata,
     args <- list(...)
     y <- variable.names(x, "response")
     
+    ## y + 1 for log_first
+    plus_one <- as.integer(x$log_first)
+    
     if (is.null(q)){
-        q <- mkgrid(x, n = K)[[y]] - as.integer(x$plus_one)
+        q <- mkgrid(x, n = K)[[y]] - plus_one
         if (smooth)
             q <- seq(from = min(q), to = max(q), length.out = K)
     }
