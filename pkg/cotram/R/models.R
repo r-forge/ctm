@@ -35,8 +35,8 @@ cotram <- function(formula, data, method = c("logit", "cloglog", "loglog", "prob
     td$mf[, td$rname] <- td$mf[, td$rname] + plus_one
     
     # support & bounds
-    support <- c(-.5 + as.integer(log_first), quantile(td$response, probs = prob))
-    bounds <- c(-.9 + as.integer(log_first), Inf)
+    support <- c(-.5 + plus_one, quantile(td$response, probs = prob))
+    bounds <- c(-.9 + plus_one, Inf)
     
     ret <- tram(td, transformation = "smooth", distribution = distribution, 
                 log_first = log_first, support = support, bounds = bounds, 
