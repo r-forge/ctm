@@ -7,7 +7,7 @@ confband.cotram <- function(object, newdata,  level = 0.95,
     type <- match.arg(type)
     if (nrow(newdata) > 1) {
         ret <- lapply(1:nrow(newdata), function(i)
-            confband(object = object, newdata = newdata[i,,drop = FALSE], q = q,
+            confband(object = object, newdata = newdata[i,, drop = FALSE], q = q,
                      level = level, type = type, K = K, cheat = K, ...))
         return(ret)
     }
@@ -15,13 +15,13 @@ confband.cotram <- function(object, newdata,  level = 0.95,
     
     y <- variable.names(object, "response")
     
+    ## (q + 1) for log_first = TRUE
     plus_one <- as.integer(object$log_first)
     
     if (!is.null(q)) {
         if (any(q < 0)) stop("q is non-positive")
         if (!smooth && !all(q %% 1 == 0)) stop("q is non-integer")
         q <- q + plus_one
-        ## <FIXME> What to do, when length(q) > 20? <\FIXME> 
     } else {
         q <- mkgrid(object, n = K)[[y]] + plus_one
         
