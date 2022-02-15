@@ -11,16 +11,19 @@ predict.cotram <- function(object, newdata = model.frame(object),
     nd <- newdata
     nq <- q
     
+    ## y + 1 for log_first
+    plus_one <- as.integer(object$log_first)
+    
     if (y %in% names(newdata)) {
         if (any(newdata[,y] < 0)) stop("response is non-positive")
         if (!smooth && !all(newdata[,y] %% 1 == 0)) stop("response is non-integer")
-        newdata[,y] <- newdata[,y] + as.integer(object$plus_one)
+        newdata[,y] <- newdata[,y] + plus_one
     }
     
     if (!is.null(q)) {
         if (any(q < 0)) stop("q is non-positive")
         if (!smooth && !all(q %% 1 == 0)) stop("q is non-integer")
-        q <- q + as.integer(object$plus_one) 
+        q <- q + plus_one 
     }
     
     if (!(y %in% names(newdata)) && is.null(q)) {
@@ -43,7 +46,7 @@ predict.cotram <- function(object, newdata = model.frame(object),
                        K = K, prob = prob, ...)
         
         if (type == "quantile") {
-            ret <- ret - as.integer(object$plus_one)
+            ret <- ret - plus_one
             names <- dimnames(ret)
             zero <- array(0, dim = length(ret))
             if (is.matrix(ret)) zero <- matrix(0, nrow = nrow(ret), ncol = ncol(ret))
@@ -82,13 +85,13 @@ predict.cotram <- function(object, newdata = model.frame(object),
             if (type == "loghazard") {
                 ret <- d - log1p(-(p - exp(d)))
             } else {
-                ret <- d/(1 - (p - d))
+                ret <- d / (1 - (p - d))
             }
         }
     }
     
     if (!is.null(dimnames(ret)[[y]]))
-        dimnames(ret)[[y]] <- as.numeric(dimnames(ret)[[y]]) - as.integer(object$plus_one)
+        dimnames(ret)[[y]] <- as.numeric(dimnames(ret)[[y]]) - plus_one
     
     return(ret)
 }
