@@ -26,21 +26,21 @@ confband(m1, type = "distribution", newdata = model.frame(m1)[3, ],
 
 
 if (FALSE){
-        layout(matrix(1:2, nrow = 1))
-        type = "trafo"
-        nd <- model.frame(m1)[3,]
-        cb <- confband(m1, type =  type, newdata = nd)
-        plot(m1, type = type, newdata = nd, 
-             confidence = "band", col = "red", ylim = c(-2, 15))
-        lines(x = cb[, "q"], y = cb[, "lwr"], type = "s")
-        lines(x = cb[, "q"], y = cb[, "upr"], type = "s")
-        
-        cb.s <- confband(m1, type = type, newdata = nd, 
-                       smooth = TRUE)
-        plot(m1, type = type, newdata = nd, 
-             confidence = "band", col = "red", smooth = TRUE, ylim = c(-2, 15))
-        lines(x = cb.s[, "q"], y = cb.s[, "lwr"], type = "l")
-        lines(x = cb.s[, "q"], y = cb.s[, "upr"], type = "l")
-        }
+layout(matrix(1:2, nrow = 1))
+type = "trafo"
+nd <- model.frame(m1)[3,]
+cb <- confband(m1, type =  type, newdata = nd)
+plot(m1, type = type, newdata = nd, 
+     confidence = "band", col = "red", ylim = c(-2, 15))
+lines(x = cb[, "q"], y = cb[, "lwr"], type = "s")
+lines(x = cb[, "q"], y = cb[, "upr"], type = "s")
+
+cb.s <- confband(m1, type = type, newdata = nd, 
+                 smooth = TRUE)
+plot(m1, type = type, newdata = nd, 
+     confidence = "band", col = "red", smooth = TRUE, ylim = c(-2, 15))
+lines(x = cb.s[, "q"], y = cb.s[, "lwr"], type = "l")
+lines(x = cb.s[, "q"], y = cb.s[, "upr"], type = "l")
+}
 
 
