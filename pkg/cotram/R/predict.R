@@ -82,9 +82,6 @@ predict.cotram <- function(object, newdata = model.frame(object),
                         type = "distribution", q = q_m1, K = K, prob = prob, ...)
             if (type == "logdensity") ret <- log(ret)
         }
-        
-        if (!is.null(dimnames(ret)[[y]]))
-          dimnames(ret)[[y]] <- as.numeric(dimnames(ret)[[y]]) - plus_one
 
         ### discrete hazard function
         if (type %in% c("hazard", "loghazard")) {
@@ -98,6 +95,10 @@ predict.cotram <- function(object, newdata = model.frame(object),
             }
         }
     }
+    
+    ## correct dimnames
+    if (!is.null(dimnames(ret)[[y]]))
+      dimnames(ret)[[y]] <- as.numeric(dimnames(ret)[[y]]) - plus_one
     
     return(ret)
 }
