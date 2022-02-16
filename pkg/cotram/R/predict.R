@@ -8,6 +8,8 @@ predict.cotram <- function(object, newdata = model.frame(object),
     type <- match.arg(type)
     
     y <- variable.names(object, "response")
+    
+    ## original newdata & q for internal calls of predict.cotram
     nd <- newdata
     nq <- q
     
@@ -19,13 +21,11 @@ predict.cotram <- function(object, newdata = model.frame(object),
         if (!smooth && !all(newdata[,y] %% 1 == 0)) stop("response is non-integer")
         newdata[,y] <- newdata[,y] + plus_one
     }
-    
     if (!is.null(q)) {
         if (any(q < 0)) stop("q is non-positive")
         if (!smooth && !all(q %% 1 == 0)) stop("q is non-integer")
         q <- q + plus_one 
     }
-    
     ## generate quantiles if response not in newdata & no q given
     if (!(y %in% names(newdata)) && is.null(q)) {
         q <- mkgrid(object, n = K)[[y]] + plus_one
@@ -33,6 +33,8 @@ predict.cotram <- function(object, newdata = model.frame(object),
             q <- seq(from = min(q), to = max(q), length.out = K)
     }
     
+    
+    ## linear predictor
     if (type == "lp") {
         ret <- model.matrix(object, data = newdata) %*% 
             coef(object, with_baseline = FALSE)
@@ -46,6 +48,7 @@ predict.cotram <- function(object, newdata = model.frame(object),
         ret <- predict(as.mlt(object), newdata = newdata, type = type, q = q,
                        K = K, prob = prob, ...)
         
+        ### smooth quantile function
         if (type == "quantile") {
             ret <- ret - plus_one
             names <- dimnames(ret)
@@ -64,6 +67,7 @@ predict.cotram <- function(object, newdata = model.frame(object),
         ret <- predict(as.mlt(object), newdata = newdata, type = type, q = q,
                        K = K, prob = prob, ...)
         
+        ### discrete density function
         if (length(grep("density", type)) > 0) {
             
             newdata_m1 <- newdata
@@ -78,9 +82,13 @@ predict.cotram <- function(object, newdata = model.frame(object),
                         type = "distribution", q = q_m1, K = K, prob = prob, ...)
             if (type == "logdensity") ret <- log(ret)
         }
+        
+        if (!is.null(dimnames(ret)[[y]]))
+          dimnames(ret)[[y]] <- as.numeric(dimnames(ret)[[y]]) - plus_one
 
         ### discrete hazard function
         if (type %in% c("hazard", "loghazard")) {
+          ## use predict.cotram
             d <- predict(object, newdata = nd, q = nq, type = "density", ...)
             p <- predict(object, newdata = nd, q = nq, type = "distribution", ...)
             if (type == "loghazard") {
@@ -90,9 +98,6 @@ predict.cotram <- function(object, newdata = model.frame(object),
             }
         }
     }
-    
-    if (!is.null(dimnames(ret)[[y]]))
-        dimnames(ret)[[y]] <- as.numeric(dimnames(ret)[[y]]) - plus_one
     
     return(ret)
 }
