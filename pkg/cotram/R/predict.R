@@ -8,6 +8,8 @@ predict.cotram <- function(object, newdata = model.frame(object),
     type <- match.arg(type)
     
     y <- variable.names(object, "response")
+    nd <- newdata
+    nq <- q
     
     ## y + 1 for log_first
     plus_one <- as.integer(object$log_first)
@@ -79,8 +81,8 @@ predict.cotram <- function(object, newdata = model.frame(object),
 
         ### discrete hazard function
         if (type %in% c("hazard", "loghazard")) {
-            d <- predict(object, newdata = newdata, q = q, type = "density", ...)
-            p <- predict(object, newdata = newdata, q = q, type = "distribution", ...)
+            d <- predict(object, newdata = nd, q = nq, type = "density", ...)
+            p <- predict(object, newdata = nd, q = nq, type = "distribution", ...)
             if (type == "loghazard") {
                 ret <- d - log1p(-(p - exp(d)))
             } else {
