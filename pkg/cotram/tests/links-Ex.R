@@ -70,10 +70,14 @@ for (log_first in c(FALSE, TRUE)) {
     mc <- cotram(as.formula(y ~ x), data = d, method = link, log_first = log_first)
     # print(mc)
     
+    ## check model.frame
+    stopifnot(all.equal(nd <- model.frame(mc), d[names(nd)], check.attributes = FALSE))
+    
     tram <- unname(trams[link])
     m <- do.call(tram, list(formula = yi ~ x, support = mc$support, bounds = mc$bounds, log_first = log_first))
     # print(m)
     
+    ## check if same model
     stopifnot(mc$model$todistr$name == m$model$todistr$name)
     
     .check_cf(m, mc)
