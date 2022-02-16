@@ -1,61 +1,86 @@
-## comparing log-likelihoods and coefficients
+## check links
 
 library("cotram")
 library("survival")
 
 set.seed(29)
 
-## dgp
+### check coefficients
+.check_cf <- function(tram.model, cotram.model) {
+
+  cfc <- coef(as.mlt(mc))
+  
+  cf <- coef(c <- as.mlt(m))
+  cf[c$shiftcoef] <- c(-1, 1)[(m$negative & mc$negative) + 1] * cf[c$shiftcoef]
+  
+  ## check tram vs cotram coefs
+  stopifnot(all.equal(cf, cfc, check.attributes = FALSE))
+  
+  # print(paste("coefficients all equal for tram & cotram, for log_first = ", mc$log_first, " and ", 
+  #             mc$model$todistr$name, " inv. link.", sep = "'"))
+}
+
+### check log-likelihood
+.check_ll <- function(tram.model, cotram.model) {
+
+  ## simple check wrt to newdata
+  stopifnot(logLik(mc) == logLik(mc, newdata = model.frame(mc)))
+  
+  ## likelihood contributions interval-censored
+  L <- predict(m, newdata = data.frame(yi = d$y + as.integer(log_first), x = d$x), type = "distribution") -
+    predict(m, newdata = data.frame(yi = d$y + as.integer(log_first) - 1L, x = d$x), type = "distribution")
+  
+  ## check interval-censored vs cotram log-likelihoods
+  stopifnot(all.equal(log(L), mc$logliki(coef(as.mlt(mc)), mc$weights), check.attributes = FALSE))
+  
+  ## check tram vs cotram log-likelihoods
+  stopifnot(all.equal(m$logliki(coef(as.mlt(m)), m$weight), mc$logliki(coef(as.mlt(mc)), mc$weight)))
+  
+  # print(paste("log-likelihoods all equal for tram & cotram, for log_first = ", mc$log_first, " and ", 
+  #             mc$model$todistr$name, " inv. link.", sep = "'"))
+}
+
+### run checks for log_first = FALSE / TRUE & all links
+## dgp counts
 n <- 200
 x <- runif(n)
 y <- as.integer(rnbinom(n, mu = exp(.5 + .8 * x), size = 10))
-yn <- as.numeric(y)
 
-## interval censored counts
-yleft <- y - 1L
-yleft[yleft < 0] <- -Inf
-yi1 <- Surv(yleft, y, type = "interval2")
-yip1 <- Surv(yleft + 1L, y + 1L, type = "interval2")
+## trams & cotrams
+links <- c("logit", "cloglog", "loglog", "probit")
+trams <- c("logit" = "Colr", "cloglog" = "Coxph", "loglog" = "Lehmann", "probit" = "BoxCox")
 
-df <- data.frame(x = x, y = y, yn = yn, yip1 = yip1)
-
-trainID <- sample(1:nrow(df), size = 0.25 * nrow(df))
-d <- df[trainID,]
-nd <- df[-trainID,]
-
-## test model
-m1 <- cotram(y ~ x, data = d, method = "cloglog", 
-              log_first = TRUE)
-
-m1n <- cotram(yn ~ x, data = d, method = "cloglog",
-              log_first = TRUE)
-
-m2 <- Coxph(yip1 ~ x, data = d, support = m1$support, bounds = m1$bounds,
-            log_first = TRUE)
-
-m3 <- cotram(y ~ x , data = d, method = "cloglog",
-              log_first = FALSE)
-
-
-## compare coefficients
-cf1 <- coef(as.mlt(m1))
-# cf1n <- coef(as.mlt(m1n))
-# stopifnot(all.equal(cf1n, cf1, check.attributes = FALSE))
-
-c2 <- as.mlt(m2)
-cf2 <- coef(c2)
-cf2[c2$shiftcoef] <- -cf2[c2$shiftcoef]
-stopifnot(all.equal(cf1, cf2, check.attributes = FALSE))
-
-# compare likelihoods
-l1 <- m1$logliki(coef(as.mlt(m1)), rep(1, length(d$y)))
-l1n <- m1$logliki(coef(as.mlt(m1n)), rep(1, length(d$yn)))
-stopifnot(all.equal(l1, l1n))
-
-l2 <- m2$logliki(coef(as.mlt(m2)), rep(1, length(d$yp1)))
-stopifnot(all.equal(l1, l2))
-
-# logLik for newdata
-stopifnot(isTRUE(logLik(m1) == logLik(m1, newdata = d)))
-stopifnot(isTRUE(logLik(m1, newdata = nd) == logLik(m2, newdata = nd)))
-stopifnot(isTRUE(logLik(m1, newdata = nd) == logLik(m1n, newdata = nd)))
+## run
+for (log_first in c(FALSE, TRUE)) {
+  
+  # print(log_first)
+  
+  ## plus_one for log_first = TRUE
+  plus_one <- as.integer(log_first)
+  
+  ## interval censored counts
+  yleft <- y - 1L
+  yleft[yleft < 0] <- -Inf
+  yi <- Surv(yleft + plus_one, y + plus_one, type = "interval2")
+  
+  d <- data.frame(y = y, yi = yi, x = x)
+  
+  for (link in links) {
+    # print(link)
+    mc <- cotram(as.formula(y ~ x), data = d, method = link, log_first = log_first)
+    # print(mc)
+    
+    ## check model.frame
+    stopifnot(all.equal(nd <- model.frame(mc), d[names(nd)], check.attributes = FALSE))
+    
+    tram <- unname(trams[link])
+    m <- do.call(tram, list(formula = yi ~ x, support = mc$support, bounds = mc$bounds, log_first = log_first))
+    # print(m)
+    
+    ## check if same model
+    stopifnot(mc$model$todistr$name == m$model$todistr$name)
+    
+    .check_cf(m, mc)
+    .check_ll(m, mc)
+  }
+}
