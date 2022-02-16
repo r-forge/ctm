@@ -4,12 +4,11 @@ options(digits = 2)
 
 set.seed(25)
 
-
 ## dgp
 n <- 200
 x <- runif(n, 0, 20)
 y <- as.integer(rnbinom(n, mu = exp(.2 + .1 * x), size = 3))
-d <- data.frame(x = x, y)
+d <- data.frame(y = y, x = x)
 
 m <- cotram(y ~ x, data = d)
 

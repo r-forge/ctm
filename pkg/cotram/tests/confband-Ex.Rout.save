@@ -27,12 +27,11 @@ Loading required package: variables
 > 
 > set.seed(25)
 > 
-> 
 > ## dgp
 > n <- 200
 > x <- runif(n, 0, 20)
 > y <- as.integer(rnbinom(n, mu = exp(.2 + .1 * x), size = 3))
-> d <- data.frame(x = x, y)
+> d <- data.frame(y = y, x = x)
 > 
 > m <- cotram(y ~ x, data = d)
 > 
@@ -139,4 +138,4 @@ Loading required package: variables
 > 
 > proc.time()
    user  system elapsed 
-  1.727   0.049   1.766 
+  1.676   0.073   1.734 
