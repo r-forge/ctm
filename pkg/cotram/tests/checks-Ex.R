@@ -14,19 +14,23 @@ m <- cotram(y ~ x, log_first = TRUE)
 mm <- cotram(y ~ x, log_first = FALSE)
 
 ## ---- checks for y > 0 and y %% 1 == 0 ----
+
+## check that it returns an error if non-positive & non-integers
+.check_error <- function(expr) stopifnot(class(try(expr)) == "try-error")
+
 ym <- -y
-try(cotram(ym ~ x))
+.check_error(cotram(ym ~ x))
 yn <- y/2
-try(cotram(yn ~ x))
+.check_error(cotram(yn ~ x))
 
-try(logLik(mm, newdata = data.frame(y = ym, x = x)))
-try(logLik(mm, newdata = data.frame(y = yn, x = x)))
+.check_error(logLik(mm, newdata = data.frame(y = ym, x = x)))
+.check_error(logLik(mm, newdata = data.frame(y = yn, x = x)))
 
-try(predict(mm, newdata = data.frame(y = ym, x = x)))
-try(predict(mm, newdata = data.frame(y = yn, x = x)))
+.check_error(predict(mm, newdata = data.frame(y = ym, x = x)))
+.check_error(predict(mm, newdata = data.frame(y = yn, x = x)))
 
-try(plot(mm, newdata = data.frame(y = ym, x = x)))
-try(plot(mm, newdata = data.frame(y = yn, x = x)))
+.check_error(plot(mm, newdata = data.frame(y = ym, x = x)))
+.check_error(plot(mm, newdata = data.frame(y = yn, x = x)))
 
-try(plot(mm, q = ym, newdata = model.frame(mm)))
-try(plot(mm, q = yn, newdata = model.frame(mm)))
+.check_error(plot(mm, q = ym, newdata = model.frame(mm)))
+.check_error(plot(mm, q = yn, newdata = model.frame(mm)))
