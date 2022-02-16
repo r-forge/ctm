@@ -5,8 +5,8 @@ library("survival")
 
 set.seed(29)
 
-### check coefficients
-.check_cf <- function(tram.model, cotram.model) {
+### check coefficients (tram vs cotram model)
+.check_cf <- function(m, mc) {
 
   cfc <- coef(as.mlt(mc))
   
@@ -20,8 +20,8 @@ set.seed(29)
   #             mc$model$todistr$name, " inv. link.", sep = "'"))
 }
 
-### check log-likelihood
-.check_ll <- function(tram.model, cotram.model) {
+### check log-likelihood (tram vs cotram model)
+.check_ll <- function(m, mc) {
 
   ## simple check wrt to newdata
   stopifnot(logLik(mc) == logLik(mc, newdata = model.frame(mc)))
