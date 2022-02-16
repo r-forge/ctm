@@ -7,6 +7,8 @@ R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
 Type 'license()' or 'licence()' for distribution details.
 
+  Natural language support but running in an English locale
+
 R is a collaborative project with many contributors.
 Type 'contributors()' for more information and
 'citation()' on how to cite R or R packages in publications.
@@ -27,19 +29,17 @@ Loading required package: variables
 > 
 > 
 > ## dgp
-> dgp <- function(n = 200, seed = 25){
-+         set.seed(seed)
-+         x <- runif(n, 0, 20)
-+         y <- as.integer(rnbinom(n, mu = exp(.2 + .1 * x), size = 3))
-+         data.frame(x = x, y)
-+ }
+> n <- 200
+> x <- runif(n, 0, 20)
+> y <- as.integer(rnbinom(n, mu = exp(.2 + .1 * x), size = 3))
+> d <- data.frame(x = x, y)
 > 
-> y <- 1:10
-> m1 <- cotram(y ~ x, data = dgp())
+> m <- cotram(y ~ x, data = d)
 > 
+> nd <- model.frame(m)[3,]
 > 
 > ## Confband for grid of counts
-> confband(m1, type = "distribution", newdata = model.frame(m1)[3,])
+> confband(m, type = "distribution", newdata = nd)
       q Estimate  lwr  upr
 3     0     0.25 0.16 0.38
 3.1   1     0.57 0.44 0.69
@@ -75,8 +75,7 @@ Loading required package: variables
 3.31 31     1.00 1.00 1.00
 > 
 > ## Confband for K grid points
-> confband(m1, type = "distribution", newdata = model.frame(m1)[3, ],
-+                  smooth = TRUE, K = 40)
+> confband(m, type = "distribution", newdata = nd, smooth = TRUE, K = 40)
          q Estimate  lwr  upr
 3     0.00     0.25 0.16 0.38
 3.1   0.79     0.53 0.35 0.70
@@ -121,25 +120,23 @@ Loading required package: variables
 > 
 > 
 > if (FALSE){
-+         layout(matrix(1:2, nrow = 1))
-+         type = "trafo"
-+         nd <- model.frame(m1)[3,]
-+         cb <- confband(m1, type =  type, newdata = nd)
-+         plot(m1, type = type, newdata = nd, 
-+              confidence = "band", col = "red", ylim = c(-2, 15))
-+         lines(x = cb[, "q"], y = cb[, "lwr"], type = "s")
-+         lines(x = cb[, "q"], y = cb[, "upr"], type = "s")
-+         
-+         cb.s <- confband(m1, type = type, newdata = nd, 
-+                        smooth = TRUE)
-+         plot(m1, type = type, newdata = nd, 
-+              confidence = "band", col = "red", smooth = TRUE, ylim = c(-2, 15))
-+         lines(x = cb.s[, "q"], y = cb.s[, "lwr"], type = "l")
-+         lines(x = cb.s[, "q"], y = cb.s[, "upr"], type = "l")
-+         }
-> 
++ layout(matrix(1:2, nrow = 1))
++ type = "trafo"
++ 
++ cb <- confband(m, type =  type, newdata = nd)
++ plot(m, type = type, newdata = nd, 
++      confidence = "band", col = "red", ylim = c(-2, 15))
++ lines(x = cb[, "q"], y = cb[, "lwr"], type = "s")
++ lines(x = cb[, "q"], y = cb[, "upr"], type = "s")
++ 
++ cb.s <- confband(m, type = type, newdata = nd, smooth = TRUE)
++ plot(m, type = type, newdata = nd, smooth = TRUE,
++      confidence = "band", col = "red", ylim = c(-2, 15))
++ lines(x = cb.s[, "q"], y = cb.s[, "lwr"], type = "l")
++ lines(x = cb.s[, "q"], y = cb.s[, "upr"], type = "l")
++ }
 > 
 > 
 > proc.time()
    user  system elapsed 
-  1.278   0.044   1.316 
+  1.727   0.049   1.766 
