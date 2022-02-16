@@ -88,11 +88,8 @@ predict.cotram <- function(object, newdata = model.frame(object),
           ## use predict.cotram
             d <- predict(object, newdata = nd, q = nq, type = "density", ...)
             p <- predict(object, newdata = nd, q = nq, type = "distribution", ...)
-            if (type == "loghazard") {
-                ret <- d - log1p(-(p - exp(d)))
-            } else {
-                ret <- d / (1 - (p - d))
-            }
+            if (type == "loghazard") return(d - log1p(-(p - exp(d))))
+            return(d / (1 - (p - d)))
         }
     }
     
