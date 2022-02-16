@@ -15,11 +15,14 @@ mm <- cotram(y ~ x, log_first = FALSE)
 
 ## ---- checks for y > 0 and y %% 1 == 0 ----
 
-## check that it returns an error if non-positive & non-integers
+## check that it returns a error for non-positive & non-integers
 .check_error <- function(expr) stopifnot(class(try(expr)) == "try-error")
 
+## negative y
 ym <- -y
 .check_error(cotram(ym ~ x))
+
+## non-integer y
 yn <- y/2
 .check_error(cotram(yn ~ x))
 
@@ -31,6 +34,9 @@ yn <- y/2
 
 .check_error(plot(mm, newdata = data.frame(y = ym, x = x)))
 .check_error(plot(mm, newdata = data.frame(y = yn, x = x)))
+
+.check_error(confband(mm, q = ym, newdata = model.frame(mm)))
+.check_error(confband(mm, q = yn, newdata = model.frame(mm)))
 
 .check_error(plot(mm, q = ym, newdata = model.frame(mm)))
 .check_error(plot(mm, q = yn, newdata = model.frame(mm)))
