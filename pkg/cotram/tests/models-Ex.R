@@ -84,3 +84,14 @@ for (log_first in c(FALSE, TRUE)) {
     .check_ll(m, mc)
   }
 }
+
+## additional checks for plus_one
+d0 <- data.frame(y = q <- 0L:100L, x = runif(length(q)))
+
+m0 <- cotram(y ~ x, log_first = TRUE, data = d0)
+
+stopifnot(all(mkgrid(m0)$y == q)) ## mkgrid  for log_first
+
+m0 <- cotram(y ~ x, log_first = FALSE, data = d0)
+
+stopifnot(all(mkgrid(m0)$y == q)) ## mkgrid 
