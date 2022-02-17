@@ -7,7 +7,7 @@ set.seed(25)
 ### some basic checks for predictions wrt discrete distributions
 n <- 50
 d <- data.frame(x1 = 0:n, x2 = sample(0:n) + 1, q = sample(0:n))
-mc3 <- cotram(q ~ x1 + x2, data = d, log_first = log_first <- TRUE)
+mc3 <- cotram(q ~ x1 + x2, data = d, log_first = log_first <- FALSE)
 
 di <- d
 di$qleft <- with(di, q - 1L)
@@ -98,16 +98,19 @@ pr <- 1:9/10
 }
 
 ## cotram: log_first = FALSE
-mc1 <- cotram(y ~ 1, log_first = FALSE, prob = prob <- .99, extrapolat = TRUE)
+mc1 <- cotram(y ~ 1, log_first = FALSE, prob = prob <- .99, extrapolate = TRUE)
 
 .check_prd(mc1)
 
 m1 <- Colr(yi ~ 1, data = data.frame(yi = Surv(yleft, y, type = "interval2")), extrapolate = TRUE,
             log_first = FALSE, support = c(0, quantile(y, prob = prob)), bounds = c(-.01, Inf))
 
-## <FIXME>
-# predict(mc1, newdata = data.frame(1), q = q, prob = pr, type = "quantile",
-#         smooth = TRUE)
+## <FIXME> quantiles with q
+# m1p <- Colr(y ~ 1, extrapolate = TRUE,
+#            log_first = FALSE, support = c(0, quantile(y, prob = prob)), bounds = c(-.01, Inf))
+# 
+# predict(m1p, type = "quantile", prob = pr, newdata = model.frame(y = y))
+# predict(mc1, type = "quantile", prob = pr, smooth = TRUE, newdata = model.frame(y = y))
 ## <\FIXME>
 
 ## cotram: log_first = TRUE
