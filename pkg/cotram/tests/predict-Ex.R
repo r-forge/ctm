@@ -12,8 +12,8 @@ mc3 <- cotram(q ~ x1 + x2, data = d, log_first = log_first <- TRUE)
 di <- d
 di$qleft <- with(di, q - 1L)
 di$qleft[di$qleft < 0] <- -Inf
-m3 <- Colr(q ~ x1 + x2, data = data.frame(q = Surv(di$qleft + log_first, di$q + log_first, type = "interval2"), x1 = di$x1, x2 = di$x2),
-           support = mc3$support, bounds = mc3$bounds, log_first = log_first)
+di$q <- with(di, Surv(qleft + log_first, q + log_first, type = "interval2"))
+m3 <- Colr(q ~ x1 + x2, data = di, support = mc3$support, bounds = mc3$bounds, log_first = log_first)
 
 .chk <- function(x)
   stopifnot(max(abs(x), na.rm = TRUE) < sqrt(.Machine$double.eps))
