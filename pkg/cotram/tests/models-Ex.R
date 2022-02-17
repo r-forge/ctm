@@ -10,6 +10,7 @@ set.seed(29)
 
   cfc <- coef(as.mlt(mc))
   
+  ## tram coefs for negative = TRUE
   cf <- coef(c <- as.mlt(m))
   cf[c$shiftcoef] <- c(-1, 1)[(m$negative & mc$negative) + 1] * cf[c$shiftcoef]
   
@@ -19,6 +20,7 @@ set.seed(29)
   # print(paste("coefficients all equal for tram & cotram, for log_first = ", mc$log_first, " and ", 
   #             mc$model$todistr$name, " inv. link.", sep = "'"))
 }
+
 
 ### check log-likelihood (tram vs cotram model)
 .check_ll <- function(m, mc) {
@@ -40,6 +42,7 @@ set.seed(29)
   #             mc$model$todistr$name, " inv. link.", sep = "'"))
 }
 
+
 ### run checks for log_first = FALSE / TRUE & all links
 ## dgp counts
 n <- 200
@@ -58,7 +61,7 @@ for (log_first in c(FALSE, TRUE)) {
   ## plus_one for log_first = TRUE
   plus_one <- as.integer(log_first)
   
-  ## interval censored counts
+  ## counts as interval censored object
   yleft <- y - 1L
   yleft[yleft < 0] <- -Inf
   yi <- Surv(yleft + plus_one, y + plus_one, type = "interval2")
@@ -84,6 +87,7 @@ for (log_first in c(FALSE, TRUE)) {
     .check_ll(m, mc)
   }
 }
+
 
 ## additional checks for plus_one
 d0 <- data.frame(y = q <- 0L:100L, x = runif(length(q)))
