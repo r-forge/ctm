@@ -1,4 +1,4 @@
-## cotram: test checks and settings
+## test checks and settings
 
 library("cotram")
 set.seed(25)
@@ -15,7 +15,7 @@ mm <- cotram(y ~ x, log_first = FALSE)
 
 ## ---- checks for y > 0 and y %% 1 == 0 ----
 
-## check that it returns a error for non-positive & non-integers
+## quick check that it returns a error for non-positive & non-integers
 .check_error <- function(expr) stopifnot(class(try(expr)) == "try-error")
 
 ## negative y
