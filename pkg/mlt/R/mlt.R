@@ -396,7 +396,7 @@
             ret$hessian <- function(beta, weights) {
                 # warning("Analytical Hessian not available, using numerical approximation")
                 ret <- numDeriv::hessian(loglikfct, beta, weights = weights)
-                rownames(ret) <- colnames(ret) <- colnames(Y)
+                rownames(ret) <- colnames(ret) <- names(beta)
                 return(ret)
             }
         } else {
