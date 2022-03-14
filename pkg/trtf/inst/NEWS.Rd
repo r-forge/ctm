@@ -5,6 +5,7 @@
 \section{Changes in Version 0.4-0 (2022-01-19)}{
   \itemize{
     \item{New \code{intercept} argument for residual-based tree induction (shift and scale).}
+    \item{Plot discrete distributions.}
   }
 }
 
