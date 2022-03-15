@@ -96,6 +96,9 @@ col <- diverge_hcl(2, h = c(246, 40), c = 120, l = c(65, 90), alpha = .75)
 
 \newcommand\Torsten[1]{{\color{blue}Torsten: ``#1''}}
 
+\newcommand{\THcite}[2]{\citeauthor{#2} (\citeyear{#2})}
+
+
 \newcommand\norm[1]{\left\lVert#1\right\rVert}
 
 \newcommand{\CTM}{CTM Likelihood Boosting}
@@ -588,13 +591,13 @@ if (any(!pkgs))
 \section{Introduction}
 
 The purpose of this document is to compare marginally interpretable linear
-transformation models for clustered observations 
+transformation models for clustered observations \TODO{update ref}
 \citep{Hothorn_2019_mtram} to conventional conditional
 formulations of mixed-effects models where such an overlap exists.  In
 addition, novel transformation models going beyond the capabilities of
 convential mixed-effects models are estimated and interpreted.  A
 proof-of-concept implementation (meaning: the algorithms work but need
-optimisation, the user interface is very rough) available in package
+optimisation, the user interface is very rough \TODO{is this still true?}) available in package
 \pkg{tram} \citep{pkg:tram} is applied. The results presented in this
 document can be reproduced from the \code{mtram} package vignette
 <<mtram-vignette, eval = FALSE>>=
@@ -607,7 +610,10 @@ vignette("mtram", package = "tram")
 First we consider mixed-effects models for reaction times in the sleep
 deprivation study \citep{Belenky_Wesensten_Thorne_2003}.  The average
 reaction times to a specific task over several days of sleep deprivation are
-given for $18$ subjects in Figure~\ref{fig:sleepstudy}.
+given for $i = 1, \dots, N = 18$ subjects in Figure~\ref{fig:sleepstudy}.
+The data are often used to illustrate
+conditional normal linear mixed-effects models with correlated random
+intercepts and slopes. %of the form (\ref{fm:normal})
 
 \begin{figure}[t]
 <<mtram-sleep-plot, echo = FALSE>>=
@@ -758,7 +764,8 @@ transformation function. The function implementing such a more flexible
 model in named in honor of the first paper on the analysis of
 transformed responses by \cite{BoxCox_1964} but it \emph{does not} simply apply
 what is known as a Box-Cox transformation. Bernstein polynomials
-$\h(\ry) = \basisy(\ry)^\top \parm$ under suitable constraints are applied instead by
+$\h(\ry) = \basisy(\ry)^\top \parm$ under suitable constraints 
+\citep{Hothorn_Moest_Buehlmann_2017} are applied instead by
 <<mtram-sleep_BoxCox, cache = TRUE>>=
 sleep_BC <- BoxCox(Reaction ~ Days, data = sleepstudy)
 sleep_BCmer <- mtram(sleep_BC, ~ (Days | Subject), data = sleepstudy, 
@@ -789,6 +796,21 @@ rug(sleepstudy$Reaction, col = rgb(.1, .1, .1, .1))
          \label{fig:sleepstudy_trafo}}
 \end{figure}
 
+Such probit-type mixed-effects models have been studied before, mostly by merging a
+Box-Cox power transformation $\h$ with a grid-search over REML estimates
+\citep{Gurka_Edwards_2006}, a conditional likelihood
+\citep{Hutmacher_French_2011}, or a grid-search maximising the profile
+likelihood \citep{Maruo_Yamaguchi_2017}.  Recently, \THcite{Tang, Wu, and
+Chen}{Tang_Wu_Chen_2018} and \THcite{Wu and Wang}{Wu_Wang_2019}
+proposed a monotone spline parameterisation of $\h$ in a Bayesian context.
+The model presented here was estimated by simultaneously maximising the
+log-likelihood \citep{Hothorn_2019_mtram} %(\ref{fm:cll}) 
+with respect to the parameters $\parm$,
+$\eshiftparm$, and $\varparm$. For a linear Bernstein polynomial of order
+one, the models obtained with this approach and classical maximum likelihood
+estimation in normal linear mixed-effects models are equivalent (up to
+reparameterisation of $\eshiftparm$).% \citep{vign:tram}.
+
 However, what does this finding mean in terms of a direct comparison of the
 model and the data?  Looking at the marginal cumulative distribution
 functions of average reaction time conditional on days of sleep deprivation
@@ -796,7 +818,7 @@ in Figure~\ref{fig:sleepstudy_ecdf} one finds that the non-normal marginal
 transformation models provided a better fit to the marginal empirical
 cumulative distribution functions than the normal marginal models. 
 Especially for short reaction times in the first week of sleep deprivation,
-the yellowish marginal cumulative distribution is much closer to the
+the orange marginal cumulative distribution is much closer to the
 empirical cumulative distribution function representing the marginal
 distribution of reaction times at each single day of study participation.
 
@@ -846,7 +868,7 @@ plotfun("prob", ex, layout = c(5, 2), par.settings = simpleTheme(col=c(grey, col
          study participation. The grey step-function corresponds to the
          empirical cumulative distribution function, the blue line to the
          marginal cumulative distribution of a normal linear mixed-effects model, and
-         the yellowish line to a non-normal linear mixed-effects transformation
+         the orange line to a non-normal linear mixed-effects transformation
          model. \label{fig:sleepstudy_ecdf}}
 \end{figure}
 
@@ -898,9 +920,11 @@ Section~\ref{sec:logit}.
 \section{Binary Probit Mixed-effects Models}
 
 Here we compare different implementations of binary probit mixed models for
-the notoriously difficult toe nail data \citep{Backer_Vroey_1998}. The
+the notoriously difficult toe nail data \citep{backer_vroey_1998}. The
 outcome was categorised to two levels (this being probably the root of all
-troubles) and a conditional density plot (Figure~\ref{fig:toenail}) suggests
+troubles, as quasi-separation issues have been
+reported by \cite{Sauter_Held_2016}).
+A conditional density plot (Figure~\ref{fig:toenail}) suggests
 an improvement in both treatment groups over time, however with a more rapid
 advance in patients treated with terbinafine.
 
@@ -923,6 +947,16 @@ cdplot(outcome ~ time, data = subset(toenail, treatment == trt[2]),
 \label{fig:toenail}}
 \end{figure}
 
+We were interested in binary probit models featuring fixed main and
+interaction effects $\eshiftparm_1$, $\eshiftparm_2$, and $\eshiftparm_3$ of
+treatment (itraconazole vs.~terbinafine) and time.  Subject-specific random
+intercept models and models featuring correlated random intercepts and
+slopes were estimated by the \code{glmer} function from package
+\pkg{lme4} \citep{pkg:lme4}, by the \code{glmm} function from package
+\pkg{glmmsr} \citep{ogden_2015}, and by direct maximisation of the exact
+discrete log-likelihood given in the Appendix of \cite{Hothorn_2019_mtram}.
+% discrete log-likelihood (\ref{fm:dll}) given in Appendix~\ref{app:cens}.
+
 The random intercept probit model fitted by Laplace and Adaptive
 Gauss-Hermite Quadrature (AGQ) approximations to the
 likelihood give quite different results:
@@ -944,7 +978,7 @@ summary(toenail_glmer_RI_2)
 toenail_glmer_RI_2@theta
 @
 
-The sequential reduction (SR) algorithm \citep{Ogden_2015} gives results close to
+The sequential reduction (SR) algorithm \citep{ogden_2015} gives results close to
 AGQ
 <<mtram-toenail_glmmsr_RI, cache = TRUE>>=
 library("glmmsr")
@@ -975,7 +1009,7 @@ coef(toenail_mtram_RI)
 For this random intercept model, the exact likelihood is defined as a
 one-dimensional integral over the unit interval.  We use sparse grids
 \citep{Heiss_Winschel_2008, pkg:SparseGrid} to approximate this integral. 
-The integrant is defined by products of normal probabilities, which are
+The integrand is defined by products of normal probabilities, which are
 approximated as described by \cite{Matic_Radoicic_2018}.  It is important to
 note that this likelihood can be computed as accurately as necessary whereas
 Laplace, AGQ, and SR are approximations of limited accuracy. 
@@ -1063,7 +1097,7 @@ model owing to the better interpretability of the fixed effects as
 conditional log-odds ratios in the latter. Using a logit link, we can use
 the transformation approach to compute marginally interpretable
 time-dependent log-odds ratios from random intercept transformation logit
-models \citep[\cmd{standardise = TRUE} computes model (M2) instead of the
+models \citep[\code{standardise = TRUE} computes model (M2) instead of the
 default (M1), see][]{Hothorn_2019_mtram}:
 <<mtram-toenail_logit, cache = TRUE>>=
 m <- ctm(as.basis(~ outcome, data = toenail), 
@@ -1171,6 +1205,37 @@ xyplot(prob ~ time | model, data = nd2, group = treatment, ylim = c(0, 1),
          models (M2: with or M1: without marginal log-odds ratio treatment
          effect). \label{fig:toenailprob}}
 \end{figure}
+
+\TODO{want to put all numbers in a table like we had in the paper?}
+% The estimated model parameters, along with the discrete log-likelihood
+% (\ref{fm:dll}) evaluated at these parameters, are given in
+% Table~\ref{tab:toenail}.  For the random intercept models, AGQ, SR, and the
+% discrete log-likelihood give the same results, the Laplace approximation
+% seemed to fail.  It was not possible to apply the AGQ and SR approaches to
+% the random intercept / random slope model.  The two implementations of the
+% Laplace approximation in packages \pkg{lme4} and \pkg{glmmsr} differed
+% quite a bit.  The log-likelihood obtained by direct maximisation of
+% (\ref{fm:dll}) resulted in the best fitting model with the least extreme
+% parameter estimates.  Computing times for all procedures were comparable.
+% 
+% \begin{table}
+% \begin{center}
+% \input{toenail.tex}
+% \caption{Toe nail data. Binary probit models featuring fixed intercepts
+% $\alpha$, treatment effects $\eshiftparm_1$, time effects $\eshiftparm_2$,
+% and time-treatment interactions $\eshiftparm_3$ are compared.
+% Random intercept (RI) and
+% random intercept/random slope (RI + RS) models were estimated by the Laplace (L),
+% Adaptive Gauss-Hermite Quadrature (AGQ), an Sequential
+% Reduction (SR) approximations to the likelihood (implemented in packages
+% \pkg{lme4} and \pkg{glmmsr}). In addition, the exact discrete
+% log-likelihood (\ref{fm:dll}) was used for model fitting and evaluation (the
+% in-sample log-likelihood (\ref{fm:dll}) for all models and timings
+% of all procedures are given in the last two lines).
+% \label{tab:toenail}
+% }
+% \end{center}
+% \end{table}
 
 
 \section{Proportional Odds Models for Bounded Responses} \label{sec:logit}
@@ -1537,7 +1602,7 @@ orgAcc <- subset(orgA, cc)
 
 \cite{Pollet2009} reported on an association between partner wealth and
 female self-reported orgasm frequency.  It was later
-\citep{Herberich+Hothorn+Nettle+Pollet2010} pointed out that the finding was
+pointed out \citep{Herberich+Hothorn+Nettle+Pollet2010} that the finding was
 due to an incorrectly implemented variable selection procedure based on a
 proportional odds (cumulative logit) model for the ordinal variable
 corresponding to the question ``When having sex with your current partner,
@@ -1556,8 +1621,10 @@ China) of the form
 \end{eqnarray*}
 %
 for $i = 1, \dots, N = \Sexpr{nrow(orgAcc)}$ independent heterosexual 
-couples. In this model, the regression coefficients $\shiftparm$ can be
-interpreted as log-odds ratios and we question the appropriateness of this
+couples. In this model, the threshold parameters $\eparm_1,
+\dots, \eparm_4$ are monotonically increasing and independent of $\rx$,
+which implies the proportional odds property, and the regression coefficients 
+$\shiftparm$ can be interpreted as log-odds ratios. We question the appropriateness of this
 model here by including a subject-specific random intercept with standard
 deviation $\gamma_1$. This changes the model to
 \begin{eqnarray*}
@@ -1570,6 +1637,9 @@ very similar to the proportional odds model and, consequently, it is
 appropriate to interpret $\shiftparm$ as log-odds ratios. Larger values of
 $\gamma_1$ indicate a more variable distribution and thus the choice $\pZ =
 \text{expit}$ might be questionable.
+\THcite{McLain and Ghosh}{McLain_Ghosh_2013} used a
+differently parameterised link function $\pZ$ and pointed to an equivalent
+interpretation as unobserved heterogeneity. 
 
 We obtain
 <<mtram-CHFLS-Polr, cache = TRUE>>=
@@ -1583,9 +1653,14 @@ CHFLS_mtram <- mtram(CHFLS_Polr, ~ (1 | ID),
 logLik(CHFLS_mtram)
 coef(CHFLS_mtram)
 @
-and from $\hat{\gamma}_1 = \Sexpr{round(coef(CHFLS_mtram)["gamma1"], 3)}$ 
-can conclude that the proportional odds model is appropriate here.
+% and from $\hat{\gamma}_1 = \Sexpr{round(coef(CHFLS_mtram)["gamma1"], 3)}$ 
+% can conclude that the proportional odds model is appropriate here.
 
+With $\hat{\gamma}_1 = \Sexpr{round(coef(CHFLS_mtram)["gamma1"], 3)}$ 
+and almost identical log-likelihoods for both models ($-1852.615$ without
+and $-1852.829$ with variance parameter $\gamma_1$), the amount of
+unexplained variation seems negligible and interpretation of the effects
+as log-odds ratios is appropriate.
 
 \bibliography{mlt,packages}
 
