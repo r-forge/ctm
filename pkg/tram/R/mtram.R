@@ -5,22 +5,23 @@
 mtram <- function(object, formula, data, standardise = FALSE,
                   grd = SparseGrid::createSparseGrid(type = "KPU", dimension = length(rt$cnms[[1]]), 
                                                      k = 10),
-                  Hessian = FALSE,
+                  Hessian = FALSE, tol = .Machine$double.eps,
+                  grad_num = FALSE,
                   ...) {
-
+    
     stopifnot(inherits(object, "mlt_fit"))
-
+    
     bar.f <- lme4::findbars(formula)
     mf <- model.frame(lme4::subbars(formula), data = data)
     rt <- lme4::mkReTrms(bar.f, mf)
-
+    
     ZtW <- rt$Zt
     Lambdat <- rt$Lambdat
     Lind <- rt$Lind
     mapping <- function(theta)
         theta[Lind]
     theta <- rt$theta
-
+    
     eY <- get("eY", environment(object$loglik))
     iY <- get("iY", environment(object$loglik))
     fixed <- get("fixed", environment(object$loglik))
@@ -42,37 +43,66 @@ mtram <- function(object, formula, data, standardise = FALSE,
     }
     if (length(eY$which) > 0 && length(iY$which))
         stop("cannot deal with mixed censoring")
-
+    
     w <- object$weights
-
+    
     NORMAL <- FALSE
     if (object$todistr$name == "normal") {
         NORMAL <- TRUE
         PF <- function(z) z
     } else {
         P <- object$todistr$p
-        PF <- function(z) qnorm(P(z))
+        PF <- function(z) qnorm(pmin(1 - tol, pmax(tol, P(z))))
     }
-
+    
     gr <- NULL
-
+    
+    ### catch constraint violations here
+    .log <- function(x) {
+        return(log(pmax(.Machine$double.eps, x)))
+        pos <- (x > .Machine$double.eps)
+        if (all(pos)) return(log(x))
+        ret[pos] <- log(x[pos])
+        return(ret)
+    }
+    
+    ## continuous case
     if (length(eY$which) > 0) {
-        if (standardise) stop("standardise not yet implemented for continuous case")
-        L <- Cholesky(crossprod(Lambdat %*% ZtW), LDL = FALSE, Imult=1)
+        L <- Cholesky(crossprod(Lambdat %*% ZtW), LDL = FALSE, Imult = 1)
+        
         ll <- function(parm) {
             theta <- parm[1:ncol(eY$Y)]
             gamma <- parm[-(1:ncol(eY$Y))]
-            z <- PF(c(eY$Y %*% theta + offset))
+            
             Lambdat@x[] <- mapping(gamma)
             L <- update(L, t(Lambdat %*% ZtW), mult = 1)
             Linv <- solve(as(L, "Matrix"))
             logdet <- 2 * determinant(L, logarithm = TRUE)$modulus
-            ret <- -0.5 * (logdet + sum((Linv %*% z)^2))
-            ret <- ret - object$loglik(theta, weights = w) + .5 * sum(z^2)
+            
+            Sigma <- tcrossprod(as(L, "Matrix"))
+            #            SigmaInv <- crossprod(Linv)
+            D <- Dinv <- 1L
+            if(standardise) {
+                D <- sqrt(diag(Sigma))
+                Dinv <- 1/sqrt(diag(Sigma))
+            }
+            
+            z <- c(D * PF(Dinv * c(eY$Y %*% theta + offset)))
+            z1 <- c(PF(Dinv * c(eY$Y %*% theta + offset)))
+            
+            ret <- -0.5 * (logdet + sum((Linv %*% z)^2) - sum(z^2)) - object$loglik(theta, weights = w)
+            if(!NORMAL) {
+                f <- object$todistr$d
+                ret <- ret + object$loglik(theta, weights = w) - .5 * sum(z^2) + .5 * sum(z1^2) +
+                    sum(.log(f(Dinv * c((eY$Y %*% theta + offset))) * c(eY$Yprime %*% theta)))
+            }
+            
             return(-ret)
         }
+        
         X <- eY$Y
-        if (NORMAL) {
+        
+        if(NORMAL) { ## M1 or M2, probit link
             gr <- function(parm) {
                 theta <- parm[1:ncol(eY$Y)]
                 gamma <- parm[-(1:ncol(eY$Y))]
@@ -98,24 +128,117 @@ mtram <- function(object, formula, data, standardise = FALSE,
                     dgamma[i] <- -.5 * (sum(diag(t1)) - crossprod(z, t2) %*% z)
                 }
                 dtheta <- - z %*% SigmaInv %*% eY$Y + 
-                            colSums(eY$Yprime / c(eY$Yprime %*% theta))
+                    colSums(eY$Yprime / c(eY$Yprime %*% theta))
                 return(-c(c(as(dtheta, "matrix")), dgamma))
             }
+        } else { ## no probit link
+            if(!standardise) { ## M1, no probit link
+                gr <- NULL
+                gr <- function(parm) {
+                    theta <- parm[1:ncol(eY$Y)]
+                    gamma <- parm[-(1:ncol(eY$Y))]
+                    devLambda <- devSigma <- vector(mode = "list",
+                                                    length = length(gamma))
+                    dgamma <- numeric(length(gamma))
+                    z <- c(eY$Y %*% theta + offset)
+                    PFz <- c(PF(z))
+                    f <- object$todistr$d
+                    fprime <- object$todistr$dd
+
+                    Lambdat@x[] <- mapping(gamma)
+                    L <- update(L, t(Lambdat %*% ZtW), mult = 1)
+                    Linv <- solve(as(L, "Matrix"))
+                    Sigma <- tcrossprod(as(L, "Matrix"))
+                    SigmaInv <- crossprod(Linv)
+                    LambdaInd <- t(Lambdat)
+                    LambdaInd@x[] <- 1:length(gamma)
+                    for (i in 1:length(gamma)) {
+                        ### Wang & Merkle (2018, JSS) compute derivative of G!
+                        ### We need derivative of Lambda!
+                        dLtL <- (LambdaInd == i) %*% Lambdat
+                        devLambda[[i]] <- dLtL + t(dLtL)
+                        devSigma[[i]] <- crossprod(ZtW, devLambda[[i]] %*% ZtW)
+                        t1 <- SigmaInv %*% devSigma[[i]]
+                        t2 <- t1 %*% SigmaInv
+                        dgamma[i] <- -.5 * (sum(diag(t1)) - crossprod(PFz, t2) %*% PFz)
+                    }
+                    dtheta <- - crossprod(PFz, (SigmaInv - diag(1, ncol(SigmaInv)))) %*%
+                        ((f(z)/dnorm(PFz)) * eY$Y) +
+                        colSums((fprime(z)/f(z)) %*% eY$Y) +
+                        colSums(eY$Yprime / c(eY$Yprime %*% theta))
+                    return(-c(c(as(dtheta, "matrix")), dgamma))
+                }
+            } else { ## M2, no probit link
+                gr <- NULL
+                if(!grad_num){
+                gr <- function(parm) {
+                    theta <- parm[1:ncol(eY$Y)]
+                    gamma <- parm[-(1:ncol(eY$Y))]
+                    devLambda <- devSigma <- vector(mode = "list",
+                                                    length = length(gamma))
+
+                    Lambdat@x[] <- mapping(gamma)
+                    L <- update(L, t(Lambdat %*% ZtW), mult = 1)
+                    Linv <- solve(as(L, "Matrix"))
+                    Sigma <- tcrossprod(as(L, "Matrix"))
+                    SigmaInv <- crossprod(Linv)
+                    D <- sqrt(diag(Sigma))
+                    D2 <- diag(Sigma)
+                    Dinv <- 1/sqrt(diag(Sigma))
+                    Dinv2 <- 1/(diag(Sigma))
+                    LambdaInd <- t(Lambdat)
+                    LambdaInd@x[] <- 1:length(gamma)
+
+                    dgamma <- numeric(length(gamma))
+                    z <-  c(eY$Y %*% theta + offset)
+                    PFz <- c(PF(Dinv *z))
+                    DPFz <- c(D * PFz)
+                    f <- object$todistr$d
+                    fprime <- object$todistr$dd
+
+                    for (i in 1:length(gamma)) {
+                        ### Wang & Merkle (2018, JSS) compute derivative of G!
+                        ### We need derivative of Lambda!
+                        dLtL <- (LambdaInd == i) %*% Lambdat
+                        devLambda[[i]] <- dLtL + t(dLtL)
+                        devSigma[[i]] <- crossprod(ZtW, devLambda[[i]] %*% ZtW)
+                        t1 <- SigmaInv %*% devSigma[[i]]
+                        t2 <- t1 %*% SigmaInv
+                        dDPFz <- .5 * diag(1/(diag(Sigma))) %*% diag(diag(devSigma[[i]])) %*%
+                            (DPFz - (c(f(Dinv * z)) / dnorm(PFz)) * z)
+                        dDinv <- -.5 * diag(1/(sqrt(diag(Sigma))^3)) %*% diag(diag(devSigma[[i]]))
+                        dDinv2 <- - diag(1/(diag(Sigma)^2)) %*% diag(diag(devSigma[[i]]))
+                        t3 <- t2 + dDinv2
+                        Idmat <- diag(1, ncol(SigmaInv))
+                        dgamma[i] <- -.5 * (sum(diag(t1)) +
+                                                crossprod(dDPFz, (SigmaInv - diag(Dinv2))) %*% DPFz -
+                                                crossprod(DPFz, t3) %*% DPFz +
+                                                crossprod(DPFz, (SigmaInv - diag(Dinv2))) %*% dDPFz) +
+                            sum(c(fprime(Dinv * z))/c(f(Dinv * z)) * c(dDinv %*% z))
+                    }
+                    dtheta <- - crossprod(DPFz, (SigmaInv - diag(Dinv2))) %*%
+                        ((c(f(Dinv * z))/dnorm(PFz)) * eY$Y) +
+                        colSums((c(fprime(Dinv * z))/c(f(Dinv * z))) * (Dinv * eY$Y)) +
+                        colSums(eY$Yprime / c(eY$Yprime %*% theta))
+                    
+                    return(-c(c(as(dtheta, "matrix")), dgamma))
+                } }
+            }
         }
-    } else {
+    } else { ## censored and discrete case
         stopifnot(length(rt$flist) == 1)
         grp <- rt$flist[[1]]
         idx <- split(1:length(grp), grp)
         wh <- 1:length(rt$cnms[[1]])
         ### .Marsaglia_1963 expects t(nodes) !!!
         grd$nodes <- t(qnorm(grd$nodes))
-## don't spend time on Matrix dispatch
+        ## don't spend time on Matrix dispatch
         mZtW <- as(ZtW, "matrix")
         zt <- lapply(idx, function(i) {
             z <- mZtW[,i,drop = FALSE]
             t(z[base::rowSums(abs(z)) > 0,,drop = FALSE])
         })
-
+        
         ll <- function(parm) {
             theta <- parm[1:ncol(iY$Yleft)]
             gamma <- parm[-(1:ncol(iY$Yleft))]
@@ -124,12 +247,12 @@ mtram <- function(object, formula, data, standardise = FALSE,
             lplower[is.na(lplower)] <- -Inf
             lpupper <- c(iY$Yright %*% theta + offset)
             lpupper[is.na(lpupper)] <- Inf
-
-## don't spend time on Matrix dispatch
+            
+            ## don't spend time on Matrix dispatch
             mLt <- t(as(Lambdat[wh, wh], "matrix"))
             ONE <- matrix(1, nrow = NCOL(mLt))
-
-        ret <- sapply(1:length(idx), function(i) {
+            
+            ret <- sapply(1:length(idx), function(i) {
                 V <- zt[[i]] %*% mLt  ### = U_i %*% Lambda(\varparm)
                 i <- idx[[i]]
                 if (standardise) {
@@ -148,24 +271,24 @@ mtram <- function(object, formula, data, standardise = FALSE,
         }
         X <- iY$Yleft
     }            
-
+    
     ui <- attr(X, "constraint")$ui[, wf, drop = FALSE]
     ci <- attr(X, "constraint")$ci
     ui <- as(bdiag(ui, Diagonal(length(theta))), "matrix")
     ci <- c(ci, rt$lower)
-
+    
     start <- c(coef(as.mlt(object), fixed = FALSE), theta)
-
+    
     if (is.null(gr)) {
         opt <- alabama::auglag(par = start, fn = ll, 
-            hin = function(par) ui %*% par - ci, 
-            hin.jac = function(par) ui,
-            control.outer = list(trace = FALSE))[c("par", "value", "gradient")]
+                               hin = function(par) ui %*% par - ci, 
+                               hin.jac = function(par) ui,
+                               control.outer = list(trace = FALSE))[c("par", "value", "gradient")]
     } else {
         opt <- alabama::auglag(par = start, fn = ll, gr = gr,
-            hin = function(par) ui %*% par - ci, 
-            hin.jac = function(par) ui,
-            control.outer = list(trace = FALSE))[c("par", "value", "gradient")]
+                               hin = function(par) ui %*% par - ci, 
+                               hin.jac = function(par) ui,
+                               control.outer = list(trace = FALSE))[c("par", "value", "gradient")]
     }
     if (length(eY$which) > 0) {
         gamma <- opt$par[-(1:ncol(eY$Y))]
@@ -178,9 +301,11 @@ mtram <- function(object, formula, data, standardise = FALSE,
     opt$G <- crossprod(Lambdat)[1:length(rt$cnms[[1]]),1:length(rt$cnms[[1]])]
     if (Hessian) opt$Hessian <- numDeriv::hessian(ll, opt$par)
     opt$loglik <- ll
+    if(!is.null(gr)) opt$gr <- gr
     class(opt) <- "mtram"
     opt
 }
+
 
 logLik.mtram <- function(object, parm = NULL, ...) {
     if (!is.null(parm)) {
