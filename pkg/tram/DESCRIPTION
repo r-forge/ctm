@@ -4,7 +4,8 @@ Version: 0.7-0
 Date: 2022-01-14
 Authors@R: c(person("Torsten", "Hothorn", role = c("aut", "cre"),
                     email = "Torsten.Hothorn@R-project.org", comment = c(ORCID = "0000-0001-8301-0471")),
-             person("Luisa", "Barbanti", role = "aut"),
+             person("Luisa", "Barbanti", role = "aut",
+	comment = c(ORCID = "0000-0001-5352-5802")),
              person("Brian", "Ripley", role = "ctb"),
              person("Bill", "Venables", role = "ctb"),
              person(c("Douglas", "M."), "Bates", role = "ctb"),

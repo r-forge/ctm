@@ -11,7 +11,8 @@
 mtram(object, formula, data, standardise = FALSE, 
       grd = SparseGrid::createSparseGrid(type = "KPU", 
                 dimension = length(rt$cnms[[1]]), k = 10), 
-      Hessian = FALSE, ...)
+      Hessian = FALSE,  tol = .Machine$double.eps,
+      grad_num = FALSE, ...)
 }
 \arguments{
   \item{object}{
@@ -37,6 +38,10 @@ mtram(object, formula, data, standardise = FALSE,
   \item{Hessian}{
   A logical, if \code{TRUE}, the hessian is computed and returned.
 }
+  \item{grad_num}{
+  A logical, if \code{TRUE}, the log-likelihood is optimized through a gradient
+  estimated numerically. For continuous responses only.
+}
   \item{\dots}{
   Additional argument.
 }
@@ -51,7 +56,7 @@ mtram(object, formula, data, standardise = FALSE,
 
   This is a proof-of-concept implementation and still highly experimental.
   Only \code{coef()} and \code{logLik()} methods are available at the
-moment.
+  moment.
 }
 \value{
   An object of class \code{tram} with \code{coef()} and \code{logLik()}
