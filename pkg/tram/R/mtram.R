@@ -44,6 +44,9 @@ mtram <- function(object, formula, data, standardise = FALSE,
     if (length(eY$which) > 0 && length(iY$which))
         stop("cannot deal with mixed censoring")
     
+    if (length(iY$which) > 0 && grad_num)
+        stop("grad_num argument only available for continuous responses")
+    
     w <- object$weights
     
     NORMAL <- FALSE
@@ -133,7 +136,6 @@ mtram <- function(object, formula, data, standardise = FALSE,
             }
         } else { ## no probit link
             if(!standardise) { ## M1, no probit link
-                gr <- NULL
                 gr <- function(parm) {
                     theta <- parm[1:ncol(eY$Y)]
                     gamma <- parm[-(1:ncol(eY$Y))]
@@ -169,8 +171,6 @@ mtram <- function(object, formula, data, standardise = FALSE,
                     return(-c(c(as(dtheta, "matrix")), dgamma))
                 }
             } else { ## M2, no probit link
-                gr <- NULL
-                if(!grad_num){
                 gr <- function(parm) {
                     theta <- parm[1:ncol(eY$Y)]
                     gamma <- parm[-(1:ncol(eY$Y))]
@@ -222,7 +222,7 @@ mtram <- function(object, formula, data, standardise = FALSE,
                         colSums(eY$Yprime / c(eY$Yprime %*% theta))
                     
                     return(-c(c(as(dtheta, "matrix")), dgamma))
-                } }
+                }
             }
         }
     } else { ## censored and discrete case
@@ -278,6 +278,8 @@ mtram <- function(object, formula, data, standardise = FALSE,
     ci <- c(ci, rt$lower)
     
     start <- c(coef(as.mlt(object), fixed = FALSE), theta)
+    
+    if(grad_num) gr <- NULL
     
     if (is.null(gr)) {
         opt <- alabama::auglag(par = start, fn = ll, 
