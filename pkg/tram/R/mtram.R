@@ -27,12 +27,16 @@ mtram <- function(object, formula, data, standardise = FALSE,
     fixed <- get("fixed", environment(object$loglik))
     offset <- get("offset", environment(object$loglik))
     wf <- 1:length(coef(as.mlt(object)))
+    
+    ### exact continuous obs
     if (!is.null(eY)) {
         tmp <- attr(eY$Y, "constraint")
         wf <- !colnames(eY$Y) %in% names(fixed)
         eY$Y <- eY$Y[, wf,drop = FALSE]
         attr(eY$Y, "constraint") <- tmp
     }
+    
+    ### discrete or censored
     if (!is.null(iY)) {
         tmp <- attr(iY$Yleft, "constraint")
         wf <- !colnames(iY$Yleft) %in% names(fixed)
@@ -56,6 +60,8 @@ mtram <- function(object, formula, data, standardise = FALSE,
     } else {
         P <- object$todistr$p
         PF <- function(z) qnorm(pmin(1 - tol, pmax(tol, P(z))))
+        f <- object$todistr$d
+        fprime <- object$todistr$dd
     }
     
     gr <- NULL
@@ -79,27 +85,30 @@ mtram <- function(object, formula, data, standardise = FALSE,
             
             Lambdat@x[] <- mapping(gamma)
             L <- update(L, t(Lambdat %*% ZtW), mult = 1)
-            Linv <- solve(as(L, "Matrix"))
+            LM <- as(L, "Matrix")
+            Linv <- solve(LM)
             logdet <- 2 * determinant(L, logarithm = TRUE)$modulus
             
-            Sigma <- tcrossprod(as(L, "Matrix"))
+            # Sigma <- tcrossprod(LM)
             #            SigmaInv <- crossprod(Linv)
             D <- Dinv <- 1L
             if(standardise) {
-                D <- sqrt(diag(Sigma))
-                Dinv <- 1/sqrt(diag(Sigma))
+                # D <- sqrt(diag(Sigma))
+                D <- sqrt(rowSums(LM^2))
+                Dinv <- 1/D
             }
             
-            z <- c(D * PF(Dinv * c(eY$Y %*% theta + offset)))
-            z1 <- c(PF(Dinv * c(eY$Y %*% theta + offset)))
+            z <-  c(eY$Y %*% theta + offset)
+            Dinvz <- Dinv * z
+            PFz <- c(PF(Dinvz))
+            DPFz <- c(D * PFz)
             
-            ret <- -0.5 * (logdet + sum((Linv %*% z)^2) - sum(z^2)) - object$loglik(theta, weights = w)
-            if(!NORMAL) {
-                f <- object$todistr$d
-                ret <- ret + object$loglik(theta, weights = w) - .5 * sum(z^2) + .5 * sum(z1^2) +
-                    sum(.log(f(Dinv * c((eY$Y %*% theta + offset))) * c(eY$Yprime %*% theta)))
-            }
-            
+            if (NORMAL) {
+                ret <- -0.5 * (logdet + sum((Linv %*% DPFz)^2) - sum(DPFz^2)) - object$loglik(theta, weights = w)
+            } else {
+                ret <- -0.5 * (logdet + sum((Linv %*% DPFz)^2) - sum(PFz^2)) +
+                    sum(.log(f(Dinvz) * c(eY$Yprime %*% theta)))
+            } 
             return(-ret)
         }
         
@@ -115,8 +124,9 @@ mtram <- function(object, formula, data, standardise = FALSE,
                 z <- c(eY$Y %*% theta + offset)
                 Lambdat@x[] <- mapping(gamma)
                 L <- update(L, t(Lambdat %*% ZtW), mult = 1)
-                Linv <- solve(as(L, "Matrix"))
-                Sigma <- tcrossprod(as(L, "Matrix"))
+                LM <- as(L, "Matrix")
+                Linv <- solve(LM)
+                # Sigma <- tcrossprod(LM)
                 SigmaInv <- crossprod(Linv)
                 LambdaInd <- t(Lambdat)
                 LambdaInd@x[] <- 1:length(gamma)
@@ -144,13 +154,12 @@ mtram <- function(object, formula, data, standardise = FALSE,
                     dgamma <- numeric(length(gamma))
                     z <- c(eY$Y %*% theta + offset)
                     PFz <- c(PF(z))
-                    f <- object$todistr$d
-                    fprime <- object$todistr$dd
-
+                    
                     Lambdat@x[] <- mapping(gamma)
                     L <- update(L, t(Lambdat %*% ZtW), mult = 1)
-                    Linv <- solve(as(L, "Matrix"))
-                    Sigma <- tcrossprod(as(L, "Matrix"))
+                    LM <- as(L, "Matrix")
+                    Linv <- solve(LM)
+                    # Sigma <- tcrossprod(LM)
                     SigmaInv <- crossprod(Linv)
                     LambdaInd <- t(Lambdat)
                     LambdaInd@x[] <- 1:length(gamma)
@@ -164,7 +173,9 @@ mtram <- function(object, formula, data, standardise = FALSE,
                         t2 <- t1 %*% SigmaInv
                         dgamma[i] <- -.5 * (sum(diag(t1)) - crossprod(PFz, t2) %*% PFz)
                     }
-                    dtheta <- - crossprod(PFz, (SigmaInv - diag(1, ncol(SigmaInv)))) %*%
+                    Si1 <- SigmaInv
+                    diag(Si1) <- diag(Si1) - 1
+                    dtheta <- - crossprod(PFz, Si1) %*%
                         ((f(z)/dnorm(PFz)) * eY$Y) +
                         colSums((fprime(z)/f(z)) %*% eY$Y) +
                         colSums(eY$Yprime / c(eY$Yprime %*% theta))
@@ -176,26 +187,26 @@ mtram <- function(object, formula, data, standardise = FALSE,
                     gamma <- parm[-(1:ncol(eY$Y))]
                     devLambda <- devSigma <- vector(mode = "list",
                                                     length = length(gamma))
-
+                    
                     Lambdat@x[] <- mapping(gamma)
                     L <- update(L, t(Lambdat %*% ZtW), mult = 1)
-                    Linv <- solve(as(L, "Matrix"))
-                    Sigma <- tcrossprod(as(L, "Matrix"))
+                    LM <- as(L, "Matrix")
+                    Linv <- solve(LM)
+                    # Sigma <- tcrossprod(LM)
                     SigmaInv <- crossprod(Linv)
-                    D <- sqrt(diag(Sigma))
-                    D2 <- diag(Sigma)
-                    Dinv <- 1/sqrt(diag(Sigma))
-                    Dinv2 <- 1/(diag(Sigma))
+                    D2 <- rowSums(LM^2) # diag(Sigma)
+                    D <- sqrt(D2)
+                    Dinv <- 1/D
+                    Dinv2 <- 1/D2
                     LambdaInd <- t(Lambdat)
                     LambdaInd@x[] <- 1:length(gamma)
-
+                    
                     dgamma <- numeric(length(gamma))
                     z <-  c(eY$Y %*% theta + offset)
-                    PFz <- c(PF(Dinv *z))
+                    Dinvz <- Dinv * z
+                    PFz <- c(PF(Dinvz))
                     DPFz <- c(D * PFz)
-                    f <- object$todistr$d
-                    fprime <- object$todistr$dd
-
+                    
                     for (i in 1:length(gamma)) {
                         ### Wang & Merkle (2018, JSS) compute derivative of G!
                         ### We need derivative of Lambda!
@@ -204,21 +215,23 @@ mtram <- function(object, formula, data, standardise = FALSE,
                         devSigma[[i]] <- crossprod(ZtW, devLambda[[i]] %*% ZtW)
                         t1 <- SigmaInv %*% devSigma[[i]]
                         t2 <- t1 %*% SigmaInv
-                        dDPFz <- .5 * diag(1/(diag(Sigma))) %*% diag(diag(devSigma[[i]])) %*%
-                            (DPFz - (c(f(Dinv * z)) / dnorm(PFz)) * z)
-                        dDinv <- -.5 * diag(1/(sqrt(diag(Sigma))^3)) %*% diag(diag(devSigma[[i]]))
-                        dDinv2 <- - diag(1/(diag(Sigma)^2)) %*% diag(diag(devSigma[[i]]))
-                        t3 <- t2 + dDinv2
-                        Idmat <- diag(1, ncol(SigmaInv))
+                        dDPFz <- .5 * Dinv2 * diag(devSigma[[i]]) *
+                            (DPFz - (c(f(Dinvz)) / dnorm(PFz)) * z)
+                        dDinv <- -.5 * D^(-3) * diag(devSigma[[i]])
+                        dDinv2 <- - D2^(-2) * diag(devSigma[[i]])
+                        t3 <- t2
+                        diag(t3) <- diag(t3) + dDinv2
+                        SiID2 <- SigmaInv
+                        diag(SiID2) <- diag(SiID2) - Dinv2
                         dgamma[i] <- -.5 * (sum(diag(t1)) +
-                                                crossprod(dDPFz, (SigmaInv - diag(Dinv2))) %*% DPFz -
+                                                crossprod(dDPFz, SiID2) %*% DPFz -
                                                 crossprod(DPFz, t3) %*% DPFz +
-                                                crossprod(DPFz, (SigmaInv - diag(Dinv2))) %*% dDPFz) +
-                            sum(c(fprime(Dinv * z))/c(f(Dinv * z)) * c(dDinv %*% z))
+                                                crossprod(DPFz, SiID2) %*% dDPFz) +
+                            sum(c(fprime(Dinvz))/c(f(Dinvz)) * c(dDinv * z))
                     }
-                    dtheta <- - crossprod(DPFz, (SigmaInv - diag(Dinv2))) %*%
-                        ((c(f(Dinv * z))/dnorm(PFz)) * eY$Y) +
-                        colSums((c(fprime(Dinv * z))/c(f(Dinv * z))) * (Dinv * eY$Y)) +
+                    dtheta <- - crossprod(DPFz, SiID2) %*%
+                        ((c(f(Dinvz))/dnorm(PFz)) * eY$Y) +
+                        colSums((c(fprime(Dinvz))/c(f(Dinvz))) * (Dinv * eY$Y)) +
                         colSums(eY$Yprime / c(eY$Yprime %*% theta))
                     
                     return(-c(c(as(dtheta, "matrix")), dgamma))
@@ -330,10 +343,10 @@ coef.mtram <- function(object, ...)
                             grd = NULL,
                             do_qnorm = TRUE,
                             ...) {
- 
+    
     k <- nrow(V)
     l <- ncol(V)
-
+    
     if (is.null(grd)) {
         stopifnot(do_qnorm)
         grd <- SparseGrid::createSparseGrid(type = "KPU", dimension = ncol(V), k = 10)
@@ -346,16 +359,16 @@ coef.mtram <- function(object, ...)
     ### Standardisation of lower/upper and V AND division by diagonal
     ### elements in the Marsaglia formula cancel out and are thus
     ### left-out in the code
-
+    
     lower <- lower - mean
     upper <- upper - mean
-
+    
     if (k == 1) {
         VVt <- base::tcrossprod(V)
         sd <- sqrt(base::diag(VVt) + 1)
         return(pnorm(upper / sd) - pnorm(lower / sd))
     }
-
+    
     ### y = qnorm(x)
     inner <- function(y) {
         Vy <- V %*% y
@@ -369,7 +382,7 @@ coef.mtram <- function(object, ...)
         #exp(colSums(log(ret)))
         .Call("R_inner", upper - Vy, lower - Vy)
     }
-
+    
     if (do_qnorm) grd$nodes <- qnorm(grd$nodes)
     ev <- inner(grd$nodes)
     c(value = sum(grd$weights * ev))
