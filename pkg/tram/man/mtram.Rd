@@ -42,6 +42,7 @@ mtram(object, formula, data, standardise = FALSE,
   A logical, if \code{TRUE}, the log-likelihood is optimized through a gradient
   estimated numerically. For continuous responses only.
 }
+  \item{tol}{numerical tolerance.}
   \item{\dots}{
   Additional argument.
 }
