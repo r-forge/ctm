@@ -3,7 +3,7 @@
 ### better?
 node_mlt_disc <- function(obj, newdata = data.frame(1), col = "black", bg = "white", fill = "transparent",
                      ylines = 2, id = TRUE, mainlab = NULL, gp = gpar(), 
-                     beside = NULL, ymax = NULL, widths = 1,
+                     yscale = NULL, beside = NULL, ymax = NULL, widths = 1,
                      gap = NULL, reverse = NULL, rot = 0,
                      just = c("center", "top"), 
                      text = c("none", "horizontal", "vertical"),
@@ -20,8 +20,10 @@ node_mlt_disc <- function(obj, newdata = data.frame(1), col = "black", bg = "whi
     if (type %in% c("distribution", "survivor")) {
         yscale <- c(0, 1)
     } else {
-        probs <- predict.trafotree(obj, q = q, type = type, ...)
-        yscale <- range(probs)
+        if (is.null(yscale)) {
+            probs <- predict.trafotree(obj, q = q, type = type, ...)
+            yscale <- range(probs, finite = TRUE)
+        }
     }
 
     stopifnot(is.factor(q) || isTRUE(all.equal(round(q), q)))
@@ -176,6 +178,7 @@ class(node_mlt_disc) <- "grapcon_generator"
 
 node_mlt <- function(obj, newdata = data.frame(1), col = "black", bg = "white", fill = "transparent",
                      ylines = 2, id = TRUE, mainlab = NULL, gp = gpar(), K = 20,
+                     yscale = NULL,
                      type = c("trafo", "distribution", "survivor",  
                               "density", "logdensity", "hazard",    
                               "loghazard", "cumhazard", "quantile"),
@@ -194,9 +197,12 @@ node_mlt <- function(obj, newdata = data.frame(1), col = "black", bg = "white", 
     if (type %in% c("distribution", "survivor")) {
         yscale <- c(0, 1)
     } else {
-        pr <- predict.trafotree(obj, q = q, type = type, ...)
-        yscale <- range(pr)
+        if (is.null(yscale)) {
+            probs <- predict.trafotree(obj, q = q, type = type, ...)
+            yscale <- range(probs, finite = TRUE)
+        }
     }
+
     xscale <- range(q)
     axes <- rep_len(axes, 2)
 
@@ -262,13 +268,13 @@ node_mlt <- function(obj, newdata = data.frame(1), col = "black", bg = "white", 
             col <- col[i]
             if(flip) {
                 if(fill != "transparent") {
-                    grid.polygon(c(min(y), y, min(y)), c(q[1], q, q[K]), gp = gpar(col = col, fill = fill))
+                    grid.polygon(c(min(yscale), y, min(yscale)), c(q[1], q, q[K]), gp = gpar(col = col, fill = fill))
                 } else {
                     grid.lines(y, q, gp = gpar(col = col))
                 }
            } else {
                if(fill != "transparent") {
-                   grid.polygon(c(q[1], q, q[K]), c(min(y), y, min(y)), gp = gpar(col = col, fill = fill))
+                   grid.polygon(c(q[1], q, q[K]), c(min(yscale), y, min(yscale)), gp = gpar(col = col, fill = fill))
                } else {
                    grid.lines(q, y, gp = gpar(col = col))
                }
