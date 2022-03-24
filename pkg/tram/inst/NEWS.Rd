@@ -9,6 +9,8 @@
     \item{Export \code{Gradient} and \code{Hessian} methods.}
     \item{Simplify \code{score_test} and \code{profile}: Use \code{fixed}
           instead of \code{offset}.}
+    \item{Models with standardisation now available in \code{mtam} for exact
+          continuous outcomes and link functions other than probit.}
   }
 }
 
