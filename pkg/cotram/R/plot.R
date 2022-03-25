@@ -100,7 +100,6 @@ plot.cotram <- function(x, newdata,
             points(q, pr[,i], col = col[i], pch = 20, cex =.75)
         }
     }
-    invisible(pr)
     
     if (confidence) {
         if (length(fill) != NROW(newdata)) 
@@ -115,5 +114,6 @@ plot.cotram <- function(x, newdata,
                 .add_confband(cb[[i]], smooth = smooth, col = col[i], lwd = lwd[i], fill = fill[i]))
         }
     }
+  invisible(pr)
 }
 
