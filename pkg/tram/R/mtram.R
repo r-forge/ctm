@@ -57,6 +57,7 @@ mtram <- function(object, formula, data, standardise = FALSE,
     if (object$todistr$name == "normal") {
         NORMAL <- TRUE
         PF <- function(z) z
+        if(standardise) message("standardise = TRUE argument is ignored")
     } else {
         P <- object$todistr$p
         PF <- function(z) qnorm(pmin(1 - tol, pmax(tol, P(z))))
