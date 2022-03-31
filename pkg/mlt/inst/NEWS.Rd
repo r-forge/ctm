@@ -2,7 +2,7 @@
 \name{NEWS}
 \title{NEWS file for the mlt package}
 
-\section{Changes in Version 1.4-1 (2022-01-16)}{
+\section{Changes in Version 1.4-1 (2022-03-31)}{
   \subsection{New features}{
     \itemize{
       \item{\code{update} allows fixing parameters.}
