@@ -2,14 +2,14 @@
 \name{NEWS}
 \title{NEWS file for the tram package}
 
-\section{Changes in Version 0.7-0 (2022-01-17)}{
+\section{Changes in Version 0.7-0 (2022-04-01)}{
   \itemize{
     \item{Add shift-scale transformation models (experimental).}
     \item{Add methods for probabilistic indices and overlap coefficients + friends.}
     \item{Export \code{Gradient} and \code{Hessian} methods.}
     \item{Simplify \code{score_test} and \code{profile}: Use \code{fixed}
           instead of \code{offset}.}
-    \item{Models with standardisation now available in \code{mtam} for exact
+    \item{Models with standardisation now available in \code{mtram} for exact
           continuous outcomes and link functions other than probit.}
   }
 }
