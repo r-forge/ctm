@@ -50,7 +50,7 @@ if (require("mlbench")) {
 
 }
 
-if (require("gamlss")) {
+if (suppressPackageStartupMessages(require("gamlss"))) {
 
   N <- 1000
   x1 <- rnorm(N)
