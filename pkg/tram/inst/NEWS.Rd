@@ -2,6 +2,12 @@
 \name{NEWS}
 \title{NEWS file for the tram package}
 
+\section{Changes in Version 0.7-1 (2022-04-07)}{
+  \itemize{
+    \item{Minor bug fixed for shift-scale transformation models (still experimental).}
+  }
+}
+
 \section{Changes in Version 0.7-0 (2022-04-01)}{
   \itemize{
     \item{Add shift-scale transformation models (experimental).}
