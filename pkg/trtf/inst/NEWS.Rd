@@ -2,6 +2,12 @@
 \name{NEWS}
 \title{NEWS file for the trtf package}
 
+\section{Changes in Version 0.4-1 (2022-04-07)}{
+  \itemize{
+    \item{Documention and test updates.}
+  }
+}
+
 \section{Changes in Version 0.4-0 (2022-04-05)}{
   \itemize{
     \item{New \code{intercept} argument for residual-based tree induction (shift and scale).}
