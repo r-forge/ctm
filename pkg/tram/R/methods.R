@@ -38,7 +38,7 @@ model.matrix.stram <- function(object, data = object$data,
         stop("no model.matrix method for class stram defined")
     what <- match.arg(what)
     switch(what, 
-        "shifting" = model.matrix.tram(object, 
+        "shifting" = model.matrix.tram(object, data = data,
                                        with_baseline = with_baseline, ...),
         "scaling" = model.matrix(object$model$model$bscaling, data = data,
                                        with_baseline = FALSE, ...))
