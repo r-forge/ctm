@@ -51,6 +51,11 @@
                  "logdensity", "hazard", "loghazard", "cumhazard", 
                  "quantile"), 
            ...)
+\method{predict}{stram}(object, newdata = model.frame(object), 
+        type = c("lp", "trafo", "distribution", "survivor", "density", 
+                 "logdensity", "hazard", "loghazard", "cumhazard", 
+                 "quantile"), what = c("shifting", "scaling"),
+           ...)
 \method{plot}{tram}(x, newdata = model.frame(x), 
      which = c("QQ-PIT", "baseline only", "distribution"), 
      confidence = c("none", "interval", "band"), level = 0.95, 
@@ -102,8 +107,8 @@
   \item{which}{type of plot, either a QQ plot of the probability-integral
                transformed observations (\code{"QQ-PIT"}), of the
                baseline transformation of the whole distribution.}
-  \item{what}{type of model matrix: \code{shifting} returns model
-      model matrix for shift term, \code{scaling} for the scale term.}
+  \item{what}{type of model matrix / linear predictor: \code{shifting} returns model
+      model matrix / linear predictor for shift term, \code{scaling} for the scale term.}
   \item{confidence}{type of uncertainty assessment.}
   \item{level}{confidence level.}
   \item{K}{number of grid points in the response, see

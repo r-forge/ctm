@@ -149,6 +149,38 @@ predict.tram <- function(object, newdata = model.frame(object),
     predict(as.mlt(object), newdata = newdata, type = type, ...)
 }
 
+predict.stram <- function(object, newdata = model.frame(object), 
+    type = c("lp", "lp", "trafo", "distribution", "survivor", "density", 
+             "logdensity", "hazard", "loghazard", "cumhazard", "quantile"), 
+             what = c("shifting", "scaling"), ...) {
+
+    type <- match.arg(type)
+    if (type == "lp") {
+        what <- match.arg(what)
+        if (what == "shifting") {
+            if (is.null(object$shiftcoef))
+                stop("object does not contain a shift term")
+            ret <- model.matrix(object, data = newdata, what = "shifting") %*% 
+                   coef(object, with_baseline = FALSE)[object$shiftcoef]
+            if (object$negative) return(-ret)
+            return(ret)
+        }
+        if (what == "scaling") {
+            if (is.null(object$scalecoef))
+            stop("object does not contain a scale term")
+            ret <- model.matrix(object, data = newdata, what = "scaling") %*% 
+                   coef(object, with_baseline = FALSE)[object$scalecoef]
+            ### <FIXME>: scale term always positive?
+            # if (object$negative) return(-ret)
+            ### </FIXME>
+            return(ret)
+        }
+    }
+
+    predict(as.mlt(object), newdata = newdata, type = type, ...)
+}
+
+
 print.tram <- function(x, ...) {
     cat("\n", x$tram, "\n")
     cat("\nCall:\n")
