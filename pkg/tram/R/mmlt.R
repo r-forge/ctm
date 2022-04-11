@@ -425,8 +425,13 @@ predict.mmlt <- function(object, newdata, marginal = 1L,
   ### first formula in Section 2.4
   if (type == "distribution") {
     ret <- lapply(1:length(ret), function(i) {
-      tmp <- t(t(ret[[i]]) / sqrt(Vx$diag[marginal]))
+      if(is.null(dim(Vx$diagonal))) {
+        tmp <- t(t(ret[[i]]) / sqrt(Vx$diag[marginal]))
+      } else {
+        tmp <- t(t(ret[[i]]) / sqrt(Vx$diag[, marginal]))
+      }
       pnorm(tmp)
+      
     })
   }
   if (type == "density") {
@@ -436,8 +441,13 @@ predict.mmlt <- function(object, newdata, marginal = 1L,
       predict(m, newdata = newdata, deriv = dr, ...)
     })
     ret <- lapply(1:length(ret), function(i) {
-      tmp <- t(t(ret[[i]]) / sqrt(Vx$diag[marginal]))
-      t(t(dnorm(tmp)) / sqrt(Vx$diag[marginal]))  * hprime[[i]]
+      if(is.null(dim(Vx$diagonal))) {
+        tmp <- t(t(ret[[i]]) / sqrt(Vx$diag[marginal]))
+        t(t(dnorm(tmp)) / sqrt(Vx$diag[marginal]))  * hprime[[i]]
+      } else {
+        tmp <- t(t(ret[[i]]) / sqrt(Vx$diag[, marginal]))
+        t(t(dnorm(tmp)) / sqrt(Vx$diag[, marginal]))  * hprime[[i]]
+      }
     })
   }
   if (length(ret) == 1) return(ret[[1]])
