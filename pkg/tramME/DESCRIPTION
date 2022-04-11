@@ -27,7 +27,7 @@ URL: http://ctm.R-forge.R-project.org
 Encoding: UTF-8
 RoxygenNote: 7.1.1
 NeedsCompilation: yes
-Packaged: 2022-04-11 13:12:51 UTC; balint
+Packaged: 2022-04-11 19:58:54 UTC; balint
 Author: Balint Tamasi [aut, cre] (<https://orcid.org/0000-0002-2629-7362>),
   Torsten Hothorn [ctb] (<https://orcid.org/0000-0001-8301-0471>)
 Maintainer: Balint Tamasi <balint.tamasi@uzh.ch>

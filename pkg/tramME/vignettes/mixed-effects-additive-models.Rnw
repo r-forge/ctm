@@ -1331,9 +1331,6 @@ if (file.exists("mosquito_models.rda")) {
                             + (1|Community), offset = -log(daystrapping), data = AGO,
                             method = "logit", order = 5, log_first = TRUE, prob = 0.9)
   stopifnot(mosquito_tram$opt$convergence == 0)
-
-  save(mosquito_pois, mosquito_nb, mosquito_tram, file = "mosquito_models.rda",
-       compress = "xz")
 }
 @
 
@@ -1355,12 +1352,14 @@ and follow the distribution-free transformation model approach.
   \label{tbl:mosquito-ll}
 
 <<mosquito-ll-tbl, echo=FALSE, results="asis">>=
-ll <- c("Poisson GAMM" = logLik(mosquito_pois$mer),
-        "Negative binomial GAMM" = logLik(mosquito_nb$mer),
-        "Additive count transformation model" = logLik(mosquito_tram))
-ll <- data.frame(ll)
-names(ll) <- "Log-likelihood"
-print(xtable(ll, align = "lr"), floating = FALSE, booktabs = TRUE)
+if (!file.exists("mosquito_models.rda")) {
+  ll_mosquito <- c("Poisson GAMM" = logLik(mosquito_pois$mer),
+                   "Negative binomial GAMM" = logLik(mosquito_nb$mer),
+                   "Additive count transformation model" = logLik(mosquito_tram))
+  ll_mosquito <- data.frame(ll_mosquito)
+  names(ll_mosquito) <- "Log-likelihood"
+}
+print(xtable(ll_mosquito, align = "lr"), floating = FALSE, booktabs = TRUE)
 @
 
 \end{table}
@@ -1383,6 +1382,15 @@ of the two models are not directly comparable,
 their directions, significance
 and the general shapes of the smooths can be contrasted.
 
+<<mosquito_summaries, echo=FALSE>>=
+if (!file.exists("mosquito_models.rda")) {
+  sums_mosquito <- list(
+    nb = summary(mosquito_nb$gam),
+    tram = summary(mosquito_tram)
+  )
+}
+@
+
 Figure~\ref{fig:mosquito-smooth} compares the smooth estimates
 of the GAMM from \pkg{gamm4}
 and the transformation model from \pkg{tramME}.
@@ -1394,8 +1402,8 @@ the difference of the smooth estimates of the coverage rate
 The general shapes of the smooths are similar,
 but the negative binomial GAMM penalizes it more,
 which is also reflected in the EDFs:
-\Sexpr{round((s_nb <- summary(mosquito_nb$gam))$edf[2], 2)}
-and \Sexpr{round((s_tr <- summary(mosquito_tram))$smooth[2, 1], 2)}
+\Sexpr{round(sums_mosquito$nb$edf[2], 2)}
+and \Sexpr{round(sums_mosquito$tram$smooth[2, 1], 2)}
 for the negative binomial and count transformation models,
 respectively.
 
@@ -1403,14 +1411,42 @@ respectively.
   \centering
 
 <<plot-mosquito-smooth, echo=FALSE, fig.width=9, fig.height=7>>=
+if (!file.exists("mosquito_models.rda")) {
+  nd <- AGO[rep(1, 100), ]
+  nd$Week <- seq(min(AGO$Week), max(AGO$Week), length.out = 100)
+  nd$CovRate200 <- seq(min(AGO$CovRate200), max(AGO$CovRate200), length.out = 100)
+  pr <- predict(mosquito_nb$gam, type = "terms",
+                terms = c("s(Week)", "s(CovRate200)"),
+                newdata = nd, se.fit = TRUE)
+
+  sm_mosquito_nb <- lapply(colnames(pr[[1]]), function(n) {
+    ci <- pr$fit[, n] + qnorm(0.975) * pr$se.fit[, n] %o% c(-1, 1)
+    out <- data.frame(cbind(pr$fit[, n], ci))
+    colnames(out) <- c("fit", "lwr", "upr")
+    out
+  })
+  names(sm_mosquito_nb) <- colnames(pr[[1]])
+  sm_mosquito_nb[[1]]$x <- nd$Week
+  sm_mosquito_nb[[2]]$x <- nd$CovRate200
+
+  sm_mosquito_tram <- smooth_terms(mosquito_tram)
+}
+
+plotsm <- function(sm, xlab, ylab) {
+  plot(sm$x, sm$fit, type = "l", xlim = range(sm$x),
+       ylim = range(sm[, c("lwr", "upr")]),
+       xlab = xlab, ylab = ylab, panel.first = grid())
+  polygon(c(sm$x, rev(sm$x)), c(sm$lwr, rev(sm$upr)),
+          border = NA, col = grey(0.5, 0.25))
+}
+
 par(mfrow = c(2, 2), mar = c(4, 4, 3, 1), cex = 0.8, las = 1)
-plot(mosquito_nb$gam, select = 1, panel.first = grid())
-plot(mosquito_nb$gam, select = 2, panel.first = grid())
+plotsm(sm_mosquito_nb[[1]], "Week", "s(Week)")
+plotsm(sm_mosquito_nb[[2]], "CovRate200", "s(CovRate200)")
 mtext("Negative binomial model", side = 3, line = -2, outer = TRUE)
-sm <- smooth_terms(mosquito_tram)
-for (i in seq_along(sm)) {
-  sm[[i]][, 2] <- -sm[[i]][, 2]
-  plot(sm[i], panel.first = grid())
+for (i in seq_along(sm_mosquito_tram)) {
+  sm_mosquito_tram[[i]][, 2] <- -sm_mosquito_tram[[i]][, 2]
+  plot(sm_mosquito_tram[i], panel.first = grid())
 }
 mtext("Count transfromation model", side = 3, line = -23, outer = TRUE)
 @
@@ -1441,28 +1477,33 @@ of middle income is different from zero.
   }\label{tbl:mosquito-fe}
 
 <<mosquito-fe-tbl, echo=FALSE, results="asis">>=
-formatCI <- function(x, digits = 2) {
-  fx <- formatC(x, format = "f", digits = digits)
-  fx <- matrix(paste0("$",
-                      ifelse(c(x) > 0, paste0("\\phantom{-}", fx), fx),
-                      "$"), ncol = 2)
-  apply(fx, 1, paste, collapse = " ---")
-}
+if (!file.exists("mosquito_models.rda")) {
+  formatCI <- function(x, digits = 2) {
+    fx <- formatC(x, format = "f", digits = digits)
+    fx <- matrix(paste0("$",
+                        ifelse(c(x) > 0, paste0("\\phantom{-}", fx), fx),
+                        "$"), ncol = 2)
+    apply(fx, 1, paste, collapse = " ---")
+  }
 
-b_nb <- s_nb$p.table[-1, 1]
-se_nb <- s_nb$p.table[-1, 2]
-ci_nb <- b_nb + qnorm(0.975) * se_nb %o% c(-1, 1)
-ci_nb <- formatCI(ci_nb)
-b_tr <- -s_tr$coef[, 1]
-se_tr <- s_tr$coef[, 2]
-ci_tr <- b_tr + qnorm(0.975) * se_tr %o% c(-1, 1)
-ci_tr <- formatCI(ci_tr)
-tbl <- data.frame(paste0("$", formatC(b_nb, format = "f", digits = 2), "$"),
-                  ci_nb,
-                  paste0("$", formatC(b_tr, format = "f", digits = 2), "$"),
-                  ci_tr)
-rownames(tbl) <- c("Year = 2018", "Income = middle", "Placement = out",
-                   "Income = middle \\& Placement = out")
+  b_nb <- sums_mosquito$nb$p.table[-1, 1]
+  se_nb <- sums_mosquito$nb$p.table[-1, 2]
+  ci_nb <- b_nb + qnorm(0.975) * se_nb %o% c(-1, 1)
+  ci_nb <- formatCI(ci_nb)
+  b_tr <- -sums_mosquito$tram$coef[, 1]
+  se_tr <- sums_mosquito$tram$coef[, 2]
+  ci_tr <- b_tr + qnorm(0.975) * se_tr %o% c(-1, 1)
+  ci_tr <- formatCI(ci_tr)
+  ci_mosquito <- data.frame(paste0("$", formatC(b_nb, format = "f", digits = 2), "$"),
+                            ci_nb,
+                            paste0("$", formatC(b_tr, format = "f", digits = 2), "$"),
+                            ci_tr)
+  rownames(ci_mosquito) <- c("Year = 2018", "Income = middle", "Placement = out",
+                             "Income = middle \\& Placement = out")
+
+  save(sm_mosquito_nb, sm_mosquito_tram, ll_mosquito, ci_mosquito, sums_mosquito,
+       file = "mosquito_models.rda")
+}
 add <- list()
 add$pos <- list(0)
 add$command <- paste(c("& \\multicolumn{2}{c}{Negative binomial} &",
@@ -1470,8 +1511,8 @@ add$command <- paste(c("& \\multicolumn{2}{c}{Negative binomial} &",
                        "\\cmidrule(lr){2-3} \\cmidrule(lr){4-5}",
                        rep("& $\\widehat\\beta$ & 95\\% CI ", 2),
                        "\\\\\n"), collapse = " ")
-print(xtable(tbl, align = c("@{}l", rep("r", 3), "r@{}")), include.colnames = FALSE,
-      floating = FALSE, add.to.row = add,
+print(xtable(ci_mosquito, align = c("@{}l", rep("r", 3), "r@{}")),
+      include.colnames = FALSE, floating = FALSE, add.to.row = add,
       sanitize.text.function = function(x) x, booktabs = TRUE)
 @
 
