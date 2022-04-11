@@ -425,7 +425,7 @@ predict.mmlt <- function(object, newdata, marginal = 1L,
   ### first formula in Section 2.4
   if (type == "distribution") {
     ret <- lapply(1:length(ret), function(i) {
-      tmp <- t(t(ret[[i]]) / sqrt(Vx$diag[,marginal]))
+      tmp <- t(t(ret[[i]]) / sqrt(Vx$diag[marginal]))
       pnorm(tmp)
     })
   }
@@ -436,8 +436,8 @@ predict.mmlt <- function(object, newdata, marginal = 1L,
       predict(m, newdata = newdata, deriv = dr, ...)
     })
     ret <- lapply(1:length(ret), function(i) {
-      tmp <- t(t(ret[[i]]) / sqrt(Vx$diag[,marginal]))
-      t(t(dnorm(tmp)) / sqrt(Vx$diag[,marginal]))  * hprime[[i]]
+      tmp <- t(t(ret[[i]]) / sqrt(Vx$diag[marginal]))
+      t(t(dnorm(tmp)) / sqrt(Vx$diag[marginal]))  * hprime[[i]]
     })
   }
   if (length(ret) == 1) return(ret[[1]])
