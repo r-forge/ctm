@@ -211,3 +211,16 @@ r2 <- resid(m)
 rs2 <- resid(m, what = "scaling")
 chk(r, r2)
 chk(rs, rs2)
+
+### linear predictor
+aq <- airquality[complete.cases(airquality),]
+aq <- as.data.frame(lapply(aq, as.double))
+m <- Lm(Ozone ~ Solar.R + Wind + Temp + Month + Day | Solar.R + Wind + Temp + Month + Day, 
+        data = aq)
+
+lp1 <- predict(m, type = "lp", what = "shifting")
+lp2 <- predict(m, type = "lp", what = "scaling")
+
+X <- model.matrix(~ Solar.R + Wind + Temp + Month + Day, data = aq)[, -1L]
+stopifnot(identical(lp1, X %*% coef(m, with_baseline = FALSE)[m$shiftcoef]))
+stopifnot(identical(lp2, X %*% coef(m, with_baseline = FALSE)[m$scalecoef]))
