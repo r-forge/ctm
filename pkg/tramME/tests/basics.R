@@ -10,7 +10,8 @@ library("tramME")
 ip <- list(beta = c(1.5, 0.08, 0.2))
 mod <- LmME(dist ~ speed, data = cars, initpar = ip, nofit = TRUE)
 ## NOTE: initpars are not set as actual model parameters...
-chkerr(chkeq(ip$beta, coef(mod, with_baseline = TRUE), check.attributes = FALSE))
+chkerr(chkeq(ip$beta, coef(mod, with_baseline = TRUE), check.attributes = FALSE,
+             tol = 0.1, scale = 1))
 ## ... but the tramTMB object is set up with using them
 chkeq(ip$beta, mod$tmb_obj$env$par_checked, check.attributes = FALSE)
 

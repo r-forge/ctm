@@ -48,13 +48,15 @@ chkerr(chkeq(logLik(mod_gm, newdata = gamdat2),
              tol = 0.1, scale = 1)) ## not the same
 
 ## -- restrict smooths to be evaluated through newdata argument
-chkid(length(sm1 <- smooth_terms(mod_gm)), 3L)
-nd <- data.frame(x0 = sm1[[1]]$x0, x2 = sm1[[3]]$x2)
-chkid(length(sm2 <- smooth_terms(mod_gm, newdata = nd)), 2L)
-chkeq(sm1[c(1, 3)], sm2, check.attributes = FALSE)
-nd <- nd[c(1, 50, 100), 1, drop = FALSE]
-chkid(length(sm3 <- smooth_terms(mod_gm, newdata = nd)), 1L)
-chkeq(sm1[[1]][c(1, 50, 100), ], sm3[[1]], check.attributes = FALSE)
+if (!.run_test) {
+  chkid(length(sm1 <- smooth_terms(mod_gm)), 3L)
+  nd <- data.frame(x0 = sm1[[1]]$x0, x2 = sm1[[3]]$x2)
+  chkid(length(sm2 <- smooth_terms(mod_gm, newdata = nd)), 2L)
+  chkeq(sm1[c(1, 3)], sm2, check.attributes = FALSE)
+  nd <- nd[c(1, 50, 100), 1, drop = FALSE]
+  chkid(length(sm3 <- smooth_terms(mod_gm, newdata = nd)), 1L)
+  chkeq(sm1[[1]][c(1, 50, 100), ], sm3[[1]], check.attributes = FALSE)
+}
 
 ## -- function of variable in smoother
 mod <- LmME(accel ~ s(sqrt(times)), data = mcycle)
