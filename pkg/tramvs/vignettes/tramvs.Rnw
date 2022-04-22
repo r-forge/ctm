@@ -145,7 +145,8 @@ the active (and inactive) set for any splicing size $k \leq s$ via
 \end{align}
 and
 \begin{align}
-  \calI_k = \left\{j \in \calI : \sum_{i \in \calI} \1(\zeta_j \leq \zeta_i) \leq k\right\},
+  \calI_k = \left\{j \in \calI : \sum_{i \in \calI} \1(\zeta_j \leq \zeta_i)
+  \leq k\right\},
 \end{align}
 where $\calI = \calS \backslash \calA$ denotes the inactive set.
 Then, the active set is updated via
