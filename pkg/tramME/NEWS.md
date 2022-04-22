@@ -1,3 +1,7 @@
+# tramME 1.0.1 (2022-04-22)
+
+* Increase tolerance of tests to avoid issues with MKL on CRAN.
+
 # tramME 1.0.0 (2022-04-12)
 
 * Smooth shift terms as defined by `mgcv`. Currently only `s()` smooths are
