@@ -52,12 +52,15 @@ mod_lm <- update(mod_lm, fixed = c("Days" = 0.5))
 chkeq(dim(vcov(mod_lm, pargroup = "shift")), c(0L, 0L))
 chkid(rownames(vcov(mod_lm, pargroup = "fixef")), c("(Intercept)", "Reaction"))
 
-mod_sr <- SurvregME(Surv(time, status) ~ rx, data = rats)
-vc1 <- vcov(mod_sr, method = "numDeriv")
-vc2 <- vcov(mod_sr, method = "analytical") ## NOTE: default in this specific model
-vc3 <- vcov(mod_sr, method = "optimHess")
-chkeq(vc1, vc2)
-chkerr(chkeq(vc1, vc3)) ## NOTE: w/ optimHess, it's slightly different
+if (!.run_test) {
+  mod_sr <- SurvregME(Surv(time, status) ~ rx, data = rats)
+  vc1 <- vcov(mod_sr, method = "numDeriv")
+  vc2 <- vcov(mod_sr, method = "analytical") ## NOTE: default in this specific model
+  vc3 <- vcov(mod_sr, method = "optimHess")
+  chkeq(vc1, vc2)
+  ## NOTE: w/ optimHess, it's slightly different
+  chkerr(chkeq(vc1, vc3, tol = sqrt(.Machine$double.eps)))
+}
 
 mod_gm <- LmME(y ~ s(x0)+ x1 + s(x2) + (1|fac), data = gamdat)
 chkid(dim(vcov(mod_gm, pargroup = "smooth")), c(4L, 4L))
@@ -147,11 +150,13 @@ res2 <- resid(mod_sr)[1:30]
 ## newdata)
 chkeq(res1, res2)
 
-res1 <- resid(mod_gm, fix_smooth = TRUE, newdata = subset(gamdat, subset = fac == 1))
-res2 <- resid(mod_gm, fix_smooth = FALSE)[gamdat$fac == 1]
-chkeq(res1, res2)
-res1 <- resid(mod_gm, fix_smooth = FALSE, newdata = subset(gamdat, subset = fac == 1))
-chkerr(chkeq(res1, res2))
+if (!.run_test) {
+  res1 <- resid(mod_gm, fix_smooth = TRUE, newdata = subset(gamdat, subset = fac == 1))
+  res2 <- resid(mod_gm, fix_smooth = FALSE)[gamdat$fac == 1]
+  chkeq(res1, res2)
+  res1 <- resid(mod_gm, fix_smooth = FALSE, newdata = subset(gamdat, subset = fac == 1))
+  chkerr(chkeq(res1, res2, tol = sqrt(.Machine$double.eps)))
+}
 
 mod_gm_bc <- BoxCoxME(y ~ s(x0)+ x1 + s(x2) + (1|fac), data = gamdat)
 res1 <- resid(mod_gm_bc, fix_smooth = TRUE)
@@ -163,7 +168,7 @@ res1 <- resid(mod_gm_bc, param = pr, newdata = gamdat)
 res2 <- resid(mod_gm_bc)
 chkeq(res1, res2)
 
-## -- FIXME: the test below fail! Why?
+## -- FIXME: the tests below fail! Why?
 ## probably because of the non-linearity of the log-likelihood
 ## the derivative of the integrated ll != the derivative of the
 ## penalized ll wrt the constant
@@ -284,7 +289,8 @@ chkeq(logLik(mod_cox1, param = par), logLik(mod_cox2, param = par))
 os <- runif(nrow(sleepstudy))
 mod_lm1 <- Lm(Reaction ~ Days, data = sleepstudy, offset = os)
 mod_lm2 <- LmME(Reaction ~ Days, data = sleepstudy)
-chkerr(chkeq(logLik(mod_lm1), logLik(mod_lm2), check.attributes = FALSE))
+chkerr(chkeq(logLik(mod_lm1), logLik(mod_lm2), check.attributes = FALSE,
+             tol = 0.1, scale = 1))
 mod_lm2 <- update(mod_lm2, offset = os)
 chkeq(logLik(mod_lm1), logLik(mod_lm2), check.attributes = FALSE)
 
