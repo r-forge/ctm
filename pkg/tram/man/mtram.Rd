@@ -8,11 +8,10 @@
   Highly experimental, use at your own risk.
 }
 \usage{
-mtram(object, formula, data, standardise = FALSE, 
+mtram(object, formula, data,
       grd = SparseGrid::createSparseGrid(type = "KPU", 
                 dimension = length(rt$cnms[[1]]), k = 10), 
-      Hessian = FALSE,  tol = .Machine$double.eps,
-      grad_num = FALSE, ...)
+      Hessian = FALSE,  tol = .Machine$double.eps, ...)
 }
 \arguments{
   \item{object}{
@@ -24,23 +23,11 @@ mtram(object, formula, data, standardise = FALSE,
   \item{data}{
   A data frame. 
 }
-  \item{standardise}{
-  Two types of models can be estimated: M1 (with \code{standardise = FALSE})
-  corresponds to a marginal distribution function without direct
-  interpretation of the fixed effects, M2 (with \code{standardise = TRUE})
-  allows a marginal interpretation of scaled fixed effects as 
-  log-odds or log-hazard ratios (depending on \code{object}). See Hothorn
-  (2019).
-}
   \item{grd}{
   A sparse grid used for numerical integration to get the likelihood.
 }
   \item{Hessian}{
   A logical, if \code{TRUE}, the hessian is computed and returned.
-}
-  \item{grad_num}{
-  A logical, if \code{TRUE}, the log-likelihood is optimized through a gradient
-  estimated numerically. For continuous responses only.
 }
   \item{tol}{numerical tolerance.}
   \item{\dots}{
