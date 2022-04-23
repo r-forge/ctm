@@ -38,14 +38,14 @@ nd <- mcycle[1:100, ]
 m3 <- LmME(accel ~ s(times), data = nd, nofit = TRUE)
 sm <- tramME:::.tramME_smooth(m) ## set up the smooth term on the whole dataset
 m4 <- LmME(accel ~ s(times), data = nd, smooth = sm, nofit = TRUE)
-chkerr(chkeq(m3$tmb_obj$env$data$X, m4$tmb_obj$env$data$X,
-             tol = 0.1, scale = 1)) ## not the same
+chkeq(m3$tmb_obj$env$data$X, m4$tmb_obj$env$data$X, tol = 0.1, scale = 1,
+      chkdiff = TRUE) ## not the same
 
 mod_gm <- LmME(y ~ s(x0)+ s(x1) + s(x2) + (1|fac), data = gamdat)
 ## NOTE: by fixing random effects, we change the log-likelihood
-chkerr(chkeq(logLik(mod_gm, newdata = gamdat2),
-             logLik(mod_gm, newdata = gamdat2, type = "integrated"),
-             tol = 0.1, scale = 1)) ## not the same
+chkeq(logLik(mod_gm, newdata = gamdat2),
+      logLik(mod_gm, newdata = gamdat2, type = "integrated"),
+      tol = 0.1, scale = 1, chkdiff = TRUE) ## not the same
 
 ## -- restrict smooths to be evaluated through newdata argument
 if (!.run_test) {
@@ -76,3 +76,7 @@ edf1 <- edf_smooth(m1)
 m2 <- gam(y ~ x0 + x1 + s(x2, by = fac, fx = TRUE, k = 8), data = gamdat)
 edf2 <- summary(m2)$edf
 chkeq(edf1, as.vector(edf2), check.attributes = FALSE)
+
+summarize_tests()
+
+options(oldopt)

@@ -5,38 +5,70 @@ if (length(strsplit(packageDescription("tramME")$Version, "\\.")[[1]]) > 3) {
   Sys.setenv("NOT_CRAN" = "true")
 }
 
-## Increase the default tolearnce levels for chkeq when run on CRAN
-## to avoid "additional issues"
-if (!identical(Sys.getenv("NOT_CRAN"), "true")) {
-  tol <- 1e4
-} else {
-  tol <- sqrt(.Machine$double.eps)
+..sumfail <- 0
+
+chkeq <- function(x, y, ..., chkdiff = FALSE) {
+  fail <- !isTRUE(all.equal(x, y, ...))
+  if (chkdiff) {
+    fail <- !fail
+    msg <- "The arguments are not different."
+  } else msg <- "The arguments are not equal."
+  fail_action(fail, match.call(), msg = msg)
 }
 
-chkeq <- function(x, y, tolerance = tol, ...) {
-  stopifnot(isTRUE(all.equal(x, y, tolerance = tolerance, ...)))
+chkid <- function(x, y, ..., chkdiff = FALSE) {
+  fail <- !isTRUE(identical(x, y, ...))
+  if (chkdiff) {
+    fail <- !fail
+    msg <- "The arguments are not different."
+  } else msg <- "The arguments are not identical."
+  fail_action(fail, match.call(), msg = msg)
 }
-
-chkid <- function(x, y, ...) stopifnot(isTRUE(identical(x, y, ...)))
 
 chkerr <- function(expr, em = NULL) {
-  stopifnot(
-    tryCatch(expr,
+  fail <- tryCatch({expr; 1L},
       error = function(e) {
-        if (!is.null(em)) return(grepl(em, e))
-        else return(TRUE)
+        if (!is.null(em) && !grepl(em, e)) return(2L)
+        else return(0L)
       }
       )
-  )
+  msg <- if (fail < 2L) "No error was raised."
+         else "Error message doesn't match."
+  fail_action(fail > 0L, match.call(), msg = msg)
 }
 
 chkwarn <- function(expr, wm = NULL) {
-  stopifnot(
-    tryCatch(expr,
+  fail <- tryCatch({expr; 1L},
       warning = function(w) {
-        if (!is.null(wm)) return(grepl(wm, w))
-        else return(TRUE)
-      }
-      )
-  )
+        if (!is.null(wm) && !grepl(wm, w)) return(2L)
+        else return(0L)
+      })
+  msg <- if (fail < 2L) "No warning was raised."
+         else "Warning message doesn't match."
+  fail_action(fail > 0L, match.call(), msg = msg)
+}
+
+fail_action <- function(fail, call,
+                        raise_error = identical(Sys.getenv("NOT_CRAN"), "true"),
+                        msg = NULL) {
+  if (fail) {
+    message("\n==== TEST FAILED: ========\n",
+            "\t", deparse(call), "\n",
+            if (length(msg)) paste0(msg, "\n") ,
+            "==========================\n")
+    if (raise_error) {
+      msg <- if (!is.null(msg)) paste0(": ", msg) else "!"
+      stop(paste0("Test failed", msg))
+    }
+    if (exists("..sumfail")) ..sumfail <<- ..sumfail + 1
+    return(invisible(FALSE))
+  }
+  invisible(TRUE)
+}
+
+summarize_tests <- function() {
+  if (exists("..sumfail"))
+    message("==========================\n",
+            "Number of failed tests: ", ..sumfail,"\n",
+            "==========================")
 }
