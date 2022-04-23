@@ -1,6 +1,6 @@
-# tramME 1.0.1 (2022-04-22)
+# tramME 1.0.1 (2022-04-23)
 
-* Increase tolerance of tests to avoid issues with MKL on CRAN.
+* Updated test utilities to avoid issues with MKL on CRAN. 
 
 # tramME 1.0.0 (2022-04-12)
 

@@ -59,7 +59,7 @@ if (!.run_test) {
   vc3 <- vcov(mod_sr, method = "optimHess")
   chkeq(vc1, vc2)
   ## NOTE: w/ optimHess, it's slightly different
-  chkerr(chkeq(vc1, vc3, tol = sqrt(.Machine$double.eps)))
+  chkeq(vc1, vc3, tol = sqrt(.Machine$double.eps), chkdiff = TRUE)
 }
 
 mod_gm <- LmME(y ~ s(x0)+ x1 + s(x2) + (1|fac), data = gamdat)
@@ -155,7 +155,7 @@ if (!.run_test) {
   res2 <- resid(mod_gm, fix_smooth = FALSE)[gamdat$fac == 1]
   chkeq(res1, res2)
   res1 <- resid(mod_gm, fix_smooth = FALSE, newdata = subset(gamdat, subset = fac == 1))
-  chkerr(chkeq(res1, res2, tol = sqrt(.Machine$double.eps)))
+  chkeq(res1, res2, tol = sqrt(.Machine$double.eps), chkdiff = TRUE)
 }
 
 mod_gm_bc <- BoxCoxME(y ~ s(x0)+ x1 + s(x2) + (1|fac), data = gamdat)
@@ -289,8 +289,8 @@ chkeq(logLik(mod_cox1, param = par), logLik(mod_cox2, param = par))
 os <- runif(nrow(sleepstudy))
 mod_lm1 <- Lm(Reaction ~ Days, data = sleepstudy, offset = os)
 mod_lm2 <- LmME(Reaction ~ Days, data = sleepstudy)
-chkerr(chkeq(logLik(mod_lm1), logLik(mod_lm2), check.attributes = FALSE,
-             tol = 0.1, scale = 1))
+chkeq(logLik(mod_lm1), logLik(mod_lm2), check.attributes = FALSE,
+      tol = 0.1, scale = 1, chkdiff = TRUE)
 mod_lm2 <- update(mod_lm2, offset = os)
 chkeq(logLik(mod_lm1), logLik(mod_lm2), check.attributes = FALSE)
 
@@ -300,7 +300,7 @@ chkeq(logLik(mod_lm1), logLik(mod_lm2), check.attributes = FALSE)
 mod_cox1 <- CoxphME(Surv(time, status) ~ rx + (1 | litter), data = rats, log_first = TRUE,
                     order = 12, nofit = TRUE)
 mod_cox2 <- update(mod_cox1, data = rats[1:200, ])
-chkerr(chkid(mod_cox1$model$ctm, mod_cox2$model$ctm)) ## not the same
+chkid(mod_cox1$model$ctm, mod_cox2$model$ctm, chkdiff = TRUE) ## not the same
 mod_cox2 <- update(mod_cox1, data = rats[1:200, ], ctm = mod_cox1$model$ctm)
 chkid(mod_cox1$model$ctm, mod_cox2$model$ctm) ## same
 
@@ -387,5 +387,6 @@ lrt1 <- anova(fit1a, fit1b)
 lrt2 <- anova(fit2a, fit2b)
 chkeq(lrt1$Chisq[2], lrt2$`LR stat.`[2], tol = 1e-5)
 
+summarize_tests()
 
 options(oldopt)
