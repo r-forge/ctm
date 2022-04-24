@@ -46,7 +46,7 @@ mtram <- function(object, formula, data,
         attr(iY$Yleft, "constraint") <- tmp
         attr(iY$Yright, "constraint") <- tmp
     }
-    if (length(eY$which) > 0 && length(iY$which))
+    if ((length(eY$which) > 0) && (length(iY$which) > 0))
         stop("cannot deal with mixed censoring")
     
     w <- object$weights
@@ -195,7 +195,8 @@ mtram <- function(object, formula, data,
             }
         }
     } else { ## censored and discrete case
-        stopifnot(length(rt$flist) == 1)
+        if (length(rt$flist) != 1L)
+            stop("only one grouping factor allowed for discrete case")
         grp <- rt$flist[[1]]
         idx <- split(1:length(grp), grp)
         wh <- 1:length(rt$cnms[[1]])
