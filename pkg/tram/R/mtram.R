@@ -65,13 +65,8 @@ mtram <- function(object, formula, data,
     gr <- NULL
     
     ### catch constraint violations here
-    .log <- function(x) {
-        return(log(pmax(.Machine$double.eps, x)))
-        pos <- (x > .Machine$double.eps)
-        if (all(pos)) return(log(x))
-        ret[pos] <- log(x[pos])
-        return(ret)
-    }
+    .log <- function(x) 
+        log(pmax(.Machine$double.eps, x))
     
     ## continuous case
     if (length(eY$which) > 0) {
@@ -241,7 +236,7 @@ mtram <- function(object, formula, data,
                 .Marsaglia_1963(zlower, zupper, mean = 0, V = V, 
                                 do_qnorm = FALSE, grd = grd)
             })
-            return(-sum(log(pmax(.Machine$double.eps, ret))))
+            return(-sum(.log(ret)))
         }
         X <- iY$Yleft
     }            
@@ -264,13 +259,9 @@ mtram <- function(object, formula, data,
                                hin.jac = function(par) ui,
                                control.outer = list(trace = FALSE))[c("par", "value", "gradient")]
     }
-    if (length(eY$which) > 0) {
-        gamma <- opt$par[-(1:ncol(eY$Y))]
-        names(opt$par)[-(1:ncol(eY$Y))] <- paste0("gamma", 1:length(gamma))
-    } else {
-        gamma <- opt$par[-(1:ncol(iY$Yleft))]
-        names(opt$par)[-(1:ncol(iY$Yleft))] <- paste0("gamma", 1:length(gamma))
-    }
+
+    gamma <- opt$par[-(1:ncol(X))]
+    names(opt$par)[-(1:ncol(X))] <- paste0("gamma", 1:length(gamma))
     Lambdat@x[] <- mapping(gamma)
     opt$G <- crossprod(Lambdat)[1:length(rt$cnms[[1]]),1:length(rt$cnms[[1]])]
     if (Hessian) opt$Hessian <- numDeriv::hessian(ll, opt$par)
