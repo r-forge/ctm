@@ -1,5 +1,5 @@
 
-R Under development (unstable) (2022-03-30 r82039) -- "Unsuffered Consequences"
+R version 4.2.0 (2022-04-22) -- "Vigorous Calisthenics"
 Copyright (C) 2022 The R Foundation for Statistical Computing
 Platform: x86_64-pc-linux-gnu (64-bit)
 
@@ -243,6 +243,19 @@ attr(,"achieved.conf.level")
 > chk(r, r2)
 > chk(rs, rs2)
 > 
+> ### linear predictor
+> aq <- airquality[complete.cases(airquality),]
+> aq <- as.data.frame(lapply(aq, as.double))
+> m <- Lm(Ozone ~ Solar.R + Wind + Temp + Month + Day | Solar.R + Wind + Temp + Month + Day, 
++         data = aq)
+> 
+> lp1 <- predict(m, type = "lp", what = "shifting")
+> lp2 <- predict(m, type = "lp", what = "scaling")
+> 
+> X <- model.matrix(~ Solar.R + Wind + Temp + Month + Day, data = aq)[, -1L]
+> stopifnot(identical(lp1, X %*% coef(m, with_baseline = FALSE)[m$shiftcoef]))
+> stopifnot(identical(lp2, X %*% coef(m, with_baseline = FALSE)[m$scalecoef]))
+> 
 > proc.time()
    user  system elapsed 
-  4.924   0.104   5.023 
+  4.689   0.103   4.801 
