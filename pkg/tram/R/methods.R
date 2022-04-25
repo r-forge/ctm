@@ -150,7 +150,7 @@ predict.tram <- function(object, newdata = model.frame(object),
 }
 
 predict.stram <- function(object, newdata = model.frame(object), 
-    type = c("lp", "lp", "trafo", "distribution", "survivor", "density", 
+    type = c("lp", "trafo", "distribution", "survivor", "density", 
              "logdensity", "hazard", "loghazard", "cumhazard", "quantile"), 
              what = c("shifting", "scaling"), ...) {
 
@@ -1448,21 +1448,15 @@ PI.stram <- function(object, ...)
 ### convert lp to PI and back, use logistic as default
 PI.default <- function(object, prob, link = "logistic", ...) {
 
-    FUN <- .lp2PI(link = link)
-
-    if (missing(prob))
+    if (missing(prob)) {
+        FUN <- .lp2PI(link = link)
         return(FUN(object))
-
-    object <- 1:999 / 50
-    s <- spline(x = object, y = FUN(object), method = "hyman")
-    wl5 <- (prob < .5 - .Machine$double.eps)
-    wg5 <- (prob > .5 + .Machine$double.eps)
-    ret <- numeric(length(prob))
-    if (any(wl5))
-        ret[wl5] <- - approx(x = s$y, y = s$x, xout = 1 - prob[wl5])$y
-    if (any(wg5))
-        ret[wg5] <- approx(x = s$y, y = s$x, xout = prob[wg5])$y
-    ret
+    } else {
+        if (!missing(object))
+            stop("both object and prob arguments specified")
+        FUN <- .PI2lp(link = link)
+        return(FUN(prob))
+    }
 }
 
 OVL <- function(object, ...)
@@ -1668,6 +1662,23 @@ ROC.default <- function(object, prob = 1:99 / 100, link = "logistic", ...){
     )
 }
 
+.PI2lp <- function(link = c("normal", "logistic", "minimum extreme value", 
+                            "maximum extreme value")) {
+
+    link <- match.arg(link)
+    switch(link,
+        normal = function(PI) qnorm(PI) * sqrt(2),
+        logistic = function(PI) {
+            f <- function(x, PI)
+                x + (exp(-x) * (PI + exp(2 * x) * (PI - 1) + exp(x)* (1 - 2 * PI)))
+            ret <- sapply(PI, function(p) 
+                uniroot(f, PI = p, interval = 50 * c(-1, 1))$root)
+            return(ret)
+        },
+        "minimum extreme value" = function(PI) qlogis(PI),
+        "maximum extreme value" = function(PI) qlogis(PI)
+    )
+}
 
 .lp2OVL <- function(link = c("normal", "logistic", "minimum extreme value", 
                               "maximum extreme value")) {
