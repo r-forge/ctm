@@ -13,7 +13,7 @@ importFrom("stats", "model.matrix", "coef", "vcov", "nobs", "predict", "quantile
            "printCoefmat", "qqline", "qqplot", "qunif", "variable.names", "pchisq",
            "model.frame", "pnorm", "qnorm", "sigma", "residuals", "qchisq", "approx", "spline",
            "confint", "relevel", "resid", "ecdf", "dnorm", "weights", "lm", "simulate", 
-           "plogis", "qlogis", "dist")
+           "plogis", "qlogis", "dist", "uniroot")
 import("Matrix")
 importFrom("survival", "survfit", "Surv", "coxph.control")
 importFrom("graphics", "plot", "lines", "polygon", "abline")
