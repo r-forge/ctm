@@ -10,6 +10,7 @@
 \alias{logLik.tram}
 \alias{estfun.tram}
 \alias{predict.tram}
+\alias{predict.stram}
 \alias{residuals.tram}
 \alias{plot.tram}
 \alias{plot.ROCtram}
