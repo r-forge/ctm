@@ -46,6 +46,8 @@ texclean:
 	rm -rf *.tpt
 	rm -rf *.bbl
 	rm -rf *.fff
+	rm -rf *-concordance.tex
+	rm -rf *.synctex.gz
 	rm -rf *~
 
 clean:	
