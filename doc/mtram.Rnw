@@ -954,7 +954,7 @@ intercept models and models featuring correlated random intercepts and
 slopes were estimated by the \code{glmer} function from package
 \pkg{lme4} \citep{pkg:lme4}, by the \code{glmm} function from package
 \pkg{glmmsr} \citep{ogden_2015}, and by direct maximisation of the exact
-discrete log-likelihood given in the Appendix of \cite{Hothorn_2019_mtram}.
+discrete log-likelihood given in Appendix B of \cite{Hothorn_2019_mtram}.
 % discrete log-likelihood (\ref{fm:dll}) given in Appendix~\ref{app:cens}.
 
 The random intercept probit model fitted by Laplace and Adaptive
@@ -1105,29 +1105,27 @@ m <- ctm(as.basis(~ outcome, data = toenail),
 toenail_logit <- mlt(m, data = toenail, 
                      fixed = c("outcomemoderate or severe" = 0))
 toenail_mtram_logit <- mtram(toenail_logit, ~ (1 | patientID), 
-                              data = toenail)
-toenail_mtram_logit_s <- mtram(toenail_logit, ~ (1 | patientID), 
-                               data = toenail, Hessian = TRUE)
+                             data = toenail, Hessian = TRUE)
 @
 It is important to note that this model is \emph{not} a logistic 
 mixed-effects model and thus we can't expect to obtain identical 
 results from \cmd{glmer} as it was (partially) the case for the probit
 model.
 
-From the standardised model, we can compute marginally interpretable 
+From the model, we can compute marginally interpretable 
 probabilities and odds ratios over time
 <<mtram-toenail_marginal_logit_s>>=
 tmp <- toenail_logit
 cf <- coef(tmp)
 cf <- cf[names(cf) != "outcomemoderate or severe"]
-sdrf <- rev(coef(toenail_mtram_logit_s))[1]
-cf <- coef(toenail_mtram_logit_s)[names(cf)] / sqrt(sdrf^2 + 1)
+sdrf <- rev(coef(toenail_mtram_logit))[1]
+cf <- coef(toenail_mtram_logit)[names(cf)] / sqrt(sdrf^2 + 1)
 cf <- c(cf[1], "outcomemoderate or severe" = 0, cf[-1])
 coef(tmp) <- cf
 time <- 0:180/10
 treatment <- sort(unique(toenail$treatment))
 nd <- expand.grid(time = time, treatment = treatment)
-nd$prob_logit_s <- predict(tmp, newdata = nd, type = "distribution")[1,]
+nd$prob_logit <- predict(tmp, newdata = nd, type = "distribution")[1,]
 nd$odds <- exp(predict(tmp, newdata = nd, type = "trafo")[1,])
 @
 
@@ -1138,8 +1136,8 @@ estimators to obtain an idea about the uncertainty
 \begin{figure}[t]
 <<mtram-toenail_OR_2, dev = "png", cache = TRUE, echo = FALSE, dpi = 300>>=
 X <- model.matrix(~ treatment * time, data = nd)
-rbeta <- rmvnorm(10000, mean = coef(toenail_mtram_logit_s), 
-                 sigma = solve(toenail_mtram_logit_s$Hessian))
+rbeta <- rmvnorm(10000, mean = coef(toenail_mtram_logit), 
+                 sigma = solve(toenail_mtram_logit$Hessian))
 s <- rbeta[,ncol(rbeta)]
 rbeta <- rbeta[,-ncol(rbeta)] / sqrt(s^2 + 1)
 odds <- exp(X %*% t(rbeta))
@@ -1157,7 +1155,7 @@ lines(time, ORest, col = col[1], lwd = 2)
   \label{fig:toenailOR}}
 \end{figure}
 
-From the unstandardised logit and probit models, we can also obtain
+From the logit and probit models, we can also obtain
 marginally interpretable probabilities as (probit)
 <<mtram-toenail_marginal_logit>>=
 tmp <- toenail_logit
@@ -1187,10 +1185,10 @@ very similar as shown in Figure~\ref{fig:toenailprob}.
 \begin{figure}[t]
 <<mtram-toenail_probplot, echo = FALSE>>=
 # nd2 <- nd[rep(1:nrow(nd), 3),]
-nd2 <- nd[rep(1:nrow(nd), 2),]
 # nd2$prob <- c(nd$prob_probit, nd$prob_logit_s, nd$prob_logit)
-nd2$prob <- c(nd$prob_probit, nd$prob_logit)
 # lev <- c("Probit (M1) = (M2)", "Logit (M1)", "Logit (M2)")
+nd2 <- nd[rep(1:nrow(nd), 2),]
+nd2$prob <- c(nd$prob_probit, nd$prob_logit)
 lev <- c("Probit", "Logit")
 nd2$model <- rep(factor(lev, labels = lev, levels = lev), each = nrow(nd))
 
@@ -1409,8 +1407,11 @@ t(apply(rbeta[, 8:12], 2, function(x) {
 @
 
 Because the model \code{neck_Colrmer} has a marginal interpretation, we can
-derive the probabilistic index and corresponding confidence intervals for the
-three time points as follows.
+derive the marginal probabilistic index and corresponding confidence intervals 
+for the three time points as follows. In this case, the marginal probabilistic
+index obtained from model \code{neck\_Colrmer} is the probability that the neck
+pain score for a patient in the treatment group is greater than the score for
+a subject in the placebo group. \TODO{on average?}
 First, we consider the standardised version of the marginal treatment effects,
 that is:
 <<mtram-neck_Colr-std_beta>>=
@@ -1418,28 +1419,27 @@ beta <- coef(neck_Colrmer)[8:12]
 alpha <- coef(neck_Colrmer)[13]
 (std_beta <- cbind(beta / sqrt(1 + alpha^2)))
 @
-Then we obtain 
-
+Then we computethe marginal treatment effect for weeks $0, 7, 12$ by multiplying
+the shift vector with the following contrast matrix
 <<mtram-neck_Colr-ctr_mat>>=
 ctr_mat <- matrix(c(1, 0, 0, 0, 0,
                     1, 0, 0, 1, 0,
                     1, 0, 0, 0, 1), nrow = 3, byrow = TRUE)
 ctr_mat %*% std_beta
 @
-
-Simulating from the asymptotic distribution of the parameters to obtain an
-empirical 95\% confidence interval
+We simulate from the asymptotic distribution of the parameters to obtain an
+empirical 95\% confidence interval and pass it to the \code{PI} function by
+specifying the correct link function
 <<mtram-neck_PImanual, eval=TRUE>>=
 (ci_emp <- t(apply(ctr_mat %*% t(rbeta[, 8:12]), 1, function(x) {
   quantile(x, prob = c(.025, .5, .975))})))
 
 PI(-ci_emp, link = "logistic")
 @
-
-We can compute the probabilistic index for the previously fitted \code{Colr}
-model. This quantifies the probability that the neck pain score for the
-treatment group is greater than the score for a subject in the placebo group.
-
+Alternatively, we can compute the probabilistic index by passing a \code{Colr}
+model to the \code{PI} function. However, we have to make sure that the marginal
+model has the correct coefficients as obtained by standardising the coefficients
+from the \code{mtram} model:
 <<neck_Colr-PI, echo = TRUE>>=
 nd <- expand.grid(time = unique(pain_df$time),
                   laser = unique(pain_df$laser))
@@ -1454,8 +1454,7 @@ $\Sexpr{round(neck_Colr_PI[3, 1], 2)}$. These values reflect the effect of the
 low-level laser therapy.
 
 Of course, the confidence intervals for the estimates of the probabilistic index
-differ if we compute them manually or through the \code{PI} function, but the
-point estimates coincide.
+differ slightly across the two methods, but the point estimates coincide.
 
 
 \section{Marginally Interpretable Weibull and Cox Models}
@@ -1539,10 +1538,10 @@ variance $\gamma_1^2$ of a block-specific (interaction of lymph node involvement
 tumor grading, and study center) random intercept:
 <<mtram-CAO_SR, cache = TRUE>>=
 CAO_SR <- Survreg(iDFS2 ~ randarm, data = CAOsurv)
-CAO_SR_mtram_s <- mtram(CAO_SR, ~ (1 | Block), data = CAOsurv,
-                        Hessian = TRUE)
-logLik(CAO_SR_mtram_s)
-(cf <- coef(CAO_SR_mtram_s))
+CAO_SR_mtram <- mtram(CAO_SR, ~ (1 | Block), data = CAOsurv,
+                      Hessian = TRUE)
+logLik(CAO_SR_mtram)
+(cf <- coef(CAO_SR_mtram))
 (OR <- exp(-cf["randarm5-FU + Oxaliplatin"] / sqrt(cf["gamma1"]^2 + 1)))
 @
 We are, of course, interested in the marginal treatment effect, that is, the
@@ -1557,9 +1556,9 @@ $\hat{\eparm}_1, \hat{\eparm}_2, \hat{\eshiftparm}_\text{5-FU + Ox},
 \hat{\gamma}_1$ and compute confidence intervals for the marginal treatment
 effect $\Sexpr{round(OR, 2)}$ as
 <<mtram-CAO-CI>>=
-S <- solve(CAO_SR_mtram_s$Hessian)
+S <- solve(CAO_SR_mtram$Hessian)
 # sqrt(diag(S))
-rbeta <- rmvnorm(10000, mean = coef(CAO_SR_mtram_s), 
+rbeta <- rmvnorm(10000, mean = coef(CAO_SR_mtram), 
                  sigma = S)
 s <- rbeta[, ncol(rbeta)]
 rbeta <- rbeta[, -ncol(rbeta)] / sqrt(s^2 + 1)
@@ -1571,18 +1570,18 @@ grading: For each of the four strata, the parameters $\eparm_1$ and
 $\eparm_2$ are estimated separately:
 <<mtram-CAO_SR_2, cache = TRUE>>=
 CAO_SR_2 <- Survreg(iDFS2 | 0 + strat_n:strat_t ~ randarm, data = CAOsurv)
-CAO_SR_2_mtram_s <- mtram(CAO_SR_2, ~ (1 | Block), data = CAOsurv,
-                          Hessian  = TRUE)
-logLik(CAO_SR_2_mtram_s)
-(cf <- coef(CAO_SR_2_mtram_s))
+CAO_SR_2_mtram <- mtram(CAO_SR_2, ~ (1 | Block), data = CAOsurv,
+                        Hessian  = TRUE)
+logLik(CAO_SR_2_mtram)
+(cf <- coef(CAO_SR_2_mtram))
 (OR_2 <- exp(-cf["randarm5-FU + Oxaliplatin"] / sqrt(cf["gamma1"]^2 + 1)))
 @
 The corresponding confidence interval for the marginal treatment effect is
 then
 <<mtram-CAO-CI-2, echo = FALSE>>=
-H <- CAO_SR_2_mtram_s$Hessian
+H <- CAO_SR_2_mtram$Hessian
 S <- solve(H + .01 * diag(nrow(H)))
-rbeta <- rmvnorm(10000, mean = coef(CAO_SR_2_mtram_s), 
+rbeta <- rmvnorm(10000, mean = coef(CAO_SR_2_mtram), 
                  sigma = S)
 s <- rbeta[, ncol(rbeta)]
 rbeta <- rbeta[, -ncol(rbeta)] / sqrt(s^2 + 1)
@@ -1599,47 +1598,38 @@ We now relax the Weibull assumption in the Cox model
 CAO_Cox_2 <- Coxph(iDFS2 | 0 + strat_n:strat_t ~ randarm, data = CAOsurv, 
                    support = c(1, 1700), log_first = TRUE, order = 4)
 logLik(CAO_Cox_2)
-CAO_Cox_2_mtram_s <- mtram(CAO_Cox_2, ~ (1 | Block), data = CAOsurv, 
-                           Hessian = TRUE)
-logLik(CAO_Cox_2_mtram_s)
-coef(CAO_Cox_2_mtram_s)
+CAO_Cox_2_mtram <- mtram(CAO_Cox_2, ~ (1 | Block), data = CAOsurv, 
+                         Hessian = TRUE)
+logLik(CAO_Cox_2_mtram)
+coef(CAO_Cox_2_mtram)
 @
 with confidence interval
 <<mtram-CAO-CI-3, echo = FALSE>>=
-H <- CAO_Cox_2_mtram_s$Hessian
+H <- CAO_Cox_2_mtram$Hessian
 S <- solve(H + .1 * diag(nrow(H)))
-rbeta <- rmvnorm(10000, mean = coef(CAO_Cox_2_mtram_s), 
+rbeta <- rmvnorm(10000, mean = coef(CAO_Cox_2_mtram), 
                  sigma = S)
 s <- rbeta[,ncol(rbeta)]
 rbeta <- rbeta[,-ncol(rbeta)] / sqrt(s^2 + 1)
 quantile(exp(rbeta[, ncol(rbeta)]), prob = c(.025, .5, .975))
 @
 For the marginally interpretable models that can be derived from model
-\code{CAO\_Cox\_2\_mtram\_s} we can compute the probabilistic index.
+\code{CAO\_Cox\_2\_mtram} we can compute the probabilistic index.
 This value is the marginal probability (over all study centers) that a patient 
-receiving Oxaliplatin lives longer than one not receiving that treatment, given
+receiving Oxaliplatin lives longer than one receiving standart treatment only, given
 that they both have the same lymph node status and tumor grading.
 <<mtram-CAO_PI, echo=TRUE, eval = TRUE>>=
 nd <- CAOsurv[1:2, ]
 tmp <- CAO_Cox_2
-tmp$coef <- coef(CAO_Cox_2_mtram_s)[-22] / sqrt(coef(CAO_Cox_2_mtram_s)[22]^2 + 1)
+tmp$coef <- coef(CAO_Cox_2_mtram)[-22] / sqrt(coef(CAO_Cox_2_mtram)[22]^2 + 1)
 (CAO_Cox_PI <- PI(tmp, newdata = nd[2, ], reference = nd[1, ],
                   one2one = TRUE, conf.level = .95))[1, ]
 @
-but we can compute the same thing manually as follows:
+but we can compute the same manually as follows:
 <<mtram-CAO_PI_man, echo=TRUE, eval = TRUE>>=
 ci_man <- quantile(-rbeta[, ncol(rbeta)], prob = c(.025, .5, .975))
 (CAO_Cox_PIm <- PI(ci_man, link = "minimum extreme value"))
 @
-\TODO{not the same?}
-
-We compute the marginal hazard ratio given same tumor grading and lymph node status
-from the marginally interpretable transformation model as
-<<mtram_CAO_hr_marg>>=
-quantile(exp(rbeta[, ncol(rbeta)]), prob = c(.025, .5, .975))
-@
-\TODO{but you already did this before? so just add it into the paper.}
-
 We can fit mixed-effects transformation models 
 \citep{tamasi2021tramme,Tamasi_Crowther_Puhan_2022} as follows:
 <<tramME-CAO_SR, cache = TRUE>>=
@@ -1647,14 +1637,16 @@ library("tramME")
 CAO_Cox_2_tramME <- CoxphME(iDFS2 | 0 + strat_n:strat_t ~ randarm + (1 | Block), 
                             data = CAOsurv, log_first = TRUE)
 coef(CAO_Cox_2_tramME)
+exp(coef(CAO_Cox_2_tramME))
 @
 
 
-For moth the mixed-effects transformation model and the marginally interpretable
-transformation model, the estimated variance parameter $\gamma_1$ is not very large.
+For both the mixed-effects transformation model and the marginally interpretable
+transformation model, the estimated variance parameter $\gamma_1$ is not very large,
+meaning that \TODO{...}
 <<>>=
 sqrt(VarCorr(CAO_Cox_2_tramME)$Block$var)
-coef(CAO_Cox_2_mtram_s)["gamma1"]
+coef(CAO_Cox_2_mtram)["gamma1"]
 @
 
 
@@ -1780,9 +1772,9 @@ $\shiftparm$ can be interpreted as log-odds ratios. We question the appropriaten
 model here by including a subject-specific random intercept with standard
 deviation $\gamma_1$. This changes the model to
 \begin{eqnarray*}
-\Prob(\text{orgasm} \le \ry_k \mid \rx) = \Phi\left(
-  \frac{\Phi^{-1}(\expit(\eparm_k + \rx^\top
-  \shiftparm))}{\sqrt{\gamma_1^2 + 1}}\right)
+\Prob(\text{orgasm} \le \ry_k \mid \rx) = \expit \left(
+\frac{\eparm_k + \rx^\top
+  \shiftparm}{\sqrt{\gamma_1^2 + 1}} \right)
 \end{eqnarray*}
 A value of $\gamma_1$ close to zero corresponds to marginal distributions
 very similar to the proportional odds model and, consequently, it is
@@ -1810,7 +1802,7 @@ coef(CHFLS_mtram)
 
 With $\hat{\gamma}_1 = \Sexpr{round(coef(CHFLS_mtram)["gamma1"], 3)}$ 
 and almost identical log-likelihoods for both models ($-1852.615$ without
-and $-1852.829$ with variance parameter $\gamma_1$), the amount of
+and $-1852.829$ with variance parameter $\gamma_1$ \TODO{want to keep this?}), the amount of
 unexplained variation seems negligible and interpretation of the effects
 as log-odds ratios is appropriate.
 
@@ -1853,13 +1845,13 @@ one of \code{glmer} from package \pkg{lme4} with Laplace approximation and with
 Adaptive Gauss-Hermite Quadrature with 20 nodes, and \code{glmmTMB} from package
 \pkg{glmmTMB} \citep{pkg:glmmTMB}. 
 
-For all simulations, we consider 100 clusters of size 5.
+For these simulations, we consider 100 clusters of size 5.
 and variance $\tau = \sqrt{3}/\pi$ and $\shiftparm = (-0.5, 0, 1, 2)^\top$.
 We simulate data according to the following procedure, estimate the
 relevant models and repeat this 100 times.
 
 In Figure~\ref{fig:sim-BP} we show the resulting coefficients. We can see that
-all functions had a similar performance.
+all functions performed similarly in estimating the coefficienty.
 
 <<sim-BP_data, eval=FALSE>>=
 N <- 100 # number of clusters
@@ -2853,8 +2845,9 @@ We consider the following scenarios in the data generating process of a continuo
 response:
 \begin{enumerate}
 \item We simulate from a transformation model with inverse link function
-      $F_Z = \pN$. In this setting, the model fitted through \code{tramME} and
-      the model fitted through \code{mtram} coincide, so we expect identical
+      $F_Z = \pN$. In this setting, the conditional transformation model and the
+      marginally interpretable linear transformation coincide, so we the models 
+      fitted through \code{tramME} and \code{mtram} to have identical
       coefficients.
 <<sim-probit_data, eval=FALSE>>=
 N <- 100 # number of clusters
@@ -2872,7 +2865,8 @@ d <- data.frame(y = y, x, cls = cls)
       
 \item We simulate from a conditional transformation model with inverse link 
       function $F_Z = \expit$. In this setting, the model fitted through 
-      \code{tramME} should outperform the model fitted through \code{mtram}.
+      \code{tramME}, which reflects the data generating process,
+      should outperform the model fitted through \code{mtram}.
 <<sim-tramME_data, eval=FALSE>>=
 x <- matrix(runif(N * Ni * 3), ncol = p)
 y <- qt(plogis(x %*% beta + rnorm(N, sd = tau)[cls] + rlogis(nrow(x))), df = 3)
@@ -2882,7 +2876,8 @@ d <- data.frame(y = y, x, cls = cls)
       
 \item We simulate from a marginally interpretable transformation model with inverse link 
       function $F_Z = \expit$. In this setting, we expect the model fitted
-      through \code{mtram} to outperform the model fitted through \code{tramME}.
+      through \code{mtram}, which reflects the data generating process,
+      to outperform the model fitted through \code{tramME}.
 <<sim-mtram_data, eval=FALSE>>=
 Ui <- matrix(1, ncol = 1, nrow = Ni)
 S <- tau^2
