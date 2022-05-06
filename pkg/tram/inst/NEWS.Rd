@@ -5,6 +5,7 @@
 \section{Changes in Version 0.7-1 (2022-04-07)}{
   \itemize{
     \item{Minor bug fixed for shift-scale transformation models (still experimental).}
+    \item{\code{bread.tram} added for \code{sandwich} to work.}
   }
 }
 
