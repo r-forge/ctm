@@ -135,6 +135,9 @@ Gradient.tram <- function(object, parm = coef(as.mlt(object), fixed = FALSE), ..
 estfun.tram <- function(object, parm = coef(as.mlt(object), fixed = FALSE), ...)
     estfun(as.mlt(object), parm = parm, ...)
 
+bread.tram <- function(x, ...)
+    bread(as.mlt(x), ...)
+
 predict.tram <- function(object, newdata = model.frame(object), 
     type = c("lp", "trafo", "distribution", "survivor", "density", 
              "logdensity", "hazard", "loghazard", "cumhazard", "quantile"), ...) {
