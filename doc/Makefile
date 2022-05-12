@@ -1,6 +1,9 @@
 
 all:	mlt.pdf tram.pdf
 
+toenail.tex:	toenail.R
+	R CMD BATCH toenail.R
+
 mlt.tex:	mlt.Rnw
 	echo "library(\"knitr\"); knit(\"mlt.Rnw\")" | R --vanilla 
 #	diff mlt.tex mlt.tex.save
@@ -34,6 +37,23 @@ tram.Rout:	tram.R
 tram.pdf:	tram.tex mlt.bib
 	texi2dvi --pdf tram.tex
 	pdflatex tram.tex
+	
+mtram.tex:	mtram.Rnw
+	echo "library(\"knitr\"); knit(\"mtram.Rnw\")" | R --vanilla 
+#	diff mlt.tex mlt.tex.save
+
+mtram.R:	mtram.Rnw
+	echo "library(\"knitr\"); knit(\"mtram.Rnw\", tangle = TRUE)" | R --vanilla 
+	grep -v "^opts" mtram.R > tmp.R
+	mv tmp.R mtram.R
+
+mtram.Rout:	mtram.R
+	R CMD BATCH mtram.R
+#	diff mlt.Rout mlt.Rout.save
+	
+mtram.pdf:	mtram.tex mlt.bib
+	texi2dvi --pdf mtram.tex
+	pdflatex mtram.tex
 
 
 texclean:
