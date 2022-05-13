@@ -1,7 +1,7 @@
 
 %\VignetteEngine{knitr::knitr}
 %\VignetteIndexEntry{mtram}
-%\VignetteDepends{variables, basefun, mlt, tram, survival, lme4, gridExtra, lattice, latticeExtra, colorspace, HSAUR3, mvtnorm, ordinalCont}
+%\VignetteDepends{variables, basefun, mlt, tram, survival, lme4, gridExtra, lattice, latticeExtra, colorspace, HSAUR3, mvtnorm, ordinalCont, tramME}
 
 \documentclass[article,nojss,shortnames]{jss}
 
@@ -23,73 +23,12 @@
 \usetikzlibrary{shapes,arrows,chains}
 \usepackage{verbatim}
 
-<<mtram-setup, echo = FALSE, results = "hide", message = FALSE, warning = FALSE>>=
+<<mtram-pkgs, echo = FALSE, results = "hide", message = FALSE, warning = FALSE>>=
 set.seed(290875)
 
-pkgs <- sapply(c("survival", "lme4", "tram", "gridExtra",
-         "lattice", "latticeExtra", "mvtnorm", "ordinalCont"), require, char = TRUE)
-
-trellis.par.set(list(plot.symbol = list(col=1,pch=20, cex=0.7),
-                     box.rectangle = list(col=1),
-                     box.umbrella = list(lty=1, col=1),
-                     strip.background = list(col = "white")))
-ltheme <- canonical.theme(color = FALSE)     ## in-built B&W theme
-ltheme$strip.background$col <- "transparent" ## change strip bg
-lattice.options(default.theme = ltheme)
-
-knitr::opts_chunk$set(echo = TRUE, results = 'markup', error = FALSE,
-                      warning = FALSE, message = FALSE,
-                      tidy = FALSE, cache = FALSE, size = "small",
-                      fig.width = 6, fig.height = 4, fig.align = "center",
-                      out.width = NULL, ###'.6\\linewidth', 
-                      out.height = NULL,
-                      fig.scap = NA)
-knitr::render_sweave()  # use Sweave environments
-knitr::set_header(highlight = '')  # do not \usepackage{Sweave}
-## R settings
-options(prompt = "R> ", continue = "+  ", useFancyQuotes = FALSE)  # JSS style
-options(width = 75)
-
-### ecdf plots
-myprepanel <- function (x, y, f.value = NULL, ...) 
-{
-    ans <- prepanel.default.qqmath(x, f.value = f.value, distribution = qunif)
-    with(ans, list(xlim = ylim, ylim = c(0, 1), dx = dy, dy = dx))
-}
-
-
-mypanel <- function (x, y, f.value = NULL, type = "s", groups = NULL, qtype = 7, 
-    ref = TRUE, ...) 
-{
-    if (ref) {
-        reference.line <- trellis.par.get("reference.line")
-        do.call(panel.abline, c(list(h = c(0, 1)), reference.line))
-    }
-    x <- as.numeric(x)
-    distribution <- qunif
-    nobs <- sum(!is.na(x))
-    if (!is.null(groups)) {
-        panel.superpose(x, y = NULL, f.value = f.value, type = type, 
-            distribution = distribution, qtype = qtype, groups = groups, 
-            panel.groups = panel.ecdfplot, ...)
-    }
-    else if (nobs) {
-        if (is.null(f.value)) {
-            panel.xyplot(x = sort(x), y = cumsum(y[order(x)]) / sum(y),
-                type = type, ...)
-        }
-        else {
-            p <- if (is.numeric(f.value)) 
-                f.value
-            else f.value(nobs)
-            panel.xyplot(x = quantile(x, p, names = FALSE, type = qtype, 
-                na.rm = TRUE), y = distribution(p), type = type, 
-                ...)
-        }
-    }
-}
-library("colorspace")
-col <- diverge_hcl(2, h = c(246, 40), c = 120, l = c(65, 90), alpha = .75)
+pkgs <- c("colorspace", "survival", "lme4", "tram", "gridExtra",
+          "lattice", "latticeExtra", "mvtnorm", "ordinalCont", "tramME")
+pkgs <- pkgs %in% installed.packages()
 @
 
 \newcommand{\TODO}[1]{{\color{red} #1}}
@@ -556,12 +495,11 @@ distributions, survival analysis, categorical data analysis}
 distributions, survival analysis, categorical data analysis}
 
 \Address{
-  Torsten Hothorn\\
+  Luisa Barbanti, Torsten Hothorn\\
   Institut f\"ur Epidemiologie, Biostatistik und Pr\"avention \\
   Universit\"at Z\"urich \\
   Hirschengraben 84, CH-8001 Z\"urich, Switzerland \\
-  \texttt{Torsten.Hothorn@uzh.ch} \\
-  \url{http://tiny.uzh.ch/bh}
+  \texttt{Torsten.Hothorn@R-project.org}
 }
 
 \begin{document}
@@ -587,6 +525,75 @@ if (any(!pkgs))
     knitr::knit_exit()
 }
 @
+
+
+<<mtram-setup, echo = FALSE, results = "hide", message = FALSE, warning = FALSE>>=
+library("lattice")
+library("latticeExtra")
+library("gridExtra")
+trellis.par.set(list(plot.symbol = list(col=1,pch=20, cex=0.7),
+                     box.rectangle = list(col=1),
+                     box.umbrella = list(lty=1, col=1),
+                     strip.background = list(col = "white")))
+ltheme <- canonical.theme(color = FALSE)     ## in-built B&W theme
+ltheme$strip.background$col <- "transparent" ## change strip bg
+lattice.options(default.theme = ltheme)
+
+knitr::opts_chunk$set(echo = TRUE, results = 'markup', error = FALSE,
+                      warning = FALSE, message = FALSE,
+                      tidy = FALSE, cache = FALSE, size = "small",
+                      fig.width = 6, fig.height = 4, fig.align = "center",
+                      out.width = NULL, ###'.6\\linewidth', 
+                      out.height = NULL,
+                      fig.scap = NA)
+knitr::render_sweave()  # use Sweave environments
+knitr::set_header(highlight = '')  # do not \usepackage{Sweave}
+## R settings
+options(prompt = "R> ", continue = "+  ", useFancyQuotes = FALSE)  # JSS style
+options(width = 75)
+
+### ecdf plots
+myprepanel <- function (x, y, f.value = NULL, ...) 
+{
+    ans <- prepanel.default.qqmath(x, f.value = f.value, distribution = qunif)
+    with(ans, list(xlim = ylim, ylim = c(0, 1), dx = dy, dy = dx))
+}
+
+
+mypanel <- function (x, y, f.value = NULL, type = "s", groups = NULL, qtype = 7, 
+    ref = TRUE, ...) 
+{
+    if (ref) {
+        reference.line <- trellis.par.get("reference.line")
+        do.call(panel.abline, c(list(h = c(0, 1)), reference.line))
+    }
+    x <- as.numeric(x)
+    distribution <- qunif
+    nobs <- sum(!is.na(x))
+    if (!is.null(groups)) {
+        panel.superpose(x, y = NULL, f.value = f.value, type = type, 
+            distribution = distribution, qtype = qtype, groups = groups, 
+            panel.groups = panel.ecdfplot, ...)
+    }
+    else if (nobs) {
+        if (is.null(f.value)) {
+            panel.xyplot(x = sort(x), y = cumsum(y[order(x)]) / sum(y),
+                type = type, ...)
+        }
+        else {
+            p <- if (is.numeric(f.value)) 
+                f.value
+            else f.value(nobs)
+            panel.xyplot(x = quantile(x, p, names = FALSE, type = qtype, 
+                na.rm = TRUE), y = distribution(p), type = type, 
+                ...)
+        }
+    }
+}
+library("colorspace")
+col <- diverge_hcl(2, h = c(246, 40), c = 120, l = c(65, 90), alpha = .75)
+@
+
 
 \section{Introduction}
 
@@ -618,6 +625,7 @@ intercepts and slopes. %of the form (\ref{fm:normal})
 
 \begin{figure}[t]
 <<mtram-sleep-plot, echo = FALSE>>=
+library("lme4")
 xyplot(Reaction ~ Days | Subject, data = sleepstudy, 
        xlab = "Days of sleep deprivation", ylab = "Average reaction time (in ms)")
 @
@@ -632,7 +640,6 @@ likelihood to the data using the \cmd{lmer} function from the \pkg{lme4}
 add-on package \citep{pkg:lme4}:
 %
 <<mtram-sleep_lmer, cache = TRUE>>=
-library("lme4")
 sleep_lmer <- lmer(Reaction ~ Days + (Days | Subject), 
                    data = sleepstudy, REML = FALSE)
 @
@@ -658,6 +665,9 @@ The same model, however using the alternative parameterisation and an
 independent (of \pkg{lme4}, only the \cmd{update} method for Cholesky
 factors is reused) gradient-based maximisation of the log-likelihood, is estimated 
 in a two-step approach as
+<<mtram-tram>>=
+library("tram")
+@
 <<mtram-sleep_mtram, cache = TRUE>>=
 sleep_LM <- Lm(Reaction ~ Days, data = sleepstudy)
 sleep_LMmer <- mtram(sleep_LM, ~ (Days | Subject), data = sleepstudy)
@@ -888,6 +898,7 @@ estimators, we can sample from the asymptotic distribution
 of the variance of the random intercept $\tilde{\alpha}$, the random slope
 $\tilde{\beta}$, and their correlation
 <<mtram-sleep_vcov>>=
+library("mvtnorm")
 VC <- solve(sleep_BCmer$Hessian)
 idx <- (nrow(VC) - 2):nrow(VC)
 Rcoef <- rmvnorm(1000, mean = coef(sleep_BCmer), sigma = VC)[,idx]
@@ -981,8 +992,10 @@ toenail_glmer_RI_2@theta
 
 The sequential reduction (SR) algorithm \citep{ogden_2015} gives results close to
 AGQ
-<<mtram-toenail_glmmsr_RI, cache = TRUE>>=
+<<mtram-glmmsr>>=
 library("glmmsr")
+@
+<<mtram-toenail_glmmsr_RI, cache = TRUE>>=
 toenail_glmm_RI_3 <- 
     glmm(outcome ~ treatment * time + (1 | patientID),
          data = toenail, family = binomial(link = "probit"), 
@@ -994,7 +1007,7 @@ Because of the probit link, this binary generalised linear model is
 equivalent to a linear transformation model and we can thus use the exact
 likelihood implemented for the latter model in \cmd{mtram} for parameter
 estimation (it is still a bit nasty to set-up a constant transformation function
-$\h(\ry) = \alpha$, I plan to add a more convenient interface later)
+$\h(\ry) = \alpha$, we plan to add a more convenient interface later)
 <<mtram-toenail_mtram_RI, cache = TRUE>>=
 m <- ctm(as.basis(~ outcome, data = toenail), 
          shifting = ~ treatment * time, 
@@ -1052,9 +1065,9 @@ toenail_glmer_RS@theta
 <<mtram-lme4-detach, echo = FALSE>>=
 ### coef<- gets overwritten
 detach(package:lme4)
-detach(package:tram)
-detach(package:mlt)
-library("tram")
+#detach(package:tram)
+#detach(package:mlt)
+#library("tram")
 @
 and \pkg{glmmsr}
 <<mtram-toenail_glmmsr_RS, cache = TRUE>>=
@@ -1211,7 +1224,7 @@ xyplot(prob ~ time | model, data = nd2, group = treatment, ylim = c(0, 1),
 \end{figure}
 
 The estimated model parameters, along with the discrete log-likelihood
-(Equation~7 in \cite{Hothorn_2019_mtram}) evaluated at these parameters, are given in
+\citep[Equation~7 in][]{Hothorn_2019_mtram} evaluated at these parameters, are given in
 Table~\ref{tab:toenail}.  For the random intercept models, AGQ, SR, and the
 discrete log-likelihood give the same results, the Laplace approximation
 seemed to fail.  It was not possible to apply the AGQ and SR approaches to
@@ -1222,9 +1235,171 @@ quite a bit.  The log-likelihood obtained by direct maximisation of
 the least extreme parameter estimates.  
 Computing times for all procedures were comparable.
 
+%%%% coefs, logLiks, and timings in table; precomputed.
+<<toenail-comparisons, echo = FALSE, eval = FALSE>>=
+t1 <- system.time(toenail_glmer_RI_1 <- 
+    glmer(outcome ~ treatment * time + (1 | patientID),
+          data = toenail, family = binomial(link = "probit"), 
+          nAGQ = 1))
+summary(toenail_glmer_RI_1)
+toenail_glmer_RI_1@theta
+
+t2 <- system.time(toenail_glmer_RI_2 <- 
+    glmer(outcome ~ treatment * time + (1 | patientID),
+          data = toenail, family = binomial(link = "probit"), 
+          nAGQ = 20))
+summary(toenail_glmer_RI_2)
+toenail_glmer_RI_2@theta
+
+t3 <- system.time(toenail_glmm_RI_3 <- 
+    glmm(outcome ~ treatment * time + (1 | patientID),
+         data = toenail, family = binomial(link = "probit"), 
+         method = "SR", control = list(nSL = 3)))
+summary(toenail_glmm_RI_3)
+
+library("hglm")
+a <-  hglm(fixed = outcome ~ treatment * time, random = ~ 1 | patientID,
+         data = toenail, family = binomial(link = "probit"))
+summary(a)
+logLik(a)
+
+m <- ctm(as.basis(~ outcome, data = toenail), 
+         shifting = ~ treatment * time, 
+         data = toenail, todistr = "Normal")
+toenail_probit <- mlt(m, data = toenail, 
+                      fixed = c("outcomemoderate or severe" = 0))
+t4 <- system.time(toenail_mtram_RI <- 
+    mtram(toenail_probit, ~ (1 | patientID), 
+           data = toenail, Hessian = TRUE))
+logLik(toenail_mtram_RI)
+coef(toenail_mtram_RI)
+
+vcov(toenail_glmer_RI_2)
+solve(toenail_mtram_RI$Hessian)[1:4, 1:4]
+
+### logLik of transformation model for glmer (Laplace) parameters
+logLik(toenail_mtram_RI, c(-fixef(toenail_glmer_RI_1), 
+                            toenail_glmer_RI_1@theta))
+### logLik of transformation model for glmer (AGQ) parameters
+logLik(toenail_mtram_RI, c(-fixef(toenail_glmer_RI_2), 
+                            toenail_glmer_RI_2@theta))
+### logLik of transformation model for glmmsr (SR) parameters
+logLik(toenail_mtram_RI, parm = c(-toenail_glmm_RI_3$estim[-1], 
+                                   toenail_glmm_RI_3$estim[1]))
+### logLik of transformation model
+logLik(toenail_mtram_RI)
+
+t5 <- system.time(toenail_glmer_RS <- 
+    glmer(outcome ~ treatment * time + (1 + time | patientID),
+          data = toenail, family = binomial(link = "probit")))
+summary(toenail_glmer_RS)
+toenail_glmer_RS@theta
+
+t6 <- system.time(toenail_glmm_RS_1 <- 
+    glmm(outcome ~ treatment * time + (1 + time | patientID),
+         data = toenail, family = binomial(link = "probit"), 
+         method = "Laplace"))
+toenail_glmm_RS_1$estim[1:3]
+toenail_glmm_RS_1$estim[-(1:3)]
+
+t7 <- system.time(toenail_mtram_RS <- 
+    mtram(toenail_probit, ~ (1 + time | patientID), 
+           data = toenail))
+logLik(toenail_mtram_RS)
+coef(toenail_mtram_RS)
+
+### logLik of transformation model for glmer (Laplace) parameters
+logLik(toenail_mtram_RS, c(-fixef(toenail_glmer_RS), 
+                            toenail_glmer_RS@theta))
+### logLik of transformation model for glmmsr (Laplace) parameters
+logLik(toenail_mtram_RS, parm = c(-toenail_glmm_RS_1$estim[-(1:3)], 
+                                   toenail_glmm_RS_1$estim[1:3]))
+### logLik of transformation model
+logLik(toenail_mtram_RS)
+
+
+## ----output, echo = FALSE------------------------------------------------
+tn_RI_glmer_L <- c(fixef(toenail_glmer_RI_1), toenail_glmer_RI_1@theta, 0, 0)
+tn_RI_glmer_A <- c(fixef(toenail_glmer_RI_2), toenail_glmer_RI_2@theta, 0, 0)
+tn_RI_glmmsr <- c(toenail_glmm_RI_3$estim[-1], toenail_glmm_RI_3$estim[1], 0, 0)
+tn_RI_mlt <- c(-coef(toenail_mtram_RI), 0, 0)
+tn_RI_mlt["gamma1"] <- -tn_RI_mlt["gamma1"]
+tn_RS_glmer <- c(fixef(toenail_glmer_RS), toenail_glmer_RS@theta)
+tn_RS_glmmsr <- c(toenail_glmm_RS_1$estim[-(1:3)], toenail_glmm_RS_1$estim[1:3])
+tn_RS_mlt <- coef(toenail_mtram_RS) * rep(c(-1, 1), c(4, 3))
+tn <- cbind(tn_RI_glmer_L, tn_RI_glmer_A , tn_RI_glmmsr, tn_RI_mlt ,
+            tn_RS_glmer, tn_RS_glmmsr, tn_RS_mlt)
+ll <- c(
+### logLik of transformation model for glmer (Laplace) parameters
+logLik(toenail_mtram_RI, c(-fixef(toenail_glmer_RI_1), 
+                            toenail_glmer_RI_1@theta)),
+### logLik of transformation model for glmer (AGQ) parameters
+logLik(toenail_mtram_RI, c(-fixef(toenail_glmer_RI_2), 
+                            toenail_glmer_RI_2@theta)),
+### logLik of transformation model for glmmsr (SR) parameters
+logLik(toenail_mtram_RI, parm = c(-toenail_glmm_RI_3$estim[-1], 
+                                   toenail_glmm_RI_3$estim[1])),
+### logLik of transformation model
+logLik(toenail_mtram_RI),
+### logLik of transformation model for glmer (Laplace) parameters
+logLik(toenail_mtram_RS, c(-fixef(toenail_glmer_RS), 
+                            toenail_glmer_RS@theta)),
+### logLik of transformation model for glmmsr (Laplace) parameters
+logLik(toenail_mtram_RS, parm = c(-toenail_glmm_RS_1$estim[-(1:3)], 
+                                   toenail_glmm_RS_1$estim[1:3])),
+### logLik of transformation model
+logLik(toenail_mtram_RS))
+
+tm <- c(t1["user.self"],
+        t2["user.self"],
+        t3["user.self"],
+        t4["user.self"],
+        t5["user.self"],
+        t6["user.self"],
+        t7["user.self"])
+tm <- formatC(tm, format = "f", digits = 2, width = 5)
+
+tn <- formatC(tn, format = "f", digits = 2, width = 5)
+ll <- formatC(ll, format = "f", digits = 2, width = 6)
+tn <- cbind(c("$\\alpha$", "$\\eshiftparm_1$", "$\\eshiftparm_2$", "$\\eshiftparm_3$", "$\\gamma_1$", "$\\gamma_2$", "$\\gamma_3$"), tn)
+ret <- c("
+\\begin{tabular}{lrrrr|rrr} \\\\ \\hline
+& \\multicolumn{4}{c|}{RI} & \\multicolumn{3}{c}{RI + RS} \\\\
+& \\texttt{glmer} & \\texttt{glmer} & \\texttt{glmm} &  & \\texttt{glmer} & \\texttt{glmm} & \\\\
+& L               & AGQ             & SR & (7) & L & L & (7) \\\\ \\hline")
+ret <- c(ret, apply(tn, 1, function(x) c(paste(x, collapse = " & "), "\\\\")))
+ret <- c(ret, "\\hline")
+ret <- c(ret, 
+         paste("LogLik &", paste(ll, collapse = "&"), "\\\\ "), 
+         paste("Time (sec)   &", paste(tm, collapse = "&"), "\\\\ \\hline"), 
+         "\\end{tabular}")
+writeLines(ret, con = "toenail.tex")
+@
+
 \begin{table}
 \begin{center}
-\input{toenail.tex}
+\begin{tabular}{lrrrr|rrr} \\ \hline
+& \multicolumn{4}{c|}{RI} & \multicolumn{3}{c}{RI + RS} \\
+& \texttt{glmer} & \texttt{glmer} & \texttt{glmm} &  & \texttt{glmer} & \texttt{glmm} & \\
+& L               & AGQ             & SR & (7) & L & L & (7) \\ \hline
+$\alpha$ & -3.40 & -0.93 & -0.93 & -0.93 & -4.30 & -3.49 & -1.58
+\\
+$\eshiftparm_1$ & -0.02 & -0.08 & -0.08 & -0.08 &  0.05 &  0.01 &  0.27
+\\
+$\eshiftparm_2$ & -0.22 & -0.19 & -0.19 & -0.19 & -0.07 & -0.07 & -0.53
+\\
+$\eshiftparm_3$ & -0.07 & -0.06 & -0.06 & -0.06 & -0.23 & -0.13 & -0.18
+\\
+$\gamma_1$ &  4.55 &  2.12 &  2.12 &  2.11 & 10.88 &  5.00 &  5.22
+\\
+$\gamma_2$ &  0.00 &  0.00 &  0.00 &  0.00 & -1.64 & -0.57 & -0.37
+\\
+$\gamma_3$ &  0.00 &  0.00 &  0.00 &  0.00 &  0.79 &  0.42 &  0.53
+\\
+\hline
+LogLik & -671.27&-633.96&-633.96&-633.96&-628.12&-575.56&-545.12 \\ 
+Time (sec)   &  3.45& 2.28&22.69& 2.17&10.31& 4.36& 8.85 \\ \hline
+\end{tabular}
 \caption{Toe nail data. Binary probit models featuring fixed intercepts
 $\alpha$, treatment effects $\eshiftparm_1$, time effects $\eshiftparm_2$,
 and time-treatment interactions $\eshiftparm_3$ are compared.
@@ -1292,8 +1467,10 @@ with random intercepts $\tilde{\alpha}_i$ such that the odds at baseline, for ex
      {\Prob(\text{pain} > \ry \mid \text{Placebo}, \text{baseline}, i)}
 \end{eqnarray*}
 
-<<mtram-neck_ocm, cache = TRUE, results = "hide">>=
+<<mtram-ordinalCont>>=
 library("ordinalCont")
+@
+<<mtram-neck_ocm, cache = TRUE, results = "hide">>=
 neck_ocm <- ocm(vas ~ laser * time + (1 | id), data = pain_df, 
                 scale = c(0, 1))
 @
@@ -1313,8 +1490,9 @@ odds in the placebo group is $\Sexpr{round(exp(coef(neck_ocm)[3]), 2)}$ times
 larger than in the active group. This levels off after 12 weeks, but the
 effect is still significant at the $5\%$ level.
 
-For comparison, we can fit a mixed-effects transformation model with a different
-parametrisation of the transformation function $\h$:
+For comparison, we can fit a conditional mixed-effects transformation model with a different
+parametrisation of the transformation function $\h$ using a Laplace
+approximation of the likelihood \citep{Tamasi_Crowther_Puhan_2022}:
 <<tramME-neck>>=
 library("tramME")
 neck_ColrME <- ColrME(vas ~ laser * time + (1 | id), data = pain_df, 
@@ -1324,10 +1502,14 @@ and coefficients
 <<tramME-neck_ci>>=
 exp(coef(neck_ColrME))
 @
+The model is the same as \code{neck\_ocm}, but the parameter estimates for
+log-odds ratios differ quite substantially due to an alternative
+parameterisation of $\h$ and due to different estimation procedures being
+applied.
 
-The corresponding marginally interpretable transformation model with the same
+Our marginally interpretable transformation model with the same
 transformation function as the model \code{neck\_ColrME} but with a completely 
-different optimisation procedure for maximising the log-likelihood, 
+different model formulation and optimisation procedure for maximising the log-likelihood, 
 can be estimated by
 <<mtram-neck_Colr, cache = TRUE>>=
 neck_Colr <- Colr(vas ~ laser * time, data = pain_df, 
@@ -1336,7 +1518,7 @@ neck_Colr <- Colr(vas ~ laser * time, data = pain_df,
 neck_Colrmer <- mtram(neck_Colr, ~ (1 | id), data = pain_df, 
                       Hessian = TRUE)
 @
-Based on this model of form (M2), it is possible to derive the marginal 
+Based on this model, it is possible to derive the marginal 
 distribution functions in the two groups, see Figure~\ref{fig:distr_pain}.
 
 \begin{figure}[t]
@@ -1552,7 +1734,7 @@ We are, of course, interested in the marginal treatment effect, that is, the
 hazards ratio 
 %
 \begin{eqnarray*}
-\exp(-\eshiftparm_\text{5-FU + Ox} / \sqrt{\gamma_1^2 + 1}).
+\exp\left(-\eshiftparm_\text{5-FU + Ox} / \sqrt{\gamma_1^2 + 1}\right).
 \end{eqnarray*}
 %
 We simply sample from the joint normal distribution of the maximum likelihood estimators
@@ -1620,7 +1802,8 @@ quantile(exp(rbeta[, ncol(rbeta)]), prob = c(.025, .5, .975))
 For the marginally interpretable models that can be derived from model
 \code{CAO\_Cox\_2\_mtram} we can compute the probabilistic index.
 This value is the meaning that over all study centers, a randomly selected patient 
-receiving Oxaliplatin has a $56\%$ probability of living longer than a randomly
+receiving Oxaliplatin has a $56\%$ probability of staying disease-free
+longer than a randomly
 selected patient receiving the standard treatment only, given that they both 
 have the same lymph node state and tumor grading.
 <<mtram-CAO_PI, echo=TRUE, eval = TRUE>>=
@@ -1638,7 +1821,6 @@ ci_man <- quantile(-rbeta[, ncol(rbeta)], prob = c(.025, .5, .975))
 We can fit mixed-effects transformation models 
 \citep{tamasi2021tramme,Tamasi_Crowther_Puhan_2022} as follows:
 <<tramME-CAO_SR, cache = TRUE>>=
-library("tramME")
 CAO_Cox_2_tramME <- CoxphME(iDFS2 | 0 + strat_n:strat_t ~ randarm + (1 | Block), 
                             data = CAOsurv, log_first = TRUE)
 @
@@ -1780,11 +1962,11 @@ couples. In this model, the threshold parameters $\eparm_1,
 which implies the proportional odds property, and the regression coefficients 
 $\shiftparm$ can be interpreted as log-odds ratios. We question the appropriateness of this
 model here by including a subject-specific random intercept with standard
-deviation $\gamma_1$. This changes the model to
+deviation $\gamma_1$. This gives rise to the marginal model
 \begin{eqnarray*}
 \Prob(\text{orgasm} \le \ry_k \mid \rx) = \expit \left(
 \frac{\eparm_k + \rx^\top
-  \shiftparm}{\sqrt{\gamma_1^2 + 1}} \right)
+  \shiftparm}{\sqrt{\gamma_1^2 + 1}} \right).
 \end{eqnarray*}
 A value of $\gamma_1$ close to zero corresponds to marginal distributions
 very similar to the proportional odds model and, consequently, it is
