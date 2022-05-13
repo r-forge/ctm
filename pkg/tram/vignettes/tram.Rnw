@@ -99,8 +99,7 @@ censoring, truncation}
   Institut f\"ur Epidemiologie, Biostatistik und Pr\"avention \\
   Universit\"at Z\"urich \\
   Hirschengraben 84, CH-8001 Z\"urich, Switzerland \\
-  \texttt{Torsten.Hothorn@uzh.ch} \\
-  \url{http://tiny.uzh.ch/bh}
+  \texttt{Torsten.Hothorn@R-project.org}
 }
 
 \begin{document}
