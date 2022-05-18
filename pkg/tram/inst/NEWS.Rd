@@ -2,10 +2,11 @@
 \name{NEWS}
 \title{NEWS file for the tram package}
 
-\section{Changes in Version 0.7-1 (2022-04-07)}{
+\section{Changes in Version 0.7-1 (2022-05-18)}{
   \itemize{
     \item{Minor bug fixed for shift-scale transformation models (still experimental).}
     \item{\code{bread.tram} added for \code{sandwich} to work.}
+    \item{Update \code{mtram} vignette; move code to demo.}
   }
 }
 
