@@ -3,6 +3,13 @@
 \title{NEWS file for the mlt.docreg package}
 
 
+\section{Changes in Version 1.1-4 (2022-05-18)}{
+  \itemize{
+    \item{Package \pkg{ICE} was removed from CRAN.}
+    \item{Update checks.}
+  }
+}
+
 \section{Changes in Version 1.1-3 (2022-01-12)}{
   \itemize{
     \item{Remove ignored arguments from \code{mlt}.}
