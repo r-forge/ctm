@@ -148,8 +148,13 @@ Bernstein_basis <- function(var, order = 2,
         }
         colnames(X) <- paste("Bs", 1:ncol(X), "(", varname, ")", sep = "")
         if (zeroint) {
+            ### NOTE: int a(y) d(y) = 1 because a is density
+            ### => int a(y) theta d(y) = sum(theta)
+            ### zenter by last basis function gives int bar(a(y)) theta dy = 0
             X <- X[, -ncol(X), drop = FALSE] - X[, ncol(X), drop = TRUE]
-            constr$ui <- constr$ui[, -ncol(constr$ui),drop = FALSE]
+            ### remove constrains associated with last parameter
+            constr$ui <- constr$ui[-nrow(constr$ui), -ncol(constr$ui),drop = FALSE]
+            constr$ci <- constr$ci[-length(constr$ci)]
         }
         attr(X, "constraint") <- constr
         attr(X, "Assign") <- matrix(varname, ncol = ncol(X))

@@ -13,29 +13,41 @@ Bb <- Bernstein_basis(xvar, order = 5, ui = "increasing")
 ## evaluate basis
 X1 <- model.matrix(Bb, data = data.frame(x = x))
 X2 <- Bb(x)
-stopifnot(all.equal(X1, X2))
+stopifnot(isTRUE(all.equal(X1, X2)))
 ## fit model
 m1 <- lm(y ~  X1 - 1)
 m2 <- lm(y ~  Bb(x) - 1, data = data.frame(y = y, x = x))
-Bb0 <- Bernstein_basis(xvar, order = 5, ui = "zeroint")
+Bb0 <- Bernstein_basis(xvar, order = 5, ui = c("increasing", "zeroint"))
 X0 <- model.matrix(Bb0, data = data.frame(x = x))
 m0 <- lm(y ~  X0)
-stopifnot(all.equal(fitted(m1), fitted(m2)))
-stopifnot(all.equal(fitted(m1), fitted(m0)))
+stopifnot(isTRUE(all.equal(fitted(m1), fitted(m2))))
+stopifnot(isTRUE(all.equal(fitted(m1), fitted(m0))))
+stopifnot(isTRUE(all.equal(sum(coef(m1)) / length(coef(m1)), coef(m0)["(Intercept)"], 
+                    check.attributes = FALSE)))
 
-stopifnot(all.equal(coef(m1), coef(m2), check.attributes = FALSE))
+if (require("coneproj")) {
+  ### check contraints fits
+  q1 <- qprog(crossprod(X1), crossprod(X1, y), 
+              amat = as(attr(X1, "constraint")$ui, "matrix"), b = attr(X1, "constraint")$ci)
+  q0 <- qprog(crossprod(cbind(1, X0)), crossprod(cbind(1, X0), y), 
+              amat = cbind(0, as(attr(X0, "constraint")$ui, "matrix")), b = attr(X0, "constraint")$ci)
+  stopifnot(isTRUE(all.equal(X1 %*% q1$thetahat, cbind(1, X0) %*% q0$thetahat)))
+  stopifnot(isTRUE(all.equal(sum(q1$thetahat) / length(q1$thetahat), q0$thetahat[1L])))
+}
+
+stopifnot(isTRUE(all.equal(coef(m1), coef(m2), check.attributes = FALSE)))
 ## generate new data from support of basis
 xn <- mkgrid(Bb, n = 100)
 ## compute estimated regression function
 p1 <- predict(Bb, newdata = data.frame(x = xn), coef = coef(m1))
 p2 <- predict(m2, newdata = data.frame(x = xn)) 
-stopifnot(all.equal(c(p1), p2, check.attributes = FALSE))
+stopifnot(isTRUE(all.equal(c(p1), p2, check.attributes = FALSE)))
 ## compute derivative of estimated regression function
 dp1 <- predict(Bb, newdata = data.frame(x = xn), coef = coef(m1), deriv = c(x = 1))
 dp0 <- predict(Bb0, newdata = data.frame(x = xn), coef = coef(m0)[-1], deriv = c(x = 1))
-stopifnot(all.equal(dp1, dp0))
+stopifnot(isTRUE(all.equal(dp1, dp0)))
 dp12 <- predict(Bb, newdata = data.frame(x = xn), coef = coef(m1), deriv = c(x = 1), integrate = TRUE)
-unique(c(p1 - dp12)) ### the same up to a constant
+unique(round(c(p1 - dp12), 5)) ### the same up to a constant
 
 ### two-dim (ANCOVA) problem
 gf <- gl(3, 1)
@@ -51,7 +63,7 @@ X1 <- model.matrix(bb, data = data.frame(x = x, g = g))
 ## fit model
 m1 <- lm(y ~  X1 - 1)
 m2 <- lm(y ~  model.matrix(bb, data.frame(x = x, g = g)) - 1, data = data.frame(y = y, x = x, g = g))
-stopifnot(all.equal(coef(m1), coef(m2), check.attributes = FALSE))
+stopifnot(isTRUE(all.equal(coef(m1), coef(m2), check.attributes = FALSE)))
 ## compute estimated regression functions
 d <- mkgrid(bb, n = 100)
 ## for each group
@@ -61,9 +73,9 @@ p2 <- predict(bb, newdata = d, coef(m1))
 ## brute force; 2 times
 p3 <- matrix(predict(bb, newdata = do.call(expand.grid, d), coef(m1)), ncol = nlevels(gf))
 p4 <- matrix(predict(m2, newdata = do.call(expand.grid, d)), ncol = nlevels(gf))
-stopifnot(all.equal(p1, p2, check.attributes = FALSE))
-stopifnot(all.equal(p2, p3, check.attributes = FALSE))
-stopifnot(all.equal(p3, p4, check.attributes = FALSE))
+stopifnot(isTRUE(all.equal(p1, p2, check.attributes = FALSE)))
+stopifnot(isTRUE(all.equal(p2, p3, check.attributes = FALSE)))
+stopifnot(isTRUE(all.equal(p3, p4, check.attributes = FALSE)))
 ## compute derivative wrt the first element
 dp2 <- predict(bb, newdata = d, coef(m1), deriv = c(x = 1))
 
@@ -76,7 +88,7 @@ X1 <- model.matrix(bb, data = data.frame(x = x, g = g))
 ## fit model
 m1 <- lm(y ~  X1 - 1)
 m2 <- lm(y ~  model.matrix(bb, data.frame(x = x, g = g)) - 1, data = data.frame(y = y, x = x, g = g))
-stopifnot(all.equal(coef(m1), coef(m2), check.attributes = FALSE))
+stopifnot(isTRUE(all.equal(coef(m1), coef(m2), check.attributes = FALSE)))
 ## compute estimated regression functions
 d <- mkgrid(bb, n = 100)
 ## for each group
@@ -86,9 +98,9 @@ p2 <- c(predict(bb, newdata = d, coef(m1)))
 ## brute force; 2 times
 p3 <- predict(bb, newdata = do.call(expand.grid, d), coef(m1))
 p4 <- predict(m2, newdata = do.call(expand.grid, d))
-stopifnot(all.equal(p1, p2, check.attributes = FALSE))
-stopifnot(all.equal(p2, p3, check.attributes = FALSE))
-stopifnot(all.equal(p3, p4, check.attributes = FALSE))
+stopifnot(isTRUE(all.equal(p1, p2, check.attributes = FALSE)))
+stopifnot(isTRUE(all.equal(p2, p3, check.attributes = FALSE)))
+stopifnot(isTRUE(all.equal(p3, p4, check.attributes = FALSE)))
 ## compute derivative wrt the first element
 dp2 <- predict(bb, newdata = d, coef(m1), deriv = c(x = 1))
 
@@ -103,15 +115,15 @@ testb <- function(bb) {
     m1 <- lm(y ~  X1 - 1)
     m2 <- lm(y ~  model.matrix(bb, data.frame(x = x, g = g, z = z)) - 1, 
              data = data.frame(y = y, x = x, g = g, z = z))
-    stopifnot(all.equal(coef(m1), coef(m2), check.attributes = FALSE))
+    stopifnot(isTRUE(all.equal(coef(m1), coef(m2), check.attributes = FALSE)))
     ## compute estimated regression functions
     d <- mkgrid(bb, n = 100)
     p2 <- c(predict(bb, newdata = d, coef(m1)))
     ## brute force; 2 times
     p3 <- predict(bb, newdata = do.call(expand.grid, d), coef(m1))
     p4 <- predict(m2, newdata = do.call(expand.grid, d))
-    stopifnot(all.equal(p2, p3, check.attributes = FALSE))
-    stopifnot(all.equal(p3, p4, check.attributes = FALSE))
+    stopifnot(isTRUE(all.equal(p2, p3, check.attributes = FALSE)))
+    stopifnot(isTRUE(all.equal(p3, p4, check.attributes = FALSE)))
     ## compute derivative wrt the first element
     dp2 <- predict(bb, newdata = d, coef(m1), deriv = c(x = 1))
 }
