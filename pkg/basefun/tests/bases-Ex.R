@@ -33,7 +33,12 @@ if (require("coneproj")) {
               amat = cbind(0, as(attr(X0, "constraint")$ui, "matrix")), b = attr(X0, "constraint")$ci)
   stopifnot(isTRUE(all.equal(X1 %*% q1$thetahat, cbind(1, X0) %*% q0$thetahat)))
   stopifnot(isTRUE(all.equal(sum(q1$thetahat) / length(q1$thetahat), q0$thetahat[1L])))
+  ### check derivatives
+  stopifnot(isTRUE(all.equal(model.matrix(Bb, data = data.frame(x = x), deriv = c("x" = 1)) %*% q1$theta,
+                             model.matrix(Bb0, data = data.frame(x = x), deriv = c("x" = 1)) %*% q0$theta[-1L])))
 }
+
+
 
 stopifnot(isTRUE(all.equal(coef(m1), coef(m2), check.attributes = FALSE)))
 ## generate new data from support of basis
