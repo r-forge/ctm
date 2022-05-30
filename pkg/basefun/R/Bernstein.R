@@ -151,10 +151,14 @@ Bernstein_basis <- function(var, order = 2,
             ### NOTE: int a(y) d(y) = 1 because a is density
             ### => int a(y) theta d(y) = sum(theta)
             ### zenter by last basis function gives int bar(a(y)) theta dy = 0
+            A <- X
             X <- X[, -ncol(X), drop = FALSE] - X[, ncol(X), drop = TRUE]
-            ### remove constrains associated with last parameter
-            constr$ui <- constr$ui[-nrow(constr$ui), -ncol(constr$ui),drop = FALSE]
-            constr$ci <- constr$ci[-length(constr$ci)]
+            ### A theta = X gamma with A Bernstein basis
+            ### => theta = A^+ X gamma and thus ui %*% theta = ui %*% A^+ X gamma
+            if (deriv == 0L) 
+                constr$ui <- constr$ui %*% rbind(diag(nrow(constr$ui)), -1)
+                                          #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                                          # = MASS::ginv(A) %*% X
         }
         attr(X, "constraint") <- constr
         attr(X, "Assign") <- matrix(varname, ncol = ncol(X))
