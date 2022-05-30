@@ -2,6 +2,12 @@
 \name{NEWS}
 \title{NEWS file for the basefun package}
 
+\section{Changes in Version 1.1-4 (2022-05-30)}{
+  \itemize{
+    \item{\code{Bernstein_basis(..., ui = c("increasing", "zerointegral")} came with incorrect constraint matrix.}
+  }
+}
+
 \section{Changes in Version 1.1-3 (2022-05-25)}{
   \itemize{
     \item{\code{Bernstein_basis(..., ui = "zerointegral")} came with incorrect constraint matrix.}
