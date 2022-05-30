@@ -12,7 +12,7 @@ Suggests: variables, basefun, MASS, TH.data,
   knitr, prodlim, gridExtra, nnet, 
   HSAUR3, sandwich, grid, latticeExtra, colorspace, mgcv,
   coxinterval, ICsurv, polspline, logspline, bshazard, gss, 
-  MIICD, TransModel, dynsurv, timereg, survivalMPL, gamlss, Matrix, 
+  TransModel, dynsurv, timereg, survivalMPL, gamlss, Matrix, 
   muhaz, ordinal, VGAM, AER, coin, gamlss.data, mlbench, 
   tram (>=  0.6-0), rms
 VignetteBuilder: knitr
