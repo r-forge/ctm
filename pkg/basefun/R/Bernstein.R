@@ -155,10 +155,10 @@ Bernstein_basis <- function(var, order = 2,
             X <- X[, -ncol(X), drop = FALSE] - X[, ncol(X), drop = TRUE]
             ### A theta = X gamma with A Bernstein basis
             ### => theta = A^+ X gamma and thus ui %*% theta = ui %*% A^+ X gamma
-            if (deriv == 0L) 
-                constr$ui <- constr$ui %*% rbind(diag(nrow(constr$ui)), -1)
-                                          #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-                                          # = MASS::ginv(A) %*% X
+            if (deriv == 0L && !is.null(constr$ui)) 
+                constr$ui <- constr$ui %*% ginv(A) %*% X 
+                                           ### rbind(diag(nrow(constr$ui)), -1)
+                                           ### ?
         }
         attr(X, "constraint") <- constr
         attr(X, "Assign") <- matrix(varname, ncol = ncol(X))
