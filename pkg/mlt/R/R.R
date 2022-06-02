@@ -186,7 +186,7 @@ R.numeric <- function(object = NA, cleft = NA, cright = NA,
       ### likelihood BUT keep data as numeric
       utm <- sort(unique(object))
       ct <- cut(object, breaks = c(-Inf, utm, Inf))
-      return(R(Surv(time = c(-Inf, utm)[i], time2 = utm[i], type = "interval2")))
+      return(R(Surv(time = c(-Inf, utm)[ct], time2 = utm[ct], type = "interval2")))
     }
 
     ret <- .mkR(exact = object, cleft = cleft, cright = cright,
