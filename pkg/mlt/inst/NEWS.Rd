@@ -2,6 +2,21 @@
 \name{NEWS}
 \title{NEWS file for the mlt package}
 
+\section{Changes in Version 1.4-2 (2022-05-31)}{
+  \subsection{New features}{
+    \itemize{
+      \item{\code{as.R.interval} allows evaluation of nonparametric
+            likelihood for smoothly defined models.}
+    }
+  }
+  \subsection{Bugfixes}{
+    \itemize{
+      \item{\code{drop = TRUE} in score for shift-scale models.}
+    }
+  }
+}
+
+
 \section{Changes in Version 1.4-1 (2022-03-31)}{
   \subsection{New features}{
     \itemize{
