@@ -7,6 +7,8 @@
     \itemize{
       \item{\code{as.R.interval} allows evaluation of nonparametric
             likelihood for smoothly defined models.}
+      \item{New Laplace link function, contributed by Ainesh Sewak.}
+      \item{New cauchit link function.}
     }
   }
   \subsection{Bugfixes}{
