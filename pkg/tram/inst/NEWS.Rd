@@ -2,6 +2,13 @@
 \name{NEWS}
 \title{NEWS file for the tram package}
 
+\section{Changes in Version 0.7-2 (2022-06-17)}{
+  \itemize{
+    \item{New Laplace link function.}
+    \item{New cauchit link function.}
+  }
+}
+
 \section{Changes in Version 0.7-1 (2022-05-18)}{
   \itemize{
     \item{Minor bug fixed for shift-scale transformation models (still experimental).}
@@ -9,6 +16,7 @@
     \item{Update \code{mtram} vignette; move code to demo.}
   }
 }
+
 
 \section{Changes in Version 0.7-0 (2022-04-01)}{
   \itemize{

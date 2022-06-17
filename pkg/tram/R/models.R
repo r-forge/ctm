@@ -218,7 +218,7 @@ Colr <- function(formula, data, subset, weights, offset, cluster, na.action = na
 }
 
 Polr <- function(formula, data, subset, weights, offset, cluster, na.action = na.omit, 
-                 method = c("logistic", "probit", "loglog", "cloglog"), ...)
+                 method = c("logistic", "probit", "loglog", "cloglog", "cauchit"), ...)
 {
     mf <- match.call(expand.dots = FALSE)
     m <- match(c("formula", "data", "subset", "na.action", "weights", "offset", "cluster"), names(mf), 0L)
@@ -230,7 +230,8 @@ Polr <- function(formula, data, subset, weights, offset, cluster, na.action = na
 
     method <- match.arg(method)
     distribution <- c("logistic" = "Logistic", "probit" = "Normal", 
-                      "loglog" = "MaxExtrVal", "cloglog" = "MinExtrVal")
+                      "loglog" = "MaxExtrVal", "cloglog" = "MinExtrVal", 
+                      "cauchit" = "Cauchy")
     distribution <- distribution[method]
     name <- c("logistic" = "Odds", "loglog" = "Reverse time hazards",
               "cloglog" = "Hazards")
