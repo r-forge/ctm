@@ -106,24 +106,14 @@
 .Laplace <- function()
     list(parm = function(x) NULL,
          p = function(x, lower.tail = TRUE, log.p = FALSE) {
-             if (x < 0) {
-                if (lower.tail && !log.p)
-                    return(.5 * exp(x))
-                if (!lower.tail && !log.p)
-                    return(1 - .5 * exp(x))
-                if (lower.tail && log.p)
-                    return(log(.5) + x)
-                if (!lower.tail && !log.p)
-                    return(log1p(- .5 * exp(x)))
-             }
-             if (lower.tail && !log.p)
-                return(1 - .5 * exp(-x))
-             if (!lower.tail && !log.p)
-                return(.5 * exp(-x))
-             if (lower.tail && log.p)
-                return(log1p(-.5 * exp(-x)))
-             if (!lower.tail && !log.p)
-                return(log(.5) - x)
+            if (lower.tail && !log.p)
+                return(ifelse(x < 0, .5 * exp(x), 1 - .5 * exp(-x))
+            if (!lower.tail && !log.p)
+                return(ifelse(x < 0, 1 - .5 * exp(x), .5 * exp(-x))
+            if (lower.tail && log.p)
+                return(ifelse(x < 0, log(.5) + x, log1p(-.5 * exp(-x)))
+            if (!lower.tail && !log.p)
+                return(ifelse(x < 0, log1p(- .5 * exp(x)), log(.5) - x))
          },
          q = function(p) ifelse(p < 0.5, log(2 * p), -log(2 * (1 - p))),
          d = function(x, log = FALSE) {
