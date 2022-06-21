@@ -1,7 +1,7 @@
 Package: mlt.docreg
 Title: Most Likely Transformations: Documentation and Regression Tests
-Version: 1.1-4
-Date: 2022-05-18
+Version: 1.1-5
+Date: 2022-06-21
 Authors@R: person("Torsten", "Hothorn", role = c("aut", "cre"),
                   email = "Torsten.Hothorn@R-project.org", comment = c(ORCID = "0000-0001-8301-0471"))  
 Description: Additional documentation, a package vignette and 
@@ -11,7 +11,7 @@ Imports: numDeriv, stats, eha, multcomp (>= 1.4-4), lattice, survival, flexsurv,
 Suggests: variables, basefun, MASS, TH.data,
   knitr, prodlim, gridExtra, nnet, 
   HSAUR3, sandwich, grid, latticeExtra, colorspace, mgcv,
-  coxinterval, ICsurv, polspline, logspline, bshazard, gss, 
+  ICsurv, polspline, logspline, bshazard, gss, 
   TransModel, dynsurv, timereg, survivalMPL, gamlss, Matrix, 
   muhaz, ordinal, VGAM, AER, coin, gamlss.data, mlbench, 
   tram (>=  0.6-0), rms
