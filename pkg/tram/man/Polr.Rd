@@ -8,7 +8,7 @@
 }
 \usage{
 Polr(formula, data, subset, weights, offset, cluster, na.action = na.omit, 
-     method = c("logistic", "probit", "loglog", "cloglog"), ...)
+     method = c("logistic", "probit", "loglog", "cloglog", "cauchit"), ...)
 }
 \arguments{
   \item{formula}{an object of class \code{"formula"}: a symbolic description 
