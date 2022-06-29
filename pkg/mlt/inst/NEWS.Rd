@@ -14,6 +14,7 @@
   \subsection{Bugfixes}{
     \itemize{
       \item{\code{drop = TRUE} in score for shift-scale models.}
+      \item{Eliminate fallout of fix of PR#17616 in Rout.save files.}
     }
   }
 }

@@ -9,7 +9,8 @@
 \usage{
 ctm(response, interacting = NULL, shifting = NULL, scaling = NULL, 
     scale_shift = FALSE, data = NULL, 
-    todistr = c("Normal", "Logistic", "MinExtrVal", "MaxExtrVal", "Exponential", "Laplace", "Cauchy"), 
+    todistr = c("Normal", "Logistic", "MinExtrVal", "MaxExtrVal", 
+                "Exponential", "Laplace", "Cauchy"), 
     sumconstr = inherits(interacting, c("formula", "formula_basis")), ...)
 }
 \arguments{
