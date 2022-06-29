@@ -107,11 +107,11 @@
     list(parm = function(x) NULL,
          p = function(x, lower.tail = TRUE, log.p = FALSE) {
             if (lower.tail && !log.p)
-                return(ifelse(x < 0, .5 * exp(x), 1 - .5 * exp(-x))
+                return(ifelse(x < 0, .5 * exp(x), 1 - .5 * exp(-x)))
             if (!lower.tail && !log.p)
-                return(ifelse(x < 0, 1 - .5 * exp(x), .5 * exp(-x))
+                return(ifelse(x < 0, 1 - .5 * exp(x), .5 * exp(-x)))
             if (lower.tail && log.p)
-                return(ifelse(x < 0, log(.5) + x, log1p(-.5 * exp(-x)))
+                return(ifelse(x < 0, log(.5) + x, log1p(-.5 * exp(-x))))
             if (!lower.tail && !log.p)
                 return(ifelse(x < 0, log1p(- .5 * exp(x)), log(.5) - x))
          },
