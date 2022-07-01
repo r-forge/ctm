@@ -16,9 +16,6 @@
 \usepackage{nicefrac}
 \usepackage{pdfpages}
 %% need no \usepackage{Sweave.sty}
-%%\usepackage[nolists]{endfloat}
-
-\newcommand{\cmd}[1]{\texttt{#1()}}
 
 <<setup, echo = FALSE, results = "hide", message = FALSE, warning = FALSE>>=
 set.seed(290875)
@@ -66,6 +63,7 @@ fill <- diverge_hcl(10, h = c(246, 40), c = 96, l = c(65, 90), alpha = .3)
 
 %% code commands
 \newcommand{\Rclass}[1]{`\code{#1}'}
+\newcommand{\cmd}[1]{\texttt{#1()}}
 %% JSS
 \author{Sandra Siegfried \and Torsten Hothorn \\ Universit\"at Z\"urich}
 \Plainauthor{Siegfried and Hothorn}
@@ -260,7 +258,7 @@ mod_cloglog <- cotram(DVC ~ year + weekday + tvar1 + tvar2 + tvar3 +
                       tvar4 + tvar5 + tvar6 + tvar7 + tvar8 + tvar9 + 
                       tvar10 + tvar11 + tvar12 + tvar13 + tvar14 + 
                       tvar15 + tvar16 + tvar17 + tvar18 + tvar19 + tvar20,
-                      data = df, method = "cloglog")
+                      data = df, method = "cloglog", prob = c(0, .9))
 logLik(mod_cloglog)
 @
 %
@@ -289,7 +287,7 @@ xyplot(exp(fit_cloglog) ~ day , data = cbind(nd, fit_cloglog),
 %
 \caption{Deer-vehicle collisions.  Temporal changes in risk for deer-vehicle
 collisions across the year as discrete hazard ratios estimated by model
-\code{mod\_cloglog} with reference: January 1st.  The curve indicates, that
+\code{mod\_cloglog} with reference: January~1st.  The curve indicates, that
 the hazard ratio is increased associated with animal activity due to search
 for new habitats and food resources in April and rut season in July and
 August.  The peak in October does not seem to have a clear explanation in
@@ -326,7 +324,7 @@ mod_logit <- cotram(DVC ~ year + weekday + tvar1 + tvar2 + tvar3 +
                     tvar4 + tvar5 + tvar6 + tvar7 + tvar8 + tvar9 +
                     tvar10 + tvar11 + tvar12 + tvar13 + tvar14 +
                     tvar15 + tvar16 + tvar17 + tvar18 + tvar19 + tvar20,
-                    data = df, method = "logit")
+                    data = df, method = "logit", prob = c(0, .9))
 logLik(mod_logit)
 @
 %
@@ -391,7 +389,7 @@ mod_loglog <- cotram(DVC ~ year + weekday + tvar1 + tvar2 + tvar3 +
                      tvar4 + tvar5 + tvar6 + tvar7 + tvar8 + tvar9 +
                      tvar10 + tvar11 + tvar12 + tvar13 + tvar14 +
                      tvar15 + tvar16 + tvar17 + tvar18 + tvar19 + tvar20,
-                     data = df, method = "loglog")
+                     data = df, method = "loglog", prob = c(0, .9))
 logLik(mod_loglog)
 @
 %
@@ -435,7 +433,7 @@ mod_probit <- cotram(DVC ~ year + weekday + tvar1 + tvar2 + tvar3 +
                      tvar4 + tvar5 + tvar6 + tvar7 + tvar8 + tvar9 +
                      tvar10 + tvar11 + tvar12 + tvar13 + tvar14 +
                      tvar15 + tvar16 + tvar17 + tvar18 + tvar19 + tvar20,
-                     data = df, method = "probit")
+                     data = df, method = "probit", prob = c(0, .9))
 logLik(mod_probit)
 @
 %
