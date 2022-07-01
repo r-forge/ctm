@@ -1,11 +1,13 @@
 
-R version 4.1.2 (2021-11-01) -- "Bird Hippie"
-Copyright (C) 2021 The R Foundation for Statistical Computing
+R version 4.2.0 (2022-04-22) -- "Vigorous Calisthenics"
+Copyright (C) 2022 The R Foundation for Statistical Computing
 Platform: x86_64-pc-linux-gnu (64-bit)
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
 Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
 
 R is a collaborative project with many contributors.
 Type 'contributors()' for more information and
@@ -69,7 +71,7 @@ Loading required package: variables
 > logLik(uc1)
 'log Lik.' -3571 (df=15)
 > logLik(uc2)
-'log Lik.' -3575 (df=15)
+'log Lik.' -3574 (df=15)
 > 
 > ## check gradient
 > all.equal(uc1$sc(uc2$par), numDeriv::grad(uc1$ll, uc2$par),
@@ -100,15 +102,15 @@ Loading required package: variables
    1 
 0.94 
 > coef(uc2, type = "Lambda")[1,]
-   1 
-0.99 
+1 
+1 
 > cov2cor(Sigma)[1, 2] ## original value for correlation
 [1] -0.67
 > coef(uc1, type = "Corr")[1,]
-[1] -0.69
+[1] -0.68
 > ## IGNORE_RDIFF_BEGIN
 > coef(uc2, type = "Corr")[1,]
-[1] -0.7
+[1] -0.71
 > ## IGNORE_RDIFF_END
 > 
 > ## log_first = FALSE
@@ -157,24 +159,24 @@ Loading required package: variables
 +       uc1 = predict(uc1, marginal = 1, newdata = d[1:3, ], type = "distribution"),
 +       uc2 = predict(uc2, marginal = 2, newdata = d[1:3, ], type = "distribution"))
      u1            
-1 0.401 0.407 0.398
-2 0.646 0.646 0.635
+1 0.399 0.406 0.397
+2 0.649 0.646 0.636
 3 0.037 0.034 0.037
 > cbind(u2 = predict(u2, newdata = d[1:3, ], type = "distribution"),
 +       uc1 = predict(uc1, marginal = 2, newdata = d[1:3, ], type = "distribution"),
 +       uc2 = predict(uc2, marginal = 1, newdata = d[1:3, ], type = "distribution"))
     u2          
-1 0.40 0.40 0.41
-2 0.60 0.59 0.60
-3 0.96 0.95 0.95
+1 0.40 0.41 0.41
+2 0.59 0.59 0.60
+3 0.96 0.95 0.96
 > ## log_first = TRUE seems to perform slightly better
 > 
 > cbind(u1l = predict(u1l, newdata = d[1:3, ], type = "distribution"),
 +       uc1l = predict(uc1l, marginal = 1, newdata = d[1:3, ], type = "distribution"),
 +       uc2l = predict(uc2l, marginal = 2, newdata = d[1:3, ], type = "distribution"))
     u1l            
-1 0.398 0.404 0.396
-2 0.650 0.648 0.637
+1 0.398 0.405 0.396
+2 0.649 0.647 0.637
 3 0.037 0.034 0.037
 > cbind(u2l = predict(u2l, newdata = d[1:3, ], type = "distribution"),
 +       uc1l = predict(uc1l, marginal = 2, newdata = d[1:3, ], type = "distribution"),
@@ -1211,4 +1213,4 @@ yt.1.Bs6(ytu.1) yt.1.Bs7(ytu.1)
 > 
 > proc.time()
    user  system elapsed 
-  5.505   0.095   5.596 
+  7.911   0.061   7.966 
