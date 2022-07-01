@@ -33,7 +33,8 @@ cotram <- function(formula, data, method = c("logit", "cloglog", "loglog", "prob
     td$mf[, td$rname] <- .count_var(td$mf[, td$rname], plus_one = plus_one)
     
     # support & bounds
-    support <- c(0, quantile(y, probs = prob)) + plus_one
+    if (length(prob) == 1) prob <- c(1 - prob, prob)
+    support <- round(quantile(y, probs = prob)) + plus_one
     bounds <- c(-0.01, Inf) + plus_one
     
     ret <- tram(td, transformation = "smooth", distribution = distribution, 
