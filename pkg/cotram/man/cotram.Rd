@@ -32,7 +32,10 @@ cotram(formula, data, method = c("logit", "cloglog", "loglog", "probit"),
   			package vignette.
   }
   \item{prob}{probability giving the quantile of the response defining the upper
-       limit of the support of a smooth Bernstein polynomial.
+       limit of the support of a smooth Bernstein polynomial (with the lower limit
+       being set to 0). If a vector of two probabilites is specified, the corresponding
+       quantiles of the response define the lower and upper limit of the support, 
+       respectively.
   }
   \item{log_first}{logical; if \code{TRUE}, a Bernstein polynomial is
   			defined on the log-scale for (y + 1).
