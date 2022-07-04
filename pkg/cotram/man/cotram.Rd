@@ -94,7 +94,7 @@ An object of class \code{cotram} and \code{tram}, with corresponding \code{coef}
 }
 \examples{
 
-  op <- options(digits = 4)
+  op <- options(digits = 3)
 
   data("birds", package = "TH.data")
   cotram(SG5 ~ AOT + AFS + GST + DBH + DWC + LOG, data = birds)
