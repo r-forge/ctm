@@ -1,6 +1,6 @@
 
-R version 4.1.2 (2021-11-01) -- "Bird Hippie"
-Copyright (C) 2021 The R Foundation for Statistical Computing
+R version 4.2.0 (2022-04-22) -- "Vigorous Calisthenics"
+Copyright (C) 2022 The R Foundation for Statistical Computing
 Platform: x86_64-pc-linux-gnu (64-bit)
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
@@ -20,6 +20,18 @@ Type 'q()' to quit R.
 > pkgname <- "cotram"
 > source(file.path(R.home("share"), "R", "examples-header.R"))
 > options(warn = 1)
+> base::assign(".ExTimings", "cotram-Ex.timings", pos = 'CheckExEnv')
+> base::cat("name\tuser\tsystem\telapsed\n", file=base::get(".ExTimings", pos = 'CheckExEnv'))
+> base::assign(".format_ptime",
++ function(x) {
++   if(!is.na(x[4L])) x[1L] <- x[1L] + x[4L]
++   if(!is.na(x[5L])) x[2L] <- x[2L] + x[5L]
++   options(OutDec = '.')
++   format(x[1L:3L], digits = 7L)
++ },
++ pos = 'CheckExEnv')
+> 
+> ### * </HEADER>
 > library('cotram')
 Loading required package: tram
 Loading required package: mlt
@@ -34,6 +46,7 @@ Loading required package: variables
 > 
 > flush(stderr()); flush(stdout())
 > 
+> base::assign(".ptime", proc.time(), pos = "CheckExEnv")
 > ### Name: confband
 > ### Title: Confidence Bands
 > ### Aliases: confband confband.cotram
@@ -52,29 +65,32 @@ Loading required package: variables
 >   ### compute asymptotic confidence bands for the distribution function
 >   ### for the first oberservation
 >   confband(m_birds, newdata = birds[1, ], type = "distribution")
-    q Estimate     lwr    upr
-1   0   0.1493 0.08909 0.2444
-1.1 1   0.3883 0.27107 0.5344
-1.2 2   0.5860 0.44150 0.7369
-1.3 3   0.7668 0.62282 0.8863
-1.4 4   0.8929 0.77567 0.9646
-1.5 5   0.9561 0.87446 0.9910
-1.6 6   0.9829 0.93374 0.9978
-1.7 7   0.9940 0.96418 0.9996
-1.8 8   0.9981 0.98001 1.0000
-1.9 9   0.9994 0.98855 1.0000
+    q Estimate    lwr    upr
+1   0   0.1493 0.0891 0.2444
+1.1 1   0.3883 0.2710 0.5343
+1.2 2   0.5863 0.4418 0.7371
+1.3 3   0.7667 0.6227 0.8862
+1.4 4   0.8930 0.7758 0.9646
+1.5 5   0.9561 0.8744 0.9910
+1.6 6   0.9829 0.9337 0.9978
+1.7 7   0.9940 0.9642 0.9996
+1.8 8   0.9981 0.9800 1.0000
+1.9 9   0.9994 0.9886 1.0000
 > 
 >   options(op)
 > 
 > 
 > 
 > 
+> base::assign(".dptime", (proc.time() - get(".ptime", pos = "CheckExEnv")), pos = "CheckExEnv")
+> base::cat("confband", base::get(".format_ptime", pos = 'CheckExEnv')(get(".dptime", pos = "CheckExEnv")), "\n", file=base::get(".ExTimings", pos = 'CheckExEnv'), append=TRUE, sep="\t")
 > cleanEx()
 > nameEx("cotram-methods")
 > ### * cotram-methods
 > 
 > flush(stderr()); flush(stdout())
 > 
+> base::assign(".ptime", proc.time(), pos = "CheckExEnv")
 > ### Name: cotram-methods
 > ### Title: Methods for Count Transformation Models
 > ### Aliases: predict.cotram plot.cotram as.mlt.cotram logLik.cotram
@@ -88,7 +104,7 @@ Loading required package: variables
 >   m_birds <- cotram(SG5 ~ AOT + AFS + GST + DBH + DWC + LOG, data = birds,
 +                     method = "cloglog")
 >   logLik(m_birds)
-'log Lik.' -504.3843 (df=13)
+'log Lik.' -504.3726 (df=13)
 > 
 >   ### classical likelihood inference
 > ## IGNORE_RDIFF_BEGIN
@@ -102,25 +118,25 @@ cotram(formula = SG5 ~ AOT + AFS + GST + DBH + DWC + LOG, data = birds,
 
 Coefficients:
       Estimate Std. Error z value Pr(>|z|)    
-AOT -5.469e-03  2.263e-03  -2.417 0.015665 *  
-AFS  9.397e-03  2.705e-03   3.474 0.000513 ***
-GST -3.014e-04  5.043e-04  -0.598 0.550087    
-DBH -3.653e-05  5.441e-03  -0.007 0.994644    
-DWC  7.223e-03  5.778e-03   1.250 0.211276    
-LOG -4.284e-03  2.401e-03  -1.785 0.074338 .  
+AOT -5.467e-03  2.263e-03  -2.415 0.015717 *  
+AFS  9.397e-03  2.705e-03   3.473 0.000514 ***
+GST -3.004e-04  5.043e-04  -0.596 0.551386    
+DBH -4.065e-05  5.442e-03  -0.007 0.994039    
+DWC  7.223e-03  5.778e-03   1.250 0.211289    
+LOG -4.278e-03  2.402e-03  -1.781 0.074875 .  
 ---
 Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
 Log-Likelihood:
- -504.3843 (df = 13)
-Likelihood-ratio Test: Chisq = 20.08602 on 6 degrees of freedom; p = 0.002673
+ -504.3726 (df = 13)
+Likelihood-ratio Test: Chisq = 20.08436 on 6 degrees of freedom; p = 0.002675
 
 > ## IGNORE_RDIFF_END
 > 
 >   ### coefficients of the linear predictor (discrete hazard ratios)
 >   exp(-coef(m_birds))
       AOT       AFS       GST       DBH       DWC       LOG 
-1.0054839 0.9906469 1.0003014 1.0000365 0.9928032 1.0042934 
+1.0054823 0.9906471 1.0003004 1.0000407 0.9928034 1.0042873 
 > 
 >   ### compute predicted median along with 10% and 90% quantile for the first
 >   ### three observations
@@ -128,10 +144,10 @@ Likelihood-ratio Test: Chisq = 20.08602 on 6 degrees of freedom; p = 0.002673
 >   predict(m_birds, newdata = nd, type = "quantile", prob = c(.1, .5, .9), 
 +           smooth = TRUE)
        
-prob        [,1]     [,2]     [,3]
-    0.1 0.000000 0.000000 0.000000
-    0.5 1.561050 1.483632 1.547645
-    0.9 4.079575 3.964106 4.059711
+prob          [,1]       [,2]       [,3]
+    0.1 0.08426339 0.07932403 0.08338537
+    0.5 1.55649061 1.47866899 1.54279496
+    0.9 4.07859135 3.96286368 4.05800712
 > 
 >   ### plot the predicted distribution for these observations
 >   plot(m_birds, newdata = nd, type = "distribution",
@@ -140,12 +156,15 @@ prob        [,1]     [,2]     [,3]
 > 
 > 
 > 
+> base::assign(".dptime", (proc.time() - get(".ptime", pos = "CheckExEnv")), pos = "CheckExEnv")
+> base::cat("cotram-methods", base::get(".format_ptime", pos = 'CheckExEnv')(get(".dptime", pos = "CheckExEnv")), "\n", file=base::get(".ExTimings", pos = 'CheckExEnv'), append=TRUE, sep="\t")
 > cleanEx()
 > nameEx("cotram")
 > ### * cotram
 > 
 > flush(stderr()); flush(stdout())
 > 
+> base::assign(".ptime", proc.time(), pos = "CheckExEnv")
 > ### Name: cotram
 > ### Title: Count Transformation Models
 > ### Aliases: cotram
@@ -166,7 +185,7 @@ cotram(formula = SG5 ~ AOT + AFS + GST + DBH + DWC + LOG, data = birds)
 
 Coefficients:
       AOT       AFS       GST       DBH       DWC       LOG 
--0.009297  0.017419 -0.001876  0.009141  0.020826 -0.004114 
+-0.009303  0.017426 -0.001876  0.009135  0.020818 -0.004109 
 
 Log-Likelihood:
  -502.3 (df = 13)
@@ -177,12 +196,15 @@ Log-Likelihood:
 > 
 > 
 > 
+> base::assign(".dptime", (proc.time() - get(".ptime", pos = "CheckExEnv")), pos = "CheckExEnv")
+> base::cat("cotram", base::get(".format_ptime", pos = 'CheckExEnv')(get(".dptime", pos = "CheckExEnv")), "\n", file=base::get(".ExTimings", pos = 'CheckExEnv'), append=TRUE, sep="\t")
 > cleanEx()
 > nameEx("mcotram")
 > ### * mcotram
 > 
 > flush(stderr()); flush(stdout())
 > 
+> base::assign(".ptime", proc.time(), pos = "CheckExEnv")
 > ### Name: mcotram
 > ### Title: Multivariate Count Conditional Transformation Models
 > ### Aliases: mcotram
@@ -235,34 +257,34 @@ Log-Likelihood:
 > ## IGNORE_RDIFF_BEGIN
 > 
 >   logLik(m_all_1)
-'log Lik.' -5185 (df=69)
+'log Lik.' -2418 (df=69)
 >   logLik(m_all_2)
-'log Lik.' -4038 (df=99)
+'log Lik.' -4021 (df=99)
 > 
 >   ## lambda defining the Cholesky factor of the precision matrix
 >   coef(m_all_1, newdata = spiders[1,], type = "Lambda")
-  [,1]  [,2] [,3] [,4] [,5] [,6] [,7]  [,8] [,9] [,10] [,11] [,12] [,13] [,14]
-1 0.73 -0.21 0.27 -1.1 0.84 0.15 0.27 -0.18 0.21   1.5 -0.16  0.36 -0.45 -0.12
-  [,15]
-1  0.27
+  [,1]  [,2] [,3]  [,4] [,5]  [,6] [,7]  [,8] [,9] [,10] [,11] [,12] [,13]
+1 0.69 -0.34 0.28 -0.94 0.79 0.027 0.32 -0.56 0.26  0.88 0.007 -0.21 -0.48
+   [,14] [,15]
+1 -0.083  0.16
 >   coef(m_all_2, newdata = spiders[1,], type = "Lambda")
   [,1] [,2] [,3] [,4] [,5] [,6] [,7] [,8] [,9] [,10] [,11] [,12] [,13] [,14]
-1    0 0.63    0    0    0    0    0    0    0  0.63     0     0   2.5     0
+1    0    0 0.59    0    0    0    0    0    0  0.59     0     0   2.9     0
   [,15]
-1   1.3
+1   1.8
 > 
 >   ## linear correlation, ie Pearson correlation of the models after
 >   ## transformation to bivariate normality
 >   (r1 <- coef(m_all_1, newdata = spiders[1,], type = "Corr"))
-      [,1] [,2] [,3]   [,4]  [,5]  [,6]  [,7]  [,8]    [,9] [,10] [,11] [,12]
-[1,] -0.59 0.27 0.45 -0.018 -0.41 -0.55 -0.79 0.073 -0.0023  0.36 -0.13  0.32
-     [,13]  [,14] [,15]
-[1,] -0.55 -0.024 -0.16
+      [,1] [,2] [,3] [,4]  [,5]  [,6]  [,7] [,8] [,9] [,10] [,11] [,12] [,13]
+[1,] -0.57 0.32  0.3 -0.2 -0.35 -0.46 -0.59 0.35 0.34  0.25 -0.38  0.18 -0.68
+     [,14]  [,15]
+[1,] -0.19 -0.072
 >   (r2 <- coef(m_all_2, newdata = spiders[1,], type = "Corr"))
-     [,1]  [,2]  [,3] [,4] [,5] [,6] [,7] [,8] [,9] [,10] [,11] [,12] [,13]
-[1,]    0 -0.51 -0.53    0 0.31 0.32 0.67    0 -0.4  0.48     0 -0.68 -0.28
-      [,14] [,15]
-[1,] -0.098 -0.55
+     [,1] [,2] [,3] [,4] [,5]  [,6]  [,7] [,8]  [,9] [,10] [,11] [,12] [,13]
+[1,]    0    0 0.47    0 0.24 -0.51 -0.84    0 -0.42  0.42     0 -0.14 -0.14
+     [,14] [,15]
+[1,]  0.67 -0.58
 > 
 > ## IGNORE_RDIFF_END
 > 
@@ -271,12 +293,14 @@ Log-Likelihood:
 > 
 > 
 > 
+> base::assign(".dptime", (proc.time() - get(".ptime", pos = "CheckExEnv")), pos = "CheckExEnv")
+> base::cat("mcotram", base::get(".format_ptime", pos = 'CheckExEnv')(get(".dptime", pos = "CheckExEnv")), "\n", file=base::get(".ExTimings", pos = 'CheckExEnv'), append=TRUE, sep="\t")
 > ### * <FOOTER>
 > ###
 > cleanEx()
 > options(digits = 7L)
 > base::cat("Time elapsed: ", proc.time() - base::get("ptime", pos = 'CheckExEnv'),"\n")
-Time elapsed:  4.962 0.064 5.028 0 0 
+Time elapsed:  8.667 0.059 8.763 0 0 
 > grDevices::dev.off()
 null device 
           1 
