@@ -1,13 +1,11 @@
 
-R version 4.2.0 (2022-04-22) -- "Vigorous Calisthenics"
+R version 4.2.1 (2022-06-23) -- "Funny-Looking Kid"
 Copyright (C) 2022 The R Foundation for Statistical Computing
 Platform: x86_64-pc-linux-gnu (64-bit)
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
 Type 'license()' or 'licence()' for distribution details.
-
-  Natural language support but running in an English locale
 
 R is a collaborative project with many contributors.
 Type 'contributors()' for more information and
@@ -1213,4 +1211,4 @@ yt.1.Bs6(ytu.1) yt.1.Bs7(ytu.1)
 > 
 > proc.time()
    user  system elapsed 
-  7.911   0.061   7.966 
+  8.399   0.075   8.469 
