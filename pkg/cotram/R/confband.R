@@ -39,7 +39,7 @@ confband.cotram <- function(object, newdata,  level = 0.95,
     
     X <- model.matrix(object$model$model, data = nd)
     
-    ci <- confint(multcomp::glht(multcomp::parm(coef(as.mlt(object)), mlt:::vcov.mlt(as.mlt(object))),
+    ci <- confint(multcomp::glht(multcomp::parm(coef(as.mlt(object)), vcov(as.mlt(object))),
                                  linfct = X), ...)$confint
     
     ## use quantile obtained for K contrasts for larger number of contrasts
