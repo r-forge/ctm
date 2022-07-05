@@ -3,11 +3,12 @@ Title: Count Transformation Models
 Version: 0.4-0
 Date: 2022-07-05
 Authors@R: c(
-	person(given = "Sandra", family = "Siegfried", role = "aut", 
+	person(given = "Sandra", family = "Siegfried", role = c("aut", "cre"), 
+	email = "sandra.siegfried@uzh.ch",
 	comment = c(ORCID = "0000-0002-7312-1001")),
 	person(given = "Luisa", family = "Barbanti", role = "aut",
 	comment = c(ORCID = "0000-0001-5352-5802")),
-	person(given = "Torsten", family = "Hothorn", role = c("aut", "cre"),
+	person(given = "Torsten", family = "Hothorn", role = "aut",
 	email = "Torsten.Hothorn@R-project.org",
 	comment = c(ORCID = "0000-0001-8301-0471")))
 Description: Count transformation models featuring 
