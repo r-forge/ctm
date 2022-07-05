@@ -2,6 +2,15 @@
 \name{NEWS}
 \title{NEWS file for the cotram package}
 
+\section{Changes in Version 0.4-0 (2022-07-05)}{
+  \itemize{
+    \item{Use \code{Surv} to define the count likelihood.}
+    \item{Allow more flexible choices for the support via \code{prob}.}
+    \item{Update documentation / examples.}
+    \item{Sandra Siegfried takes over maintainership from Torsten Hothorn.}
+  }
+}
+
 \section{Changes in Version 0.3-2 (2022-01-27)}{
   \itemize{
     \item{Import \code{confband} generic from \pkg{mlt}.}
