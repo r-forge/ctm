@@ -39,8 +39,8 @@ An object of class \code{mcotram} and \code{mmlt} with \code{coef} and
 }
 \references{
 
-  Luisa Barbani, Roland Brandl, Torsten Hothorn (2021), Multi-species Count
-  Transformation Models. Submitted manuscript, available from the authors.
+  Luisa Barbani, Roland Brandl, Torsten Hothorn (2022), Multi-species Count
+  Transformation Models, \doi{10.48550/arXiv.2201.13095}.
 
   Nadja Klein, Torsten Hothorn, Luisa Barbanti, Thomas Kneib (2020),
   Multivariate Conditional Transformation Models. \emph{Scandinavian Journal
@@ -72,25 +72,35 @@ An object of class \code{mcotram} and \code{mmlt} with \code{coef} and
   ##
   ## define starting values here (this is not necessary but leads
   ## to diffs for ATLAS and OpenBlas)
-  theta <- round(c(coef(as.mlt(m_PF)), coef(as.mlt(m_HL)), 
-             coef(as.mlt(m_CC)), coef(as.mlt(m_CT)), 
-             coef(as.mlt(m_PL)), coef(as.mlt(m_PR)), 
-             rep(0, 15)), 2)
+  cf1 <- c(0.415, 0.921, 0.921, 0.921, 1.257, 1.42, 1.654, 0, 0.001, 0.853,
+           1.365, 1.365, 1.365, 1.791, 2.094, 2.428, 0.002, 0, -1.219,
+           -1.218, -0.514, -0.403, -0.403, 0.078, 0.863, -0.001, 0, 0.326,
+           0.596, 0.91, 0.91, 0.91, 1.481, 2.137, -0.001, 0.001, -1.628,
+           -1.188, -1.188, -1.129, -0.434, -0.296, 0.395, 0, -0.001, -6.345,
+           -6.015, -5.291, -5.291, -5.291, -4.541, -3.554, -0.006, 0, 0.69,
+           -0.345, 0.28, -0.944, 0.787, 0.028, 0.322, -0.559, 0.263, 0.876,
+           0.006, -0.207, -0.481, -0.083, 0.161)
+
   m_all_1 <- mcotram(m_PF, m_HL, m_CC, m_CT, m_PL, m_PR, 
-                     theta = theta, ### <- not really necessary
+                     theta = cf1, ## <- not really necessary, please CRAN timings
                      formula = ~ 1, data = spiders)
 
   ## with covariate-dependent Cholesky factor of the precision matrix
-  theta <- round(c(coef(as.mlt(m_PF)), coef(as.mlt(m_HL)), 
-             coef(as.mlt(m_CC)), coef(as.mlt(m_CT)), 
-             coef(as.mlt(m_PL)), coef(as.mlt(m_PR)), 
-             rep(0, 15 * 3)), 2)
-  m_all_2 <- mcotram(m_PF, m_HL, m_CC, m_CT, m_PL, m_PR, theta = theta,
-                     formula = ~ Elevation + Canopy_openess, data = spiders,
-                     ##                            not needed!
-                     control.outer = list(method = "Nelder-Mead", trace = FALSE))
+  cf2 <- c(1.649, 2.078, 2.078, 2.078, 2.391, 2.476, 2.694, 0.001, 0, 3.399,
+           3.862, 3.862, 3.862, 4.232, 4.593, 4.991, 0.005, -0.001, -3.646, -3.646,
+           -2.906, -2.777, -2.777, -2.256, -1.429, -0.003, 0.001, -1.257, -1.01,
+           -0.652, -0.652, -0.652, -0.093, 0.601, -0.002, 0.001, 2.294, 2.77, 2.77,
+            2.796, 3.593, 3.74, 4.473, 0.006, -0.003, -7.563, -7.173,
+           -6.384, -6.384, -6.384, -5.571, -4.509, -0.007, 0.001, -4.788,
+           0.007, -0.001, 3.914, -0.005, 0, 1.534, -0.001, 0, 1.098, -0.002,
+           -0.001, 2.196, -0.002, 0, -0.072, 0, 0, -0.222, 0.001, -0.001,
+           -2.876, 0.003, -0.001, -1.135, 0.002, -0.001, 0.07, 0.001,
+           -0.001, 3.279, -0.004, 0, -1.057, 0.001, 0, -0.953, 0.001, 0,
+           0.252, 0, 0, 2.443, -0.002, -0.001)
 
-## IGNORE_RDIFF_BEGIN
+  m_all_2 <- mcotram(m_PF, m_HL, m_CC, m_CT, m_PL, m_PR, 
+                     theta = cf2, ## <- please CRAN timings
+                     formula = ~ Elevation + Canopy_openess, data = spiders)
 
   logLik(m_all_1)
   logLik(m_all_2)
@@ -103,8 +113,6 @@ An object of class \code{mcotram} and \code{mmlt} with \code{coef} and
   ## transformation to bivariate normality
   (r1 <- coef(m_all_1, newdata = spiders[1,], type = "Corr"))
   (r2 <- coef(m_all_2, newdata = spiders[1,], type = "Corr"))
-
-## IGNORE_RDIFF_END
 
   options(op)
 
