@@ -4,3 +4,5 @@ DVC.tgz
 ^.*\.Rproj$
 ^\.Rproj\.user$
 test_randomunif.R
+demo/aquabirds.Rout.save
+demo/Rplots_out_save.pdf
