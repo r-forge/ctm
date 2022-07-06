@@ -10624,11 +10624,11 @@ f_s_harm <- function(m_h, m_k, m_s, m_h_m, m_k_m, m_s_m,
 
 ### univariate count transformation models
 m_h1 <- cotram(Haubentaucher ~ tvar1 + tvar2 + tvar3 + tvar4 + tvar5 + tvar6 + Jahr,
-               order = ord, data = aquabirds, method = "probit", add = c(-.5, 300))
+               order = ord, data = aquabirds, method = "probit", add = c(-1, 300))
 m_k1 <- cotram(Kormoran ~ tvar1 + tvar2 + tvar3 + tvar4 + tvar5 + tvar6 + Jahr,
-               order = ord, data = aquabirds, method = "probit", add = c(-.5, 300))
+               order = ord, data = aquabirds, method = "probit", add = c(-1, 300))
 m_s1 <- cotram(Saeger ~ tvar1 + tvar2 + tvar3 + tvar4 + tvar5 + tvar6 + Jahr,
-               order = ord, data = aquabirds, method = "probit", add = c(-.5, 300))
+               order = ord, data = aquabirds, method = "probit", add = c(-1, 300))
 
 ### multi-species transformation model: M-Lambda, discrete approximation
 m_disc3_const <- mcotram(m_h1, m_k1, m_s1, data = aquabirds)
@@ -10717,19 +10717,19 @@ aquabirds$S <- aquabirds$Saeger - 0.5*(aquabirds$Saeger >= 1) + 1
 
 m_h2 <- as.mlt(BoxCox(H ~ tvar1 + tvar2 + tvar3 + tvar4 + tvar5 + tvar6 + Jahr,
                       data = aquabirds, order = ord, log_first = TRUE, 
-                      add = c(-0.5, 1200), 
+                      add = c(-1, 1200), 
                       support = attr(m_h1$model$model$bresponse, 
                                      "variables")$support, 
                       bounds = c(0, Inf)))
 m_k2 <- as.mlt(BoxCox(K ~ tvar1 + tvar2 + tvar3 + tvar4 + tvar5 + tvar6 + Jahr,
                       data = aquabirds, order = ord, log_first = TRUE, 
-                      add = c(-0.5, 1200), 
+                      add = c(-1, 1200), 
                       support = attr(m_k1$model$model$bresponse, 
                                      "variables")$support, 
                       bounds = c(0, Inf)))
 m_s2 <- as.mlt(BoxCox(S ~ tvar1 + tvar2 + tvar3 + tvar4 + tvar5 + tvar6 + Jahr,
                       data = aquabirds, order = ord, log_first = TRUE, 
-                      add = c(-0.5, 1200), 
+                      add = c(-1, 1200), 
                       support = attr(m_s1$model$model$bresponse, 
                                      "variables")$support, 
                       bounds = c(0, Inf)))
@@ -10800,8 +10800,6 @@ lr <- 2 * (as.numeric(logLik(m_cont3)) - as.numeric(logLik(m_cont3_const)))
 lr
 pchisq(lr, df = df, lower.tail = FALSE)
 
-
-
 #### MCOTRAM - HMSC comparison ####
 ## Sigma for M-Lambda
 Sd <- coef(m_disc3_const, newdata = aquabirds[1, ], type = "Sigma")
@@ -10870,11 +10868,11 @@ time_mcotram_const <- system.time(
       
       ## refit mcotram to sampled data
       m_h1r <- cotram(Haubentaucher ~ tvar1 + tvar2 + tvar3 + tvar4 + tvar5 + tvar6 + Jahr,
-                      order = ord, data = d_sampled, method = "probit", add = c(-.5, 300))
+                      order = ord, data = d_sampled, method = "probit", add = c(-1, 300))
       m_k1r <- cotram(Kormoran ~ tvar1 + tvar2 + tvar3 + tvar4 + tvar5 + tvar6 + Jahr,
-                      order = ord, data = d_sampled, method = "probit", add = c(-.5, 300))
+                      order = ord, data = d_sampled, method = "probit", add = c(-1, 300))
       m_s1r <- cotram(Saeger ~ tvar1 + tvar2 + tvar3 + tvar4 + tvar5 + tvar6 + Jahr,
-                      order = ord, data = d_sampled, method = "probit", add = c(-.5, 300))
+                      order = ord, data = d_sampled, method = "probit", add = c(-1, 300))
       m_disc3_const_r <- mcotram(m_h1r, m_k1r, m_s1r, data = d_sampled)
       
       ## save computed constant correlations
@@ -10982,11 +10980,11 @@ time_mcotram_var <- system.time(
       
       ## refit mcotram to sampled data
       m_h1r <- cotram(Haubentaucher ~ tvar1 + tvar2 + tvar3 + tvar4 + tvar5 + tvar6 + Jahr,
-                      order = ord, data = d_sampled, method = "probit", add = c(-.5, 300))
+                      order = ord, data = d_sampled, method = "probit", add = c(-1, 300))
       m_k1r <- cotram(Kormoran ~ tvar1 + tvar2 + tvar3 + tvar4 + tvar5 + tvar6 + Jahr,
-                      order = ord, data = d_sampled, method = "probit", add = c(-.5, 300))
+                      order = ord, data = d_sampled, method = "probit", add = c(-1, 300))
       m_s1r <- cotram(Saeger ~ tvar1 + tvar2 + tvar3 + tvar4 + tvar5 + tvar6 + Jahr,
-                      order = ord, data = d_sampled, method = "probit", add = c(-.5, 300))
+                      order = ord, data = d_sampled, method = "probit", add = c(-1, 300))
       m_disc3_r <- mcotram(m_h1r, m_k1r, m_s1r, formula = fm, data = d_sampled)
       
       ## save mcotram models
@@ -11455,4 +11453,3 @@ plot(dret[, "disc"], dret[, "orig"],
      col = rgb(.1, .1, .1, .3), pch = 19)
 abline(a = 0, b = 1, col = adjustcolor("red", alpha.f = .5))
 # par(op)
-
