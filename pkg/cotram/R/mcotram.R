@@ -225,18 +225,18 @@ mcotram <- function(..., formula = ~ 1, data, theta = NULL, # diag = FALSE,
   #     cret <- vector(length = J, mode = "list")
   #     ## row-wise: diagonal goes at the end!
   #     l <- ncol(lX)
-  #     cret[[1]] <- colSums(matrix(rep(C1_l[, 1], l), ncol = l) * lX)
+  #     cret[[1]] <- colSums(matrix(rep(C1_l[, 1], l), ncol = nclX) * lX)
   # 
   #     for (k in 1:(J - 1)) { # go over rows
   #       C2 <- matrix(rep(C1[, k+1], k), ncol = k)
   #       tmp <- C2 * Yp_u[,1:k]
   #       ret <- c()
   #       for (i in 1:k) {
-  #         tmp1 <- matrix(rep(tmp[,i], l), ncol = l)
+  #         tmp1 <- matrix(rep(tmp[,i], l), ncol = nclX)
   #         ret <- c(ret, colSums(tmp1 * lX))
   #       }
   #       ret <- c(ret,
-  #                colSums(matrix(rep(C1_l[, k+1], l), ncol = l) * lX))
+  #                colSums(matrix(rep(C1_l[, k+1], l), ncol = nclX) * lX))
   #       cret[[k+1]] <- ret
   #     }
   #     
@@ -261,10 +261,13 @@ mcotram <- function(..., formula = ~ 1, data, theta = NULL, # diag = FALSE,
   #   }
   #   
   # } else {  ## diag = FALSE
+
+  nclX <- ncol(lX)
+
   ll <- function(par) {
     
     mpar <- par[1:ncol(Ylower)]
-    cpar <- matrix(par[-(1:ncol(Ylower))], nrow = ncol(lX))
+    cpar <- matrix(par[-(1:ncol(Ylower))], nrow = nclX)
     
     ### Ylower = NaN means -Inf and Yupper == NaN means +Inf
     ### (corresponding to probabilities 0 and 1)
@@ -298,7 +301,7 @@ mcotram <- function(..., formula = ~ 1, data, theta = NULL, # diag = FALSE,
   sc <- function(par) {
     
     mpar <- par[1:ncol(Ylower)]
-    cpar <- matrix(par[-(1:ncol(Ylower))], nrow = ncol(lX))
+    cpar <- matrix(par[-(1:ncol(Ylower))], nrow = nclX)
     
     ### Ylower = NaN means -Inf and Yupper == NaN means +Inf
     ### (corresponding to probabilities 0 and 1)
@@ -349,13 +352,12 @@ mcotram <- function(..., formula = ~ 1, data, theta = NULL, # diag = FALSE,
       C2 <- matrix(rep(C1[, k+1], k), ncol = k)
       # tmp <- C2 * Yp_u[,1:k]
       tmp <- C2 * Yp_05[,1:k]
-      ret <- c()
-      l <- ncol(lX)
+      ret <- matrix(0, nrow = nclX, ncol = k)
       for (i in 1:k) {
-        tmp1 <- matrix(rep(tmp[,i], l), ncol = l)
-        ret <- c(ret, colSums(tmp1 * lX))
+        tmp1 <- matrix(rep(tmp[,i], nclX), ncol = nclX)
+        ret[,i] <- colSums(tmp1 * lX)
       }
-      cret[[k]] <- ret
+      cret[[k]] <- c(ret)
     }
     
     mret <- -do.call("c", mret)
@@ -371,7 +373,7 @@ mcotram <- function(..., formula = ~ 1, data, theta = NULL, # diag = FALSE,
     ### don't bother with .start(), simply use the marginal coefficients
     ### and zero for the lambda parameters
     start <- do.call("c", lapply(m, function(mod) coef(as.mlt(mod))))
-    start <- c(start, rep(0, Jp * ncol(lX)))
+    start <- c(start, rep(0, Jp * nclX))
   }
   # }
   
@@ -433,7 +435,7 @@ mcotram <- function(..., formula = ~ 1, data, theta = NULL, # diag = FALSE,
   
   lnm <- matrix(paste0(matrix(nm, nrow = J, ncol = J), ".",
                        matrix(nm, nrow = J, ncol = J, byrow = TRUE)), nrow = J)
-  cnm <- paste0(rep(lnm[lower.tri(lnm, diag = diag)], each = ncol(lX)), ".", 
+  cnm <- paste0(rep(lnm[lower.tri(lnm, diag = diag)], each = nclX), ".", 
                 rep(colnames(lX), Jp))
   
   names(opt$par) <- c(paste0(nm[sf], ".", do.call("c", lapply(mlist, names))), cnm)
