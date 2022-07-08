@@ -71,6 +71,5 @@ Y <- 1 + X \%*\% beta + rnorm(N)
 dat <- data.frame(y = Y, x = X)
 
 abess_tram(y ~ ., dat, modFUN = Lm, supp = 3)
-# abess_tram(y ~ ., dat, modFUN = BoxCox, supp = 5)
 
 }
