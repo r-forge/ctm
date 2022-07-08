@@ -13,8 +13,8 @@ library(tramvs)
 
 # Params ------------------------------------------------------------------
 
-N <- 1000
-p <- 4
+N <- 1e2
+p <- 3
 z <- rnorm(N)
 x <- matrix(runif(N * p), ncol = p)
 y <- (z + x[,1] * 2) / sqrt(exp(x[,2]))

@@ -156,8 +156,8 @@ tramnet <-
       }
     )
     obj <- -(lle + lll + llr + lli) +
-      lambda * (0.5 * (1 - alpha) * power(p_norm(beta, 2), 2) +
-                  alpha * p_norm(beta, 1))
+      (0.5 * (1 - alpha) * power(p_norm(lambda * beta, 2), 2) +
+                  alpha * p_norm(lambda * beta, 1))
     const <- list(trdat$const$ui %*% theta >= trdat$const$ci)
     if (!is.null(constraints)) {
       const[[2]] <- constraints[[1]] %*% beta >= constraints[[2]]

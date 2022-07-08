@@ -8,7 +8,7 @@ library(tramvs)
 library(abess)
 
 N <- 1e2
-P <- 10
+P <- 5
 nz <- 3
 beta <- rep(c(3, 0), c(nz, P - nz))
 X <- matrix(rnorm(N * P), nrow = N, ncol = P)

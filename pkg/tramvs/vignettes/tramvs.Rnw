@@ -286,10 +286,6 @@ library(cotram)
 data("birds", package = "TH.data")
 birds$noise <- rnorm(nrow(birds), sd = 10)
 
-# Fixed support size
-abess_tram(SG5 ~ AOT + AFS + GST + DBH + DWC + LOG + noise, data = birds,
-           modFUN = cotram, supp = 4)
-
 # Estimate support sice via HBIC
 count_res <- tramvs(SG5 ~ AOT + AFS + GST + DBH + DWC + LOG + noise, data = birds,
                        modFUN = cotram)
@@ -348,7 +344,7 @@ Section~\ref{sec:tram}.
 m0 <- Lm(y ~ 1, data = dat)
 X <- model.matrix(y ~ 0 + ., data = dat)
 mt <- tramnet(m0, X, lambda = 0, alpha = 1)
-pfl <- prof_lambda(mt, nprof = 10)
+pfl <- prof_lambda(mt, nprof = 5)
 @
 
 %---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---
