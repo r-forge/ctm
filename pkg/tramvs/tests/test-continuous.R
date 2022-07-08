@@ -31,7 +31,6 @@ logLik(res)
 SIC(res)
 coef(res)
 predict(res, which = "distribution", type = "trafo")
-simulate(res)
 residuals(res)
 
 # Active set
