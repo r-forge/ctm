@@ -409,9 +409,9 @@ coef(cont_res, as.lm = TRUE)
 Several \code{tram} methods are applicable for the best model in an object
 of class \cls{tramvs}, such as \code{predict}, \code{simulate}, and
 \code{residuals}.
-<<methods5>>=
+<<methods5, eval=FALSE>>=
 head(predict(cont_res, which = "distribution", type = "trafo"))
-mlt:::print.response(simulate(cont_res)[1:5])
+simulate(cont_res)[1:5]
 head(residuals(cont_res))
 @
 
