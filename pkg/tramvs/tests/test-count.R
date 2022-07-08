@@ -10,13 +10,9 @@ library(cotram)
 data("birds", package = "TH.data")
 birds$noise <- rnorm(nrow(birds), sd = 10)
 
-# Fixed support size
-abess_tram(SG5 ~ AOT + AFS + GST + DBH + DWC + LOG + noise, data = birds,
-           modFUN = cotram, supp = 4)
-
 # Estimate support sice via HBIC
 res <- tramvs(SG5 ~ AOT + AFS + GST + DBH + DWC + LOG + noise, data = birds,
-                       modFUN = cotram)
+              modFUN = cotram)
 plot(res, type = "b")
 plot(res, which = "path")
 

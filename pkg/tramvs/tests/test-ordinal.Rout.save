@@ -30,34 +30,6 @@ Loading required package: variables
 > data("wine", package = "ordinal")
 > wine$noise <- rnorm(nrow(wine))
 > 
-> # Fixed support size
-> abess_tram(rating ~ temp + contact + noise, data = wine, modFUN = Polr,
-+            supp = 2)
-$mod
-
-  Proportional Odds Regression Model 
-
-Call:
-modFUN(formula = formula, data = data, fixed = fix0, theta = theta_init[!names(theta_init) %in% 
-    I0])
-
-Coefficients:
-  tempwarm contactyes      noise 
-      2.50       1.53       0.00 
-
-Log-Likelihood:
- -86.5 (df = 6)
-
-
-$A
-[1] "tempwarm"   "contactyes"
-
-$I
-[1] "noise"
-
-attr(,"class")
-[1] "abess_tram"
-> 
 > # Estimate support size via HBIC
 > res <- tramvs(rating ~ temp + contact + noise, data = wine, modFUN = Polr)
   |                                                          |                                                  |   0%  |                                                          |=================                                 |  33%  |                                                          |=================================                 |  67%  |                                                          |==================================================| 100%> plot(res, type = "b")
@@ -86,4 +58,4 @@ noise       .      .    -0.159
 > 
 > proc.time()
    user  system elapsed 
-  1.829   0.044   1.902 
+  1.570   0.052   1.615 
