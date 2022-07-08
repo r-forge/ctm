@@ -1,4 +1,7 @@
 set.seed(24101968)
+
+# Windows diffs...
+options(digits = 3)
 library(tramvs)
 
 N <- 1e2

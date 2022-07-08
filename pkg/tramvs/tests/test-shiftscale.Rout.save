@@ -1,0 +1,90 @@
+
+R version 4.1.2 (2021-11-01) -- "Bird Hippie"
+Copyright (C) 2021 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> # Shift-scale transformation models
+> 
+> # Windows diffs...
+> options(digits = 3)
+> # TH, SS, LK
+> # Jan 2022
+> 
+> set.seed(29)
+> 
+> # Deps --------------------------------------------------------------------
+> 
+> library(tramvs)
+Loading required package: tram
+Loading required package: mlt
+Loading required package: basefun
+Loading required package: variables
+> 
+> # Params ------------------------------------------------------------------
+> 
+> N <- 1000
+> p <- 4
+> z <- rnorm(N)
+> x <- matrix(runif(N * p), ncol = p)
+> y <- (z + x[,1] * 2) / sqrt(exp(x[,2]))
+> d <- data.frame(y = y, x = x)
+> ### 0, 1, 2, 1
+> coef(as.mlt(Lm(y ~ x.1 | x.2, data = d)))
+(Intercept)           y         x.1     scl_x.2 
+   0.000755    0.986608    1.792733    0.787235 
+> 
+> fm <- paste(colnames(d)[-1], collapse = "+")
+> fm <- as.formula(paste("y ~ ", fm, "|", fm))
+> 
+> m0 <- LmVS(fm, data = d)
+  |                                                          |                                                  |   0%  |                                                          |======                                            |  12%  |                                                          |============                                      |  25%  |                                                          |===================                               |  38%  |                                                          |=========================                         |  50%  |                                                          |===============================                   |  62%  |                                                          |======================================            |  75%  |                                                          |============================================      |  88%  |                                                          |==================================================| 100%> m0
+
+L0-penalized tram:
+
+  Shift-Scale Normal Regression Model 
+
+Call:
+modFUN(formula = formula, data = data, fixed = fix0, theta = theta_init[!names(theta_init) %in% 
+    I0])
+
+Coefficients:
+    x.1     x.2     x.3     x.4 scl_x.1 scl_x.2 scl_x.3 scl_x.4 
+  1.793   0.000   0.000   0.000   0.000   0.787   0.000   0.000 
+
+Log-Likelihood:
+ -1235 (df = 4)
+
+
+SIC:
+ 1243 
+
+Active set: x.1 scl_x.2 
+
+> 
+> coef(m0)
+8 x 8 sparse Matrix of class "dgCMatrix"
+           1     2     3      4       5       6       7       8
+x.1     1.78 1.793 1.815  1.822  1.8244  1.8251  1.8339  1.8331
+x.2     .    .     0.163  0.128  0.1508  0.1438  0.1456  0.1567
+x.3     .    .     .      .      0.0798  0.0519  0.0518  0.0520
+x.4     .    .     .     -0.131 -0.1299 -0.1306 -0.1303 -0.0904
+scl_x.1 .    .     .      .      .       .       0.0191  0.0123
+scl_x.2 .    0.787 0.855  0.856  0.8557  0.8566  0.8565  0.8564
+scl_x.3 .    .     .      .      .      -0.0591 -0.0586 -0.0591
+scl_x.4 .    .     .      .      .       .       .       0.0836
+> 
+> proc.time()
+   user  system elapsed 
+  6.215   0.035   6.245 

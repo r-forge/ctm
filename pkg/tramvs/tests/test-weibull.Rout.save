@@ -1,0 +1,68 @@
+
+R version 4.1.2 (2021-11-01) -- "Bird Hippie"
+Copyright (C) 2021 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> # Demo Weibull
+> 
+> # Windows diffs...
+> options(digits = 3)
+> 
+> set.seed(24101968)
+> library(tramvs)
+Loading required package: tram
+Loading required package: mlt
+Loading required package: basefun
+Loading required package: variables
+> library(abess)
+> library(survival)
+> 
+> data("GBSG2", package = "TH.data")
+> 
+> ## using the alias SurvregVS
+> GBSG2$surv <- with(GBSG2, Surv(time, cens))
+> res <- SurvregVS(surv ~ horTh + age + menostat + tsize + tgrade +
++                    pnodes + progrec + estrec, data = GBSG2)
+  |                                                          |                                                  |   0%  |                                                          |======                                            |  11%  |                                                          |===========                                       |  22%  |                                                          |=================                                 |  33%  |                                                          |======================                            |  44%  |                                                          |============================                      |  56%  |                                                          |=================================                 |  67%  |                                                          |=======================================           |  78%  |                                                          |============================================      |  89%  |                                                          |==================================================| 100%> 
+> coef(res)
+9 x 9 sparse Matrix of class "dgCMatrix"
+                  1       2        3        4       5         6         7
+horThyes      .      .       .        .        0.3360  0.343530  0.347299
+age           .      .       .        .        .       .        -0.001031
+menostatPost  .      .       .        .        .       .         .       
+tsize         .      .       .       -0.00733 -0.0075 -0.007699 -0.007692
+tgrade.L      .     -0.6120 -0.47034 -0.45735 -0.4168 -0.416270 -0.417217
+tgrade.Q      .      .       .        .        .       .         .       
+pnodes       -0.063 -0.0614 -0.06013 -0.05482 -0.0543 -0.054116 -0.054064
+progrec       .      .       0.00231  0.00232  0.0023  0.002380  0.002374
+estrec        .      .       .        .        .      -0.000238 -0.000216
+                     8         9
+horThyes      0.363132  0.373089
+age           0.009465  0.009480
+menostatPost -0.281315 -0.270916
+tsize        -0.007904 -0.008015
+tgrade.L     -0.415395 -0.572767
+tgrade.Q      .         0.205038
+pnodes       -0.053964 -0.052800
+progrec       0.002299  0.002285
+estrec       -0.000212 -0.000248
+> 
+> # Active set
+> support(res)
+[1] "tgrade.L" "pnodes"   "progrec" 
+> 
+> proc.time()
+   user  system elapsed 
+ 10.083   0.056  10.131 

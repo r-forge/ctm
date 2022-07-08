@@ -29,7 +29,7 @@
 #' library(tramvs)
 #'
 #' N <- 1e2
-#' P <- 10
+#' P <- 5
 #' nz <- 3
 #' beta <- rep(c(1, 0), c(nz, P - nz))
 #' X <- matrix(rnorm(N * P), nrow = N, ncol = P)
@@ -38,7 +38,7 @@
 #' dat <- data.frame(y = Y, x = X)
 #'
 #' abess_tram(y ~ ., dat, modFUN = Lm, supp = 3)
-#' abess_tram(y ~ ., dat, modFUN = BoxCox, supp = 5)
+#' # abess_tram(y ~ ., dat, modFUN = BoxCox, supp = 5)
 #'
 #' @importFrom stats coef update residuals cor model.matrix
 #' @export

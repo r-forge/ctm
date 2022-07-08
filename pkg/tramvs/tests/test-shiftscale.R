@@ -1,4 +1,7 @@
 # Shift-scale transformation models
+
+# Windows diffs...
+options(digits = 3)
 # TH, SS, LK
 # Jan 2022
 
