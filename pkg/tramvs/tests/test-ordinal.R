@@ -1,5 +1,8 @@
 # Demo ordinal
 
+# Windows diffs...
+options(digits = 3)
+
 set.seed(24101968)
 library(tramvs)
 

@@ -1,0 +1,151 @@
+
+R version 4.1.2 (2021-11-01) -- "Bird Hippie"
+Copyright (C) 2021 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> set.seed(24101968)
+> 
+> # Windows diffs...
+> options(digits = 3)
+> library(tramvs)
+Loading required package: tram
+Loading required package: mlt
+Loading required package: basefun
+Loading required package: variables
+> 
+> N <- 1e2
+> P <- 10
+> nz <- 3
+> beta <- rep(c(1, 0), c(nz, P - nz))
+> X <- matrix(rnorm(N * P), nrow = N, ncol = P)
+> Y <- 1 + X %*% beta + rnorm(N)
+> 
+> dat <- data.frame(y = Y, x = X)
+> 
+> # No mandatory covariates
+> tramvs(y ~ . | x.10, data = dat, modFUN = Lm,
++               mandatory = NULL)
+  |                                                          |                                                  |   0%  |                                                          |=====                                             |   9%  |                                                          |=========                                         |  18%  |                                                          |==============                                    |  27%  |                                                          |==================                                |  36%  |                                                          |=======================                           |  45%  |                                                          |===========================                       |  55%  |                                                          |================================                  |  64%  |                                                          |====================================              |  73%  |                                                          |=========================================         |  82%  |                                                          |=============================================     |  91%  |                                                          |==================================================| 100%
+L0-penalized tram:
+
+  Shift-Scale Normal Regression Model 
+
+Call:
+modFUN(formula = formula, data = data, fixed = fix0, theta = theta_init[!names(theta_init) %in% 
+    I0])
+
+Coefficients:
+     x.1      x.2      x.3      x.4      x.5      x.6      x.7      x.8 
+    1.15     1.05     1.14     0.00     0.00     0.00     0.00     0.00 
+     x.9     x.10 scl_x.10 
+    0.00     0.00     0.00 
+
+Log-Likelihood:
+ -138 (df = 5)
+
+
+SIC:
+ 149 
+
+Active set: x.1 x.2 x.3 
+
+> 
+> # Mandatory noise covariate
+> tramvs(y ~ . | x.10, data = dat, modFUN = Lm,
++               mandatory = y ~ x.10)
+  |                                                          |                                                  |   0%  |                                                          |=====                                             |   9%  |                                                          |=========                                         |  18%  |                                                          |==============                                    |  27%  |                                                          |==================                                |  36%  |                                                          |=======================                           |  45%  |                                                          |===========================                       |  55%  |                                                          |================================                  |  64%  |                                                          |====================================              |  73%  |                                                          |=========================================         |  82%  |                                                          |=============================================     |  91%  |                                                          |==================================================| 100%
+L0-penalized tram:
+
+  Shift-Scale Normal Regression Model 
+
+Call:
+modFUN(formula = formula, data = data, fixed = fix0, theta = theta_init[!names(theta_init) %in% 
+    I0])
+
+Coefficients:
+     x.1      x.2      x.3      x.4      x.5      x.6      x.7      x.8 
+    1.16     1.04     1.15     0.00     0.00     0.00     0.00     0.00 
+     x.9     x.10 scl_x.10 
+    0.00     0.11     0.00 
+
+Log-Likelihood:
+ -138 (df = 6)
+
+
+SIC:
+ 152 
+
+Active set: x.1 x.10 x.2 x.3 
+
+> 
+> # Mandatory noise covariate in shift and scale
+> tramvs(y ~ . | x.10, data = dat, modFUN = Lm,
++               mandatory = y ~ x.10 | x.10)
+  |                                                          |                                                  |   0%  |                                                          |=====                                             |   9%  |                                                          |=========                                         |  18%  |                                                          |==============                                    |  27%  |                                                          |==================                                |  36%  |                                                          |=======================                           |  45%  |                                                          |===========================                       |  55%  |                                                          |================================                  |  64%  |                                                          |====================================              |  73%  |                                                          |=========================================         |  82%  |                                                          |=============================================     |  91%  |                                                          |==================================================| 100%
+L0-penalized tram:
+
+  Shift-Scale Normal Regression Model 
+
+Call:
+modFUN(formula = formula, data = data, fixed = fix0, theta = theta_init[!names(theta_init) %in% 
+    I0])
+
+Coefficients:
+     x.1      x.2      x.3      x.4      x.5      x.6      x.7      x.8 
+ 1.16027  1.04014  1.15379  0.00000  0.00000  0.00000  0.00000  0.00000 
+     x.9     x.10 scl_x.10 
+ 0.00000  0.11233 -0.00763 
+
+Log-Likelihood:
+ -138 (df = 7)
+
+
+SIC:
+ 156 
+
+Active set: scl_x.10 x.1 x.10 x.2 x.3 
+
+> 
+> # Mandatory noise covariate in scale only
+> tramvs(y ~ . | x.10, data = dat, modFUN = Lm,
++               mandatory = y ~ 1 | x.10)
+  |                                                          |                                                  |   0%  |                                                          |=====                                             |   9%  |                                                          |=========                                         |  18%  |                                                          |==============                                    |  27%  |                                                          |==================                                |  36%  |                                                          |=======================                           |  45%  |                                                          |===========================                       |  55%  |                                                          |================================                  |  64%  |                                                          |====================================              |  73%  |                                                          |=========================================         |  82%  |                                                          |=============================================     |  91%  |                                                          |==================================================| 100%
+L0-penalized tram:
+
+  Shift-Scale Normal Regression Model 
+
+Call:
+modFUN(formula = formula, data = data, fixed = fix0, theta = theta_init[!names(theta_init) %in% 
+    I0])
+
+Coefficients:
+     x.1      x.2      x.3      x.4      x.5      x.6      x.7      x.8 
+  1.1534   1.0492   1.1436   0.0000   0.0000   0.0000   0.0000   0.0000 
+     x.9     x.10 scl_x.10 
+  0.0000   0.0000   0.0126 
+
+Log-Likelihood:
+ -138 (df = 6)
+
+
+SIC:
+ 153 
+
+Active set: scl_x.10 x.1 x.2 x.3 
+
+> 
+> proc.time()
+   user  system elapsed 
+ 30.724   0.059  30.969 
