@@ -103,4 +103,4 @@ Bs1(SG5) Bs2(SG5) Bs3(SG5) Bs4(SG5) Bs5(SG5) Bs6(SG5) Bs7(SG5)      AOT
 > 
 > proc.time()
    user  system elapsed 
-  9.775   0.079   9.882 
+  9.409   0.092   9.496 
