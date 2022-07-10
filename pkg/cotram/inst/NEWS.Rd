@@ -2,7 +2,13 @@
 \name{NEWS}
 \title{NEWS file for the cotram package}
 
-\section{Changes in Version 0.4-0 (2022-07-05)}{
+\section{Changes in Version 0.4-1 (2022-07-10)}{
+  \itemize{
+    \item{Fix additional check problems.}
+  }
+}
+
+\section{Changes in Version 0.4-0 (2022-07-06)}{
   \itemize{
     \item{Use \code{Surv} to define the count likelihood.}
     \item{Allow more flexible choices for the support via \code{prob}.}
