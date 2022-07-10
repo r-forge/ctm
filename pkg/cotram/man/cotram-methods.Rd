@@ -62,6 +62,8 @@
   \code{\link[tram]{tram-methods}}, \code{\link[mlt]{mlt-methods}}, \code{\link[mlt]{plot.ctm}}
 }
 \examples{
+
+	op <- options(digits = 4)
 	
   data("birds", package = "TH.data")
   
@@ -87,5 +89,6 @@
   ### plot the predicted distribution for these observations
   plot(m_birds, newdata = nd, type = "distribution",
        col = c("skyblue", "grey", "seagreen"))
-    
+       
+  options(op)
 }
