@@ -81,6 +81,8 @@ Loading required package: variables
 > 
 > ### ** Examples
 > 
+> 
+> 	op <- options(digits = 4)
 > 	
 >   data("birds", package = "TH.data")
 >   
@@ -88,7 +90,7 @@ Loading required package: variables
 >   m_birds <- cotram(SG5 ~ AOT + AFS + GST + DBH + DWC + LOG, data = birds,
 +                     method = "cloglog")
 >   logLik(m_birds)
-'log Lik.' -504.3726 (df=13)
+'log Lik.' -504.4 (df=13)
 > 
 >   ### classical likelihood inference
 > ## IGNORE_RDIFF_BEGIN
@@ -101,26 +103,26 @@ cotram(formula = SG5 ~ AOT + AFS + GST + DBH + DWC + LOG, data = birds,
     method = "cloglog")
 
 Coefficients:
-      Estimate Std. Error z value Pr(>|z|)    
-AOT -5.467e-03  2.263e-03  -2.415 0.015717 *  
-AFS  9.397e-03  2.705e-03   3.473 0.000514 ***
-GST -3.004e-04  5.043e-04  -0.596 0.551386    
-DBH -4.065e-05  5.442e-03  -0.007 0.994039    
-DWC  7.223e-03  5.778e-03   1.250 0.211289    
-LOG -4.278e-03  2.402e-03  -1.781 0.074875 .  
+     Estimate Std. Error z value Pr(>|z|)    
+AOT -5.47e-03   2.26e-03   -2.42  0.01572 *  
+AFS  9.40e-03   2.71e-03    3.47  0.00051 ***
+GST -3.00e-04   5.04e-04   -0.60  0.55139    
+DBH -4.07e-05   5.44e-03   -0.01  0.99404    
+DWC  7.22e-03   5.78e-03    1.25  0.21129    
+LOG -4.28e-03   2.40e-03   -1.78  0.07488 .  
 ---
 Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
 Log-Likelihood:
- -504.3726 (df = 13)
-Likelihood-ratio Test: Chisq = 20.08436 on 6 degrees of freedom; p = 0.002675
+ -504.4 (df = 13)
+Likelihood-ratio Test: Chisq = 20.08 on 6 degrees of freedom; p = 0.00268
 
 > ## IGNORE_RDIFF_END
 > 
 >   ### coefficients of the linear predictor (discrete hazard ratios)
 >   exp(-coef(m_birds))
-      AOT       AFS       GST       DBH       DWC       LOG 
-1.0054823 0.9906471 1.0003004 1.0000407 0.9928034 1.0042873 
+   AOT    AFS    GST    DBH    DWC    LOG 
+1.0055 0.9906 1.0003 1.0000 0.9928 1.0043 
 > 
 >   ### compute predicted median along with 10% and 90% quantile for the first
 >   ### three observations
@@ -128,15 +130,16 @@ Likelihood-ratio Test: Chisq = 20.08436 on 6 degrees of freedom; p = 0.002675
 >   predict(m_birds, newdata = nd, type = "quantile", prob = c(.1, .5, .9), 
 +           smooth = TRUE)
        
-prob          [,1]       [,2]       [,3]
-    0.1 0.08426339 0.07932403 0.08338537
-    0.5 1.55649061 1.47866899 1.54279496
-    0.9 4.07859135 3.96286368 4.05800712
+prob       [,1]    [,2]    [,3]
+    0.1 0.08426 0.07932 0.08339
+    0.5 1.55649 1.47867 1.54279
+    0.9 4.07859 3.96286 4.05801
 > 
 >   ### plot the predicted distribution for these observations
 >   plot(m_birds, newdata = nd, type = "distribution",
 +        col = c("skyblue", "grey", "seagreen"))
->     
+>        
+>   options(op)
 > 
 > 
 > 
@@ -284,7 +287,7 @@ Log-Likelihood:
 > cleanEx()
 > options(digits = 7L)
 > base::cat("Time elapsed: ", proc.time() - base::get("ptime", pos = 'CheckExEnv'),"\n")
-Time elapsed:  6.946 0.084 7.03 0 0 
+Time elapsed:  7.031 0.076 7.108 0 0 
 > grDevices::dev.off()
 null device 
           1 
