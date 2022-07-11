@@ -81,9 +81,21 @@ An object of class \code{mcotram} and \code{mmlt} with \code{coef} and
            -0.345, 0.28, -0.944, 0.787, 0.028, 0.322, -0.559, 0.263, 0.876,
            0.006, -0.207, -0.481, -0.083, 0.161)
 
+### fitting two models takes > 10 sec on Dortmund's Windows machine
+### don't test the simple model
+\donttest{
   m_all_1 <- mcotram(m_PF, m_HL, m_CC, m_CT, m_PL, m_PR, 
                      theta = cf1, ## <- not really necessary, please CRAN timings
                      formula = ~ 1, data = spiders)
+  logLik(m_all_1)
+
+  ## lambda defining the Cholesky factor of the precision matrix
+  coef(m_all_1, newdata = spiders[1,], type = "Lambda")
+
+  ## linear correlation, ie Pearson correlation of the models after
+  ## transformation to bivariate normality
+  (r1 <- coef(m_all_1, newdata = spiders[1,], type = "Corr"))
+}
 
   ## with covariate-dependent Cholesky factor of the precision matrix
   cf2 <- c(1.649, 2.078, 2.078, 2.078, 2.391, 2.476, 2.694, 0.001, 0, 3.399,
@@ -102,16 +114,13 @@ An object of class \code{mcotram} and \code{mmlt} with \code{coef} and
                      theta = cf2, ## <- please CRAN timings
                      formula = ~ Elevation + Canopy_openess, data = spiders)
 
-  logLik(m_all_1)
   logLik(m_all_2)
 
   ## lambda defining the Cholesky factor of the precision matrix
-  coef(m_all_1, newdata = spiders[1,], type = "Lambda")
   coef(m_all_2, newdata = spiders[1,], type = "Lambda")
 
   ## linear correlation, ie Pearson correlation of the models after
   ## transformation to bivariate normality
-  (r1 <- coef(m_all_1, newdata = spiders[1,], type = "Corr"))
   (r2 <- coef(m_all_2, newdata = spiders[1,], type = "Corr"))
 
   options(op)
