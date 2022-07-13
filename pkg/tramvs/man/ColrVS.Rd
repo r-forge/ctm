@@ -37,6 +37,9 @@ of an unconditional \code{modFUN(update(formula, . ~ 1))}.}
 
 \item{...}{Additional arguments supplied to \code{Colr()}}
 }
+\value{
+See \code{\link[tramvs]{tramvs}}
+}
 \description{
 Optimal subset selection in a Colr-type transformation model
 }

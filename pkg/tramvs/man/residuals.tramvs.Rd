@@ -11,6 +11,10 @@
 
 \item{...}{additional arguments to \code{residuals()}}
 }
+\value{
+Numeric vector containing residuals of best model,
+     see \code{\link[tram]{residuals.tram}}
+}
 \description{
 Residuals "tramvs"
 }

@@ -9,7 +9,7 @@
 \arguments{
 \item{object}{object of class \code{"tramvs"}}
 
-\item{...}{additional arguments to \code{predict()}}
+\item{...}{additional arguments to \code{predict.tram()}}
 }
 \description{
 Predict "tramvs"

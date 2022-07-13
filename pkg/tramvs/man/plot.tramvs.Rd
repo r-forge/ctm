@@ -14,6 +14,9 @@ or the information criterion against the support size (\code{"tune"}, default)}
 
 \item{...}{additional arguments to \code{plot()}}
 }
+\value{
+Returns \code{invisible(NULL)}
+}
 \description{
 Plot "tramvs" object
 }

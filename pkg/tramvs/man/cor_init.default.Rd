@@ -7,9 +7,12 @@
 \method{cor_init}{default}(m0, mb)
 }
 \arguments{
-\item{m0}{modFUN(formula, data)}
+\item{m0}{\code{modFUN(formula, data)}}
 
-\item{mb}{modFUN(mandatory, data)}
+\item{mb}{\code{modFUN(mandatory, data)}}
+}
+\value{
+Vector of correlation for initializing the active set
 }
 \description{
 Default method for computing correlation

@@ -14,6 +14,9 @@
 
 \item{...}{for methods compatibility only}
 }
+\value{
+Numeric vector (\code{best_only = TRUE}) or data.frame with SIC values
+}
 \description{
 SIC "tramvs"
 }

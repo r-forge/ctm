@@ -6,9 +6,9 @@ Authors@R: c(person("Lucas", "Kook", email = "lucasheinrich.kook@uzh.ch",
     role = c("aut", "cre")), person("Sandra", "Siegfried", role = "ctb"),
     person("Torsten", "Hothorn", role = "ctb"))
 Description: Greedy optimal subset selection for transformation models 
-    (Hothorn et al., 2018, <DOI:10.1111/sjos.12291>) based on the abess
-    algorithm (Zhu et al., 2020, <DOI:10.1073/pnas.2014241117>). Applicable to
-    models from packages tram and cotram.
+    (Hothorn et al., 2018, <doi:10.1111/sjos.12291>) based on the abess
+    algorithm (Zhu et al., 2020, <doi:10.1073/pnas.2014241117>). Applicable to
+    models from packages 'tram' and 'cotram'.
 Depends: R (>= 4.0), tram (>= 0.6-1)
 Imports: stats, variables, methods
 Suggests: abess, tramnet, colorspace, knitr, cotram, mlt, TH.data, survival,

@@ -7,9 +7,13 @@
 \method{cor_init}{stram}(m0, mb)
 }
 \arguments{
-\item{m0}{modFUN(formula, data)}
+\item{m0}{\code{modFUN(formula, data)}}
 
-\item{mb}{modFUN(mandatory, data)}
+\item{mb}{\code{modFUN(mandatory, data)}}
+}
+\value{
+Vector of correlations for initializing the active set, includes both
+    shift and scale residuals
 }
 \description{
 Shit-scale tram method for computing correlation

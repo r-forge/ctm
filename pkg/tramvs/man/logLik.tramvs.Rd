@@ -11,6 +11,10 @@
 
 \item{...}{additional arguments to \code{logLik()}}
 }
+\value{
+Numeric vector containing log-likelihood of best model,
+     see \code{\link[tram]{logLik.tram}}
+}
 \description{
 logLik "tramvs"
 }

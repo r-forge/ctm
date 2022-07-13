@@ -11,6 +11,9 @@
 
 \item{...}{ignored}
 }
+\value{
+Character vector containing active set of best fit
+}
 \description{
 Support "tramvs"
 }

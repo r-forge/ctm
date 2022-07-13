@@ -51,7 +51,9 @@ of an unconditional \code{modFUN(update(formula, . ~ 1))}.}
 \item{...}{additional arguments supplied to \code{modFUN}.}
 }
 \value{
-object of class \code{"tramvs"}.
+object of class \code{"tramvs"}, containing the regularization path
+    (information criterion \code{SIC} and coefficients \code{coefs}), the
+     best fit (\code{best_fit}) and all other models (\code{all_fits})
 }
 \description{
 Select optimal subset based on high dimensional BIC

@@ -104,8 +104,8 @@ abess_tram <- function(formula, data, modFUN, supp, mandatory = NULL, k_max = su
 }
 
 #' Compute correlation for initializing the active set
-#' @param m0 modFUN(formula, data)
-#' @param mb modFUN(mandatory, data)
+#' @param m0 \code{modFUN(formula, data)}
+#' @param mb \code{modFUN(mandatory, data)}
 #' @export
 cor_init <- function(m0, mb) {
   UseMethod("cor_init")
@@ -113,6 +113,7 @@ cor_init <- function(m0, mb) {
 
 #' Default method for computing correlation
 #' @inheritParams cor_init
+#' @return Vector of correlation for initializing the active set
 #' @exportS3Method cor_init default
 cor_init.default <- function(m0, mb) {
   res <- residuals(mb)
@@ -124,6 +125,8 @@ cor_init.default <- function(m0, mb) {
 
 #' Shit-scale tram method for computing correlation
 #' @inheritParams cor_init
+#' @return Vector of correlations for initializing the active set, includes both
+#'     shift and scale residuals
 #' @exportS3Method cor_init stram
 cor_init.stram <- function(m0, mb) {
   mshift <- model.matrix(m0, what = "shifting")
@@ -143,7 +146,9 @@ cor_init.stram <- function(m0, mb) {
 #' @details L0-penalized (i.e., best subset selection) transformation models
 #'     using the abess algorithm.
 #'
-#' @return object of class \code{"tramvs"}.
+#' @return object of class \code{"tramvs"}, containing the regularization path
+#'     (information criterion \code{SIC} and coefficients \code{coefs}), the
+#'      best fit (\code{best_fit}) and all other models (\code{all_fits})
 #'
 #' @examples
 #' set.seed(24101968)

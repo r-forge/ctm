@@ -11,6 +11,10 @@
 
 \item{...}{additional arguments to \code{coef()}}
 }
+\value{
+Named numeric vector containing coefficient estimates
+     see \code{\link[tram]{coef.tram}}
+}
 \description{
 Coef "abess_tram"
 }

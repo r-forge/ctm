@@ -7,9 +7,9 @@
 cor_init(m0, mb)
 }
 \arguments{
-\item{m0}{modFUN(formula, data)}
+\item{m0}{\code{modFUN(formula, data)}}
 
-\item{mb}{modFUN(mandatory, data)}
+\item{mb}{\code{modFUN(mandatory, data)}}
 }
 \description{
 Compute correlation for initializing the active set
