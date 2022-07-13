@@ -11,6 +11,9 @@
 
 \item{...}{ignored}
 }
+\value{
+\code{"tramvs"} object is returned invisibly
+}
 \description{
 Summary "tramvs"
 }

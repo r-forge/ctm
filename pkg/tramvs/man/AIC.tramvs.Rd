@@ -11,6 +11,9 @@
 
 \item{...}{additional arguments to \code{AIC()}}
 }
+\value{
+Numeric vector containing AIC of best model
+}
 \description{
 AIC "tramvs"
 }

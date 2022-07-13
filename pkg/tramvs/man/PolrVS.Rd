@@ -37,6 +37,9 @@ of an unconditional \code{modFUN(update(formula, . ~ 1))}.}
 
 \item{...}{Additional arguments supplied to \code{Polr()}}
 }
+\value{
+See \code{\link[tramvs]{tramvs}}
+}
 \description{
 Optimal subset selection in a Polr-type transformation model
 }

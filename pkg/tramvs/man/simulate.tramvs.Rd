@@ -15,6 +15,9 @@
 
 \item{...}{additional arguments to \code{simulate()}}
 }
+\value{
+See \code{\link[mlt]{simulate.mlt}}
+}
 \description{
 Simulate "tramvs"
 }

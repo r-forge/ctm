@@ -14,6 +14,10 @@
 
 \item{...}{additional arguments to \code{coef()}}
 }
+\value{
+Vector (\code{best_only = TRUE}) or matrix (\code{best_only = FALSE})
+    of coefficients
+}
 \description{
 Coef "tramvs"
 }
