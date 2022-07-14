@@ -62,9 +62,8 @@
   \code{\link[tram]{tram-methods}}, \code{\link[mlt]{mlt-methods}}, \code{\link[mlt]{plot.ctm}}
 }
 \examples{
+  op <- options(digits = 4)
 
-	op <- options(digits = 4)
-	
   data("birds", package = "TH.data")
   
   ### fit count transformation model with cloglog link
@@ -83,8 +82,8 @@
   ### compute predicted median along with 10% and 90% quantile for the first
   ### three observations
   nd <- birds[1:3,]
-  predict(m_birds, newdata = nd, type = "quantile", prob = c(.1, .5, .9), 
-          smooth = TRUE)
+  round(predict(m_birds, newdata = nd, type = "quantile", prob = c(.1, .5, .9), 
+                smooth = TRUE), 2)
 
   ### plot the predicted distribution for these observations
   plot(m_birds, newdata = nd, type = "distribution",
