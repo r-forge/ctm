@@ -83,7 +83,7 @@
   ### three observations
   nd <- birds[1:3,]
   round(predict(m_birds, newdata = nd, type = "quantile", prob = c(.1, .5, .9), 
-                smooth = TRUE), 2)
+                smooth = TRUE), 3)
 
   ### plot the predicted distribution for these observations
   plot(m_birds, newdata = nd, type = "distribution",
