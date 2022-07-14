@@ -2,7 +2,7 @@
 \name{NEWS}
 \title{NEWS file for the cotram package}
 
-\section{Changes in Version 0.4-1 (2022-07-10)}{
+\section{Changes in Version 0.4-1 (2022-07-14)}{
   \itemize{
     \item{Fix additional check problems.}
   }
