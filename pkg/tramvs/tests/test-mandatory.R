@@ -1,7 +1,7 @@
 set.seed(24101968)
 
 # Windows diffs...
-options(digits = 3)
+old <- options(digits = 3)
 library(tramvs)
 
 N <- 1e2
@@ -24,3 +24,5 @@ tramvs(y ~ . | x.5, data = dat, modFUN = Lm,
 # Mandatory noise covariate in scale only
 tramvs(y ~ . | x.5, data = dat, modFUN = Lm,
               mandatory = y ~ 1 | x.5)
+
+options(old)

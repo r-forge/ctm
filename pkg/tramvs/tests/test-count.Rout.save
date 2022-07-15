@@ -18,7 +18,7 @@ Type 'q()' to quit R.
 > # Demo cotram
 > 
 > # Windows diffs...
-> options(digits = 3)
+> old <- options(digits = 3)
 > 
 > set.seed(24101968)
 > library(tramvs)
@@ -73,6 +73,8 @@ Bs1(SG5) Bs2(SG5) Bs3(SG5) Bs4(SG5) Bs5(SG5) Bs6(SG5) Bs7(SG5)      AOT
      AFS      GST      DBH      DWC      LOG    noise 
    0.000    0.000    0.000    0.000    0.000   -0.033 
 > 
+> options(old)
+> 
 > proc.time()
    user  system elapsed 
-  8.766   0.079   8.840 
+  9.843   0.039   9.874 

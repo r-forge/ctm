@@ -106,6 +106,8 @@ abess_tram <- function(formula, data, modFUN, supp, mandatory = NULL, k_max = su
 #' Compute correlation for initializing the active set
 #' @param m0 \code{modFUN(formula, data)}
 #' @param mb \code{modFUN(mandatory, data)}
+#' @return Vector of correlations for initializing the active set, depends on
+#'     type of model (see e.g. \code{\link[tramvs]{cor_init.default}})
 #' @export
 cor_init <- function(m0, mb) {
   UseMethod("cor_init")

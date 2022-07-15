@@ -1,7 +1,7 @@
 # Shift-scale transformation models
 
 # Windows diffs...
-options(digits = 3)
+old <- options(digits = 3)
 # TH, SS, LK
 # Jan 2022
 
@@ -29,3 +29,5 @@ m0 <- LmVS(fm, data = d)
 m0
 
 coef(m0)
+
+options(old)

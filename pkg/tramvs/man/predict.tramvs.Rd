@@ -11,6 +11,9 @@
 
 \item{...}{additional arguments to \code{predict.tram()}}
 }
+\value{
+See \code{\link[tram]{predict.tram}}
+}
 \description{
 Predict "tramvs"
 }

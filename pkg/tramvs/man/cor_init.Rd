@@ -11,6 +11,10 @@ cor_init(m0, mb)
 
 \item{mb}{\code{modFUN(mandatory, data)}}
 }
+\value{
+Vector of correlations for initializing the active set, depends on
+    type of model (see e.g. \code{\link[tramvs]{cor_init.default}})
+}
 \description{
 Compute correlation for initializing the active set
 }

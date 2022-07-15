@@ -18,7 +18,7 @@ Type 'q()' to quit R.
 > # Demo ordinal
 > 
 > # Windows diffs...
-> options(digits = 3)
+> old <- options(digits = 3)
 > 
 > set.seed(24101968)
 > library(tramvs)
@@ -56,6 +56,8 @@ noise       .      .    -0.159
 > support(res)
 [1] "tempwarm"   "contactyes"
 > 
+> options(old)
+> 
 > proc.time()
    user  system elapsed 
-  1.570   0.052   1.615 
+  1.766   0.091   1.851 

@@ -1,7 +1,7 @@
 # Demo ordinal
 
 # Windows diffs...
-options(digits = 3)
+old <- options(digits = 3)
 
 set.seed(24101968)
 library(tramvs)
@@ -19,3 +19,5 @@ coef(res, with_baseline = TRUE)
 
 # Active set
 support(res)
+
+options(old)
