@@ -51,6 +51,7 @@ coef.tramvs <- function(object, best_only = FALSE, ...) {
 #' @param object object of class \code{"tramvs"}
 #' @param ... additional arguments to \code{predict.tram()}
 #' @method predict tramvs
+#' @return See \code{\link[tram]{predict.tram}}
 #' @importFrom stats predict
 #' @exportS3Method
 predict.tramvs <- function(object, ...) {
@@ -125,6 +126,7 @@ AIC.tramvs <- function(object, ...) {
 #' SIC generic
 #' @param object Model to compute SIC from
 #' @param ... for methods compatibility only
+#' @return Numeric vector (\code{best_only = TRUE}) or data.frame with SIC values
 #' @export
 SIC <- function(object, ...) {
   UseMethod("SIC", object)

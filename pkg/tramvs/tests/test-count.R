@@ -1,7 +1,7 @@
 # Demo cotram
 
 # Windows diffs...
-options(digits = 3)
+old <- options(digits = 3)
 
 set.seed(24101968)
 library(tramvs)
@@ -21,3 +21,5 @@ support(res)
 coef(res, best_only = TRUE)
 coef(res, best_only = FALSE, with_baseline = TRUE)
 coef(res, best_only = TRUE, with_baseline = TRUE)
+
+options(old)

@@ -18,7 +18,7 @@ Type 'q()' to quit R.
 > # Demo continuous / sparse
 > 
 > # Windows diffs...
-> options(digits = 3)
+> old <- options(digits = 3)
 > 
 > set.seed(24101968)
 > library(tramvs)
@@ -179,6 +179,8 @@ x.5 .     .     .    .      0.0246
 > support(res)
 [1] "x.1" "x.2" "x.3"
 > 
+> options(old)
+> 
 > proc.time()
    user  system elapsed 
-  2.045   0.041   2.080 
+  2.223   0.080   2.295 

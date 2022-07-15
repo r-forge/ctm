@@ -18,7 +18,7 @@ Type 'q()' to quit R.
 > # Demo survival
 > 
 > # Windows diffs...
-> options(digits = 3)
+> old <- options(digits = 3)
 > 
 > set.seed(24101968)
 > library(tramvs)
@@ -88,6 +88,8 @@ estrec        0.000115  0.000198
 > support(res)
 [1] "tgrade.L" "pnodes"   "progrec" 
 > 
+> options(old)
+> 
 > proc.time()
    user  system elapsed 
-177.248   0.151  41.943 
+176.364   0.091  43.960 
