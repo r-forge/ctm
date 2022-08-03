@@ -67,4 +67,4 @@ estrec       -0.000212 -0.000248
 > 
 > proc.time()
    user  system elapsed 
- 10.356   0.063  10.413 
+  9.008   0.067   9.069 
