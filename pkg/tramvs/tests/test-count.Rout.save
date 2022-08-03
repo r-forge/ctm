@@ -1,80 +1,0 @@
-
-R version 4.1.2 (2021-11-01) -- "Bird Hippie"
-Copyright (C) 2021 The R Foundation for Statistical Computing
-Platform: x86_64-pc-linux-gnu (64-bit)
-
-R is free software and comes with ABSOLUTELY NO WARRANTY.
-You are welcome to redistribute it under certain conditions.
-Type 'license()' or 'licence()' for distribution details.
-
-R is a collaborative project with many contributors.
-Type 'contributors()' for more information and
-'citation()' on how to cite R or R packages in publications.
-
-Type 'demo()' for some demos, 'help()' for on-line help, or
-'help.start()' for an HTML browser interface to help.
-Type 'q()' to quit R.
-
-> # Demo cotram
-> 
-> # Windows diffs...
-> old <- options(digits = 3)
-> 
-> set.seed(24101968)
-> library(tramvs)
-Loading required package: tram
-Loading required package: mlt
-Loading required package: basefun
-Loading required package: variables
-> library(cotram)
-
-Attaching package: 'cotram'
-
-The following object is masked from 'package:mlt':
-
-    confband
-
-> 
-> data("birds", package = "TH.data")
-> birds$noise <- rnorm(nrow(birds), sd = 10)
-> 
-> # Estimate support sice via HBIC
-> res <- tramvs(SG5 ~ AOT + AFS + GST + DBH + DWC + LOG + noise, data = birds,
-+               modFUN = cotram)
-  |                                                          |                                                  |   0%  |                                                          |=======                                           |  14%  |                                                          |==============                                    |  29%  |                                                          |=====================                             |  43%  |                                                          |=============================                     |  57%  |                                                          |====================================              |  71%  |                                                          |===========================================       |  86%  |                                                          |==================================================| 100%> plot(res, type = "b")
-> plot(res, which = "path")
-> 
-> # Active set
-> support(res)
-[1] "noise"
-> coef(res, best_only = TRUE)
-   AOT    AFS    GST    DBH    DWC    LOG  noise 
- 0.000  0.000  0.000  0.000  0.000  0.000 -0.033 
-> coef(res, best_only = FALSE, with_baseline = TRUE)
-14 x 7 sparse Matrix of class "dgCMatrix"
-              1       2        3        4        5        6        7
-Bs1(SG5) -3.073 -5.0057 -3.73097 -6.19158 -6.00516 -5.90425 -5.67214
-Bs2(SG5) -3.015 -2.3377 -3.56174 -1.02671 -0.64907 -0.52909 -0.28910
-Bs3(SG5) -0.884 -1.2101 -1.44900 -0.92802 -0.63622 -0.51455 -0.26835
-Bs4(SG5) -0.884 -1.2100 -1.44899 -0.82366 -0.53112 -0.40799 -0.16051
-Bs5(SG5) -0.431 -0.5420 -0.91488  0.03429  0.38842  0.54889  0.79241
-Bs6(SG5)  0.423  0.2594 -0.05977  0.77354  1.11523  1.27043  1.52185
-Bs7(SG5)  2.563  2.4096  2.09031  2.94707  3.28953  3.45905  3.71217
-AOT       .      .       .        .        .       -0.00885 -0.01003
-AFS       .      .       .        0.00677  0.00874  0.01747  0.01677
-GST       .      .      -0.00129 -0.00170 -0.00183 -0.00135 -0.00186
-DBH       .      .       .        .        .        .        0.01302
-DWC       .      .       .        .        0.01583  0.01906  0.02034
-LOG       .     -0.0081 -0.00656 -0.00857 -0.00851 -0.00394 -0.00364
-noise    -0.033 -0.0327 -0.03183 -0.02864 -0.02793 -0.02881 -0.03035
-> coef(res, best_only = TRUE, with_baseline = TRUE)
-Bs1(SG5) Bs2(SG5) Bs3(SG5) Bs4(SG5) Bs5(SG5) Bs6(SG5) Bs7(SG5)      AOT 
-  -3.073   -3.015   -0.884   -0.884   -0.431    0.423    2.563    0.000 
-     AFS      GST      DBH      DWC      LOG    noise 
-   0.000    0.000    0.000    0.000    0.000   -0.033 
-> 
-> options(old)
-> 
-> proc.time()
-   user  system elapsed 
-  9.843   0.039   9.874 
