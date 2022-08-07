@@ -35,7 +35,7 @@ of an unconditional \code{modFUN(update(formula, . ~ 1))}.}
 
 \item{m_max}{maximum number of iterating the splicing algorithm.}
 
-\item{...}{Additional arguments supplied to \code{Lm()}}
+\item{...}{Additional arguments supplied to \code{\link[tram]{Lm}}}
 }
 \value{
 See \code{\link[tramvs]{tramvs}}
