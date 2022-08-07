@@ -249,8 +249,8 @@
     # Overlap of conditional densities at speed s' and s
     OVL(m, newdata = nd, reference = nd)
 
-    ### ROC analysis
-    if (require("mlbench")) {
+    ### ROC analysis (takes too long for CRAN Windows)
+    if (require("mlbench") && .Platform$OS.type != "windows") {
 
         layout(matrix(1:4, nrow = 2))
         data("PimaIndiansDiabetes2", package = "mlbench")

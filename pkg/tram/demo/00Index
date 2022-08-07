@@ -1,3 +1,4 @@
 SCI_ePolr	Proportional Odds Model for Spinal Cord Injury Analysis
 undernutrition Undernutrition Data Analysis with mmlt
 mtram   Marginally Interpretable Linear Transformation Models
+stram	Location-Scale Transformation Models
