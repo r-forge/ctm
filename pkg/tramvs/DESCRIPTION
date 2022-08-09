@@ -10,9 +10,8 @@ Description: Greedy optimal subset selection for transformation models
     algorithm (Zhu et al., 2020, <doi:10.1073/pnas.2014241117> ). Applicable to
     models from packages 'tram' and 'cotram'.
 Depends: R (>= 4.0), tram (>= 0.6-1)
-Imports: stats, variables, methods
-Suggests: abess, tramnet, colorspace, knitr, cotram, mlt, TH.data, survival,
-    ordinal
+Imports: stats, variables, methods, cotram
+Suggests: abess, tramnet, colorspace, knitr, mlt, TH.data, survival, ordinal
 License: GPL-3
 Encoding: UTF-8
 RoxygenNote: 7.1.2

@@ -15,8 +15,9 @@ res_abess <- abess(model.matrix(~ . - time - cens, data = GBSG2)[, -1],
                    y = with(GBSG2, Surv(time, cens)),
                    data = GBSG2, family = "cox")
 
-coef(res)
-coef(res_abess)[,-1]
+# M1 diffs
+round(coef(res), 2)
+round(coef(res_abess)[,-1], 2)
 
 # Active set
 support(res)

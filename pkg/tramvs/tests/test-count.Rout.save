@@ -53,4 +53,4 @@ The following object is masked from 'package:mlt':
 > 
 > proc.time()
    user  system elapsed 
-  6.133   0.059   6.193 
+  6.124   0.091   6.319 
