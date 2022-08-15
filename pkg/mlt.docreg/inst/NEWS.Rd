@@ -3,11 +3,19 @@
 \title{NEWS file for the mlt.docreg package}
 
 
+\section{Changes in Version 1.1-6 (2022-08-15)}{
+  \itemize{
+    \item{Package \pkg{np} is scheduled for removal from CRAN.}
+  }
+}
+
+
 \section{Changes in Version 1.1-5 (2022-06-21)}{
   \itemize{
     \item{Packages \pkg{MIICD} and \pkg{coxinterval} were removed from CRAN.}
   }
 }
+
 
 \section{Changes in Version 1.1-4 (2022-05-18)}{
   \itemize{
