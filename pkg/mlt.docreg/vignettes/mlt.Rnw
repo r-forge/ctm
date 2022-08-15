@@ -1,7 +1,7 @@
 
 %\VignetteEngine{knitr::knitr}
 %\VignetteIndexEntry{mlt}
-%\VignetteDepends{variables, basefun, mlt, survival, eha, prodlim, truncreg, lattice, gridExtra, MASS, nnet, HSAUR3, sandwich, flexsurv, grid, latticeExtra, colorspace, multcomp, mgcv, ICsurv, polspline, logspline, bshazard, gss, TransModel, dynsurv, timereg, survivalMPL, np, gamlss, Matrix, muhaz, ordinal, VGAM, AER, coin, gamlss.data, mlbench}
+%\VignetteDepends{variables, basefun, mlt, survival, eha, prodlim, truncreg, lattice, gridExtra, MASS, nnet, HSAUR3, sandwich, flexsurv, grid, latticeExtra, colorspace, multcomp, mgcv, ICsurv, polspline, logspline, bshazard, gss, TransModel, dynsurv, timereg, survivalMPL, gamlss, Matrix, muhaz, ordinal, VGAM, AER, coin, gamlss.data, mlbench}
 
 \documentclass[article,nojss,shortnames]{jss}
 
@@ -3004,7 +3004,7 @@ pkg <- function(pkg) {
 pkgs <- c("mlt", "variables", "basefun", "survival", "eha", "prodlim", "truncreg", "MASS", "nnet", "HSAUR3", "sandwich", 
   "flexsurv", "multcomp", "mgcv", "ICsurv",
   "polspline", "logspline", "bshazard", "gss", "TransModel",
-  "dynsurv", "timereg", "survivalMPL", "np", "gamlss", "Matrix", "muhaz", "ordinal", "VGAM", "BB", "alabama", "tram")
+  "dynsurv", "timereg", "survivalMPL", "gamlss", "Matrix", "muhaz", "ordinal", "VGAM", "BB", "alabama", "tram")
 out <- sapply(pkgs, pkg)
 
 x <- readLines("packages.bib")

@@ -7,7 +7,6 @@ importFrom("eha", "phreg")
 importFrom("flexsurv", "flexsurvreg")
 import("lattice")
 import("multcomp")
-import("np")
 import("survival")
 import("truncreg")
 
