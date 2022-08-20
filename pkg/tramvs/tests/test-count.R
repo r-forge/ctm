@@ -5,7 +5,6 @@ old <- options(digits = 3)
 
 set.seed(24101968)
 library(tramvs)
-library(cotram)
 
 N <- 1e2
 P <- 5
@@ -15,7 +14,7 @@ X <- matrix(abs(rnorm(N * P)), nrow = N, ncol = P)
 Y <- as.integer(1 + X %*% beta + abs(rnorm(N)))
 
 dat <- data.frame(y = Y, x = X)
-res <- tramvs(y ~ ., data = dat, modFUN = cotram)
+res <- cotramVS(y ~ ., data = dat)
 
 # Active set
 support(res)
