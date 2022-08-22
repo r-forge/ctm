@@ -5,7 +5,7 @@
 library("tramnet")
 library("survival")
 ## IGNORE_RDIFF_END
-options(digits = 3)
+old <- options(digits = 3)
 
 ## Data
 data("GBSG2", package = "TH.data")
@@ -37,3 +37,4 @@ max(abs(coef(yCOLRb, with_baseline = FALSE) -
 logLik(yCOLRb)
 logLik(modCOLR)
 
+options(old)

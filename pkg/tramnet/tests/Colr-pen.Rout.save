@@ -1,5 +1,5 @@
 
-R version 4.0.4 (2021-02-15) -- "Lost Library Book"
+R version 4.1.2 (2021-11-01) -- "Bird Hippie"
 Copyright (C) 2021 The R Foundation for Statistical Computing
 Platform: x86_64-pc-linux-gnu (64-bit)
 
@@ -41,12 +41,10 @@ Future development will only happen in 'mlr3'
 uncaught bugs meanwhile in {mlr} - please consider switching.
 Loading required package: smoof
 Loading required package: checkmate
-Warning message:
-no DISPLAY variable so Tk is not available 
 > library("survival")
 > library("sandwich")
 > ## IGNORE_RDIFF_END
-> options(digits = 3)
+> old <- options(digits = 3)
 > 
 > ## Exact and Right censored
 > data("GBSG2", package = "TH.data")
@@ -59,7 +57,7 @@ no DISPLAY variable so Tk is not available
 > yCOLRb <- Colr(surv ~ horTh, data = GBSG2, log_first = TRUE, order = 10)
 > max(abs(coef(yCOLRb, with_baseline = FALSE) -
 +         coef(modCOLR, with_baseline = FALSE)))
-[1] 1.41e-05
+[1] 1.51e-05
 > logLik(yCOLRb)
 'log Lik.' -2606 (df=12)
 > logLik(modCOLR)
@@ -72,7 +70,7 @@ no DISPLAY variable so Tk is not available
 > ## methods
 > coef(modCOLR, tol = 0, with_baseline = TRUE)
  Bs1(surv)  Bs2(surv)  Bs3(surv)  Bs4(surv)  Bs5(surv)  Bs6(surv)  Bs7(surv) 
-   -2.1005    -1.6468    -1.4018    -0.6926    -0.6926    -0.6926    -0.2410 
+   -2.1005    -1.6468    -1.4018    -0.6926    -0.6926    -0.6926    -0.2411 
  Bs8(surv)  Bs9(surv) Bs10(surv) Bs11(surv)      horTh 
    -0.0263    -0.0263     0.2935     0.7648    -0.4796 
 > logLik(modCOLR)
@@ -95,8 +93,8 @@ Response []
   Bs1(surv) Bs2(surv) Bs3(surv) Bs4(surv) Bs5(surv) Bs6(surv) Bs7(surv)
 1  3.67e-07  1.63e-05  3.21e-04  0.003652   0.02631   0.12319   0.36554
 2  5.94e-09  4.40e-07  1.44e-05  0.000274   0.00333   0.02652   0.13722
-3  9.73e-02  3.07e-01  3.16e-01 -0.045127  -0.41838  -0.46197  -0.27391
-4  4.10e-07  1.79e-05  3.47e-04  0.003870   0.02734   0.12516   0.36087
+3  9.73e-02  3.07e-01  3.16e-01 -0.045128  -0.41838  -0.46197  -0.27391
+4  4.10e-07  1.79e-05  3.47e-04  0.003870   0.02734   0.12515   0.36087
 5  6.20e-02  2.59e-01  4.07e-01  0.205692  -0.22943  -0.47058  -0.38061
 6  9.39e-01 -6.38e-01 -7.11e-01 -0.250473  -0.04836  -0.00587  -0.00047
   Bs8(surv) Bs9(surv) Bs10(surv) Bs11(surv)   horTh
@@ -184,6 +182,8 @@ lambda  alpha
 +   logLik(modCOLR)
 + }
 > 
+> options(old)
+> 
 > proc.time()
    user  system elapsed 
-   9.87    1.18   10.66 
+ 13.287   1.091  14.248 

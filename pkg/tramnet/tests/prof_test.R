@@ -5,7 +5,7 @@ library("tramnet")
 library("penalized")
 library("survival")
 ## IGNORE_RDIFF_END
-options(digits = 3)
+old <- options(digits = 3)
 
 ## --- Comparison with penalized
 data("nki70", package = "penalized")
@@ -18,3 +18,5 @@ plot_path(pfl)
 fit3 <- tramnet(y, x, lambda = 1, alpha = 1)
 (pfa <- prof_alpha(fit3))
 plot_path(pfa)
+
+options(old)
