@@ -4,7 +4,7 @@ library("tramnet")
 library("survival")
 library("penalized")
 ## IGNORE_RDIFF_END
-options(digits = 3)
+old <- options(digits = 3)
 
 ## --- Comparison with penalized
 data("nki70", package = "penalized")
@@ -17,4 +17,4 @@ fit2 <- tramnet(y, x, lambda = 1, alpha = 1) ## L1 only
 coef(fit)
 coef(fit2)
 
-
+options(old)

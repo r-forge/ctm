@@ -1,7 +1,7 @@
 Package: tramnet
 Title: Penalized Transformation Models
-Version: 0.0-6
-Date: 2021-07-19
+Version: 0.0-7
+Date: 2022-08-22
 URL: http://ctm.R-forge.R-project.org
 Authors@R: c(person("Lucas", "Kook", role = c("cre", "aut"),
                     email = "lucasheinrich.kook@uzh.ch"),
@@ -24,7 +24,7 @@ Description: Partially penalized versions of specific transformation models
 Depends: R (>= 3.5.0), tram (>= 0.3-2), CVXR (>= 0.99-4), mlrMBO (>= 1.1-2)
 Imports: mlt, basefun, sandwich, ParamHelpers, lhs, mlr, smoof, stats
 Suggests: penalized, TH.data, survival, knitr, mlbench, colorspace, mvtnorm, 
-    glmnet, trtf, Matrix, lasso2, lattice, kableExtra, coin, tbm, DiceKriging
+    glmnet, trtf, Matrix, lattice, kableExtra, coin, tbm, DiceKriging
 VignetteBuilder: knitr
 Encoding: UTF-8
 License: GPL-2

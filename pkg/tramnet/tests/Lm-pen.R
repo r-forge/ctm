@@ -4,7 +4,7 @@
 ## IGNORE_RDIFF_BEGIN
 library("tramnet")
 ## IGNORE_RDIFF_END
-options(digits = 3)
+old <- options(digits = 3)
 
 ## Data
 dat <- data.frame(y = runif(100), s = factor(rep(c(1, 2), each = 50)))
@@ -18,3 +18,4 @@ dat$ytr <- R(dat$y, tleft = c(-Inf, -2, rep(0, length(dat$y)-2)))
 y3 <- Colr(ytr | 0 + s ~ 1, data = dat, order = 4)
 ## TODO: Implement truncation
 
+options(old)

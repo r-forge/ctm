@@ -6,7 +6,7 @@ library("tramnet")
 library("survival")
 library("sandwich")
 ## IGNORE_RDIFF_END
-options(digits = 3)
+old <- options(digits = 3)
 
 ## Exact and Right censored
 data("GBSG2", package = "TH.data")
@@ -90,3 +90,5 @@ if (FALSE) {
   logLik(yCOLRb)
   logLik(modCOLR)
 }
+
+options(old)

@@ -53,18 +53,6 @@ Uses model based optimization to find the optimal tuning parameter(s)
     Optimization in machine learning problems to maximize the cv-logLik
     as a black-box function of the tuning parameters alpha and lambda.
 }
-\examples{
-\donttest{
-set.seed(24101968)
-data("Prostate", package = "lasso2")
-x <- scale(model.matrix(lpsa ~ . - 1, data = Prostate))
-y <- Prostate$lpsa
-m0 <- BoxCox(lpsa ~ 1, data = Prostate)
-mt <- tramnet(m0, x = x, lambda = 0, alpha = 1, check_dcp = FALSE)
-(run_lasso <- mbo_tramnet(object = mt, n_design = 2, n_iter = 2,
-                          obj_type = "lasso"))
-}
-}
 \value{
 returns an object of class \code{"MBOSingleObjResult"} which is
 documented in \code{\link[mlrMBO]{mbo}}

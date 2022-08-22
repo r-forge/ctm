@@ -862,7 +862,7 @@ will be illustrated using the \code{Prostate} data set \citep{stamey1989prostate
 which was used by \citet{zou2005regularization} to highlight properties of the
 elastic net.
 <<BostonHousing2_data>>=
-data("Prostate", package = "lasso2")
+load("Prostate.rda")
 Prostate$psa <- exp(Prostate$lpsa)
 Prostate[, 1:8] <- scale(Prostate[, 1:8])
 @
