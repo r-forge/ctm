@@ -2,6 +2,12 @@
 \name{NEWS}
 \title{NEWS file for the tram package}
 
+\section{Changes in Version 0.7-3 (2022-09-07)}{
+  \itemize{
+    \item{Improved numerical stability in \code{mtram}.}
+  }
+}
+
 \section{Changes in Version 0.7-2 (2022-08-05)}{
   \itemize{
     \item{New location-scale functionality, see \code{demo("stram")}.}
@@ -9,6 +15,7 @@
     \item{New cauchit link function.}
   }
 }
+
 
 \section{Changes in Version 0.7-1 (2022-05-18)}{
   \itemize{
