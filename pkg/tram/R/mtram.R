@@ -57,9 +57,10 @@ mtram <- function(object, formula, data,
         PF <- function(z) z
     } else {
         P <- object$todistr$p
-        PF <- function(z) qnorm(pmin(1 - tol, pmax(tol, P(z))))
+        PF <- function(z) qnorm(P(z, log.p = TRUE), log.p = TRUE) ### qnorm(pmin(1 - tol, pmax(tol, P(z))))
         f <- object$todistr$d
-        fprime <- object$todistr$dd
+        ### fprime() / f()
+        fpf <- object$todistr$dd2d
     }
     
     gr <- NULL
@@ -101,7 +102,7 @@ mtram <- function(object, formula, data,
                     object$loglik(theta, weights = w)
             } else {
                 ret <- -0.5 * (logdet + sum((Linv %*% DPFz)^2) - sum(PFz^2)) +
-                    sum(.log(f(Dinvz) * c(eY$Yprime %*% theta)))
+                    sum(f(Dinvz, log = TRUE) + .log(c(eY$Yprime %*% theta)))
             } 
             return(-ret)
         }
@@ -184,11 +185,11 @@ mtram <- function(object, formula, data,
                                             crossprod(dDPFz, SiID2) %*% DPFz -
                                             crossprod(DPFz, t3) %*% DPFz +
                                             crossprod(DPFz, SiID2) %*% dDPFz) +
-                        sum(c(fprime(Dinvz))/c(f(Dinvz)) * c(dDinv * z))
+                        sum(c(fpf(Dinvz)) * c(dDinv * z))
                 }
                 dtheta <- - crossprod(DPFz, SiID2) %*%
                     ((c(f(Dinvz))/dnorm(PFz)) * eY$Y) +
-                    colSums((c(fprime(Dinvz))/c(f(Dinvz))) * (Dinv * eY$Y)) +
+                    colSums(c(fpf(Dinvz)) * (Dinv * eY$Y)) +
                     colSums(eY$Yprime / c(eY$Yprime %*% theta))
                 
                 return(-c(c(as(dtheta, "matrix")), dgamma))
