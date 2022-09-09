@@ -639,7 +639,7 @@ the study participants as independent observations, is fitted by maximum
 likelihood to the data using the \cmd{lmer} function from the \pkg{lme4}
 add-on package \citep{pkg:lme4}:
 %
-<<mtram-sleep_lmer, cache = TRUE>>=
+<<mtram-sleep_lmer, cache = FALSE>>=
 sleep_lmer <- lmer(Reaction ~ Days + (Days | Subject), 
                    data = sleepstudy, REML = FALSE)
 @
@@ -668,7 +668,7 @@ in a two-step approach as
 <<mtram-tram>>=
 library("tram")
 @
-<<mtram-sleep_mtram, cache = TRUE>>=
+<<mtram-sleep_mtram, cache = FALSE>>=
 sleep_LM <- Lm(Reaction ~ Days, data = sleepstudy)
 sleep_LMmer <- mtram(sleep_LM, ~ (Days | Subject), data = sleepstudy)
 @
@@ -747,7 +747,7 @@ sleepstudy$Reaction_I[1:5]
 converts the outcome to interval-censored values, where each interval has
 length $40$. The above mixed model can now be estimated by maximising the
 likelihood corresponding to interval-censored observations:
-<<mtram-sleep-interval, cache = TRUE>>=
+<<mtram-sleep-interval, cache = FALSE>>=
 sleep_LM_I <- Lm(Reaction_I ~ Days, data = sleepstudy)
 sleep_LMmer_I <- mtram(sleep_LM_I, ~ (Days | Subject), data = sleepstudy)
 @
@@ -777,7 +777,7 @@ transformed responses by \cite{BoxCox_1964} but it \emph{does not} simply apply
 what is known as a Box-Cox transformation. Bernstein polynomials
 $\h(\ry) = \basisy(\ry)^\top \parm$ under suitable constraints 
 \citep{Hothorn_Moest_Buehlmann_2017} are applied instead by
-<<mtram-sleep_BoxCox, cache = TRUE>>=
+<<mtram-sleep_BoxCox, cache = FALSE>>=
 sleep_BC <- BoxCox(Reaction ~ Days, data = sleepstudy)
 sleep_BCmer <- mtram(sleep_BC, ~ (Days | Subject), data = sleepstudy, 
                      Hessian = TRUE)
@@ -926,8 +926,14 @@ interpretable on the scale of marginal or conditional distribution
 functions, the direct interpretation of the fixed effect $\tilde{\beta}$ is
 not very straightforward because it corresponds to the conditional mean
 \emph{after} transforming the outcome.  This interpretability issue can be
-addressed by exchanging the probit link to a logit link in
-Section~\ref{sec:logit}.
+addressed by exchanging the probit link to a logit link 
+<<mtram-sleep_Colr, cache = FALSE>>=
+sleep_C <- Colr(Reaction ~ Days, data = sleepstudy)
+sleep_Cmer <- mtram(sleep_C, ~ (Days | Subject), data = sleepstudy)
+logLik(sleep_Cmer)
+@
+Here, the in-sample log-likelihood increases compared to the probit model.
+How to interpret models of this type is discussed in Section~\ref{sec:logit}.
 
 \section{Binary Probit Mixed-effects Models}
 
@@ -941,7 +947,7 @@ an improvement in both treatment groups over time, however with a more rapid
 advance in patients treated with terbinafine.
 
 \begin{figure}[t]
-<<mtram-toenail-plot, echo = FALSE, cache = TRUE>>=
+<<mtram-toenail-plot, echo = FALSE, cache = FALSE>>=
 data("toenail", package = "HSAUR3")
 rlev <- levels(toenail$patientID)[xtabs(~ patientID, 
                                         data = toenail) == 1]
@@ -972,7 +978,7 @@ discrete log-likelihood given in Appendix B of \cite{Hothorn_2019_mtram}.
 The random intercept probit model fitted by Laplace and Adaptive
 Gauss-Hermite Quadrature (AGQ) approximations to the
 likelihood give quite different results:
-<<mtram-toenail_glmer_RI, cache = TRUE>>=
+<<mtram-toenail_glmer_RI, cache = FALSE>>=
 ### Laplace
 toenail_glmer_RI_1 <- 
     glmer(outcome ~ treatment * time + (1 | patientID),
@@ -995,7 +1001,7 @@ AGQ
 <<mtram-glmmsr>>=
 library("glmmsr")
 @
-<<mtram-toenail_glmmsr_RI, cache = TRUE>>=
+<<mtram-toenail_glmmsr_RI, cache = FALSE>>=
 toenail_glmm_RI_3 <- 
     glmm(outcome ~ treatment * time + (1 | patientID),
          data = toenail, family = binomial(link = "probit"), 
@@ -1008,7 +1014,7 @@ equivalent to a linear transformation model and we can thus use the exact
 likelihood implemented for the latter model in \cmd{mtram} for parameter
 estimation (it is still a bit nasty to set-up a constant transformation function
 $\h(\ry) = \alpha$, we plan to add a more convenient interface later)
-<<mtram-toenail_mtram_RI, cache = TRUE>>=
+<<mtram-toenail_mtram_RI, cache = FALSE>>=
 m <- ctm(as.basis(~ outcome, data = toenail), 
          shifting = ~ treatment * time, 
          data = toenail, todistr = "Normal")
@@ -1055,22 +1061,15 @@ solve(toenail_mtram_RI$Hessian)[1:4, 1:4]
 Things get a bit less straightforward when a random slope is added to the
 model. The two implementations of the Laplace approximation in packages
 \pkg{lme4}
-<<mtram-toenail_glmer_RS, cache = TRUE>>=
+<<mtram-toenail_glmer_RS, cache = FALSE>>=
 toenail_glmer_RS <- 
     glmer(outcome ~ treatment * time + (1 + time | patientID),
           data = toenail, family = binomial(link = "probit"))
 summary(toenail_glmer_RS)
 toenail_glmer_RS@theta
 @
-<<mtram-lme4-detach, echo = FALSE>>=
-### coef<- gets overwritten
-detach(package:lme4)
-#detach(package:tram)
-#detach(package:mlt)
-#library("tram")
-@
 and \pkg{glmmsr}
-<<mtram-toenail_glmmsr_RS, cache = TRUE>>=
+<<mtram-toenail_glmmsr_RS, cache = FALSE>>=
 toenail_glmm_RS_1 <- 
     glmm(outcome ~ treatment * time + (1 + time | patientID),
          data = toenail, family = binomial(link = "probit"), 
@@ -1083,7 +1082,7 @@ is twice as large in the \cmd{glmer} output.
 
 The optimisation of the exact discrete likelihood in the transformation
 framework gives
-<<mtram-toenail_mtram_RS, cache = TRUE>>=
+<<mtram-toenail_mtram_RS, cache = FALSE>>=
 toenail_mtram_RS <- 
     mtram(toenail_probit, ~ (1 + time | patientID), 
           data = toenail)
@@ -1112,7 +1111,7 @@ the transformation approach to compute marginally interpretable
 time-dependent log-odds ratios from random intercept transformation logit
 models:% \citep[\code{standardise = TRUE} computes model (M2) instead of the
 %default (M1), see][]{Hothorn_2019_mtram}:
-<<mtram-toenail_logit, cache = TRUE>>=
+<<mtram-toenail_logit, cache = FALSE>>=
 m <- ctm(as.basis(~ outcome, data = toenail), 
          shifting = ~ treatment * time, 
          data = toenail, todistr = "Logistic")
@@ -1148,7 +1147,7 @@ estimators to obtain an idea about the uncertainty
 (Figure~\ref{fig:toenailOR}).
 
 \begin{figure}[t]
-<<mtram-toenail_OR_2, dev = "png", cache = TRUE, echo = FALSE, dpi = 300>>=
+<<mtram-toenail_OR_2, dev = "png", cache = FALSE, echo = FALSE, dpi = 300>>=
 X <- model.matrix(~ treatment * time, data = nd)
 rbeta <- rmvnorm(10000, mean = coef(toenail_mtram_logit), 
                  sigma = solve(toenail_mtram_logit$Hessian))
@@ -1238,7 +1237,7 @@ Computing times for all procedures were comparable.
 \begin{table}
 \begin{center}
 %%%% coefs, logLiks, and timings in table
-<<toenail-comparisons, cache = TRUE, echo = FALSE, results = "hide">>=
+<<toenail-comparisons, cache = FALSE, echo = FALSE, results = "hide">>=
 t1 <- system.time(toenail_glmer_RI_1 <- 
     glmer(outcome ~ treatment * time + (1 | patientID),
           data = toenail, family = binomial(link = "probit"), 
@@ -1409,7 +1408,7 @@ with random intercepts $\tilde{\alpha}_i$ such that the odds at baseline, for ex
 <<mtram-ordinalCont>>=
 library("ordinalCont")
 @
-<<mtram-neck_ocm, cache = TRUE, results = "hide">>=
+<<mtram-neck_ocm, cache = FALSE, results = "hide">>=
 neck_ocm <- ocm(vas ~ laser * time + (1 | id), data = pain_df, 
                 scale = c(0, 1))
 @
@@ -1450,7 +1449,7 @@ Our marginally interpretable transformation model with the same
 transformation function as the model \code{neck\_ColrME} but with a completely 
 different model formulation and optimisation procedure for maximising the log-likelihood, 
 can be estimated by
-<<mtram-neck_Colr, cache = TRUE>>=
+<<mtram-neck_Colr, cache = FALSE>>=
 neck_Colr <- Colr(vas ~ laser * time, data = pain_df, 
                   bounds = c(0, 1), support = c(0, 1),
                   extrapolate = TRUE)
@@ -1609,7 +1608,7 @@ load(file.path(dir, "Primary_endpoint_data.rda"))
 @
 
 \begin{figure}[t]
-<<mtram-CAO-plot, cache = TRUE, echo = FALSE>>=
+<<mtram-CAO-plot, cache = FALSE, echo = FALSE>>=
 ra <- sort(unique(CAOsurv$randarm))
 st <- sort(unique(CAOsurv$strat_t))
 sn <- sort(unique(CAOsurv$strat_n))
