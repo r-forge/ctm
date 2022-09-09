@@ -99,7 +99,7 @@ xyplot(Reaction ~ Days | Subject, data = sleepstudy,
        xlab = "Days of sleep deprivation", ylab = "Average reaction time (in ms)")
 
 
-## ----mtram-sleep_lmer, cache = TRUE-------------------------------------------
+## ----mtram-sleep_lmer, cache = FALSE------------------------------------------
 sleep_lmer <- lmer(Reaction ~ Days + (Days | Subject), 
                    data = sleepstudy, REML = FALSE)
 
@@ -107,7 +107,7 @@ sleep_lmer <- lmer(Reaction ~ Days + (Days | Subject),
 ## ----mtram-tram---------------------------------------------------------------
 library("tram")
 
-## ----mtram-sleep_mtram, cache = TRUE------------------------------------------
+## ----mtram-sleep_mtram, cache = FALSE-----------------------------------------
 sleep_LM <- Lm(Reaction ~ Days, data = sleepstudy)
 sleep_LMmer <- mtram(sleep_LM, ~ (Days | Subject), data = sleepstudy)
 
@@ -145,7 +145,7 @@ sleepstudy$Reaction_I <- with(sleepstudy, Surv(Reaction - 20, Reaction + 20,
 sleepstudy$Reaction_I[1:5]
 
 
-## ----mtram-sleep-interval, cache = TRUE---------------------------------------
+## ----mtram-sleep-interval, cache = FALSE--------------------------------------
 sleep_LM_I <- Lm(Reaction_I ~ Days, data = sleepstudy)
 sleep_LMmer_I <- mtram(sleep_LM_I, ~ (Days | Subject), data = sleepstudy)
 
@@ -156,7 +156,7 @@ coef(sleep_LMmer_I)
 coef(sleep_LMmer)
 
 
-## ----mtram-sleep_BoxCox, cache = TRUE-----------------------------------------
+## ----mtram-sleep_BoxCox, cache = FALSE----------------------------------------
 sleep_BC <- BoxCox(Reaction ~ Days, data = sleepstudy)
 sleep_BCmer <- mtram(sleep_BC, ~ (Days | Subject), data = sleepstudy, 
                      Hessian = TRUE)
@@ -239,7 +239,13 @@ quantile(ret[2,], c(.025, .5, .975))
 quantile(ret[3,], c(.025, .5, .975))
 
 
-## ----mtram-toenail-plot, echo = FALSE, cache = TRUE---------------------------
+## ----mtram-sleep_Colr, cache = FALSE------------------------------------------
+sleep_C <- Colr(Reaction ~ Days, data = sleepstudy)
+sleep_Cmer <- mtram(sleep_C, ~ (Days | Subject), data = sleepstudy)
+logLik(sleep_Cmer)
+
+
+## ----mtram-toenail-plot, echo = FALSE, cache = FALSE--------------------------
 data("toenail", package = "HSAUR3")
 rlev <- levels(toenail$patientID)[xtabs(~ patientID, 
                                         data = toenail) == 1]
@@ -253,7 +259,7 @@ cdplot(outcome ~ time, data = subset(toenail, treatment == trt[2]),
        main = trt[2], xlab = "Time", ylab = "")
 
 
-## ----mtram-toenail_glmer_RI, cache = TRUE-------------------------------------
+## ----mtram-toenail_glmer_RI, cache = FALSE------------------------------------
 ### Laplace
 toenail_glmer_RI_1 <- 
     glmer(outcome ~ treatment * time + (1 | patientID),
@@ -274,7 +280,7 @@ toenail_glmer_RI_2@theta
 ## ----mtram-glmmsr-------------------------------------------------------------
 library("glmmsr")
 
-## ----mtram-toenail_glmmsr_RI, cache = TRUE------------------------------------
+## ----mtram-toenail_glmmsr_RI, cache = FALSE-----------------------------------
 toenail_glmm_RI_3 <- 
     glmm(outcome ~ treatment * time + (1 | patientID),
          data = toenail, family = binomial(link = "probit"), 
@@ -282,7 +288,7 @@ toenail_glmm_RI_3 <-
 summary(toenail_glmm_RI_3)
 
 
-## ----mtram-toenail_mtram_RI, cache = TRUE-------------------------------------
+## ----mtram-toenail_mtram_RI, cache = FALSE------------------------------------
 m <- ctm(as.basis(~ outcome, data = toenail), 
          shifting = ~ treatment * time, 
          data = toenail, todistr = "Normal")
@@ -299,22 +305,15 @@ vcov(toenail_glmer_RI_2)
 solve(toenail_mtram_RI$Hessian)[1:4, 1:4]
 
 
-## ----mtram-toenail_glmer_RS, cache = TRUE-------------------------------------
+## ----mtram-toenail_glmer_RS, cache = FALSE------------------------------------
 toenail_glmer_RS <- 
     glmer(outcome ~ treatment * time + (1 + time | patientID),
           data = toenail, family = binomial(link = "probit"))
 summary(toenail_glmer_RS)
 toenail_glmer_RS@theta
 
-## ----mtram-lme4-detach, echo = FALSE------------------------------------------
-### coef<- gets overwritten
-detach(package:lme4)
-#detach(package:tram)
-#detach(package:mlt)
-#library("tram")
 
-
-## ----mtram-toenail_glmmsr_RS, cache = TRUE------------------------------------
+## ----mtram-toenail_glmmsr_RS, cache = FALSE-----------------------------------
 toenail_glmm_RS_1 <- 
     glmm(outcome ~ treatment * time + (1 + time | patientID),
          data = toenail, family = binomial(link = "probit"), 
@@ -323,7 +322,7 @@ toenail_glmm_RS_1$estim[1:3]
 toenail_glmm_RS_1$estim[-(1:3)]
 
 
-## ----mtram-toenail_mtram_RS, cache = TRUE-------------------------------------
+## ----mtram-toenail_mtram_RS, cache = FALSE------------------------------------
 toenail_mtram_RS <- 
     mtram(toenail_probit, ~ (1 + time | patientID), 
           data = toenail)
@@ -331,7 +330,7 @@ logLik(toenail_mtram_RS)
 coef(toenail_mtram_RS)
 
 
-## ----mtram-toenail_logit, cache = TRUE----------------------------------------
+## ----mtram-toenail_logit, cache = FALSE---------------------------------------
 m <- ctm(as.basis(~ outcome, data = toenail), 
          shifting = ~ treatment * time, 
          data = toenail, todistr = "Logistic")
@@ -356,7 +355,7 @@ nd$prob_logit <- predict(tmp, newdata = nd, type = "distribution")[1,]
 nd$odds <- exp(predict(tmp, newdata = nd, type = "trafo")[1,])
 
 
-## ----mtram-toenail_OR_2, dev = "png", cache = TRUE, echo = FALSE, dpi = 300----
+## ----mtram-toenail_OR_2, dev = "png", cache = FALSE, echo = FALSE, dpi = 300----
 X <- model.matrix(~ treatment * time, data = nd)
 rbeta <- rmvnorm(10000, mean = coef(toenail_mtram_logit), 
                  sigma = solve(toenail_mtram_logit$Hessian))
@@ -412,7 +411,7 @@ xyplot(prob ~ time | model, data = nd2, group = treatment, ylim = c(0, 1),
        col = col, type = "l", ylab = "Probability (none or mild)")
 
 
-## ----toenail-comparisons, cache = TRUE, echo = FALSE, results = "hide"--------
+## ----toenail-comparisons, cache = FALSE, echo = FALSE, results = "hide"-------
 t1 <- system.time(toenail_glmer_RI_1 <- 
     glmer(outcome ~ treatment * time + (1 | patientID),
           data = toenail, family = binomial(link = "probit"), 
@@ -535,7 +534,7 @@ plot(p1)
 ## ----mtram-ordinalCont--------------------------------------------------------
 library("ordinalCont")
 
-## ----mtram-neck_ocm, cache = TRUE, results = "hide"---------------------------
+## ----mtram-neck_ocm, cache = FALSE, results = "hide"--------------------------
 neck_ocm <- ocm(vas ~ laser * time + (1 | id), data = pain_df, 
                 scale = c(0, 1))
 
@@ -558,7 +557,7 @@ neck_ColrME <- ColrME(vas ~ laser * time + (1 | id), data = pain_df,
 exp(coef(neck_ColrME))
 
 
-## ----mtram-neck_Colr, cache = TRUE--------------------------------------------
+## ----mtram-neck_Colr, cache = FALSE-------------------------------------------
 neck_Colr <- Colr(vas ~ laser * time, data = pain_df, 
                   bounds = c(0, 1), support = c(0, 1),
                   extrapolate = TRUE)
@@ -657,7 +656,7 @@ dir <- system.file("rda", package = "TH.data")
 load(file.path(dir, "Primary_endpoint_data.rda"))
 
 
-## ----mtram-CAO-plot, cache = TRUE, echo = FALSE-------------------------------
+## ----mtram-CAO-plot, cache = FALSE, echo = FALSE------------------------------
 ra <- sort(unique(CAOsurv$randarm))
 st <- sort(unique(CAOsurv$strat_t))
 sn <- sort(unique(CAOsurv$strat_n))
