@@ -1,5 +1,5 @@
 
-all:	mlt.pdf tram.pdf
+all:	mlt.pdf tram.pdf mtram.pdf mtram.R
 
 toenail.tex:	toenail.R
 	R CMD BATCH toenail.R
@@ -73,6 +73,8 @@ texclean:
 clean:	
 	make texclean
 	rm -rf tram.aux
+	rm -rf mtram.pdf
+	rm -rf mtram.tex
 	rm -rf tram.pdf
 	rm -rf mlt.tex
 	rm -rf mlt.R
