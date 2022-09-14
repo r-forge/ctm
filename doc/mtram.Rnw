@@ -1001,13 +1001,13 @@ plotfun("prob", ex, layout = c(5, 2), par.settings = simpleTheme(col=c(grey, col
 
 
 
-\section{Binary Probit Mixed-effects Models}
+\section{Models for Binary Outcomes}
 
-Here we compare different implementations of binary probit mixed models for
+Here we compare different implementations of binary marginal and mixed models for
 the notoriously difficult toe nail data \citep{backer_vroey_1998}. The
-outcome was categorised to two levels (this being probably the root of all
+outcome was categorised to two levels \citep[this being probably the root of all
 troubles, as quasi-separation issues have been
-reported by \cite{Sauter_Held_2016}).
+reported by][]{Sauter_Held_2016}.
 A conditional density plot (Figure~\ref{fig:toenail}) suggests
 an improvement in both treatment groups over time, however with a more rapid
 advance in patients treated with terbinafine.
@@ -1015,10 +1015,6 @@ advance in patients treated with terbinafine.
 \begin{figure}[t]
 <<mtram-toenail-plot, echo = FALSE, cache = FALSE>>=
 data("toenail", package = "HSAUR3")
-rlev <- levels(toenail$patientID)[xtabs(~ patientID, 
-                                        data = toenail) == 1]
-toenail <- subset(toenail, !patientID %in% rlev)
-toenail$patientID <- toenail$patientID[, drop = TRUE]
 layout(matrix(1:2, ncol = 2))
 trt <- levels(toenail$treatment)
 cdplot(outcome ~ time, data = subset(toenail, treatment == trt[1]),
@@ -1031,13 +1027,14 @@ cdplot(outcome ~ time, data = subset(toenail, treatment == trt[2]),
 \label{fig:toenail}}
 \end{figure}
 
-We were interested in binary probit models featuring fixed main and
+\subsection{Random Intercept Probit Models}
+
+We are first interested in binary probit models featuring fixed main and
 interaction effects $\eshiftparm_1$, $\eshiftparm_2$, and $\eshiftparm_3$ of
 treatment (itraconazole vs.~terbinafine) and time.  Subject-specific random
-intercept models and models featuring correlated random intercepts and
-slopes were estimated by the \code{glmer} function from package
-\pkg{lme4} \citep{pkg:lme4}, by the \code{glmm} function from package
-\pkg{glmmsr} \citep{ogden_2015}, and by direct maximisation of the exact
+intercept models were estimated by the \code{glmer} function from package
+\pkg{lme4} \citep{pkg:lme4}, by the \code{glmmTMB} function from package
+\pkg{glmmTMB} \citep{pkg:glmmTMB}, and by direct maximisation of the exact
 discrete log-likelihood given in Appendix B of \cite{Hothorn_2019_mtram}.
 % discrete log-likelihood (\ref{fm:dll}) given in Appendix~\ref{app:cens}.
 
@@ -1062,18 +1059,18 @@ summary(toenail_glmer_RI_2)
 toenail_glmer_RI_2@theta
 @
 
-The sequential reduction (SR) algorithm \citep{ogden_2015} gives results close to
-AGQ
-<<mtram-glmmsr>>=
-library("glmmsr")
+Package \pkg{glmmTMB} optimises the Laplace approximation utilising the
+Template Model Builder \pkg{TMB} package:
+<<mtram-toenail_glmmTMB_RI, cache = FALSE>>=
+library("glmmTMB")
+toenail_glmmTMB_RI_3 <- 
+    glmmTMB(outcome ~ treatment * time + (1 | patientID),
+         data = toenail, family = binomial(link = "probit"))
+summary(toenail_glmmTMB_RI_3)
 @
-<<mtram-toenail_glmmsr_RI, cache = FALSE>>=
-toenail_glmm_RI_3 <- 
-    glmm(outcome ~ treatment * time + (1 | patientID),
-         data = toenail, family = binomial(link = "probit"), 
-         method = "SR", control = list(nSL = 3))
-summary(toenail_glmm_RI_3)
-@
+Surprisingly, this model is very close to the one obtained by AGQ and quite
+off from the Laplace implementation in \pkg{lme4} (\code{nAGQ = 1} means
+Laplace).
 
 Because of the probit link, this binary generalised linear model is
 equivalent to a linear transformation model and we can thus use the exact
@@ -1083,7 +1080,7 @@ $\h(\ry) = \alpha$, we plan to add a more convenient interface later)
 <<mtram-toenail_mtram_RI, cache = FALSE>>=
 m <- ctm(as.basis(~ outcome, data = toenail), 
          shifting = ~ treatment * time, 
-         data = toenail, todistr = "Normal")
+         data = toenail, todistr = "Normal", negative = TRUE)
 toenail_probit <- mlt(m, data = toenail, 
                       fixed = c("outcomemoderate or severe" = 0))
 toenail_mtram_RI <- 
@@ -1097,82 +1094,73 @@ one-dimensional integral over the unit interval.  We use sparse grids
 The integrand is defined by products of normal probabilities, which are
 approximated as described by \cite{Matic_Radoicic_2018}.  It is important to
 note that this likelihood can be computed as accurately as necessary whereas
-Laplace, AGQ, and SR are approximations of limited accuracy. 
+alternative implementations rely on approximations of limited accuracy (at
+least for non-probit links). 
 
-The results are very close to SR and AGQ, indicating a very good quality of
-the AGQ and SR approximations. We can also compare the corresponding covariances
+The results (model parameters and likelihoods) are very close to those
+obtained by AGQ (\pkg{lme4}) or \pkg{glmmTMB}, indicating a very good quality
+the various approximations used. We can also compare the corresponding covariances
 <<mtram-toenail-hessian>>=
 vcov(toenail_glmer_RI_2)
 solve(toenail_mtram_RI$Hessian)[1:4, 1:4]
 @
-%We can compare the in-sample log-likelihood (as defined by the
-%transformation model) for parameter estimates obtained from 
-%the different procedures
-%<<mtram-toenail_RI_mlt_glmmsr>>=
-%### logLik of transformation model for glmer (Laplace) parameters
-%logLik(toenail_mtram_RI, c(-fixef(toenail_glmer_RI_1), 
-%                            toenail_glmer_RI_1@theta))
-%### logLik of transformation model for glmer (AGQ) parameters
-%logLik(toenail_mtram_RI, c(-fixef(toenail_glmer_RI_2), 
-%                            toenail_glmer_RI_2@theta))
-%### logLik of transformation model for glmmsr (SR) parameters
-%logLik(toenail_mtram_RI, parm = c(-toenail_glmm_RI_3$estim[-1], 
-%                                   toenail_glmm_RI_3$estim[1]))
-%### logLik of transformation model
-%logLik(toenail_mtram_RI)
-%@
-%Except for the Laplace approximation, the in-sample log-likelihoods
-%coincide.
+which are also in good agreement.
 
-Things get a bit less straightforward when a random slope is added to the
-model. The two implementations of the Laplace approximation in packages
-\pkg{lme4}
-<<mtram-toenail_glmer_RS, cache = FALSE>>=
-toenail_glmer_RS <- 
-    glmer(outcome ~ treatment * time + (1 + time | patientID),
-          data = toenail, family = binomial(link = "probit"))
-summary(toenail_glmer_RS)
-toenail_glmer_RS@theta
+The marginal effects, that is, a marginal binary probit model, are given by
+the scaled conditional coefficients
+<<mtram-toenail-coef>>=
+cf <- coef(toenail_mtram_RI)
+cf[2:4] / sqrt(1 + cf["gamma1"]^2)
 @
-and \pkg{glmmsr}
-<<mtram-toenail_glmmsr_RS, cache = FALSE>>=
-toenail_glmm_RS_1 <- 
-    glmm(outcome ~ treatment * time + (1 + time | patientID),
-         data = toenail, family = binomial(link = "probit"), 
-         method = "Laplace")
-toenail_glmm_RS_1$estim[1:3]
-toenail_glmm_RS_1$estim[-(1:3)]
+Such marginal effects can be estimated directly by generalised estimation
+equations (GEE). For the probit model, three models corresponding to 
+different working correlations can be estimated for example by package
+\pkg{geepack}:
+<<mtram-toenail-gee-probit>>=
+library("geepack")
+gin <- geeglm(I((0:1)[outcome]) ~ treatment * time, 
+              id = patientID, data = toenail, corstr = "independence", 
+              family = binomial(link = "probit"))
+gex <- geeglm(I((0:1)[outcome]) ~ treatment * time, 
+              id = patientID, data = toenail, cor = "exchangeable", 
+              family = binomial(link = "probit"))
+gun <- geeglm(I((0:1)[outcome]) ~ treatment * time, 
+              id = patientID, data = toenail, cor = "unstructured", 
+              family = binomial(link = "probit"))
 @
-do not quite agree. Note that the standard deviation of the random intercept
-is twice as large in the \cmd{glmer} output.
-
-The optimisation of the exact discrete likelihood in the transformation
-framework gives
-<<mtram-toenail_mtram_RS, cache = FALSE>>=
-toenail_mtram_RS <- 
-    mtram(toenail_probit, ~ (1 + time | patientID), 
-          data = toenail)
-logLik(toenail_mtram_RS)
-coef(toenail_mtram_RS)
+The effects are not very close to what we obtained earlier, and it seems the
+choice of the working correlations matters here:
+<<mtram-toenail-gee-probit-coef>>=
+cbind(mtram = cf[2:4] / sqrt(1 + cf["gamma1"]^2),
+      indep = coef(gin)[-1],
+      excha = coef(gex)[-1],
+      unstr = coef(gun)[-1])
 @
-The variance parameters are not too far off the results reported by
-\cmd{glmm}, but the fixed effects differ quite a bit. 
-%Again, we can
-%compare the in-sample log-likelihoods:
-%<<mtram-toenail_RS_mlt_glmmsr>>=
-%### logLik of transformation model for glmer (Laplace) parameters
-%logLik(toenail_mtram_RS, c(-fixef(toenail_glmer_RS), 
-%                            toenail_glmer_RS@theta))
-%### logLik of transformation model for glmmsr (Laplace) parameters
-%logLik(toenail_mtram_RS, parm = c(-toenail_glmm_RS_1$estim[-(1:3)], 
-%                                   toenail_glmm_RS_1$estim[1:3]))
-%### logLik of transformation model
-%logLik(toenail_mtram_RS)
-%@
 
 At least in biostatistics, the probit model is less popular than the logit
 model owing to the better interpretability of the fixed effects as
-conditional log-odds ratios in the latter. Using a logit link, we can use
+conditional log-odds ratios in the latter. Thus, we replicate the SAS analysis 
+reported in Chapter~10 of \cite{Molenberghs_Verbeke_2005}
+<<mtram-toenail-gee-logit>>=
+gin <- geeglm(I((0:1)[outcome]) ~ treatment * time, 
+              id = patientID, data = toenail, corstr = "independence", 
+              family = binomial())
+gex <- geeglm(I((0:1)[outcome]) ~ treatment * time, 
+              id = patientID, data = toenail, cor = "exchangeable", 
+              family = binomial())
+gun <- geeglm(I((0:1)[outcome]) ~ treatment * time, 
+              id = patientID, data = toenail, cor = "unstructured", 
+              family = binomial())
+@
+Again, results are dependent on hyperparameters and also not in very good
+agreement with SAS output reported by \cite{Molenberghs_Verbeke_2005}
+<<mtram-toenail-gee-logit-coef>>=
+coef(gin)
+coef(gex)
+coef(gun)
+@
+
+Alternatively, we can use
 the transformation approach to compute marginally interpretable
 time-dependent log-odds ratios from random intercept transformation logit
 models:% \citep[\code{standardise = TRUE} computes model (M2) instead of the
@@ -1180,7 +1168,7 @@ models:% \citep[\code{standardise = TRUE} computes model (M2) instead of the
 <<mtram-toenail_logit, cache = FALSE>>=
 m <- ctm(as.basis(~ outcome, data = toenail), 
          shifting = ~ treatment * time, 
-         data = toenail, todistr = "Logistic")
+         data = toenail, todistr = "Logistic", negative = TRUE)
 toenail_logit <- mlt(m, data = toenail, 
                      fixed = c("outcomemoderate or severe" = 0))
 toenail_mtram_logit <- mtram(toenail_logit, ~ (1 | patientID), 
@@ -1189,9 +1177,42 @@ toenail_mtram_logit <- mtram(toenail_logit, ~ (1 | patientID),
 It is important to note that this model is \emph{not} a logistic 
 mixed-effects model and thus we can't expect to obtain identical 
 results from \cmd{glmer} as it was (partially) the case for the probit
-model.
+model. The marginal log-odds ratios are
+<<mtram-toenail_logit-coef>>=
+cf <- coef(toenail_mtram_logit)
+cf[2:4] / sqrt(1 + cf["gamma1"]^2)
+@
+and an asymptotic confidence interval for the temporal treatment effect can be obtained
+from a small simulation
+<<mtram-toenail-trt>>=
+S <- rmvnorm(10000, mean = coef(toenail_mtram_logit), sigma = solve(toenail_mtram_logit$Hessian))
+(ci <- quantile(S[,"treatmentterbinafine:time"] / sqrt(1 + S[, "gamma1"]^2), prob = c(.025,
+.975)))
+@
+The interval indicates a marginally significant treatment effect, that is,
+an odds ratio for none or mild symptoms of $\Sexpr{round(exp(cf["treatmentterbinafine:time"] / sqrt(1 +
+cf["gamma1"]^2)), 2)}$ per month, with $95\%$ confidence interval
+$(\Sexpr{round(exp(ci), 2)})$.
 
-From the model, we can compute marginally interpretable 
+A direct comparison of the marginal log-odds ratios with GEE results
+highlight the discrepancies
+<<mtram-toenail-gee-logit-mcoef>>=
+cbind(mtram = cf[2:4] / sqrt(1 + cf["gamma1"]^2),
+      indep = coef(gin)[-1],
+      excha = coef(gex)[-1],
+      unstr = coef(gun)[-1])
+@
+Following \cite{Molenberghs_Verbeke_2005}, we use the GEE with unstructured
+working correlation to compute a confidence interval for the temporal
+treatment effect on the odds ratio scale
+<<mtram-GEE-CI>>=
+exp(coef(gun)["treatmentterbinafine:time"] +
+    c(-1, 1) * sqrt(diag(vcov(gun)))["treatmentterbinafine:time"])
+@
+In respect of this temporal treatment effect, GEE and marginal transformation models 
+provide similar results, in agreement with \cite{Molenberghs_Verbeke_2005}.
+
+From the marginal transformation model, we can compute and plot marginally interpretable 
 probabilities and odds ratios over time
 <<mtram-toenail_marginal_logit_s>>=
 tmp <- toenail_logit
@@ -1219,7 +1240,7 @@ rbeta <- rmvnorm(10000, mean = coef(toenail_mtram_logit),
                  sigma = solve(toenail_mtram_logit$Hessian))
 s <- rbeta[,ncol(rbeta)]
 rbeta <- rbeta[,-ncol(rbeta)] / sqrt(s^2 + 1)
-odds <- exp(X %*% t(rbeta))
+odds <- exp(-X %*% t(rbeta))
 OR <- odds[1:length(time),] / odds[-(1:length(time)),]
 plot(time, rep(0, length(time)), ylim = range(OR), type = "n", 
      xlab = "Time", ylab = "Odds ratio")
@@ -1263,9 +1284,6 @@ very similar as shown in Figure~\ref{fig:toenailprob}.
 
 \begin{figure}[t]
 <<mtram-toenail_probplot, echo = FALSE>>=
-# nd2 <- nd[rep(1:nrow(nd), 3),]
-# nd2$prob <- c(nd$prob_probit, nd$prob_logit_s, nd$prob_logit)
-# lev <- c("Probit (M1) = (M2)", "Logit (M1)", "Logit (M2)")
 nd2 <- nd[rep(1:nrow(nd), 2),]
 nd2$prob <- c(nd$prob_probit, nd$prob_logit)
 lev <- c("Probit", "Logit")
@@ -1288,16 +1306,65 @@ xyplot(prob ~ time | model, data = nd2, group = treatment, ylim = c(0, 1),
          \label{fig:toenailprob}}
 \end{figure}
 
-The estimated model parameters, along with the discrete log-likelihood
-\citep[Equation~7 in][]{Hothorn_2019_mtram} evaluated at these parameters, are given in
-Table~\ref{tab:toenail}.  For the random intercept models, AGQ, SR, and the
+\subsection{Random Intercept / Random Slope Models}
+
+Things get a bit less straightforward when a random slope is added to the
+model. We switch back to the probit link allowing comparison of our
+implementation with other packages. Some implementations do not allow
+clusters consisting of a single observation, so we remove patients without
+follow-up
+<<mtram-toenail-subset>>=
+(rlev <- levels(toenail$patientID)[xtabs(~ patientID, 
+                                        data = toenail) == 1])
+toenail_gr1 <- subset(toenail, !patientID %in% rlev)
+toenail_gr1$patientID <- toenail_gr1$patientID[, drop = TRUE]
+@
+
+The two implementations of the Laplace approximation in packages
+\pkg{lme4}
+<<mtram-toenail_glmer_RS, cache = FALSE>>=
+toenail_glmer_RS <- 
+    glmer(outcome ~ treatment * time + (1 + time | patientID),
+          data = toenail_gr1, family = binomial(link = "probit"))
+summary(toenail_glmer_RS)
+toenail_glmer_RS@theta
+@
+and \pkg{glmmTMB}
+<<mtram-toenail_glmmTMB_RS, cache = FALSE>>=
+toenail_glmmTMB_RS_1 <- 
+    glmmTMB(outcome ~ treatment * time + (1 + time | patientID),
+         data = toenail_gr1, family = binomial(link = "probit"))
+summary(toenail_glmmTMB_RS_1)
+@
+are in good agreement. 
+
+The optimisation of the exact discrete likelihood in the transformation
+framework gives
+<<mtram-toenail_mtram_RS, cache = FALSE>>=
+m <- ctm(as.basis(~ outcome, data = toenail_gr1), 
+         shifting = ~ treatment * time, 
+         data = toenail, todistr = "Normal", negative = TRUE)
+toenail_probit <- mlt(m, data = toenail_gr1, 
+                      fixed = c("outcomemoderate or severe" = 0))
+toenail_mtram_RS <- 
+    mtram(toenail_probit, ~ (1 + time | patientID), 
+          data = toenail_gr1)
+logLik(toenail_mtram_RS)
+coef(toenail_mtram_RS)
+@
+Here, substantial differences for all parameters can be observed. Because
+the parameters have the same meaning in all three implementations, we can
+compare the three models in light of the exact discrete log-likelihood
+\citep[Equation~7 in][]{Hothorn_2019_mtram} evaluated at these parameters.
+The results are given in
+Table~\ref{tab:toenail}.  For the random intercept models, AGQ, Laplace, and the
 discrete log-likelihood give the same results, the Laplace approximation
-seemed to fail.  It was not possible to apply the AGQ and SR approaches to
+seemed to fail.  It was not possible to apply the AGQ approach to
 the random intercept / random slope model.  The two implementations of the
-Laplace approximation in packages \pkg{lme4} and \pkg{glmmsr} differed
-quite a bit.  The log-likelihood obtained by direct maximisation of
-(7) resulted in the best fitting model with
-the least extreme parameter estimates.  
+Laplace approximation in packages \pkg{lme4} and \pkg{glmmTMB} differed
+for the random intercept model but agreed for the random intercept / random
+slope model.  The log-likelihood obtained by direct maximisation of
+(8) resulted in the best fitting model with the least extreme parameter estimates.  
 Computing times for all procedures were comparable.
 
 \begin{table}
@@ -1314,18 +1381,13 @@ t2 <- system.time(toenail_glmer_RI_2 <-
           data = toenail, family = binomial(link = "probit"), 
           nAGQ = 20))
 
-t3 <- system.time(toenail_glmm_RI_3 <- 
-    glmm(outcome ~ treatment * time + (1 | patientID),
-         data = toenail, family = binomial(link = "probit"), 
-         method = "SR", control = list(nSL = 3)))
-
-library("hglm")
-a <-  hglm(fixed = outcome ~ treatment * time, random = ~ 1 | patientID,
-         data = toenail, family = binomial(link = "probit"))
+t3 <- system.time(toenail_glmmTMB_RI_3 <- 
+    glmmTMB(outcome ~ treatment * time + (1 | patientID),
+         data = toenail, family = binomial(link = "probit")))
 
 m <- ctm(as.basis(~ outcome, data = toenail), 
          shifting = ~ treatment * time, 
-         data = toenail, todistr = "Normal")
+         data = toenail, todistr = "Normal", negative = TRUE)
 toenail_probit <- mlt(m, data = toenail, 
                       fixed = c("outcomemoderate or severe" = 0))
 t4 <- system.time(toenail_mtram_RI <- 
@@ -1334,46 +1396,54 @@ t4 <- system.time(toenail_mtram_RI <-
 
 t5 <- system.time(toenail_glmer_RS <- 
     glmer(outcome ~ treatment * time + (1 + time | patientID),
-          data = toenail, family = binomial(link = "probit")))
+          data = toenail_gr1, family = binomial(link = "probit")))
 
-t6 <- system.time(toenail_glmm_RS_1 <- 
-    glmm(outcome ~ treatment * time + (1 + time | patientID),
-         data = toenail, family = binomial(link = "probit"), 
-         method = "Laplace"))
+t6 <- system.time(toenail_glmmTMB_RS_1 <- 
+    glmmTMB(outcome ~ treatment * time + (1 + time | patientID),
+         data = toenail_gr1, family = binomial(link = "probit")))
 
+m <- ctm(as.basis(~ outcome, data = toenail_gr1), 
+         shifting = ~ treatment * time, 
+         data = toenail, todistr = "Normal", negative = TRUE)
+toenail_probit <- mlt(m, data = toenail_gr1, 
+                      fixed = c("outcomemoderate or severe" = 0))
 t7 <- system.time(toenail_mtram_RS <- 
     mtram(toenail_probit, ~ (1 + time | patientID), 
-           data = toenail))
+           data = toenail_gr1))
 
 ## ----output, echo = FALSE------------------------------------------------
 tn_RI_glmer_L <- c(fixef(toenail_glmer_RI_1), toenail_glmer_RI_1@theta, 0, 0)
 tn_RI_glmer_A <- c(fixef(toenail_glmer_RI_2), toenail_glmer_RI_2@theta, 0, 0)
-tn_RI_glmmsr <- c(toenail_glmm_RI_3$estim[-1], toenail_glmm_RI_3$estim[1], 0, 0)
-tn_RI_mlt <- c(-coef(toenail_mtram_RI), 0, 0)
-tn_RI_mlt["gamma1"] <- -tn_RI_mlt["gamma1"]
+tn_RI_glmmTMB <- c(fixef(toenail_glmmTMB_RI_3)$cond, sqrt(VarCorr(toenail_glmmTMB_RI_3)$cond$patientID), 0, 0)
+tn_RI_mlt <- c(coef(toenail_mtram_RI), 0, 0)
 tn_RS_glmer <- c(fixef(toenail_glmer_RS), toenail_glmer_RS@theta)
-tn_RS_glmmsr <- c(toenail_glmm_RS_1$estim[-(1:3)], toenail_glmm_RS_1$estim[1:3])
-tn_RS_mlt <- coef(toenail_mtram_RS) * rep(c(-1, 1), c(4, 3))
-tn <- cbind(tn_RI_glmer_L, tn_RI_glmer_A , tn_RI_glmmsr, tn_RI_mlt ,
-            tn_RS_glmer, tn_RS_glmmsr, tn_RS_mlt)
+tn_RS_glmmTMB <- c(fixef(toenail_glmer_RS), chol(VarCorr(toenail_glmmTMB_RS_1)$cond$patientID)[c(1,3, 4)])
+tn_RS_mlt <- coef(toenail_mtram_RS)
+tn <- cbind(tn_RI_glmer_L, tn_RI_glmer_A , tn_RI_glmmTMB, tn_RI_mlt ,
+            tn_RS_glmer, tn_RS_glmmTMB, tn_RS_mlt)
+
+logLik(toenail_glmer_RI_1)
+logLik(toenail_glmer_RI_2)
+logLik(toenail_glmmTMB_RI_3)
+logLik(toenail_mtram_RI)
+
+logLik(toenail_glmer_RS)
+logLik(toenail_glmmTMB_RS_1)
+logLik(toenail_mtram_RS)
+
 ll <- c(
 ### logLik of transformation model for glmer (Laplace) parameters
-logLik(toenail_mtram_RI, c(-fixef(toenail_glmer_RI_1), 
-                            toenail_glmer_RI_1@theta)),
+logLik(toenail_mtram_RI, tn_RI_glmer_L[1:5] * c(-1, 1, 1, 1, 1)),
 ### logLik of transformation model for glmer (AGQ) parameters
-logLik(toenail_mtram_RI, c(-fixef(toenail_glmer_RI_2), 
-                            toenail_glmer_RI_2@theta)),
-### logLik of transformation model for glmmsr (SR) parameters
-logLik(toenail_mtram_RI, parm = c(-toenail_glmm_RI_3$estim[-1], 
-                                   toenail_glmm_RI_3$estim[1])),
+logLik(toenail_mtram_RI, tn_RI_glmer_A[1:5] * c(-1, 1, 1, 1, 1)),
+### logLik of transformation model for glmmTMB (Laplace) parameters
+logLik(toenail_mtram_RI, tn_RI_glmmTMB[1:5] * c(-1, 1, 1, 1, 1)),
 ### logLik of transformation model
 logLik(toenail_mtram_RI),
 ### logLik of transformation model for glmer (Laplace) parameters
-logLik(toenail_mtram_RS, c(-fixef(toenail_glmer_RS), 
-                            toenail_glmer_RS@theta)),
-### logLik of transformation model for glmmsr (Laplace) parameters
-logLik(toenail_mtram_RS, parm = c(-toenail_glmm_RS_1$estim[-(1:3)], 
-                                   toenail_glmm_RS_1$estim[1:3])),
+logLik(toenail_mtram_RS, tn_RS_glmer * c(-1, rep(1, 6))),
+### logLik of transformation model for glmmTMB (Laplace) parameters
+logLik(toenail_mtram_RS, tn_RS_glmmTMB * c(-1, rep(1, 6))),
 ### logLik of transformation model
 logLik(toenail_mtram_RS))
 
@@ -1392,8 +1462,8 @@ tn <- cbind(c("$\\alpha$", "$\\eshiftparm_1$", "$\\eshiftparm_2$", "$\\eshiftpar
 ret <- c("
 \\begin{tabular}{lrrrr|rrr} \\\\ \\hline
 & \\multicolumn{4}{c|}{RI} & \\multicolumn{3}{c}{RI + RS} \\\\
-& \\texttt{glmer} & \\texttt{glmer} & \\texttt{glmm} &  & \\texttt{glmer} & \\texttt{glmm} & \\\\
-& L               & AGQ             & SR & (7) & L & L & (7) \\\\ \\hline")
+& \\texttt{glmer} & \\texttt{glmer} & \\texttt{glmmTMB} &  & \\texttt{glmer} & \\texttt{glmmTMB} & \\\\
+& L               & AGQ             & L & (8) & L & L & (8) \\\\ \\hline")
 ret <- c(ret, apply(tn, 1, function(x) c(paste(x, collapse = " & "), "\\\\")))
 ret <- c(ret, "\\hline")
 ret <- c(ret, 
@@ -1408,12 +1478,11 @@ cat(ret, sep = "\n")
 $\alpha$, treatment effects $\eshiftparm_1$, time effects $\eshiftparm_2$,
 and time-treatment interactions $\eshiftparm_3$ are compared.
 Random intercept (RI) and
-random intercept/random slope (RI + RS) models were estimated by the Laplace (L),
-Adaptive Gauss-Hermite Quadrature (AGQ), an Sequential
-Reduction (SR) approximations to the likelihood (implemented in packages
-\pkg{lme4} and \pkg{glmmsr}). In addition, the exact discrete
-log-likelihood (7) was used for model fitting and evaluation (the
-in-sample log-likelihood (7) for all models and timings
+random intercept/random slope (RI + RS) models were estimated by the Laplace (L)
+and Adaptive Gauss-Hermite Quadrature (AGQ) approximations to the likelihood (implemented in packages
+\pkg{lme4} and \pkg{glmmTMB}). In addition, the exact discrete
+log-likelihood (8) was used for model fitting and evaluation (the
+in-sample log-likelihood (8) for all models and timings
 of all procedures are given in the last two lines).
 \label{tab:toenail}
 }
@@ -8260,7 +8329,6 @@ pkg <- function(pkg) {
 pkg("mlt")
 pkg("tram")
 pkg("SparseGrid")
-#pkg("lme4")
 cat(c("@Manual{vign:mlt.docreg,",
              "    title = {Most Likely Transformations: The mlt Package},",
              "    author = {Torsten Hothorn},",
