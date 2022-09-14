@@ -411,12 +411,8 @@ cf[2:4] / sqrt(1 + cf["gamma1"]^2)
 
 ## ----mtram-toenail-trt--------------------------------------------------------
 S <- rmvnorm(10000, mean = coef(toenail_mtram_logit), sigma = solve(toenail_mtram_logit$Hessian))
-(ci <- quantile(exp(S[,"treatmentterbinafine:time"] / sqrt(1 + S[,
-"gamma1"]^2)), prob = c(.025,
-.975)))
 (ci <- quantile(S[,"treatmentterbinafine:time"] / sqrt(1 + S[, "gamma1"]^2), prob = c(.025,
 .975)))
-
 
 
 ## ----mtram-toenail-gee-logit-mcoef--------------------------------------------
