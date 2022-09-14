@@ -300,10 +300,6 @@ plotfun("prob", ex, layout = c(5, 2), par.settings = simpleTheme(col=c(grey, col
 
 ## ----mtram-toenail-plot, echo = FALSE, cache = FALSE--------------------------
 data("toenail", package = "HSAUR3")
-rlev <- levels(toenail$patientID)[xtabs(~ patientID, 
-                                        data = toenail) == 1]
-toenail <- subset(toenail, !patientID %in% rlev)
-toenail$patientID <- toenail$patientID[, drop = TRUE]
 layout(matrix(1:2, ncol = 2))
 trt <- levels(toenail$treatment)
 cdplot(outcome ~ time, data = subset(toenail, treatment == trt[1]),
@@ -330,21 +326,18 @@ summary(toenail_glmer_RI_2)
 toenail_glmer_RI_2@theta
 
 
-## ----mtram-glmmsr-------------------------------------------------------------
-library("glmmsr")
-
-## ----mtram-toenail_glmmsr_RI, cache = FALSE-----------------------------------
-toenail_glmm_RI_3 <- 
-    glmm(outcome ~ treatment * time + (1 | patientID),
-         data = toenail, family = binomial(link = "probit"), 
-         method = "SR", control = list(nSL = 3))
-summary(toenail_glmm_RI_3)
+## ----mtram-toenail_glmmTMB_RI, cache = FALSE----------------------------------
+library("glmmTMB")
+toenail_glmmTMB_RI_3 <- 
+    glmmTMB(outcome ~ treatment * time + (1 | patientID),
+         data = toenail, family = binomial(link = "probit"))
+summary(toenail_glmmTMB_RI_3)
 
 
 ## ----mtram-toenail_mtram_RI, cache = FALSE------------------------------------
 m <- ctm(as.basis(~ outcome, data = toenail), 
          shifting = ~ treatment * time, 
-         data = toenail, todistr = "Normal")
+         data = toenail, todistr = "Normal", negative = TRUE)
 toenail_probit <- mlt(m, data = toenail, 
                       fixed = c("outcomemoderate or severe" = 0))
 toenail_mtram_RI <- 
@@ -358,39 +351,80 @@ vcov(toenail_glmer_RI_2)
 solve(toenail_mtram_RI$Hessian)[1:4, 1:4]
 
 
-## ----mtram-toenail_glmer_RS, cache = FALSE------------------------------------
-toenail_glmer_RS <- 
-    glmer(outcome ~ treatment * time + (1 + time | patientID),
-          data = toenail, family = binomial(link = "probit"))
-summary(toenail_glmer_RS)
-toenail_glmer_RS@theta
+## ----mtram-toenail-coef-------------------------------------------------------
+cf <- coef(toenail_mtram_RI)
+cf[2:4] / sqrt(1 + cf["gamma1"]^2)
 
 
-## ----mtram-toenail_glmmsr_RS, cache = FALSE-----------------------------------
-toenail_glmm_RS_1 <- 
-    glmm(outcome ~ treatment * time + (1 + time | patientID),
-         data = toenail, family = binomial(link = "probit"), 
-         method = "Laplace")
-toenail_glmm_RS_1$estim[1:3]
-toenail_glmm_RS_1$estim[-(1:3)]
+## ----mtram-toenail-gee-probit-------------------------------------------------
+library("geepack")
+gin <- geeglm(I((0:1)[outcome]) ~ treatment * time, 
+              id = patientID, data = toenail, corstr = "independence", 
+              family = binomial(link = "probit"))
+gex <- geeglm(I((0:1)[outcome]) ~ treatment * time, 
+              id = patientID, data = toenail, cor = "exchangeable", 
+              family = binomial(link = "probit"))
+gun <- geeglm(I((0:1)[outcome]) ~ treatment * time, 
+              id = patientID, data = toenail, cor = "unstructured", 
+              family = binomial(link = "probit"))
 
 
-## ----mtram-toenail_mtram_RS, cache = FALSE------------------------------------
-toenail_mtram_RS <- 
-    mtram(toenail_probit, ~ (1 + time | patientID), 
-          data = toenail)
-logLik(toenail_mtram_RS)
-coef(toenail_mtram_RS)
+## ----mtram-toenail-gee-probit-coef--------------------------------------------
+cbind(mtram = cf[2:4] / sqrt(1 + cf["gamma1"]^2),
+      indep = coef(gin)[-1],
+      excha = coef(gex)[-1],
+      unstr = coef(gun)[-1])
+
+
+## ----mtram-toenail-gee-logit--------------------------------------------------
+gin <- geeglm(I((0:1)[outcome]) ~ treatment * time, 
+              id = patientID, data = toenail, corstr = "independence", 
+              family = binomial())
+gex <- geeglm(I((0:1)[outcome]) ~ treatment * time, 
+              id = patientID, data = toenail, cor = "exchangeable", 
+              family = binomial())
+gun <- geeglm(I((0:1)[outcome]) ~ treatment * time, 
+              id = patientID, data = toenail, cor = "unstructured", 
+              family = binomial())
+
+
+## ----mtram-toenail-gee-logit-coef---------------------------------------------
+coef(gin)
+coef(gex)
+coef(gun)
 
 
 ## ----mtram-toenail_logit, cache = FALSE---------------------------------------
 m <- ctm(as.basis(~ outcome, data = toenail), 
          shifting = ~ treatment * time, 
-         data = toenail, todistr = "Logistic")
+         data = toenail, todistr = "Logistic", negative = TRUE)
 toenail_logit <- mlt(m, data = toenail, 
                      fixed = c("outcomemoderate or severe" = 0))
 toenail_mtram_logit <- mtram(toenail_logit, ~ (1 | patientID), 
                              data = toenail, Hessian = TRUE)
+
+
+## ----mtram-toenail_logit-coef-------------------------------------------------
+cf <- coef(toenail_mtram_logit)
+cf[2:4] / sqrt(1 + cf["gamma1"]^2)
+
+
+## ----mtram-toenail-trt--------------------------------------------------------
+S <- rmvnorm(10000, mean = coef(toenail_mtram_logit), sigma = solve(toenail_mtram_logit$Hessian))
+(ci <- quantile(S[,"treatmentterbinafine:time"] / sqrt(1 + S[, "gamma1"]^2), prob = c(.025,
+.975)))
+
+
+## ----mtram-toenail-gee-logit-mcoef--------------------------------------------
+cbind(mtram = cf[2:4] / sqrt(1 + cf["gamma1"]^2),
+      indep = coef(gin)[-1],
+      excha = coef(gex)[-1],
+      unstr = coef(gun)[-1])
+
+
+## ----mtram-GEE-CI-------------------------------------------------------------
+exp(coef(gun)["treatmentterbinafine:time"] +
+    c(-1, 1) * sqrt(diag(vcov(gun)))["treatmentterbinafine:time"])
 
 
 ## ----mtram-toenail_marginal_logit_s-------------------------------------------
@@ -414,7 +448,7 @@ rbeta <- rmvnorm(10000, mean = coef(toenail_mtram_logit),
                  sigma = solve(toenail_mtram_logit$Hessian))
 s <- rbeta[,ncol(rbeta)]
 rbeta <- rbeta[,-ncol(rbeta)] / sqrt(s^2 + 1)
-odds <- exp(X %*% t(rbeta))
+odds <- exp(-X %*% t(rbeta))
 OR <- odds[1:length(time),] / odds[-(1:length(time)),]
 plot(time, rep(0, length(time)), ylim = range(OR), type = "n", 
      xlab = "Time", ylab = "Odds ratio")
@@ -448,9 +482,6 @@ nd$prob_probit <- predict(tmp, newdata = nd, type = "distribution")[1,]
 
 
 ## ----mtram-toenail_probplot, echo = FALSE-------------------------------------
-# nd2 <- nd[rep(1:nrow(nd), 3),]
-# nd2$prob <- c(nd$prob_probit, nd$prob_logit_s, nd$prob_logit)
-# lev <- c("Probit (M1) = (M2)", "Logit (M1)", "Logit (M2)")
 nd2 <- nd[rep(1:nrow(nd), 2),]
 nd2$prob <- c(nd$prob_probit, nd$prob_logit)
 lev <- c("Probit", "Logit")
@@ -464,6 +495,41 @@ xyplot(prob ~ time | model, data = nd2, group = treatment, ylim = c(0, 1),
        col = col, type = "l", ylab = "Probability (none or mild)")
 
 
+## ----mtram-toenail-subset-----------------------------------------------------
+(rlev <- levels(toenail$patientID)[xtabs(~ patientID, 
+                                        data = toenail) == 1])
+toenail_gr1 <- subset(toenail, !patientID %in% rlev)
+toenail_gr1$patientID <- toenail_gr1$patientID[, drop = TRUE]
+
+
+## ----mtram-toenail_glmer_RS, cache = FALSE------------------------------------
+toenail_glmer_RS <- 
+    glmer(outcome ~ treatment * time + (1 + time | patientID),
+          data = toenail_gr1, family = binomial(link = "probit"))
+summary(toenail_glmer_RS)
+toenail_glmer_RS@theta
+
+
+## ----mtram-toenail_glmmTMB_RS, cache = FALSE----------------------------------
+toenail_glmmTMB_RS_1 <- 
+    glmmTMB(outcome ~ treatment * time + (1 + time | patientID),
+         data = toenail_gr1, family = binomial(link = "probit"))
+summary(toenail_glmmTMB_RS_1)
+
+
+## ----mtram-toenail_mtram_RS, cache = FALSE------------------------------------
+m <- ctm(as.basis(~ outcome, data = toenail_gr1), 
+         shifting = ~ treatment * time, 
+         data = toenail, todistr = "Normal", negative = TRUE)
+toenail_probit <- mlt(m, data = toenail_gr1, 
+                      fixed = c("outcomemoderate or severe" = 0))
+toenail_mtram_RS <- 
+    mtram(toenail_probit, ~ (1 + time | patientID), 
+          data = toenail_gr1)
+logLik(toenail_mtram_RS)
+coef(toenail_mtram_RS)
+
+
 ## ----toenail-comparisons, cache = FALSE, echo = FALSE, results = "hide"-------
 t1 <- system.time(toenail_glmer_RI_1 <- 
     glmer(outcome ~ treatment * time + (1 | patientID),
@@ -475,18 +541,13 @@ t2 <- system.time(toenail_glmer_RI_2 <-
           data = toenail, family = binomial(link = "probit"), 
           nAGQ = 20))
 
-t3 <- system.time(toenail_glmm_RI_3 <- 
-    glmm(outcome ~ treatment * time + (1 | patientID),
-         data = toenail, family = binomial(link = "probit"), 
-         method = "SR", control = list(nSL = 3)))
-
-library("hglm")
-a <-  hglm(fixed = outcome ~ treatment * time, random = ~ 1 | patientID,
-         data = toenail, family = binomial(link = "probit"))
+t3 <- system.time(toenail_glmmTMB_RI_3 <- 
+    glmmTMB(outcome ~ treatment * time + (1 | patientID),
+         data = toenail, family = binomial(link = "probit")))
 
 m <- ctm(as.basis(~ outcome, data = toenail), 
          shifting = ~ treatment * time, 
-         data = toenail, todistr = "Normal")
+         data = toenail, todistr = "Normal", negative = TRUE)
 toenail_probit <- mlt(m, data = toenail, 
                       fixed = c("outcomemoderate or severe" = 0))
 t4 <- system.time(toenail_mtram_RI <- 
@@ -495,46 +556,54 @@ t4 <- system.time(toenail_mtram_RI <-
 
 t5 <- system.time(toenail_glmer_RS <- 
     glmer(outcome ~ treatment * time + (1 + time | patientID),
-          data = toenail, family = binomial(link = "probit")))
+          data = toenail_gr1, family = binomial(link = "probit")))
 
-t6 <- system.time(toenail_glmm_RS_1 <- 
-    glmm(outcome ~ treatment * time + (1 + time | patientID),
-         data = toenail, family = binomial(link = "probit"), 
-         method = "Laplace"))
+t6 <- system.time(toenail_glmmTMB_RS_1 <- 
+    glmmTMB(outcome ~ treatment * time + (1 + time | patientID),
+         data = toenail_gr1, family = binomial(link = "probit")))
 
+m <- ctm(as.basis(~ outcome, data = toenail_gr1), 
+         shifting = ~ treatment * time, 
+         data = toenail, todistr = "Normal", negative = TRUE)
+toenail_probit <- mlt(m, data = toenail_gr1, 
+                      fixed = c("outcomemoderate or severe" = 0))
 t7 <- system.time(toenail_mtram_RS <- 
     mtram(toenail_probit, ~ (1 + time | patientID), 
-           data = toenail))
+           data = toenail_gr1))
 
 ## ----output, echo = FALSE------------------------------------------------
 tn_RI_glmer_L <- c(fixef(toenail_glmer_RI_1), toenail_glmer_RI_1@theta, 0, 0)
 tn_RI_glmer_A <- c(fixef(toenail_glmer_RI_2), toenail_glmer_RI_2@theta, 0, 0)
-tn_RI_glmmsr <- c(toenail_glmm_RI_3$estim[-1], toenail_glmm_RI_3$estim[1], 0, 0)
-tn_RI_mlt <- c(-coef(toenail_mtram_RI), 0, 0)
-tn_RI_mlt["gamma1"] <- -tn_RI_mlt["gamma1"]
+tn_RI_glmmTMB <- c(fixef(toenail_glmmTMB_RI_3)$cond, sqrt(VarCorr(toenail_glmmTMB_RI_3)$cond$patientID), 0, 0)
+tn_RI_mlt <- c(coef(toenail_mtram_RI), 0, 0)
 tn_RS_glmer <- c(fixef(toenail_glmer_RS), toenail_glmer_RS@theta)
-tn_RS_glmmsr <- c(toenail_glmm_RS_1$estim[-(1:3)], toenail_glmm_RS_1$estim[1:3])
-tn_RS_mlt <- coef(toenail_mtram_RS) * rep(c(-1, 1), c(4, 3))
-tn <- cbind(tn_RI_glmer_L, tn_RI_glmer_A , tn_RI_glmmsr, tn_RI_mlt ,
-            tn_RS_glmer, tn_RS_glmmsr, tn_RS_mlt)
+tn_RS_glmmTMB <- c(fixef(toenail_glmer_RS), chol(VarCorr(toenail_glmmTMB_RS_1)$cond$patientID)[c(1,3, 4)])
+tn_RS_mlt <- coef(toenail_mtram_RS)
+tn <- cbind(tn_RI_glmer_L, tn_RI_glmer_A , tn_RI_glmmTMB, tn_RI_mlt ,
+            tn_RS_glmer, tn_RS_glmmTMB, tn_RS_mlt)
+
+logLik(toenail_glmer_RI_1)
+logLik(toenail_glmer_RI_2)
+logLik(toenail_glmmTMB_RI_3)
+logLik(toenail_mtram_RI)
+
+logLik(toenail_glmer_RS)
+logLik(toenail_glmmTMB_RS_1)
+logLik(toenail_mtram_RS)
+
 ll <- c(
 ### logLik of transformation model for glmer (Laplace) parameters
-logLik(toenail_mtram_RI, c(-fixef(toenail_glmer_RI_1), 
-                            toenail_glmer_RI_1@theta)),
+logLik(toenail_mtram_RI, tn_RI_glmer_L[1:5] * c(-1, 1, 1, 1, 1)),
 ### logLik of transformation model for glmer (AGQ) parameters
-logLik(toenail_mtram_RI, c(-fixef(toenail_glmer_RI_2), 
-                            toenail_glmer_RI_2@theta)),
-### logLik of transformation model for glmmsr (SR) parameters
-logLik(toenail_mtram_RI, parm = c(-toenail_glmm_RI_3$estim[-1], 
-                                   toenail_glmm_RI_3$estim[1])),
+logLik(toenail_mtram_RI, tn_RI_glmer_A[1:5] * c(-1, 1, 1, 1, 1)),
+### logLik of transformation model for glmmTMB (Laplace) parameters
+logLik(toenail_mtram_RI, tn_RI_glmmTMB[1:5] * c(-1, 1, 1, 1, 1)),
 ### logLik of transformation model
 logLik(toenail_mtram_RI),
 ### logLik of transformation model for glmer (Laplace) parameters
-logLik(toenail_mtram_RS, c(-fixef(toenail_glmer_RS), 
-                            toenail_glmer_RS@theta)),
-### logLik of transformation model for glmmsr (Laplace) parameters
-logLik(toenail_mtram_RS, parm = c(-toenail_glmm_RS_1$estim[-(1:3)], 
-                                   toenail_glmm_RS_1$estim[1:3])),
+logLik(toenail_mtram_RS, tn_RS_glmer * c(-1, rep(1, 6))),
+### logLik of transformation model for glmmTMB (Laplace) parameters
+logLik(toenail_mtram_RS, tn_RS_glmmTMB * c(-1, rep(1, 6))),
 ### logLik of transformation model
 logLik(toenail_mtram_RS))
 
@@ -553,8 +622,8 @@ tn <- cbind(c("$\\alpha$", "$\\eshiftparm_1$", "$\\eshiftparm_2$", "$\\eshiftpar
 ret <- c("
 \\begin{tabular}{lrrrr|rrr} \\\\ \\hline
 & \\multicolumn{4}{c|}{RI} & \\multicolumn{3}{c}{RI + RS} \\\\
-& \\texttt{glmer} & \\texttt{glmer} & \\texttt{glmm} &  & \\texttt{glmer} & \\texttt{glmm} & \\\\
-& L               & AGQ             & SR & (7) & L & L & (7) \\\\ \\hline")
+& \\texttt{glmer} & \\texttt{glmer} & \\texttt{glmmTMB} &  & \\texttt{glmer} & \\texttt{glmmTMB} & \\\\
+& L               & AGQ             & L & (8) & L & L & (8) \\\\ \\hline")
 ret <- c(ret, apply(tn, 1, function(x) c(paste(x, collapse = " & "), "\\\\")))
 ret <- c(ret, "\\hline")
 ret <- c(ret, 
@@ -7023,7 +7092,6 @@ pkg <- function(pkg) {
 pkg("mlt")
 pkg("tram")
 pkg("SparseGrid")
-#pkg("lme4")
 cat(c("@Manual{vign:mlt.docreg,",
              "    title = {Most Likely Transformations: The mlt Package},",
              "    author = {Torsten Hothorn},",
