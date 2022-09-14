@@ -1,7 +1,7 @@
 
 %\VignetteEngine{knitr::knitr}
 %\VignetteIndexEntry{mtram}
-%\VignetteDepends{variables, basefun, mlt, tram, survival, lme4, gridExtra, lattice, latticeExtra, colorspace, HSAUR3, mvtnorm, ordinalCont, tramME}
+%\VignetteDepends{variables, basefun, mlt, tram, survival, lme4, gridExtra, lattice, latticeExtra, colorspace, HSAUR3, mvtnorm, ordinalCont, tramME, glmmTMB}
 
 \documentclass[article,nojss,shortnames]{jss}
 
