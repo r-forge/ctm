@@ -932,8 +932,74 @@ sleep_C <- Colr(Reaction ~ Days, data = sleepstudy)
 sleep_Cmer <- mtram(sleep_C, ~ (Days | Subject), data = sleepstudy)
 logLik(sleep_Cmer)
 @
-Here, the in-sample log-likelihood increases compared to the probit model.
+Here, the in-sample log-likelihood increases compared to the probit model
+and the marginal distributions obtained from this model are shown in
+Figure~\ref{fig:sleepstudy_ecdf-2}.
 How to interpret models of this type is discussed in Section~\ref{sec:logit}.
+
+\begin{figure}[t]
+<<mtram-sleep_marginal-2, fig.height = 5, fig.width = 7, echo = FALSE>>=
+days <- 0:9
+q <- seq(from = min(sleepstudy$Reaction), to = max(sleepstudy$Reaction), 
+         length.out = 100)
+meth <- c("Normal linear mixed-effects model", "Probit transformation model", 
+          "Marginal logit transformation model")
+ex <- expand.grid(Reaction = q, Days = days,
+                  Method = factor(meth, levels = meth, labels = meth))
+U <- cbind(1, days)
+### Linear
+tmp <- as.mlt(sleep_LM)
+cf <- coef(tmp)
+coef(tmp) <- coef(sleep_LMmer)[names(cf)]
+SLM <- tcrossprod(U %*% as(sleep_BCmer$G, "matrix"), U) + diag(nrow(U))
+sd <- sqrt(diag(SLM))
+h <- predict(tmp, newdata = data.frame(Days = days), q = q, type = "trafo")
+prob_LM <- pnorm(t(t(h) / sd ))
+### BoxCox
+tmp <- as.mlt(sleep_BC)
+cf <- coef(tmp)
+coef(tmp) <- coef(sleep_BCmer)[names(cf)]
+SBC <- tcrossprod(U %*% as(sleep_BCmer$G, "matrix"), U) + diag(nrow(U))
+sd <- sqrt(diag(SBC))
+h <- predict(tmp, newdata = data.frame(Days = days), q = q, type = "trafo")
+prob_BC <- pnorm(t(t(h) / sd ))
+### Colr
+tmp <- as.mlt(sleep_C)
+cf <- coef(tmp)
+coef(tmp) <- coef(sleep_Cmer)[names(cf)]
+SBC <- tcrossprod(U %*% as(sleep_Cmer$G, "matrix"), U) + diag(nrow(U))
+sd <- sqrt(diag(SBC))
+h <- predict(tmp, newdata = data.frame(Days = days), q = q, type = "trafo")
+prob_C <- plogis(t(t(h) / sd ))
+ex$prob <- c(prob_LM, prob_BC, prob_C)
+plotfun <- function(prob, data, ...) {
+    fm <- as.formula(paste(prob, "~ Reaction | Days"))
+    xyplot(fm, data = data, type = "l", 
+        panel = function(x, y, subscripts, ...) {
+            tmp <- subset(sleepstudy, Days == unique(nd[subscripts, "Days"]))
+            mypanel(tmp$Reaction, rep(1, nrow(tmp)), lwd = 3, col = grey)
+            panel.xyplot(x, y, subscripts = subscripts, ...)
+    }, col = c(col, col[2]),  xlab = "Average reaction time (in ms)", 
+    ylab = "Marginal distribution function", lwd = 2, groups = Method, lty =
+    c(1, 1, 3), ...)
+}
+grey <- rgb(.75, .75, .75)
+nd <- ex
+plotfun("prob", ex, layout = c(5, 2), par.settings = simpleTheme(col=c(grey, col, col[2]), lwd =
+3, lty = c(1, 1, 1, 3)),
+  auto.key = list(text = c("Empirical cumulative distribution function", levels(nd$Method)), 
+                  points = FALSE, lines = TRUE))
+@
+\caption{Sleep deprivation: Marginal distribution of reaction times, separately for each day of
+         study participation. The grey step-function corresponds to the
+         empirical cumulative distribution function, the blue line to the
+         marginal cumulative distribution of a normal linear mixed-effects model, and
+         the orange lines to a non-normal probit (solid) and marginal logit
+         (dotted) transformation  model. \label{fig:sleepstudy_ecdf-2}}
+\end{figure}
+
+
+
 
 \section{Binary Probit Mixed-effects Models}
 
