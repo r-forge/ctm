@@ -411,8 +411,12 @@ cf[2:4] / sqrt(1 + cf["gamma1"]^2)
 
 ## ----mtram-toenail-trt--------------------------------------------------------
 S <- rmvnorm(10000, mean = coef(toenail_mtram_logit), sigma = solve(toenail_mtram_logit$Hessian))
+(ci <- quantile(exp(S[,"treatmentterbinafine:time"] / sqrt(1 + S[,
+"gamma1"]^2)), prob = c(.025,
+.975)))
 (ci <- quantile(S[,"treatmentterbinafine:time"] / sqrt(1 + S[, "gamma1"]^2), prob = c(.025,
 .975)))
+
 
 
 ## ----mtram-toenail-gee-logit-mcoef--------------------------------------------
@@ -424,7 +428,7 @@ cbind(mtram = cf[2:4] / sqrt(1 + cf["gamma1"]^2),
 
 ## ----mtram-GEE-CI-------------------------------------------------------------
 exp(coef(gun)["treatmentterbinafine:time"] +
-    c(-1, 1) * sqrt(diag(vcov(gun)))["treatmentterbinafine:time"])
+    c(-1, 1) * qnorm(.975) * sqrt(diag(vcov(gun)))["treatmentterbinafine:time"])
 
 
 ## ----mtram-toenail_marginal_logit_s-------------------------------------------
@@ -623,7 +627,7 @@ ret <- c("
 \\begin{tabular}{lrrrr|rrr} \\\\ \\hline
 & \\multicolumn{4}{c|}{RI} & \\multicolumn{3}{c}{RI + RS} \\\\
 & \\texttt{glmer} & \\texttt{glmer} & \\texttt{glmmTMB} &  & \\texttt{glmer} & \\texttt{glmmTMB} & \\\\
-& L               & AGQ             & L & (8) & L & L & (8) \\\\ \\hline")
+& L               & AGQ             & L & (7) & L & L & (7) \\\\ \\hline")
 ret <- c(ret, apply(tn, 1, function(x) c(paste(x, collapse = " & "), "\\\\")))
 ret <- c(ret, "\\hline")
 ret <- c(ret, 

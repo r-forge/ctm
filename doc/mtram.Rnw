@@ -1207,10 +1207,12 @@ working correlation to compute a confidence interval for the temporal
 treatment effect on the odds ratio scale
 <<mtram-GEE-CI>>=
 exp(coef(gun)["treatmentterbinafine:time"] +
-    c(-1, 1) * sqrt(diag(vcov(gun)))["treatmentterbinafine:time"])
+    c(-1, 1) * qnorm(.975) * sqrt(diag(vcov(gun)))["treatmentterbinafine:time"])
 @
-In respect of this temporal treatment effect, GEE and marginal transformation models 
-provide similar results, in agreement with \cite{Molenberghs_Verbeke_2005}.
+In respect of this temporal treatment effect, GEE and marginal 
+transformation models provide similar results, but the ``significance'' of
+the temporal treatment effect seems to be affected by numerical issues
+arising when fitting such models to this data.
 
 From the marginal transformation model, we can compute and plot marginally interpretable 
 probabilities and odds ratios over time
@@ -1364,7 +1366,7 @@ the random intercept / random slope model.  The two implementations of the
 Laplace approximation in packages \pkg{lme4} and \pkg{glmmTMB} differed
 for the random intercept model but agreed for the random intercept / random
 slope model.  The log-likelihood obtained by direct maximisation of
-(8) resulted in the best fitting model with the least extreme parameter estimates.  
+(7) resulted in the best fitting model with the least extreme parameter estimates.  
 Computing times for all procedures were comparable.
 
 \begin{table}
@@ -1463,7 +1465,7 @@ ret <- c("
 \\begin{tabular}{lrrrr|rrr} \\\\ \\hline
 & \\multicolumn{4}{c|}{RI} & \\multicolumn{3}{c}{RI + RS} \\\\
 & \\texttt{glmer} & \\texttt{glmer} & \\texttt{glmmTMB} &  & \\texttt{glmer} & \\texttt{glmmTMB} & \\\\
-& L               & AGQ             & L & (8) & L & L & (8) \\\\ \\hline")
+& L               & AGQ             & L & (7) & L & L & (7) \\\\ \\hline")
 ret <- c(ret, apply(tn, 1, function(x) c(paste(x, collapse = " & "), "\\\\")))
 ret <- c(ret, "\\hline")
 ret <- c(ret, 
@@ -1481,8 +1483,8 @@ Random intercept (RI) and
 random intercept/random slope (RI + RS) models were estimated by the Laplace (L)
 and Adaptive Gauss-Hermite Quadrature (AGQ) approximations to the likelihood (implemented in packages
 \pkg{lme4} and \pkg{glmmTMB}). In addition, the exact discrete
-log-likelihood (8) was used for model fitting and evaluation (the
-in-sample log-likelihood (8) for all models and timings
+log-likelihood (7) was used for model fitting and evaluation (the
+in-sample log-likelihood (7) for all models and timings
 of all procedures are given in the last two lines).
 \label{tab:toenail}
 }
