@@ -158,7 +158,6 @@ mmlt <- function(..., formula = ~ 1, data, theta = NULL, # diag = FALSE,
     idx_d <- di
   }
   
-  
   ### catch constraint violations here
   .log <- function(x) {
     return(log(pmax(.Machine$double.eps, x)))
@@ -328,7 +327,14 @@ mmlt <- function(..., formula = ~ 1, data, theta = NULL, # diag = FALSE,
       
       mret <- -do.call("c", mret)
       cret <- -do.call("c", cret)
-      c(mret, cret)
+      c(mret, cret)  ## here cret is saved row-wise
+      
+      # ## index to revert order to column-wise
+      # ## !!! NOT WORKING YET !!!
+      # row_to_col <- L[lower.tri(L, diag = diag)]
+      # L_row_to_col <- matrix(1:(Jp*ncol(lX)), nrow = Jp, ncol = ncol(lX), byrow = TRUE)
+      # idx_row_to_col <- c(t(L1[new_id,]))
+      # c(mret, cret[idx_row_to_col]) ## here cret is saved column-wise
     }
     ### user-defined starting parameters for optimization
     if(!is.null(theta)) {
@@ -391,6 +397,7 @@ mmlt <- function(..., formula = ~ 1, data, theta = NULL, # diag = FALSE,
     mmod[[j]] <- as.mlt(m[[j]])
     coef(mmod[[j]]) <- mlist[[j]]
   }
+  
   cpar <- matrix(opt$par[-(1:length(mpar))], ncol = Jp)
   
   gaussian <- all.equal("normal", unique(sapply(mmod, function(x) x$todistr$name)))
@@ -528,7 +535,9 @@ predict.mmlt <- function(object, newdata, marginal = 1L,
 } 
 
 # we will use as input Solve2(Xp)
-.Crossp <- function(Linv, diag) {
+# this will be column-wise
+# diag indicates whether the diagonal was actively modelled in mmlt
+.Crossp <- function(Linv, diag = FALSE) {
   
   if(!is.matrix(Linv)) Linv <- matrix(Linv, nrow = 1)
   
@@ -539,17 +548,17 @@ predict.mmlt <- function(object, newdata, marginal = 1L,
   if (N == 1) {
     if (!diag) {
       L <- diag(J)
-      L[upper.tri(L)] <- Linv
-      L <- t(L)
-    }
-    else {
+      # L[upper.tri(L)] <- Linv
+      # L <- t(L)
+      L[lower.tri(L)] <- Linv ## column-wise initialization
+    } else {
       L <- diag(0, J)
-      L[!upper.tri(L)] <- Linv
+      L[!upper.tri(L)] <- Linv ## column-wise initialization
     }
     
     tcp <- tcrossprod(L)
     S_diag <- diag(tcp)
-    S_low <- tcp[lower.tri(tcp)]
+    S_low <- tcp[lower.tri(tcp)]  ## returned column-wise
   }
   # more than 1 observation
   else{
@@ -564,11 +573,17 @@ predict.mmlt <- function(object, newdata, marginal = 1L,
       
       if (J > 2) {
         L <- diag(0, J)
-        L[upper.tri(L)] <- 1:Jp
-        L <- t(L)
+        # L[upper.tri(L)] <- 1:Jp
+        # L <- t(L)
+        L[lower.tri(L)] <- 1:Jp ## column-wise initialization
         
-        S <- matrix(rep(rep(1:0, (J - 1)), c(rbind(1:(J - 1), Jp))), nrow = Jp)[, -J]
-        S_diag <- cbind(rep(1, N), matrix(1, nrow = N, ncol = J-1) + Linv^2 %*% S)
+        S <- matrix(rep(rep(1:0, (J - 1)), c(rbind(1:(J - 1), Jp))), nrow = Jp)[, -J]  ## assumes row-wise entries in Linv
+        
+        ## fix for column-wise entries in Linv
+        Lp <- t(L)
+        idx_col <- Lp[upper.tri(Lp)]
+        
+        S_diag <- cbind(rep(1, N), matrix(1, nrow = N, ncol = J-1) + (Linv^2)[,idx_col] %*% S)
         
         for (i in J:3) { #zeile
           for (j in (i-1):2) { #spalte
