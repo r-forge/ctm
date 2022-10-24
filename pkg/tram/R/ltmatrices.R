@@ -1,4 +1,6 @@
 
+library("Matrix")
+
 ### N (nrow(x)) lower triangular J x J matrices (ncol(x) = J * (J - 1) / 2 + diag * J)
 ### with unit (!diag) or non-unit (diag) diagonal in column order (!byrow) or row order (byrow)
 ### rcnames is a J-dim unique char vector
@@ -20,9 +22,24 @@ ltmatrices <- function(x, diag = FALSE, byrow = FALSE, rcnames = NULL) {
     rc <- expand.grid(rcnames, rcnames)[L[lower.tri(L, diag = diag)],]
     colnames(x) <- paste(rc[, 1L], rc[, 2L], sep = ".")
 
+    if (!diag) {
+        idx <- 1
+        S <- 1
+        if (J > 2) {
+            S <- Matrix(rep(rep(1:0, (J - 1)), c(rbind(1:(J - 1), ncol(x)))), nrow = ncol(x))[, -J]
+            idx <- unlist(lapply(colSums(S), seq_len))
+        }
+    } else {
+        S <- Matrix(rep(rep(1:0, J),
+                    c(rbind(1:J, ncol(x)))), nrow = ncol(x))[, -(J + 1)]
+        idx <- unlist(lapply(colSums(S), seq_len))
+    }
+
     attr(x, "diag") <- diag
     attr(x, "byrow") <- byrow
     attr(x, "rcnames") <- rcnames
+    attr(x, "S") <- S
+    attr(x, "idx") <- idx
     class(x) <- c("ltmatrices", class(x))
     x
 }
@@ -67,6 +84,12 @@ as.array.ltmatrices <- function(x, symmetric = FALSE, ...) {
 
 as.array.symatrices <- function(x, ...)
     return(as.array.ltmatrices(x, symmetric = TRUE))
+
+print.ltmatrices <- function(x, ...)
+    print(as.array(x))
+
+print.symatrices <- function(x, ...)
+    print(as.array(x))
 
 ### change storage from column to row order or vice versa
 .reorder <- function(x, byrow = FALSE) {
@@ -233,7 +256,7 @@ tcrossprod.ltmatrices <- function(x, y = NULL) {
     if (diag) {
         L[lower.tri(L, diag = diag)] <- 1:ncol(x)
     } else {
-        L[lower.tri(L, diag = diag)] <- 1 + 1:ncol(x)
+        L[lower.tri(L, diag = diag)] <- 1L + 1:ncol(x)
         diag(L) <- 1L
         x <- cbind(1, x)
     }
@@ -262,26 +285,19 @@ mult <- function(x, y) {
 
     rcnames <- attr(x, "rcnames")
     diag <- attr(x, "diag")
+    S <- attr(x, "S")
+    idx <- attr(x, "idx")
     J <- length(rcnames)
     x <- .reorder(x, byrow = TRUE)
     class(x) <- class(x)[-1L]
 
     if (!diag) {
-        idx <- 1
-        S <- 1
-        if (J > 2) {
-            S <- matrix(rep(rep(1:0, (J - 1)), c(rbind(1:(J - 1), ncol(x)))), nrow = ncol(x))[, -J]
-            idx <- unlist(lapply(colSums(S), seq_len))
-        }
         A <- y[, idx] * x
-        B <- A %*% S + y[,-1L]
-        ret <- cbind(y[,1], B)
+        B <- A %*% S + y[, -1L, drop = FALSE]
+        ret <- cbind(y[, 1L, drop = FALSE], as(B, "matrix"))
     } else {
-        S <- matrix(rep(rep(1:0, J),
-                    c(rbind(1:J, ncol(x)))), nrow = ncol(x))[, -(J + 1)]
-        idx <- unlist(lapply(colSums(S), seq_len))
 	A <- y[, idx] * x
-        ret <- A %*% S
+        ret <- as(A %*% S, "matrix")
     }
     colnames(ret) <- rcnames
     rownames(ret) <- rownames(x)
@@ -291,12 +307,12 @@ mult <- function(x, y) {
 ### some checks
 ## dimensions
 set.seed(290875)
-N <- 3
-J <- 5
+N <- 10000
+J <- 10
 Jn <- J * (J - 1) / 2
 ## data
-xn <- matrix(1:(N * Jn), nrow = N, byrow = TRUE)
-xd <- matrix(1:(N * (Jn + J)), nrow = N, byrow = TRUE)
+xn <- matrix(runif(N * Jn), nrow = N, byrow = TRUE)
+xd <- matrix(runif(N * (Jn + J)), nrow = N, byrow = TRUE)
 
 ## constructor + .reorder + as.array
 a <- as.array(ltmatrices(xn, byrow = TRUE))
@@ -334,33 +350,47 @@ all.equal(a, b)
 
 ## solve
 A <- as.array(lxn <- ltmatrices(xn, byrow = FALSE))
-a <- as.array(solve(lxn))
-b <- array(apply(A, 3L, function(x) solve(x), simplify = TRUE), dim = rev(dim(lxn)))
+system.time(a <- solve(lxn))
+system.time(a <- as.array(a))
+system.time(b <- array(apply(A, 3L, function(x) solve(x), simplify = TRUE), dim =
+rev(dim(lxn))))
 all.equal(a, b, check.attributes = FALSE)
 
 A <- as.array(lxd <- ltmatrices(xd, byrow = FALSE, diag = TRUE))
-a <- as.array(solve(lxd))
-b <- array(apply(A, 3L, function(x) solve(x), simplify = TRUE), dim = rev(dim(lxd)))
+system.time(a <- as.array(solve(lxd)))
+system.time(b <- array(apply(A, 3L, function(x) solve(x), simplify = TRUE), dim =
+rev(dim(lxd))))
 all.equal(a, b, check.attributes = FALSE)
 
 ## tcrossprod
-a <- as.array(tcrossprod.ltmatrices(lxn))
-b <- array(apply(as.array(lxn), 3L, function(x) tcrossprod(x), simplify = TRUE), dim = rev(dim(lxn)))
+system.time(a <- as.array(tcrossprod.ltmatrices(lxn)))
+system.time(b <- array(apply(as.array(lxn), 3L, function(x) tcrossprod(x), simplify = TRUE), dim =
+rev(dim(lxn))))
 all.equal(a, b, check.attributes = FALSE)
 
-a <- as.array(tcrossprod.ltmatrices(lxd))
-b <- array(apply(as.array(lxd), 3L, function(x) tcrossprod(x), simplify = TRUE), dim = rev(dim(lxd)))
+system.time(a <- as.array(tcrossprod.ltmatrices(lxd)))
+system.time(b <- array(apply(as.array(lxd), 3L, function(x) tcrossprod(x), simplify = TRUE), dim =
+rev(dim(lxd))))
 all.equal(a, b, check.attributes = FALSE)
 
 ## multiplication
 y <- matrix(runif(N * J), nrow = N)
-a <- mult(lxn, y)
+system.time(a <- mult(lxn, y))
 A <- as.array(lxn)
-b <- do.call("rbind", lapply(1:nrow(y), function(i) t(A[,,i] %*% t(y[i,,drop = FALSE]))))
+system.time(b <- do.call("rbind", lapply(1:nrow(y), function(i) t(A[,,i] %*% t(y[i,,drop =
+FALSE])))))
 all.equal(a, b)
 
-a <- mult(lxd, y)
+system.time(a <- mult(lxd, y))
 A <- as.array(lxd)
-b <- do.call("rbind", lapply(1:nrow(y), function(i) t(A[,,i] %*% t(y[i,,drop = FALSE]))))
+system.time(b <- do.call("rbind", lapply(1:nrow(y), function(i) t(A[,,i] %*% t(y[i,,drop =
+FALSE])))))
 all.equal(a, b)
 
+### tcrossprod as multiplication
+i <- sample(1:N)[1]
+M <- t(as.array(lxn)[,,i])
+a <- sapply(1:J, function(j) mult(lxn[i,], t(M[,j,drop = FALSE])))
+rownames(a) <- colnames(a) <- attr(lxn, "rcnames")
+b <- as.array(tcrossprod.ltmatrices(lxn[i,]))[,,1]
+all.equal(a, b)
