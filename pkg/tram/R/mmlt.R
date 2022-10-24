@@ -62,34 +62,32 @@
 
 
 mmlt <- function(..., formula = ~ 1, data, theta = NULL, # diag = FALSE,
-                 control.outer = list(trace = FALSE), scale = FALSE, dofit = TRUE) {
+                 control.outer = list(trace = FALSE), scale = FALSE,
+                 dofit = TRUE) {
   
   call <- match.call()
-
-  ### model diagonal elements; this is highly experimental and thus not
-  ### exported
-  diag <- FALSE
   
   m <- lapply(list(...), function(x) as.mlt(x))
   J <- length(m)
+  
+  ### model diagonal elements; this is highly experimental and thus not
+  ### exported
+  ### note: if activated, this would only work for gaussian == TRUE but formulas
+  ### could be derived and implemented for the general case too
+  diag <- FALSE
   
   ### weights are not yet allowed
   w <- unique(do.call("c", lapply(m, weights)))
   stopifnot(isTRUE(all.equal(w, 1)))
   
-  ### warning for todistr != "normal"
-  if (any(sapply(m, function(x) x$todistr$name != "normal")))
-    warning("One of the models has a non-normal inverse link function F_Z. ML
-              optimization still works but has been implemented differently than
-              described in the MCTM paper. Hence, no interpretation in the
-              Gaussian copula framework is possible, though the lambdas still serve
-              as coefficients for the transformation functions.")
   ### check if data is continuous and branch to discrete version here
   
   lu <- lapply(m, function(mod) {
     eY <- get("eY", environment(mod$parm))
     if (is.null(eY)) 
-      stop("only continuous outcomes implemented so far.")
+      stop("Only continuous outcomes implemented through mmlt. For count outcomes
+           consider using the mcotram function in the cotram package or shifting
+           counts greater or equal 1 by 0.5.")
     fixed <- get("fixed", environment(mod$parm))
     offset <- get("offset", environment(mod$parm))
     tmp <- attr(eY$Y, "constraint")
@@ -100,6 +98,7 @@ mmlt <- function(..., formula = ~ 1, data, theta = NULL, # diag = FALSE,
   })
   
   Jp <- J * (J - 1) / 2 + diag * J
+  gaussian <- all(unlist(lapply(m, function(x) { x$todistr$name == "normal"})))
   
   bx <- formula
   if (inherits(formula, "formula"))
@@ -114,16 +113,16 @@ mmlt <- function(..., formula = ~ 1, data, theta = NULL, # diag = FALSE,
   Yprime <- do.call("bdiag", lapply(lu, function(m) m$prime))
   
   cnstr <- do.call("bdiag", 
-      lapply(lu, function(m) attr(m$exact, "constraint")$ui))
+                   lapply(lu, function(m) attr(m$exact, "constraint")$ui))
   ui <- bdiag(cnstr, Diagonal(Jp * ncol(lX)))
   ci <- do.call("c", lapply(lu, function(m) attr(m$exact, "constraint")$ci))
   
-  if(diag) {
+  if(diag) { ## saved column-wise
     L <- diag(rep(NA, J))
     L[lower.tri(L, diag = diag)] <- 1:Jp
     di <- diag(L)
     di <- di[!is.na(di)]
-
+    
     CP <- matrix(1:(Jp*ncol(lX)), nrow = ncol(lX))
     dintercept <- CP[1L, di]
     tci <- rep(-Inf, Jp * ncol(lX))
@@ -133,12 +132,12 @@ mmlt <- function(..., formula = ~ 1, data, theta = NULL, # diag = FALSE,
     D <- Diagonal(Jp * ncol(lX))[dintercept,]
     NL <- Matrix(0, nrow = length(dintercept), ncol = ncol(cnstr))
     ui <- rbind(ui, cbind(NL, -D))
-
+    
     ci <- c(ci, tci, rep(-1 + tol, length(dintercept)))
   } else { # previous code does not work with formula = ~ 1 and diag = FALSE
     ci <- c(ci, rep(-Inf, Jp * ncol(lX)))
   }
-
+  
   ui <- ui[is.finite(ci),]
   ci <- ci[is.finite(ci)]
   ui <- as(ui, "matrix")
@@ -154,9 +153,10 @@ mmlt <- function(..., formula = ~ 1, data, theta = NULL, # diag = FALSE,
     S <- matrix(rep(rep(1:0, J),
                     c(rbind(1:J, Jp))), nrow = Jp)[, -(J + 1)]
     idx <- unlist(lapply(colSums(S), seq_len))
-    # idx_d <- cumsum(unlist(lapply(colSums(S), sum)))
+    # idx_d <- cumsum(unlist(lapply(colSums(S), sum)))  ## should be the same as idx_d <- di
     idx_d <- di
   }
+  
   
   ### catch constraint violations here
   .log <- function(x) {
@@ -164,6 +164,71 @@ mmlt <- function(..., formula = ~ 1, data, theta = NULL, # diag = FALSE,
     pos <- (x > .Machine$double.eps)
     if (all(pos)) return(log(x))
     ret[pos] <- log(x[pos])
+    return(ret)
+  }
+  
+  ### help functions to compute the diagonal elements of Sigma:
+  ## solve lower triangular matrix (in vector form)
+  ## rowwise applicable to matrices
+  .Solve2 <- function(x) {
+    if (!is.matrix(x)) x <- matrix(x, nrow = 1)
+    n <- (1 + sqrt(1 + 4 * 2 * ncol(x))) / 2
+    xij <- function(x = NULL, i, j) {
+      if (i == j) return(1)
+      if (j == 1) {
+        ret <- i - 1
+      } else {
+        idx <- n - (1:(n - 1))
+        ret <- sum(idx[1:(j - 1)]) + (i - (n - idx[j]))
+      }
+      if (is.null(x))
+        return(ret)
+      return(x[,ret])
+    }
+    ret <- matrix(0, nrow = nrow(x), ncol = ncol(x))
+    for (i in 2:n) {
+      for (j in 1:(i - 1)) {
+        s <- 0
+        for (k in j:(i - 1))
+          s <- s + xij(x, i, k) * xij(ret, k, j)
+        ret[, xij(NULL, i, j)] <- -s
+      }
+    }
+    ret
+  } 
+  
+  ### compute diagonal of crossproduct
+  .Diags <- function(Linv) {
+    ## 1 observation
+    # N <- nrow(Linv)
+    # Jp <- ncol(Linv)
+    # J <- (1 + sqrt(1 + 4 * 2 * Jp)) / 2
+    if (N == 1) {
+      L <- diag(1, J)
+      L[upper.tri(L)] <- Linv
+      L <- t(L)
+      tcp <- tcrossprod(L)
+      S_diag <- diag(tcp)
+    }
+    ## more than 1 observation
+    else{
+      # J = 1
+      S <- S_diag <- 1
+      # J = 2
+      if(ncol(Linv) == 1) {
+        S_diag <- cbind(rep(1, N), matrix(1, nrow = N, ncol = 1) + Linv^2)
+      }
+      
+      if (J > 2) {
+        L <- diag(0, J)
+        L[upper.tri(L)] <- 1:Jp
+        L <- t(L)
+        
+        S <- matrix(rep(rep(1:0, (J - 1)), c(rbind(1:(J - 1), Jp))), nrow = Jp)[, -J]
+        S_diag <- cbind(rep(1, N), matrix(1, nrow = N, ncol = J-1) + Linv^2 %*% S)
+      }
+    }
+    ret <- S_diag
     return(ret)
   }
   
@@ -177,14 +242,44 @@ mmlt <- function(..., formula = ~ 1, data, theta = NULL, # diag = FALSE,
       Yprimep <- matrix(Yprime %*% mpar, nrow = N)
       Xp <- lX %*% cpar
       
-      A <- Yp[, idx] * Xp
-      B <- A %*% S
-      
-      ret <- sum(.log(Yprimep)) + sum(.log(Xp[, idx_d]))
-      for (j in 1:J) {
-        ret <- ret + sum(m[[j]]$todistr$d(B[, j], log = TRUE))
+      if(gaussian) {
+        A <- Yp[, idx] * Xp
+        B <- A %*% S
+        
+        ret <- sum(.log(Yprimep)) + sum(.log(Xp[, idx_d]))
+        for (j in 1:J) {
+          ret <- ret + sum(dnorm(B[, j], log = TRUE))
+        }
+      } else { ## gaussian == FALSE
+        
+        ## check that .Solve2 and .Diags work with Xp saving diagonal elements
+        Sigmas2 <- .Diags(.Solve2(Xp))
+        Sigmas <- sqrt(Sigmas2)
+        
+        F_Zj_Yp <- Phi_01_inv <- Phi_Sigmas_inv <- Yp
+        
+        for (j in 1:J) {
+          if (m[[j]]$todistr$name != "normal") {
+            F_Zj_Yp[, j] <- m[[j]]$todistr$p(Yp[, j])
+            Phi_01_inv[, j] <- qnorm(F_Zj_Yp[, j])
+            Phi_Sigmas_inv[, j] <- Sigmas[, j] * Phi_01_inv[, j]
+          }
+        }
+        
+        A <- Phi_Sigmas_inv[, idx] * Xp
+        B <- A %*% S
+        
+        ret <- sum(.log(Yprimep)) + sum(.log(Xp[, idx_d]))
+        for (j in 1:J) {
+          ret <- ret + sum(dnorm(B[, j], log = TRUE))
+          if (m[[j]]$todistr$name != "normal") {
+            ret <- ret + 
+              sum(m[[j]]$todistr$d(Yp[, j], log = TRUE)) +
+              sum(log(Sigmas[, j]) * sqrt(2*pi)) +
+              0.5 * sum(Phi_01_inv[, j]^2)
+          } 
+        }
       }
-      
       return(-ret)
     }
     
@@ -226,8 +321,8 @@ mmlt <- function(..., formula = ~ 1, data, theta = NULL, # diag = FALSE,
         l <- ncol(lX)
         if(k > 1) {
           for (i in 1:(k-1)) { ## this is k in formula
-          tmp1 <- matrix(rep(tmp[,i], l), ncol = l)
-          ret <- c(ret, colSums(tmp1 * lX))
+            tmp1 <- matrix(rep(tmp[,i], l), ncol = l)
+            ret <- c(ret, colSums(tmp1 * lX))
           }
         }
         
@@ -270,15 +365,45 @@ mmlt <- function(..., formula = ~ 1, data, theta = NULL, # diag = FALSE,
       Yprimep <- matrix(Yprime %*% mpar, nrow = N)
       Xp <- lX %*% cpar
       
-      A <- Yp[, idx] * Xp
-      B <- A %*% S + Yp[,-1]
-      C <- cbind(Yp[,1], B)
-      
-      ret <- sum(.log(Yprimep))
-      for (j in 1:J) {
-        ret <- ret + sum(m[[j]]$todistr$d(C[, j], log = TRUE))
+      if(gaussian) {
+        A <- Yp[, idx] * Xp
+        B <- A %*% S + Yp[,-1]
+        C <- cbind(Yp[,1], B)
+        
+        ret <- sum(.log(Yprimep))
+        for (j in 1:J) {
+          ret <- ret + sum(m[[j]]$todistr$d(C[, j], log = TRUE))
+        }
+      } else { ## gaussian == FALSE
+        
+        Sigmas2 <- .Diags(.Solve2(Xp))
+        Sigmas <- sqrt(Sigmas2)
+        
+        F_Zj_Yp <- Phi_01_inv <- Phi_Sigmas_inv <- Yp
+        
+        for (j in 1:J) {
+          if (m[[j]]$todistr$name != "normal") {
+            F_Zj_Yp[, j] <- m[[j]]$todistr$p(Yp[, j])
+            Phi_01_inv[, j] <- qnorm(F_Zj_Yp[, j])
+            Phi_Sigmas_inv[, j] <- Sigmas[, j] * Phi_01_inv[, j]
+          }
+        }
+        
+        A <- Phi_Sigmas_inv[, idx] * Xp
+        B <- A %*% S + Phi_Sigmas_inv[, -1]
+        C <- cbind(Phi_Sigmas_inv[, 1], B)
+        
+        ret <- sum(.log(Yprimep))
+        for (j in 1:J) {
+          ret <- ret + sum(dnorm(C[, j], log = TRUE))
+          if (m[[j]]$todistr$name != "normal") {
+            ret <- ret + 
+              sum(m[[j]]$todistr$d(Yp[, j], log = TRUE)) +
+              sum(log(Sigmas[, j])) +
+              0.5 * sum(Phi_01_inv[, j]^2)
+          } 
+        }
       }
-      
       return(-ret)
     }
     
@@ -291,66 +416,126 @@ mmlt <- function(..., formula = ~ 1, data, theta = NULL, # diag = FALSE,
       Yprimep <- matrix(Yprime %*% mpar, nrow = N)
       Xp <- lX %*% cpar
       
-      L <- diag(0, J)
-      L[upper.tri(L)] <- 1:Jp
-      L <- t(L)
-      
-      A <- Yp[, idx] * Xp
-      B <- A %*% S + Yp[,-1]
-      C <- cbind(Yp[,1], B)
-      C1 <- C
-      for (j in 1:J) {
-        C1[, j] <- m[[j]]$todistr$dd2d(C[, j])
-      }
-      
-      mret <- vector(length = J, mode = "list")
-      for (k in 1:J) {
-        Lk <- L[,k]
-        D <- cbind(matrix(rep(0, (k-1)*N), nrow = N), 1, Xp[,Lk[Lk > 0]])
-        mret[[k]] <- colSums(rowSums(C1 * D) * lu[[k]]$exact) +
-          colSums(lu[[k]]$prime / Yprimep[,k])
-      }
-      
-      cret <- vector(length = J - 1, mode = "list")
-      for (k in 1:(J - 1)) {  # go over rows
-        om_Zk <- m[[k+1]]$todistr$dd2d
-        B1 <- matrix(rep(B[,k], k), ncol = k)
-        tmp <- om_Zk(B1) * Yp[,1:k]
-        ret <- c()
-        l <- ncol(lX)
-        for (i in 1:k) {
-          tmp1 <- matrix(rep(tmp[,i], l), ncol = l)
-          ret <- c(ret, colSums(tmp1 * lX))
+      if(gaussian) {
+        
+        L <- diag(0, J)
+        L[upper.tri(L)] <- 1:Jp
+        L <- t(L)
+        
+        A <- Yp[, idx] * Xp
+        B <- A %*% S + Yp[,-1]
+        C <- cbind(Yp[,1], B)
+        C1 <- -C
+        
+        mret <- vector(length = J, mode = "list")
+        for (k in 1:J) {
+          Lk <- L[,k]
+          D <- cbind(matrix(rep(0, (k-1)*N), nrow = N), 1, Xp[,Lk[Lk > 0]])
+          mret[[k]] <- colSums(rowSums(C1 * D) * lu[[k]]$exact) +
+            colSums(lu[[k]]$prime / Yprimep[,k])
         }
-        cret[[k]] <- ret
+        
+        cret <- vector(length = J - 1, mode = "list")
+        for (k in 1:(J - 1)) {  # go over rows
+          B1 <- matrix(rep(B[,k], k), ncol = k)
+          tmp <- -B1 * Yp[,1:k]
+          ret <- c()
+          l <- ncol(lX)
+          for (i in 1:k) {
+            tmp1 <- matrix(rep(tmp[,i], l), ncol = l)
+            ret <- c(ret, colSums(tmp1 * lX))
+          }
+          cret[[k]] <- ret
+        }
+      } else { ## gaussian = FALSE
+        
+        Sigmas2 <- .Diags(.Solve2(Xp))
+        Sigmas <- sqrt(Sigmas2)
+        
+        F_Zj_Yp <- Phi_01_inv <- Phi_Sigmas_inv <- Yp
+        
+        for (j in 1:J) {
+          if (m[[j]]$todistr$name != "normal") {
+            F_Zj_Yp[, j] <- m[[j]]$todistr$p(Yp[, j])
+            Phi_01_inv[, j] <- qnorm(F_Zj_Yp[, j])
+            Phi_Sigmas_inv[, j] <- Sigmas[, j] * Phi_01_inv[, j]
+          }
+        }
+        
+        A <- Phi_Sigmas_inv[, idx] * Xp
+        B <- A %*% S + Phi_Sigmas_inv[, -1]
+        C <- cbind(Phi_Sigmas_inv[, 1], B)
+        C1 <- -C
+        
+        L <- diag(0, J)
+        L[upper.tri(L)] <- 1:Jp
+        L <- t(L)
+        
+        mret <- vector(length = J, mode = "list")
+        for (k in 1:J) {
+          Lk <- L[,k]
+          D <- cbind(matrix(rep(0, (k-1)*N), nrow = N), 1, Xp[,Lk[Lk > 0]])
+          
+          if(m[[k]]$todistr$name == "normal") {
+            mret[[k]] <- colSums(rowSums(C1 * D) * lu[[k]]$exact) +
+              colSums(lu[[k]]$prime / Yprimep[,k])
+          } else { ## k-th model not BoxCox
+            f_k <- m[[k]]$todistr$d
+            omega_k <- m[[k]]$todistr$dd2d
+            mret[[k]] <- colSums(rowSums(C1 * D) * Sigmas[, k] * 
+                                   f_k(Yp[, k]) * lu[[k]]$exact / dnorm(Phi_01_inv[, k])) +
+              colSums(Phi_01_inv[, k] * f_k(Yp[, k]) * lu[[k]]$exact / dnorm(Phi_01_inv[, k])) +
+              colSums(omega_k(Yp[, k]) * lu[[k]]$exact) +
+              colSums(lu[[k]]$prime / Yprimep[, k])
+          }
+        }
+        
+        cret <- vector(length = J - 1, mode = "list")
+        for (k in 1:(J - 1)) {  # go over rows
+          B1 <- matrix(rep(B[,k], k), ncol = k)
+          tmp1 <- - B1 * Phi_Sigmas_inv[,1:k]
+          tmp2 <- - B1 * Phi_01_inv[,k+1]
+          ret <- c()
+          l <- ncol(lX)
+          
+          if(m[[k+1]]$todistr$name == "normal") {
+            for (i in 1:k) {
+              tmp3 <- matrix(rep(tmp1[,i], l), ncol = l)
+              ret <- c(ret, colSums(tmp3 * lX))
+            }
+          } else {
+            Lk <- L[k+1, ]
+            lambda_ktk <- Xp[, Lk[Lk > 0]]
+            tmp4 <- tmp1 + 
+              (lambda_ktk / Sigmas[, k+1]) * tmp2  +
+              lambda_ktk / Sigmas2[, k+1]
+            for (i in 1:k) {
+              tmp3 <- matrix(rep(tmp4[,i], l), ncol = l)
+              ret <- c(ret, colSums(tmp3 * lX))
+            }
+          }
+          cret[[k]] <- ret
+        }
       }
-      
       mret <- -do.call("c", mret)
       cret <- -do.call("c", cret)
-      c(mret, cret)  ## here cret is saved row-wise
-      
-      # ## index to revert order to column-wise
-      # ## !!! NOT WORKING YET !!!
-      # row_to_col <- L[lower.tri(L, diag = diag)]
-      # L_row_to_col <- matrix(1:(Jp*ncol(lX)), nrow = Jp, ncol = ncol(lX), byrow = TRUE)
-      # idx_row_to_col <- c(t(L1[new_id,]))
-      # c(mret, cret[idx_row_to_col]) ## here cret is saved column-wise
+      c(mret, cret)
     }
-    ### user-defined starting parameters for optimization
-    if(!is.null(theta)) {
-      start <- unname(theta)
+  }
+  ### user-defined starting parameters for optimization
+  if(!is.null(theta)) {
+    start <- unname(theta)
+  }
+  else {
+    if(inherits(formula, "formula") && formula == ~1) {
+      ### don't bother with .start(), simply use the marginal coefficients
+      ### and zero for the lambda parameters
+      start <- do.call("c", lapply(m, function(mod) coef(as.mlt(mod))))
+      start <- c(start, rep(0, Jp * ncol(lX)))
     }
-    else {
-      if(inherits(formula, "formula") && formula == ~1) {
-        ### don't bother with .start(), simply use the marginal coefficients
-        ### and zero for the lambda parameters
-        start <- do.call("c", lapply(m, function(mod) coef(as.mlt(mod))))
-        start <- c(start, rep(0, Jp * ncol(lX)))
-      }
-      else { # formula != ~ 1
-        start <- .start(m, bx = bx, data = data)
-        start <- c(start$mpar, c(t(start$cpar)))
-      }
+    else { # formula != ~ 1
+      start <- .start(m, bx = bx, data = data)
+      start <- c(start$mpar, c(t(start$cpar)))
     }
   }
   
@@ -374,13 +559,13 @@ mmlt <- function(..., formula = ~ 1, data, theta = NULL, # diag = FALSE,
   }
   
   if (!dofit)
-      return(list(ll = ll, sc = sc))
-
+    return(list(ll = ll, sc = sc))
+  
   opt <- alabama::auglag(par = start, fn = f, gr = g,
-                         hin = function(par) ui %*% par - ci, 
+                         hin = function(par) ui %*% par - ci,
                          hin.jac = function(par) ui,
-                         control.outer = control.outer)[c("par", 
-                                                          "value", 
+                         control.outer = control.outer)[c("par",
+                                                          "value",
                                                           "gradient",
                                                           "hessian")]
   
@@ -397,10 +582,9 @@ mmlt <- function(..., formula = ~ 1, data, theta = NULL, # diag = FALSE,
     mmod[[j]] <- as.mlt(m[[j]])
     coef(mmod[[j]]) <- mlist[[j]]
   }
-  
   cpar <- matrix(opt$par[-(1:length(mpar))], ncol = Jp)
   
-  gaussian <- all.equal("normal", unique(sapply(mmod, function(x) x$todistr$name)))
+  gaussian <- all(unlist(lapply(m, function(x) { x$todistr$name == "normal"})))
   
   nm <- abbreviate(sapply(m, function(x) x$model$response), 4)
   
