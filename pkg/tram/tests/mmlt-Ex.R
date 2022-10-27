@@ -2,6 +2,62 @@
 library("tram")
 library("mvtnorm")
 
+### higher dimensions
+set.seed(25)
+
+J <- 5
+N <- 100
+S <- cov2cor(tcrossprod(matrix(runif(J * J), ncol = J)))
+y <- rmvnorm(N, sigma = S)
+u <- as.data.frame(pnorm(y))
+x <- runif(N)
+d <- cbind(u, x)
+un <- colnames(d)[1:J]
+m <- lapply(un, function(i)
+       BoxCox(as.formula(paste(i, "~ x")), data = d, bounds = c(0, 1), support = c(0, 1))
+)
+m$data <- d
+m$formula <- ~ 1
+mm <- do.call("mmlt", m)
+
+for (j in 1:J) m[[j]]$todistr$name <- "Carl"
+
+mm1 <- do.call("mmlt", m)
+
+coef(mm)
+coef(mm1)
+
+logLik(mm)
+sum(predict(mm, newdata = d, type = "density", log = TRUE))
+
+logLik(mm1)
+sum(predict(mm1, newdata = d, type = "density", log = TRUE))
+
+coef(mm, type = "Cor")
+coef(mm1, type = "Cor")
+
+coef(mm, newdata = d[1:2,], type = "Lambda")
+L <- as.array(coef(mm, type = "Lambda"))[,,1]
+
+coef(mm, type = "Lambdainv")
+solve(L)
+
+coef(mm, type = "Sigma")
+tcrossprod(solve(L))
+
+coef(mm, type = "Cor")
+cov2cor(tcrossprod(solve(L)))
+
+sum(predict(mm, newdata = d, type = "density", log = TRUE))
+head(predict(mm, newdata = d, type = "trafo"))
+head(predict(mm, newdata = d, type = "distribution"))
+
+head(predict(mm, newdata = d, type = "density", margins = 1:2))
+head(predict(mm, newdata = d, type = "trafo", margins = 1:2))
+head(predict(mm, newdata = d, type = "distribution", margins = 1:2))
+
+
+
 
 ##### FIRST SCENARIO: CONSTANT LAMBDA #####
 set.seed(29)
@@ -48,14 +104,14 @@ all.equal(c(numDeriv::grad(mm01$ll, mm02$par)),c(mm01$sc(mm02$par)),
           check.attributes = FALSE, tol = 1e-4)
 
 ## predicting marginal distributions and comparing across models with constant lambda
-predict(mm01, newdata = nd[1:5,], q = -2:2, 
-        marginal = 1, type = "distribution")
-predict(mm02, newdata = nd[1:5,], q = -2:2, 
-        marginal = 2, type = "distribution")
+predict(mm01, newdata = d[1:5,], q = -2:2, 
+        margins = 1, type = "distribution")
+predict(mm02, newdata = d[1:5,], q = -2:2, 
+        margins = 2, type = "distribution")
 
 ## expect correlations to be the same for the model with constant lambdas
-c(coef(mm01, newdata = nd[1:5,], type = "Cor"))
-c(coef(mm02, newdata = nd[1:5,], type = "Cor"))
+c(coef(mm01, newdata = d[1:5,], type = "Cor"))
+c(coef(mm02, newdata = d[1:5,], type = "Cor"))
 
 
 ##### mix of BoxCox and Colr margins: ##### 
@@ -155,14 +211,14 @@ pairs(CR)
 
 ## predicting marginal distributions and comparing across models with constant lambda
 predict(mm01, newdata = nd[1:5,], q = -2:2, 
-        marginal = 1, type = "distribution")
+        margins = 1, type = "distribution")
 predict(mm02, newdata = nd[1:5,], q = -2:2, 
-        marginal = 2, type = "distribution")
+        margins = 2, type = "distribution")
 
 predict(mm1, newdata = nd[1:5,], q = -2:2, 
-        marginal = 1, type = "distribution")
+        margins = 1, type = "distribution")
 predict(mm2, newdata = nd[1:5,], q = -2:2, 
-        marginal = 2, type = "distribution")
+        margins = 2, type = "distribution")
 
 ## expect correlations to be the same for the model with constant lambdas
 c(coef(mm01, newdata = nd[1:5,], type = "Cor"))
