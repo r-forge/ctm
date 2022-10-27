@@ -1,5 +1,3 @@
 cleanup
 ^.*\.Rproj$
 ^\.Rproj\.user$
-mmlt-Ex.R
-ltmatrices.R

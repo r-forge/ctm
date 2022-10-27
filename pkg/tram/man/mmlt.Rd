@@ -79,11 +79,11 @@ methods.
 
   ## evaluate joint and marginal densities (needs to be more user-friendly)
   nd <- expand.grid(c(nd_s <- mkgrid(m_speed, 100), nd_d <- mkgrid(m_dist, 100)))
-  nd$hs <- predict(m_speed_dist, newdata = nd, marginal = 1L)
-  nd$hps <- predict(m_speed_dist, newdata = nd, marginal = 1L, 
+  nd$hs <- predict(m_speed_dist, newdata = nd, margins = 1L)
+  nd$hps <- predict(m_speed_dist, newdata = nd, margins = 1L, 
                     deriv = c("speed" = 1))
-  nd$hd <- predict(m_speed_dist, newdata = nd, marginal = 2L)
-  nd$hpd <- predict(m_speed_dist, newdata = nd, marginal = 2L, 
+  nd$hd <- predict(m_speed_dist, newdata = nd, margins = 2L)
+  nd$hpd <- predict(m_speed_dist, newdata = nd, margins = 2L, 
                     deriv = c("dist" = 1))
 
   ## joint density
@@ -94,9 +94,10 @@ methods.
 
   ## compute marginal densities
   nd_s <- as.data.frame(nd_s)
-  nd_s$d <- predict(m_speed_dist, newdata = nd_s, type = "density")
+  nd_s$d <- predict(m_speed_dist, newdata = nd_s, margins = 1L,
+                    type = "density")
   nd_d <- as.data.frame(nd_d)
-  nd_d$d <- predict(m_speed_dist, newdata = nd_d, marginal = 2L, 
+  nd_d$d <- predict(m_speed_dist, newdata = nd_d, margins = 2L, 
                     type = "density")
 
   ## plot bivariate and marginal distribution

@@ -17,9 +17,10 @@ importFrom("stats", "model.matrix", "coef", "vcov", "nobs", "predict", "quantile
 import("Matrix")
 importFrom("survival", "survfit", "Surv", "coxph.control")
 importFrom("graphics", "plot", "lines", "polygon", "abline")
+importFrom("mvtnorm", "pmvnorm")
 
 export(tram, tram_data, Coxph, Aareg, Colr, Polr, Lm, BoxCox, Survreg, Lehmann, 
-       mtram, score_test, perm_test, mmlt, PI, OVL, TV, L1, ROC)
+       mtram, score_test, perm_test, mmlt, PI, OVL, TV, L1, ROC, ltmatrices, diagonals)
 
 S3method("as.mlt", "tram")
 S3method("model.matrix", "tram")
@@ -81,3 +82,13 @@ S3method("ROC", "tram")
 S3method("ROC", "stram")
 S3method("ROC", "default")
 S3method("plot", "ROCtram")
+
+S3method("as.array", "ltmatrices")
+S3method("solve", "ltmatrices")
+S3method("as.array", "symatrices")
+S3method("dim", "ltmatrices")
+S3method("diagonals", "ltmatrices")
+S3method("diagonals", "symatrices")
+S3method("[", "ltmatrices")
+S3method("print", "ltmatrices")
+S3method("print", "symatrices")

@@ -1,45 +1,32 @@
 
-library("Matrix")
-
 ### N (nrow(x)) lower triangular J x J matrices (ncol(x) = J * (J - 1) / 2 + diag * J)
 ### with unit (!diag) or non-unit (diag) diagonal in column order (!byrow) or row order (byrow)
 ### rcnames is a J-dim unique char vector
-ltmatrices <- function(x, diag = FALSE, byrow = FALSE, rcnames = NULL) {
+ltmatrices <- function(x, diag = FALSE, byrow = FALSE, names = TRUE) {
 
     if (!is.matrix(x)) x <- matrix(x, nrow = 1L)
 
     J <- floor((1 + sqrt(1 + 4 * 2 * ncol(x))) / 2 - diag)
     stopifnot(ncol(x) == J * (J - 1) / 2 + diag * J)
 
-    if (!is.null(rcnames)) {
-        stopifnot(is.character(rcnames) &&
-                  length(unique(rcnames)) == J)
+    if (!isTRUE(names)) {
+        stopifnot(is.character(names) &&
+                  length(unique(names)) == J)
     } else {
-        rcnames <- as.character(1:J)
+        names <- as.character(1:J)
     }
 
-    L <- matrix(1:(J^2), nrow = J, ncol = J, byrow = !byrow)
-    rc <- expand.grid(rcnames, rcnames)[L[lower.tri(L, diag = diag)],]
-    colnames(x) <- paste(rc[, 1L], rc[, 2L], sep = ".")
-
-    if (!diag) {
-        idx <- 1
-        S <- 1
-        if (J > 2) {
-            S <- Matrix(rep(rep(1:0, (J - 1)), c(rbind(1:(J - 1), ncol(x)))), nrow = ncol(x))[, -J]
-            idx <- unlist(lapply(colSums(S), seq_len))
-        }
-    } else {
-        S <- Matrix(rep(rep(1:0, J),
-                    c(rbind(1:J, ncol(x)))), nrow = ncol(x))[, -(J + 1)]
-        idx <- unlist(lapply(colSums(S), seq_len))
-    }
-
+    L1 <- matrix(names, nrow = J, ncol = J)
+    L2 <- matrix(names, nrow = J, ncol = J, byrow = TRUE)
+    L <- matrix(paste(L1, L2, sep = "."), nrow = J, ncol = J)
+    if (byrow)
+        colnames(x) <- t(L)[upper.tri(L, diag = diag)]
+    else
+        colnames(x) <- L[lower.tri(L, diag = diag)]
+         
     attr(x, "diag") <- diag
     attr(x, "byrow") <- byrow
-    attr(x, "rcnames") <- rcnames
-    attr(x, "S") <- S
-    attr(x, "idx") <- idx
+    attr(x, "rcnames") <- names
     class(x) <- c("ltmatrices", class(x))
     x
 }
@@ -107,15 +94,15 @@ print.symatrices <- function(x, ...)
     cL <- t(cL)
     if (attr(x, "byrow")) ### row -> col order
         return(ltmatrices(x[, cL[lower.tri(cL, diag = diag)], drop = FALSE], 
-                          diag = diag, byrow = FALSE, rcnames = rcnames))
+                          diag = diag, byrow = FALSE, names = rcnames))
     ### col -> row order
     return(ltmatrices(x[, t(rL)[upper.tri(rL, diag = diag)], drop = FALSE], 
-                      diag = diag, byrow = TRUE, rcnames = rcnames))
+                      diag = diag, byrow = TRUE, names = rcnames))
 }
 
 ### subset: i selects rows out of 1:N and j columns out of 1:J
 ### returns ltmatrices in the same storage order as x
-s <- "[.ltmatrices" <- function(x, i, j, ..., drop = FALSE) {
+"[.ltmatrices" <- function(x, i, j, ..., drop = FALSE) {
 
     if (drop) warning("argument drop is ignored")
     if (missing(i) && missing(j)) return(x)
@@ -126,7 +113,8 @@ s <- "[.ltmatrices" <- function(x, i, j, ..., drop = FALSE) {
     J <- length(rcnames)
     if (!missing(j)) {
         if (length(j) == 1L && !diag)
-            return(ltmatrices(matrix(1, nrow = nrow(x), ncol = 1), diag = TRUE, rcnames = rcnames[j]))
+            return(ltmatrices(matrix(1, nrow = nrow(x), ncol = 1), diag = TRUE, 
+                              names = rcnames[j]))
         L <- diag(0L, nrow = J)
         if (byrow) {
             L[upper.tri(L, diag = diag)] <- 1:ncol(x)
@@ -139,12 +127,19 @@ s <- "[.ltmatrices" <- function(x, i, j, ..., drop = FALSE) {
         }
         if (missing(i))
             return(ltmatrices(x[, c(L), drop = FALSE], diag = diag, 
-                              byrow = byrow, rcnames = rcnames[j]))
+                              byrow = byrow, names = rcnames[j]))
         return(ltmatrices(x[i, c(L), drop = FALSE], diag = diag, 
-                          byrow = byrow, rcnames = rcnames[j]))
+                          byrow = byrow, names = rcnames[j]))
     }
     return(ltmatrices(x[i, , drop = FALSE], diag = diag, 
-                      byrow = byrow, rcnames = rcnames))
+                      byrow = byrow, names = rcnames))
+}
+
+"[.symatrices" <- function(x, i, j, ..., drop = FALSE) {
+    class(x)[1L] <- "ltmatrices"
+    ret <- x[i, j, ..., drop = drop]
+    class(ret)[1L] <- "symatrices"
+    return(ret)
 }
 
 ### inverse of ltmatrices
@@ -206,10 +201,10 @@ solve.ltmatrices <- function(a, b, ...) {
     }
     if (!diag) {
         ret <- .reorder(ltmatrices(ret, diag = diag, byrow = byrow, 
-                                   rcnames = rcnames), 
+                                   names = rcnames), 
                         byrow = byrow_orig)
         if (missing(b)) return(ret)
-        return(mult(ret, b))
+        return(.mult(ret, b))
     }
 
     x_norm <- ret
@@ -225,33 +220,28 @@ solve.ltmatrices <- function(a, b, ...) {
     ret[, idx_d] <- 1 / x_diag
     
     ret <- .reorder(ltmatrices(ret, diag = diag, byrow = byrow, 
-                               rcnames = rcnames), 
+                               names = rcnames), 
                      byrow = byrow_orig)
     if (missing(b)) return(ret)
-    return(mult(ret, b))
+    return(.mult(ret, b))
 } 
 
 ### L %*% t(L)
 ### NOTE: this returns symatrices (symmetric)
-tcrossprod.ltmatrices <- function(x, y = NULL) {
+.tcrossprod.ltmatrices <- function(x, y = NULL, diag_only = FALSE) {
 
     stopifnot(is.null(y))
     byrow_orig <- attr(x, "byrow")
     rcnames <- attr(x, "rcnames")
     diag <- attr(x, "diag")
     J <- length(rcnames)
-    if (J == 2 && !diag) {
-        class(x)[1L] <- "symatrices"
-        return(x)
-    }
 
     x <- .reorder(x, byrow = FALSE)
     byrow <- attr(x, "byrow")
-
     class(x) <- class(x)[-1L]
     xdim <- dim(x)
     N <- xdim[1L]
-  
+
     L <- diag(0, J)
     if (diag) {
         L[lower.tri(L, diag = diag)] <- 1:ncol(x)
@@ -261,6 +251,19 @@ tcrossprod.ltmatrices <- function(x, y = NULL) {
         x <- cbind(1, x)
     }
     tL <- t(L)
+
+    if (diag_only) {
+        ret <- matrix(0, nrow = nrow(x), ncol = J)
+        colnames(ret) <- rcnames
+        rownames(ret) <- rownames(x)
+        k <- 0
+        for (i in 1:J) {
+            idx <- L[i,] * tL[,i] > 0
+            k <- k + 1
+            ret[, k] <- rowSums(x[, L[i,idx], drop = FALSE]^2)
+        }
+        return(ret)
+    }
 
     ret <- matrix(0, nrow = nrow(x), ncol = J * (J - 1) / 2 + J)
     k <- 0
@@ -272,24 +275,72 @@ tcrossprod.ltmatrices <- function(x, y = NULL) {
         }
     }
 
-    ret <- .reorder(ltmatrices(ret, diag = TRUE, byrow = TRUE, rcnames = rcnames), 
+    ret <- .reorder(ltmatrices(ret, diag = TRUE, byrow = TRUE, names = rcnames), 
                     byrow = byrow_orig)
-    class(ret) <- "symatrices"
+    class(ret)[1L] <- "symatrices"
     ret
 }
 
+diagonals <- function(x, ...)
+    UseMethod("diagonals")
+
+diagonals.ltmatrices <- function(x, ...) {
+
+    rcnames <- attr(x, "rcnames")
+    diag <- attr(x, "diag")
+    byrow <- attr(x, "byrow")
+    diag <- attr(x, "diag")
+    J <- length(rcnames)
+    class(x) <- class(x)[-1L]
+
+    if (!diag) {
+        ret <- matrix(1, nrow = nrow(x), ncol = J)
+        rownames(ret) <- rownames(x)
+        colnames(ret) <- rcnames
+        return(ret)
+    } else {
+        L <- diag(0, J)
+        if (byrow) {
+            L[upper.tri(L, diag = TRUE)] <- 1:ncol(x)
+            L <- t(L)
+            idx <- diag(L)
+        } else {
+            L[lower.tri(L, diag = TRUE)] <- 1:ncol(x)
+            idx <- diag(L)
+        }
+        ret <- x[, idx]
+        colnames(ret) <- rcnames
+        return(ret)
+    }
+}
+
+diagonals.symatrices <- diagonals.ltmatrices
+
 ### L %*% y
-mult <- function(x, y) {
+.mult <- function(x, y) {
 
     stopifnot(inherits(x, "ltmatrices"))
 
     rcnames <- attr(x, "rcnames")
     diag <- attr(x, "diag")
-    S <- attr(x, "S")
     idx <- attr(x, "idx")
     J <- length(rcnames)
+    mx <- ifelse(J > 10, Matrix, matrix)
     x <- .reorder(x, byrow = TRUE)
     class(x) <- class(x)[-1L]
+
+    if (!diag) {
+        idx <- 1
+        S <- 1
+        if (J > 2) {
+            S <- mx(rep(rep(1:0, (J - 1)), c(rbind(1:(J - 1), ncol(x)))), nrow = ncol(x))[, -J,drop = FALSE]
+            idx <- unlist(lapply(colSums(S), seq_len))
+        }
+    } else {
+        S <- mx(rep(rep(1:0, J),
+                    c(rbind(1:J, ncol(x)))), nrow = ncol(x))[, -(J + 1), drop = FALSE]
+        idx <- unlist(lapply(colSums(S), seq_len))
+    }
 
     if (!diag) {
         A <- y[, idx] * x
@@ -303,94 +354,3 @@ mult <- function(x, y) {
     rownames(ret) <- rownames(x)
     return(ret)
 }
-
-### some checks
-## dimensions
-set.seed(290875)
-N <- 10000
-J <- 10
-Jn <- J * (J - 1) / 2
-## data
-xn <- matrix(runif(N * Jn), nrow = N, byrow = TRUE)
-xd <- matrix(runif(N * (Jn + J)), nrow = N, byrow = TRUE)
-
-## constructor + .reorder + as.array
-a <- as.array(ltmatrices(xn, byrow = TRUE))
-b <- as.array(.reorder(ltmatrices(xn, byrow = TRUE), byrow = FALSE))
-all.equal(a, b)
-
-a <- as.array(ltmatrices(xn, byrow = FALSE))
-b <- as.array(.reorder(ltmatrices(xn, byrow = FALSE), byrow = TRUE))
-all.equal(a, b)
-
-a <- as.array(ltmatrices(xd, byrow = TRUE, diag = TRUE))
-b <- as.array(.reorder(ltmatrices(xd, byrow = TRUE, diag = TRUE), byrow = FALSE))
-all.equal(a, b)
-
-a <- as.array(ltmatrices(xd, byrow = FALSE, diag = TRUE))
-b <- as.array(.reorder(ltmatrices(xd, byrow = FALSE, diag = TRUE), byrow = TRUE))
-all.equal(a, b)
-
-## subset
-a <- as.array(ltmatrices(xn, byrow = FALSE)[1:2, 2:4])
-b <- as.array(ltmatrices(xn, byrow = FALSE))[2:4, 2:4, 1:2]
-all.equal(a, b)
-
-a <- as.array(ltmatrices(xn, byrow = TRUE)[1:2, 2:4])
-b <- as.array(ltmatrices(xn, byrow = TRUE))[2:4, 2:4, 1:2]
-all.equal(a, b)
-
-a <- as.array(ltmatrices(xd, byrow = FALSE, diag = TRUE)[1:2, 2:4])
-b <- as.array(ltmatrices(xd, byrow = FALSE, diag = TRUE))[2:4, 2:4, 1:2]
-all.equal(a, b)
-
-a <- as.array(ltmatrices(xd, byrow = TRUE, diag = TRUE)[1:2, 2:4])
-b <- as.array(ltmatrices(xd, byrow = TRUE, diag = TRUE))[2:4, 2:4, 1:2]
-all.equal(a, b)
-
-## solve
-A <- as.array(lxn <- ltmatrices(xn, byrow = FALSE))
-system.time(a <- solve(lxn))
-system.time(a <- as.array(a))
-system.time(b <- array(apply(A, 3L, function(x) solve(x), simplify = TRUE), dim =
-rev(dim(lxn))))
-all.equal(a, b, check.attributes = FALSE)
-
-A <- as.array(lxd <- ltmatrices(xd, byrow = FALSE, diag = TRUE))
-system.time(a <- as.array(solve(lxd)))
-system.time(b <- array(apply(A, 3L, function(x) solve(x), simplify = TRUE), dim =
-rev(dim(lxd))))
-all.equal(a, b, check.attributes = FALSE)
-
-## tcrossprod
-system.time(a <- as.array(tcrossprod.ltmatrices(lxn)))
-system.time(b <- array(apply(as.array(lxn), 3L, function(x) tcrossprod(x), simplify = TRUE), dim =
-rev(dim(lxn))))
-all.equal(a, b, check.attributes = FALSE)
-
-system.time(a <- as.array(tcrossprod.ltmatrices(lxd)))
-system.time(b <- array(apply(as.array(lxd), 3L, function(x) tcrossprod(x), simplify = TRUE), dim =
-rev(dim(lxd))))
-all.equal(a, b, check.attributes = FALSE)
-
-## multiplication
-y <- matrix(runif(N * J), nrow = N)
-system.time(a <- mult(lxn, y))
-A <- as.array(lxn)
-system.time(b <- do.call("rbind", lapply(1:nrow(y), function(i) t(A[,,i] %*% t(y[i,,drop =
-FALSE])))))
-all.equal(a, b)
-
-system.time(a <- mult(lxd, y))
-A <- as.array(lxd)
-system.time(b <- do.call("rbind", lapply(1:nrow(y), function(i) t(A[,,i] %*% t(y[i,,drop =
-FALSE])))))
-all.equal(a, b)
-
-### tcrossprod as multiplication
-i <- sample(1:N)[1]
-M <- t(as.array(lxn)[,,i])
-a <- sapply(1:J, function(j) mult(lxn[i,], t(M[,j,drop = FALSE])))
-rownames(a) <- colnames(a) <- attr(lxn, "rcnames")
-b <- as.array(tcrossprod.ltmatrices(lxn[i,]))[,,1]
-all.equal(a, b)
