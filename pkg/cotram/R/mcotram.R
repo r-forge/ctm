@@ -432,121 +432,40 @@ mcotram <- function(..., formula = ~ 1, data, theta = NULL, # diag = FALSE,
   gaussian <- all.equal("normal", unique(sapply(mmod, function(x) x$todistr$name)))
   
   nm <- abbreviate(sapply(m, function(x) x$model$response), 4)
-  
-  lnm <- matrix(paste0(matrix(nm, nrow = J, ncol = J), ".",
-                       matrix(nm, nrow = J, ncol = J, byrow = TRUE)), nrow = J)
-  cnm <- paste0(rep(lnm[lower.tri(lnm, diag = diag)], each = nclX), ".", 
-                rep(colnames(lX), Jp))
-  
-  names(opt$par) <- c(paste0(nm[sf], ".", do.call("c", lapply(mlist, names))), cnm)
-  
+
+  tmp <- ltmatrices(cpar, byrow = TRUE, diag = FALSE, names = nm)
+  args <- expand.grid(colnames(lX), colnames(unclass(tmp)))[,2:1]
+  colnames(cpar) <- colnames(unclass(tmp))
+  rownames(cpar) <- colnames(lX)
+  args$sep <- "."
+  names(opt$par) <- c(sapply(1:J, function(j) 
+                             paste(nm[j], names(coef(mmod[[j]])), sep = ".")),
+                      do.call("paste", args))
+
   ret <- list(marginals = mmod, formula = formula, bx = bx, data = data,
               call = call,
               gaussian = gaussian, diag = diag,
               pars = list(mpar = mpar, cpar = cpar),
               par = opt$par, ll = ll, sc = sc, logLik = -opt$value,
-              hessian = opt$hessian)
+              hessian = opt$hessian, names = nm)
   class(ret) <- c("mcotram", "mmlt")
   ret
 }
 
 predict.mcotram <- function(object, newdata = object$data, marginal = 1L,
                             type = c("trafo", "distribution", "density"), ...) {
+
   type <- match.arg(type)
-  if (!object$gaussian & marginal != 1L)
-    stop("Cannot compute marginal distribution from non-gaussian joint model")
-  
-  ### predicting marginal transformation functions
-  ret <- lapply(object$marginals[marginal], function(m)
-    predict.cotram(m, newdata = newdata, type = "trafo", ...))
-  Vx <- coef(object, newdata = newdata, type = "Sigma")
-  
-  ### FIXME: warnings appear if zero counts are present! 
-  if (type == "distribution") {
-    ret <- lapply(1:length(ret), function(i) {
-      tmp <- t(t(ret[[i]]) / sqrt(Vx$diag[,marginal]))
-      pnorm(tmp)
-    })
-  }
-  if (type == "density") {
-    newdata_m1 <- newdata
-    y <- unlist(lapply(object$marginals[marginal], function(m)
-      variable.names(m, "response")))
-    if (y %in% names(newdata_m1)) newdata_m1[,y] <- newdata_m1[,y] - 1L
-    ret_m1 <- lapply(object$marginals[marginal], function(m)
-      predict(m, newdata = newdata_m1, ...))
-    ret <- lapply(1:length(ret), function(i) {
-      tmp <- t(t(ret[[i]]) / sqrt(Vx$diag[,marginal]))
-      tmp_m1 <- t(t(ret_m1[[i]]) / sqrt(Vx$diag[,marginal]))
-      tmp_m1[is.na(tmp_m1)] <- -Inf
-      pnorm(tmp) - pnorm(tmp_m1)
-    })
-  }
-  if (length(ret) == 1) return(ret[[1]])
-  ret
+  if (type == "density") stop("type = density currently not implemented")
+  ### note: implement multivariate density with leftdata argument in
+  ### predict.mmlt
+
+  class(object) <- "mmlt"
+
+  stopifnot(length(marginal) == 1L)
+
+  for (i in 1:length(object$marginals)) 
+      class(object$marginals[[i]]) <- c("cotram", class(object$marginals[[i]]))
+
+  predict(object = object, newdata = newdata, margins = marginal, type = type, ...)
 }
-
-
-# coef.mmlt <- function(object, newdata = object$data, 
-#                       type = c("all", "marginal", "Lambda", "Lambdainv", "Sigma", "Corr"), 
-#                       ...)
-# {
-#   
-#   type <- match.arg(type)
-#   if (type == "all") return(object$par)
-#   if (type == "marginal") return(lapply(object$marginals, coef))
-#   
-#   X <- model.matrix(object$bx, data = newdata)
-#   ret <- X %*% object$pars$cpar
-#   
-#   if (!object$gaussian & type != "Lambda")
-#     warning("return value of Lambda() has no direct interpretation")
-#   
-#   return(switch(type, "Lambda" = ret,
-#                 "Lambdainv" = .Solve2(ret),
-#                 "Sigma" = .Crossp(.Solve2(ret)),
-#                 "Corr" = {
-#                   ret <- .Crossp(.Solve2(ret))
-#                   isd <- sqrt(ret$diagonal)
-#                   if (!is.matrix(isd)) isd <- matrix(isd, nrow = 1)
-#                   SS <- c()
-#                   J <- length(object$marginals)
-#                   for (j in 1:J)
-#                     SS <- cbind(SS, isd[,j] * isd[,-(1:j), drop = FALSE])
-#                   ret$lower / SS
-#                 }))
-# }
-# 
-# summary.mmlt <- function(object, ...) {
-#   ret <- list(call = object$call,
-#               #                tram = object$tram,
-#               test = cftest(object, parm = names(coef(object, with_baseline = FALSE))),
-#               ll = logLik(object))
-#   class(ret) <- "summary.mmlt"
-#   ret
-# }
-# 
-# print.summary.mmlt <- function(x, digits = max(3L, getOption("digits") - 3L), ...) {
-#   cat("\n", "Multivariate conditional transformation model", "\n")
-#   cat("\nCall:\n")
-#   print(x$call)
-#   cat("\nCoefficients:\n")
-#   pq <- x$test$test
-#   mtests <- cbind(pq$coefficients, pq$sigma, pq$tstat, pq$pvalues)
-#   colnames(mtests) <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)")
-#   sig <- .Machine$double.eps
-#   printCoefmat(mtests, digits = digits, has.Pvalue = TRUE, 
-#                P.values = TRUE, eps.Pvalue = sig)
-#   cat("\nLog-Likelihood:\n ", x$ll, " (df = ", attr(x$ll, "df"), ")", sep = "")
-#   cat("\n\n")
-#   invisible(x)
-# }
-# 
-# print.mmlt <- function(x, ...) {
-#   cat("\n", "Multivariate count conditional transformation model", "\n")
-#   cat("\nCall:\n")
-#   print(x$call)
-#   cat("\nCoefficients:\n")
-#   print(coef(x))
-#   invisible(x)
-# }
