@@ -1,5 +1,7 @@
 \name{mmlt}
 \alias{mmlt}
+\alias{coef.mmlt}
+\alias{predict.mmlt}
 \title{
   Multivariate Conditional Transformation Models
 }
@@ -10,23 +12,44 @@ transformation models
 \usage{
 mmlt(..., formula = ~ 1, data, theta = NULL, 
      control.outer = list(trace = FALSE), scale = FALSE, dofit = TRUE)
+\method{coef}{mmlt}(object, newdata, 
+                    type = c("all", "marginal", "Lambda", "Lambdainv", "Sigma", "Corr", "Spearman"), 
+                     ...)
+\method{predict}{mmlt}(object, newdata, margins = 1:J, 
+                       type = c("trafo", "distribution", "density"), log = FALSE, ...)
 }
 \arguments{
-  \item{\dots}{marginal transformation models, one for each response
+  \item{\dots}{marginal transformation models, one for each response, for
+\code{mmlt}. Additional arguments for the methods.
 }
   \item{formula}{a model formula describing a model for the dependency
 structure via the lambda parameters. The default is set to \code{~ 1} for constant lambdas.
 }
-  \item{data}{a data.frame
+  \item{data}{a data.frame.
 }
-  \item{theta}{an optional vector of starting values
+  \item{theta}{an optional vector of starting values.
 }
   \item{control.outer}{a list controlling \code{\link[alabama]{auglag}}
 }
-  \item{scale}{logical; parameters are not scaled prior to optimisation by default
+  \item{scale}{logical; parameters are not scaled prior to optimisation by
+default.
 }
   \item{dofit}{logical; parameters are fitted by default, otherwise a list
-               with log-likelihood and score function is returned
+               with log-likelihood and score function is returned.
+}
+  \item{object}{an object of class \code{mmlt}.
+}
+  \item{newdata}{an optional data.frame coefficients and predictions shall
+                 be computed for.
+}
+  \item{type}{type of coefficient or prediction to be returned.
+}
+  \item{margins}{indices defining marginal models to be evaluated. Can be
+single integers giving the marginal distribution of the corresponding
+variable, or multiple integers (currently only \code{1:j} implemented).
+}
+  \item{log}{logical; return log-probabilities or log-densities of
+\code{TRUE}.
 }
 }
 \details{
@@ -63,34 +86,30 @@ methods.
   ## fit multivariate unconditional transformation model
   m_speed_dist <- mmlt(m_speed, m_dist, formula = ~ 1, data = cars)
 
+  ## log-likelihood
+  logLik(m_speed_dist)
+  sum(predict(m_speed_dist, newdata = cars, type = "density", log = TRUE))
+
   ## lambda defining the Cholesky of the precision matrix,
   ## with standard error
-  coef(m_speed_dist, newdata = cars[1,], type = "Lambda")
+  coef(m_speed_dist, type = "Lambda")
   sqrt(vcov(m_speed_dist)["dist.sped.(Intercept)", 
                           "dist.sped.(Intercept)"])
 
+  ## simpler: Wald test of independence of speed and dist (the "dist.sped.(Intercept)"
+  ## coefficient)
+  summary(m_speed_dist)
+
   ## linear correlation, ie Pearson correlation of speed and dist after
   ## transformation to bivariate normality
-  (r <- coef(m_speed_dist, newdata = cars[1,], type = "Corr"))
+  (r <- coef(m_speed_dist, type = "Corr"))
   
-  ## Spearman's rho (rank correlation), can be computed easily 
-  ## for Gaussian copula as
-  (rs <- 6 * asin(r / 2) / pi)
+  ## Spearman's rho (rank correlation) of speed and dist on original scale
+  (rs <- coef(m_speed_dist, type = "Spearman"))
 
   ## evaluate joint and marginal densities (needs to be more user-friendly)
   nd <- expand.grid(c(nd_s <- mkgrid(m_speed, 100), nd_d <- mkgrid(m_dist, 100)))
-  nd$hs <- predict(m_speed_dist, newdata = nd, margins = 1L)
-  nd$hps <- predict(m_speed_dist, newdata = nd, margins = 1L, 
-                    deriv = c("speed" = 1))
-  nd$hd <- predict(m_speed_dist, newdata = nd, margins = 2L)
-  nd$hpd <- predict(m_speed_dist, newdata = nd, margins = 2L, 
-                    deriv = c("dist" = 1))
-
-  ## joint density
-  nd$d <- with(nd, 
-               dnorm(hs) * 
-               dnorm(coef(m_speed_dist)["dist.sped.(Intercept)"] * hs + hd) * 
-               hps * hpd)
+  nd$d <- predict(m_speed_dist, newdata = nd, type = "density")
 
   ## compute marginal densities
   nd_s <- as.data.frame(nd_s)
