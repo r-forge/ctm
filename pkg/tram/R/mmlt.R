@@ -377,11 +377,14 @@ predict.mmlt <- function(object, newdata, margins = 1:J,
     if (link[margins] != "normal")
         return(predict(object$marginals[[margins]], newdata = newdata, type = type, ...))
 
+    ### lists currently not allowed
+    stopifnot(is.data.frame(newdata)) 
+
     ### F_Z = Phi: need to rescale
     tr <- predict(object$marginals[[margins]], newdata = newdata, type = "trafo", ...)
     if (type == "trafo") return(tr)
     Vx <- coef(object, newdata = newdata, type = "Sigma")
-    sdg <- sqrt(diagonals(Vx))[, margins]
+    sdg <- matrix(sqrt(diagonals(Vx))[, margins], nrow = nrow(tr), ncol = ncol(tr), byrow = TRUE)
     if (type == "distribution")
       return(pnorm(tr / sdg, log.p = log))
     trp <- predict(object$marginals[[margins]], newdata = newdata, type = "trafo", deriv = dx[margins], ...)
