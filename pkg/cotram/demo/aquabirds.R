@@ -10802,14 +10802,14 @@ pchisq(lr, df = df, lower.tail = FALSE)
 
 #### MCOTRAM - HMSC comparison ####
 ## Sigma for M-Lambda
-Sd <- coef(m_disc3_const, newdata = aquabirds[1, ], type = "Sigma")
+Sd <- as.array(coef(m_disc3_const, newdata = aquabirds[1, ], type = "Sigma"))[,,1]
 
-tmp <- diag(Sd$diagonal)
-tmp[lower.tri(tmp)] <- Sd$lower
-Sd <- tmp + t(tmp)
-diag(Sd) <- diag(Sd) / 2
-Sd
-cov2cor(Sd)
+#tmp <- diag(Sd$diagonal)
+#tmp[lower.tri(tmp)] <- Sd$lower
+#Sd <- tmp + t(tmp)
+#diag(Sd) <- diag(Sd) / 2
+#Sd
+#cov2cor(Sd)
 coef(m_disc3_const, newdata = aquabirds[1, ], type = "Cor")
 
 ## Coefs for M-Lambda(x)
