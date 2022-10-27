@@ -13,10 +13,12 @@ transformation models
 mmlt(..., formula = ~ 1, data, theta = NULL, 
      control.outer = list(trace = FALSE), scale = FALSE, dofit = TRUE)
 \method{coef}{mmlt}(object, newdata, 
-                    type = c("all", "marginal", "Lambda", "Lambdainv", "Sigma", "Corr", "Spearman"), 
+                    type = c("all", "marginal", "Lambda", "Lambdainv", 
+                             "Sigma", "Corr", "Spearman"), 
                      ...)
 \method{predict}{mmlt}(object, newdata, margins = 1:J, 
-                       type = c("trafo", "distribution", "density"), log = FALSE, ...)
+                       type = c("trafo", "distribution", "density"), 
+                       log = FALSE, ...)
 }
 \arguments{
   \item{\dots}{marginal transformation models, one for each response, for
