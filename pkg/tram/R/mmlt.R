@@ -460,7 +460,7 @@ logLik.mmlt <- function(object, parm = coef(object), ...) {
 }
 
 coef.mmlt <- function(object, newdata, 
-                      type = c("all", "marginal", "Lambda", "Lambdainv", "Sigma", "Corr"), 
+                      type = c("all", "marginal", "Lambda", "Lambdainv", "Sigma", "Corr", "Spearman"), 
                       ...)
 {
   
@@ -476,6 +476,9 @@ coef.mmlt <- function(object, newdata,
       X <- model.matrix(object$bx, data = newdata)
       ret <- ltmatrices(X %*% object$pars$cpar, byrow = TRUE, diag = FALSE, names = object$names)
   }
+
+  if (type == "Spearman")
+    return(6 * asin(coef(object, newdata = newdata, type = "Cor") / 2) / pi)
 
   ret <- switch(type, "Lambda" = ret,
                       "Lambdainv" = solve(ret),
