@@ -68,7 +68,7 @@
 }
 
 
-mmlt <- function(..., formula = ~ 1, data, 
+mmlt <- function(..., formula = ~ 1, data, conditional = GAUSSIAN,
                  theta = NULL, control.outer = list(trace = FALSE), scale = FALSE,
                  dofit = TRUE) {
   
@@ -99,7 +99,10 @@ mmlt <- function(..., formula = ~ 1, data,
   })
   
   Jp <- J * (J - 1) / 2
-  GAUSSIAN <- all(unlist(lapply(m, function(x) { x$todistr$name == "normal"})))
+  GAUSSIAN <- all(link <- sapply(m, function(x) x$todistr$name == "normal"))
+  if (!GAUSSIAN && conditional)
+     stop("Conditional parameterisation only implemented for probit models")
+  if (!conditional) link[] <- FALSE
 
   bx <- formula
   if (inherits(formula, "formula"))
@@ -133,11 +136,11 @@ mmlt <- function(..., formula = ~ 1, data,
     Xp <- ltmatrices(lX %*% cpar, byrow = TRUE, diag = FALSE, names = nm)
 
       
-    if (GAUSSIAN) {
+    if (all(link)) {
       C <- .mult(Xp, Yp)
       ret <- sum(.log(Yprimep))
       ret <- ret + sum(dnorm(C, log = TRUE))
-    } else { ## !GAUSSIAN
+    } else {
         
       Sigmas2 <- .tcrossprod.ltmatrices(solve(Xp), diag_only = TRUE)
       Sigmas <- sqrt(Sigmas2)
@@ -145,7 +148,7 @@ mmlt <- function(..., formula = ~ 1, data,
       F_Zj_Yp <- Phi_01_inv <- Phi_Sigmas_inv <- Yp
         
       for (j in 1:J) {
-        if (m[[j]]$todistr$name != "normal") {
+        if (!link[j]) {
           F_Zj_Yp[, j] <- m[[j]]$todistr$p(Yp[, j], log.p = TRUE)
           Phi_01_inv[, j] <- qnorm(F_Zj_Yp[, j], log.p = TRUE)
           Phi_Sigmas_inv[, j] <- Sigmas[, j] * Phi_01_inv[, j]
@@ -156,7 +159,7 @@ mmlt <- function(..., formula = ~ 1, data,
       ret <- sum(.log(Yprimep))
       for (j in 1:J) {
         ret <- ret + sum(dnorm(C[, j], log = TRUE))
-        if (m[[j]]$todistr$name != "normal") {
+        if (!link[j]) {
           ret <- ret + 
             sum(m[[j]]$todistr$d(Yp[, j], log = TRUE)) +
             sum(.log(Sigmas[, j])) +
@@ -185,7 +188,7 @@ mmlt <- function(..., formula = ~ 1, data,
         L[lower.tri(L)] <- 1:Jp
     }
       
-    if (GAUSSIAN) {
+    if (all(link)) {
         
       C <- .mult(Xp, Yp)
       C1 <- -C
@@ -210,7 +213,7 @@ mmlt <- function(..., formula = ~ 1, data,
         }
         cret[[k]] <- ret
       }
-    } else { ## !GAUSSIAN
+    } else {
         
       Sigmas2 <- .tcrossprod.ltmatrices(solve(Xp), diag_only = TRUE)
       Sigmas <- sqrt(Sigmas2)
@@ -218,7 +221,7 @@ mmlt <- function(..., formula = ~ 1, data,
       F_Zj_Yp <- Phi_01_inv <- Phi_Sigmas_inv <- Yp
         
       for (j in 1:J) {
-        if (m[[j]]$todistr$name != "normal") {
+        if (!link[j]) {
           F_Zj_Yp[, j] <- m[[j]]$todistr$p(Yp[, j], log.p = TRUE)
           Phi_01_inv[, j] <- qnorm(F_Zj_Yp[, j], log.p = TRUE)
           Phi_Sigmas_inv[, j] <- Sigmas[, j] * Phi_01_inv[, j]
@@ -234,7 +237,7 @@ mmlt <- function(..., formula = ~ 1, data,
         Lk <- L[,k]
         D <- cbind(matrix(rep(0, (k-1)*N), nrow = N), 1, unclass(Xp)[,Lk[Lk > 0]])
           
-        if(m[[k]]$todistr$name == "normal") {
+        if(link[k]) {
           mret[[k]] <- colSums(rowSums(C1 * D) * lu[[k]]$exact) +
                        colSums(lu[[k]]$prime / Yprimep[,k])
         } else { ## k-th model not BoxCox
@@ -255,7 +258,7 @@ mmlt <- function(..., formula = ~ 1, data,
         tmp2 <- - B1 * Phi_01_inv[,k+1]
         ret <- c()
 
-        if(m[[k+1]]$todistr$name == "normal") {
+        if(link[[k+1]]) {
           for (i in 1:k) {
             tmp3 <- matrix(rep(tmp1[,i], ncol(lX)), ncol = ncol(lX))
             ret <- c(ret, colSums(tmp3 * lX))
@@ -347,8 +350,7 @@ mmlt <- function(..., formula = ~ 1, data,
                       do.call("paste", args))
   
   ret <- list(marginals = mmod, formula = formula, bx = bx, data = data,
-              call = call, diag = FALSE,
-              gaussian = GAUSSIAN, 
+              call = call, diag = FALSE, link = link,
               pars = list(mpar = mpar, cpar = cpar),
               par = opt$par, ll = ll, sc = sc, logLik = -opt$value,
               hessian = opt$hessian, names = nm)
@@ -366,12 +368,12 @@ predict.mmlt <- function(object, newdata, margins = 1:J,
   dx <- rep(1, J)
   names(dx) <- yvar
 
-  link <- sapply(object$marginals, function(m) m$todistr$name)
+  link <- object$link[margins]
 
   if (length(margins) == 1L) {
 
     ### Section 2.6: tilde{h} are already marginals for F_Z != Phi
-    if (link[margins] != "normal")
+    if (!link)
         return(predict(object$marginals[[margins]], newdata = newdata, type = type, log = log, ...))
 
     ### lists currently not allowed
@@ -399,14 +401,13 @@ predict.mmlt <- function(object, newdata, margins = 1:J,
 
   ret <- numeric(nrow(newdata))
 
-  gm <- sapply(margins, function(i) object$marginals[[i]]$todistr$name == "normal")
-  if (any(!gm)) {
-    logF <- do.call("cbind", lapply(margins[!gm], function(i)
+  if (any(!link)) {
+    logF <- do.call("cbind", lapply(margins[!link], function(i)
             c(predict(object$marginals[[i]], newdata = newdata, type = "distribution", log = TRUE))))
     Vx <- coef(object, newdata = newdata, type = "Sigma")
-    sdg <- sqrt(diagonals(Vx))[, margins[!gm]]
+    sdg <- sqrt(diagonals(Vx))[, margins[!link]]
     h <- tr
-    h[,!gm] <- (Z <- qnorm(logF, log.p = TRUE)) * sdg
+    h[,!link] <- (Z <- qnorm(logF, log.p = TRUE)) * sdg
   } else {
     h <- tr
   }
@@ -428,16 +429,16 @@ predict.mmlt <- function(object, newdata, margins = 1:J,
         stop("cannot evaluate density for selected margins; reorder and refit such that margins = 1:j")
       }
     }
-    if (any(gm)) {
-      trp <- do.call("cbind", lapply(margins[gm], function(i)
+    if (any(link)) {
+      trp <- do.call("cbind", lapply(margins[link], function(i)
                      c(predict(object$marginals[[i]], newdata = newdata, type = "trafo", deriv = dx[i]))))
     } else {
       trp <- 1
     }
     ret <- rowSums(dnorm(.mult(Lmat, h), log = TRUE) + .log(trp))
       
-    if (any(!gm)) {
-      ld <- do.call("cbind", lapply(margins[!gm], function(i)
+    if (any(!link)) {
+      ld <- do.call("cbind", lapply(margins[!link], function(i)
                     c(predict(object$marginals[[i]], newdata = newdata, 
                               type = "logdensity"))))
       ret <- ret + rowSums(ld) + rowSums(.log(sdg)) + .5 * rowSums(Z^2)

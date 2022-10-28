@@ -10,7 +10,7 @@
 transformation models
 }
 \usage{
-mmlt(..., formula = ~ 1, data, theta = NULL, 
+mmlt(..., formula = ~ 1, data, conditional = GAUSSIAN, theta = NULL, 
      control.outer = list(trace = FALSE), scale = FALSE, dofit = TRUE)
 \method{coef}{mmlt}(object, newdata, 
                     type = c("all", "marginal", "Lambda", "Lambdainv", 
@@ -28,6 +28,13 @@ mmlt(..., formula = ~ 1, data, theta = NULL,
 structure via the lambda parameters. The default is set to \code{~ 1} for constant lambdas.
 }
   \item{data}{a data.frame.
+}
+  \item{conditional}{logical; parameters are defined conditionally (only
+possible when all models are probit models). This is the default as
+described by Klein et al. (2022). If \code{FALSE}, parameters can be
+directly interpreted marginally, this is explained in Section 2.6 by Klein
+et al. (2022). Using \code{conditional = FALSE} with probit-only models
+gives the same likelihood but different parameter estimates.
 }
   \item{theta}{an optional vector of starting values.
 }
