@@ -361,9 +361,6 @@ predict.mmlt <- function(object, newdata, margins = 1:J,
 
   type <- match.arg(type)
 
-  if (type == "trafo")
-    if (log) warning("argument log ignored")
-
   J <- length(object$marginals)
   yvar <- sapply(object$marginals, function(mg) mg$model$response)
   dx <- rep(1, J)
@@ -375,7 +372,7 @@ predict.mmlt <- function(object, newdata, margins = 1:J,
 
     ### Section 2.6: tilde{h} are already marginals for F_Z != Phi
     if (link[margins] != "normal")
-        return(predict(object$marginals[[margins]], newdata = newdata, type = type, ...))
+        return(predict(object$marginals[[margins]], newdata = newdata, type = type, log = log, ...))
 
     ### lists currently not allowed
     stopifnot(is.data.frame(newdata)) 
@@ -395,8 +392,10 @@ predict.mmlt <- function(object, newdata, margins = 1:J,
 
   tr <- do.call("cbind", lapply(margins, function(i)
                 c(predict(object$marginals[[i]], newdata = newdata, type = "trafo"))))
-  if (type == "trafo")
+  if (type == "trafo") {
+    if (log) warning("argument log ignored")
     return(tr)
+  }
 
   ret <- numeric(nrow(newdata))
 
@@ -442,7 +441,7 @@ predict.mmlt <- function(object, newdata, margins = 1:J,
                     c(predict(object$marginals[[i]], newdata = newdata, 
                               type = "logdensity"))))
       ret <- ret + rowSums(ld) + rowSums(.log(sdg)) + .5 * rowSums(Z^2)
-      ret <- ret - J * log(1 / sqrt(2 * pi))
+      ret <- ret - length(margins) * log(1 / sqrt(2 * pi))
     }
 
     if (log) return(ret)
