@@ -2,7 +2,12 @@
 \name{NEWS}
 \title{NEWS file for the mlt package}
 
-\section{Changes in Version 1.4-3 (2022-07-xx)}{
+\section{Changes in Version 1.4-3 (2022-10-28)}{
+  \subsection{New features}{
+    \itemize{
+      \item{\code{predict} and \code{plot} have new types involving logs.}
+    }
+  }
   \subsection{Bugfixes}{
     \itemize{
       \item{\code{plot()} ignored  \code{lwd}.}
