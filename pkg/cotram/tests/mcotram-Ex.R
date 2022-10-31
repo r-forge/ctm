@@ -93,23 +93,23 @@ coef(uc2l, type = "Corr")[1,]
 
 ## here, the results are not great because the marginal models are too simple
 ## OpenBlas + ATLAS think differently
-if (FALSE) {
-
-## log_first = TRUE
+#if (FALSE) {
+#
+### log_first = TRUE
 #coef(uc1)[-c(1:7, 15)] / sqrt(coef(uc1, type = "Sigma")$diagonal[1,2])
-coef(uc2)[1:7]
-
+#coef(uc2)[1:7]
+#
 #coef(uc2)[-c(1:7, 15)] / sqrt(coef(uc2, type = "Sigma")$diagonal[1,2])
-coef(uc1)[1:7]
-
-## log_first = FALSE?
+#coef(uc1)[1:7]
+#
+### log_first = FALSE?
 #coef(uc1l)[-c(1:7, 15)] / sqrt(coef(uc1l, type = "Sigma")$diagonal[1,2])
-coef(uc2l)[1:7]
-
+#coef(uc2l)[1:7]
+#
 #coef(uc2l)[-c(1:7, 15)] / sqrt(coef(uc2l, type = "Sigma")$diagonal[1,2])
-coef(uc1l)[1:7]
-
-}
+#coef(uc1l)[1:7]
+#
+#}
 
 ### predict accuracy
 cbind(u1 = predict(u1, newdata = d[1:3, ], type = "distribution"),
@@ -242,31 +242,61 @@ coef(mb2ul, type = "Corr")[1,]
 ## coefficients of the model with the different order
 
 ## log_first = TRUE
-#coef(mb1)[-c(1:7, 15)] / sqrt(coef(mb1, type = "Sigma")$diagonal[1,2])
-coef(mb2)[1:7]
+if (compareVersion("0.7-2", as.character(packageVersion("tram"))) < 0) {
+  print(coef(mb1)[-c(1:7, 15)] / sqrt(diagonals(coef(mb1, type = "Sigma"))[2]))
+  print(coef(mb2)[1:7])
 
-#coef(mb2)[-c(1:7, 15)] / sqrt(coef(mb2, type = "Sigma")$diagonal[1,2])
-coef(mb1)[1:7]
+  print(coef(mb2)[-c(1:7, 15)] / sqrt(diagonals(coef(mb2, type = "Sigma"))[2]))
+  print(coef(mb1)[1:7])
 
-#coef(mb1u)[-c(1:7, 15)] / sqrt(coef(mb1u, type = "Sigma")$diagonal[1,2])
-coef(mb2u)[1:7]
+  print(coef(mb1u)[-c(1:7, 15)] / sqrt(diagonals(coef(mb1u, type = "Sigma"))[2]))
+  print(coef(mb2u)[1:7])
 
-#coef(mb2u)[-c(1:7, 15)] / sqrt(coef(mb2u, type = "Sigma")$diagonal[1,2])
-coef(mb1u)[1:7]
+  print(coef(mb2u)[-c(1:7, 15)] / sqrt(diagonals(coef(mb2u, type = "Sigma"))[2]))
+  print(coef(mb1u)[1:7])
+
+} else {
+  print(coef(mb1)[-c(1:7, 15)] / sqrt(coef(mb1, type = "Sigma")$diagonal[1,2]))
+  print(coef(mb2)[1:7])
+
+  print(coef(mb2)[-c(1:7, 15)] / sqrt(coef(mb2, type = "Sigma")$diagonal[1,2]))
+  print(coef(mb1)[1:7])
+
+  print(coef(mb1u)[-c(1:7, 15)] / sqrt(coef(mb1u, type = "Sigma")$diagonal[1,2]))
+  print(coef(mb2u)[1:7])
+
+  coef(mb2u)[-c(1:7, 15)] / sqrt(coef(mb2u, type = "Sigma")$diagonal[1,2])
+  coef(mb1u)[1:7]
+}
 
 ## log_first = FALSE
 ## results not great but probably because the marginal models are too simple
-#coef(mb1l)[-c(1:7, 15)] / sqrt(coef(mb1l, type = "Sigma")$diagonal[1,2])
-coef(mb2l)[1:7]
+if (compareVersion("0.7-2", as.character(packageVersion("tram"))) < 0) {
+  print(coef(mb1l)[-c(1:7, 15)] / sqrt(diagonals(coef(mb1l, type = "Sigma"))[2]))
+  print(coef(mb2l)[1:7])
 
-#coef(mb2l)[-c(1:7, 15)] / sqrt(coef(mb2l, type = "Sigma")$diagonal[1,2])
-coef(mb1l)[1:7]
+  print(coef(mb2l)[-c(1:7, 15)] / sqrt(diagonals(coef(mb2l, type = "Sigma"))[2]))
+  print(coef(mb1l)[1:7])
 
-#coef(mb1ul)[-c(1:7, 15)] / sqrt(coef(mb1ul, type = "Sigma")$diagonal[1,2])
-coef(mb2ul)[1:7]
+  print(coef(mb1ul)[-c(1:7, 15)] / sqrt(diagonals(coef(mb1ul, type = "Sigma"))[2]))
+  print(coef(mb2ul)[1:7])
 
-#coef(mb2ul)[-c(1:7, 15)] / sqrt(coef(mb2ul, type = "Sigma")$diagonal[1,2])
-coef(mb1ul)[1:7]
+  print(coef(mb2ul)[-c(1:7, 15)] / sqrt(diagonals(coef(mb2ul, type = "Sigma"))[2]))
+  print(coef(mb1ul)[1:7])
+
+} else {
+  print(coef(mb1l)[-c(1:7, 15)] / sqrt(coef(mb1l, type = "Sigma")$diagonal[1,2]))
+  print(coef(mb2l)[1:7])
+
+  print(coef(mb2l)[-c(1:7, 15)] / sqrt(coef(mb2l, type = "Sigma")$diagonal[1,2]))
+  print(coef(mb1l)[1:7])
+
+  print(coef(mb1ul)[-c(1:7, 15)] / sqrt(coef(mb1ul, type = "Sigma")$diagonal[1,2]))
+  print(coef(mb2ul)[1:7])
+
+  print(coef(mb2ul)[-c(1:7, 15)] / sqrt(coef(mb2ul, type = "Sigma")$diagonal[1,2]))
+  print(coef(mb1ul)[1:7])
+}
 
 ### predict accuracy
 cbind(b1 = predict(b1, newdata = d[1:3, ], type = "distribution"),
@@ -428,18 +458,34 @@ coef(uc2l, type = "Corr")[1,]
 
 ## log_first = TRUE
 ## seems to agree better than log_first = FALSE
-#coef(uc1)[-c(1:9, 19)] / sqrt(coef(uc1, type = "Sigma")$diagonal[1,2])
-coef(uc2)[1:9]
+if (compareVersion("0.7-2", as.character(packageVersion("tram"))) < 0) {
+  print(coef(uc1)[-c(1:9, 19)] / sqrt(diagonals(coef(uc1, type = "Sigma"))[2]))
+  print(coef(uc2)[1:9])
 
-#coef(uc2)[-c(1:9, 19)] / sqrt(coef(uc2, type = "Sigma")$diagonal[1,2])
-coef(uc1)[1:9]
+  print(coef(uc2)[-c(1:9, 19)] / sqrt(diagonals(coef(uc2, type = "Sigma"))[2]))
+  print(coef(uc1)[1:9])
 
-## log_first = FALSE
-#coef(uc1l)[-c(1:9, 19)] / sqrt(coef(uc1l, type = "Sigma")$diagonal[1,2])
-coef(uc2l)[1:9]
+  ## log_first = FALSE
+  print(coef(uc1l)[-c(1:9, 19)] / sqrt(diagonals(coef(uc1l, type = "Sigma"))[2]))
+  print(coef(uc2l)[1:9])
 
-#coef(uc2l)[-c(1:9, 19)] / sqrt(coef(uc2l, type = "Sigma")$diagonal[1,2])
-coef(uc1l)[1:9]
+  print(coef(uc2l)[-c(1:9, 19)] / sqrt(diagonals(coef(uc2l, type = "Sigma"))[2]))
+  print(coef(uc1l)[1:9])
+
+} else {
+  print(coef(uc1)[-c(1:9, 19)] / sqrt(coef(uc1, type = "Sigma")$diagonal[1,2]))
+  print(coef(uc2)[1:9])
+
+  print(coef(uc2)[-c(1:9, 19)] / sqrt(coef(uc2, type = "Sigma")$diagonal[1,2]))
+  print(coef(uc1)[1:9])
+
+  ## log_first = FALSE
+  print(coef(uc1l)[-c(1:9, 19)] / sqrt(coef(uc1l, type = "Sigma")$diagonal[1,2]))
+  print(coef(uc2l)[1:9])
+
+  print(coef(uc2l)[-c(1:9, 19)] / sqrt(coef(uc2l, type = "Sigma")$diagonal[1,2]))
+  print(coef(uc1l)[1:9])
+}
 
 ### predict accuracy
 cbind(u1 = predict(u1, newdata = d[1:3, ], type = "distribution"),
@@ -569,31 +615,60 @@ coef(mb2ul, type = "Corr")[1,]
 ## coefficients of the model with the different order
 
 ## log_first = TRUE
-#coef(mb1)[-c(1:7, 15)] / sqrt(coef(mb1, type = "Sigma")$diagonal[1,2])
-coef(mb2)[1:7]
+if (compareVersion("0.7-2", as.character(packageVersion("tram"))) < 0) {
+  print(coef(mb1)[-c(1:7, 15)] / sqrt(diagonals(coef(mb1, type = "Sigma"))[2]))
+  print(coef(mb2)[1:7])
 
-#coef(mb2)[-c(1:7, 15)] / sqrt(coef(mb2, type = "Sigma")$diagonal[1,2])
-coef(mb1)[1:7]
+  print(coef(mb2)[-c(1:7, 15)] / sqrt(diagonals(coef(mb2, type = "Sigma"))[2]))
+  print(coef(mb1)[1:7])
 
-#coef(mb1u)[-c(1:7, 15)] / sqrt(coef(mb1u, type = "Sigma")$diagonal[1,2])
-coef(mb2u)[1:7]
+  print(coef(mb1u)[-c(1:7, 15)] / sqrt(diagonals(coef(mb1u, type = "Sigma"))[2]))
+  print(coef(mb2u)[1:7])
 
-#coef(mb2u)[-c(1:7, 15)] / sqrt(coef(mb2u, type = "Sigma")$diagonal[1,2])
-coef(mb1u)[1:7]
+  print(coef(mb2u)[-c(1:7, 15)] / sqrt(diagonals(coef(mb2u, type = "Sigma"))[2]))
+  print(coef(mb1u)[1:7])
+} else {
+  print(coef(mb1)[-c(1:7, 15)] / sqrt(coef(mb1, type = "Sigma")$diagonal[1,2]))
+  print(coef(mb2)[1:7])
+
+  print(coef(mb2)[-c(1:7, 15)] / sqrt(coef(mb2, type = "Sigma")$diagonal[1,2]))
+  print(coef(mb1)[1:7])
+
+  print(coef(mb1u)[-c(1:7, 15)] / sqrt(coef(mb1u, type = "Sigma")$diagonal[1,2]))
+  print(coef(mb2u)[1:7])
+
+  print(coef(mb2u)[-c(1:7, 15)] / sqrt(coef(mb2u, type = "Sigma")$diagonal[1,2]))
+  print(coef(mb1u)[1:7])
+}
 
 ## log_first = FALSE
 ## doesn't seem to be the case for log_first = FALSE?
-#coef(mb1l)[-c(1:7, 15)] / sqrt(coef(mb1l, type = "Sigma")$diagonal[1,2])
-coef(mb2l)[1:7]
+if (compareVersion("0.7-2", as.character(packageVersion("tram"))) < 0) {
+  print(coef(mb1l)[-c(1:7, 15)] / sqrt(diagonals(coef(mb1l, type = "Sigma"))[2]))
+  print(coef(mb2l)[1:7])
 
-#coef(mb2l)[-c(1:7, 15)] / sqrt(coef(mb2l, type = "Sigma")$diagonal[1,2])
-coef(mb1l)[1:7]
+  print(coef(mb2l)[-c(1:7, 15)] / sqrt(diagonals(coef(mb2l, type = "Sigma"))[2]))
+  print(coef(mb1l)[1:7])
 
-#coef(mb1ul)[-c(1:7, 15)] / sqrt(coef(mb1ul, type = "Sigma")$diagonal[1,2])
-coef(mb2ul)[1:7]
+  print(coef(mb1ul)[-c(1:7, 15)] / sqrt(diagonals(coef(mb1ul, type = "Sigma"))[2]))
+  print(coef(mb2ul)[1:7])
 
-#coef(mb2ul)[-c(1:7, 15)] / sqrt(coef(mb2ul, type = "Sigma")$diagonal[1,2])
-coef(mb1ul)[1:7]
+  print(coef(mb2ul)[-c(1:7, 15)] / sqrt(diagonals(coef(mb2ul, type = "Sigma"))[2]))
+  print(coef(mb1ul)[1:7])
+
+} else {
+  print(coef(mb1l)[-c(1:7, 15)] / sqrt(coef(mb1l, type = "Sigma")$diagonal[1,2]))
+  print(coef(mb2l)[1:7])
+
+  print(coef(mb2l)[-c(1:7, 15)] / sqrt(coef(mb2l, type = "Sigma")$diagonal[1,2]))
+  print(coef(mb1l)[1:7])
+
+  print(coef(mb1ul)[-c(1:7, 15)] / sqrt(coef(mb1ul, type = "Sigma")$diagonal[1,2]))
+  print(coef(mb2ul)[1:7])
+
+  print(coef(mb2ul)[-c(1:7, 15)] / sqrt(coef(mb2ul, type = "Sigma")$diagonal[1,2]))
+  print(coef(mb1ul)[1:7])
+}
 
 ### predict accuracy
 cbind(b1 = predict(b1, newdata = d[1:3, ], type = "distribution"),

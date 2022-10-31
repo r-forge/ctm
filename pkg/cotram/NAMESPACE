@@ -12,6 +12,8 @@ importFrom("graphics", "plot", "lines", "polygon")
 importFrom("stats", "update", "residuals", "pnorm", "weights")
 importFrom("graphics", "axis", "box", "points")
 importFrom("grDevices", "rgb")
+importFrom("utils", "compareVersion", "packageVersion")
+
 
 importFrom("survival", "Surv")
 

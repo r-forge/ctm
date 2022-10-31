@@ -2,6 +2,12 @@
 \name{NEWS}
 \title{NEWS file for the cotram package}
 
+\section{Changes in Version 0.4-2 (2022-10-31)}{
+  \itemize{
+    \item{Prepare for \pkg{tram} 0.8-0 release.}
+  }
+}
+
 \section{Changes in Version 0.4-1 (2022-07-14)}{
   \itemize{
     \item{Fix additional check problems.}
