@@ -1,3 +1,5 @@
+
+
 ### mmlt function for count case
 mcotram <- function(..., formula = ~ 1, data, theta = NULL, # diag = FALSE,
                     control.outer = list(trace = FALSE), # scale = FALSE,
@@ -29,8 +31,10 @@ mcotram <- function(..., formula = ~ 1, data, theta = NULL, # diag = FALSE,
   w <- unique(do.call("c", lapply(m, weights)))
   stopifnot(isTRUE(all.equal(w, 1)))
   
+  link <- sapply(m, function(x) x$todistr$name == "normal")
+
   ### warning for todistr != "normal"
-  if (any(sapply(m, function(x) x$todistr$name != "normal")))
+  if (any(!link))
     warning("One of the models has a non-normal inverse link function F_Z. ML
               optimization still works but no interpretation in the
               Gaussian copula framework is possible, though the lambdas still serve
@@ -433,17 +437,26 @@ mcotram <- function(..., formula = ~ 1, data, theta = NULL, # diag = FALSE,
   
   nm <- abbreviate(sapply(m, function(x) x$model$response), 4)
 
-  tmp <- ltmatrices(cpar, byrow = TRUE, diag = FALSE, names = nm)
-  args <- expand.grid(colnames(lX), colnames(unclass(tmp)))[,2:1]
-  colnames(cpar) <- colnames(unclass(tmp))
-  rownames(cpar) <- colnames(lX)
-  args$sep <- "."
-  names(opt$par) <- c(sapply(1:J, function(j) 
-                             paste(nm[j], names(coef(mmod[[j]])), sep = ".")),
-                      do.call("paste", args))
+  if (compareVersion("0.7-2", as.character(packageVersion("tram"))) < 0) {
+    tmp <- ltmatrices(cpar, byrow = TRUE, diag = FALSE, names = nm)
+    args <- expand.grid(colnames(lX), colnames(unclass(tmp)))[,2:1]
+    colnames(cpar) <- colnames(unclass(tmp))
+    rownames(cpar) <- colnames(lX)
+    args$sep <- "."
+    names(opt$par) <- c(sapply(1:J, function(j) 
+                               paste(nm[j], names(coef(mmod[[j]])), sep = ".")),
+                        do.call("paste", args))
+  } else {
+    ltmatrices <- function(x) x
+    lnm <- matrix(paste0(matrix(nm, nrow = J, ncol = J), ".",
+                         matrix(nm, nrow = J, ncol = J, byrow = TRUE)), nrow = J)
+    cnm <- paste0(rep(lnm[lower.tri(lnm, diag = diag)], each = nclX), ".", 
+                  rep(colnames(lX), Jp))
+    names(opt$par) <- c(paste0(nm[sf], ".", do.call("c", lapply(mlist, names))), cnm)
+  }
 
   ret <- list(marginals = mmod, formula = formula, bx = bx, data = data,
-              call = call,
+              call = call, link = link,
               gaussian = gaussian, diag = diag,
               pars = list(mpar = mpar, cpar = cpar),
               par = opt$par, ll = ll, sc = sc, logLik = -opt$value,
@@ -455,17 +468,52 @@ mcotram <- function(..., formula = ~ 1, data, theta = NULL, # diag = FALSE,
 predict.mcotram <- function(object, newdata = object$data, marginal = 1L,
                             type = c("trafo", "distribution", "density"), ...) {
 
-  type <- match.arg(type)
-  if (type == "density") stop("type = density currently not implemented")
-  ### note: implement multivariate density with leftdata argument in
-  ### predict.mmlt
+  if (compareVersion("0.7-2", as.character(packageVersion("tram"))) < 0) {
+    type <- match.arg(type)
+    if (type == "density") stop("type = density currently not implemented")
+    ### note: implement multivariate density with leftdata argument in
+    ### predict.mmlt
 
-  class(object) <- "mmlt"
+    class(object) <- "mmlt"
 
-  stopifnot(length(marginal) == 1L)
+    stopifnot(length(marginal) == 1L)
 
-  for (i in 1:length(object$marginals)) 
+    for (i in 1:length(object$marginals)) 
       class(object$marginals[[i]]) <- c("cotram", class(object$marginals[[i]]))
 
-  predict(object = object, newdata = newdata, margins = marginal, type = type, ...)
+    return(predict(object = object, newdata = newdata, margins = marginal, type = type, ...))
+} else {
+  type <- match.arg(type)
+  if (!object$gaussian & marginal != 1L)
+    stop("Cannot compute marginal distribution from non-gaussian joint model")
+  
+  ### predicting marginal transformation functions
+  ret <- lapply(object$marginals[marginal], function(m)
+    predict.cotram(m, newdata = newdata, type = "trafo", ...))
+  Vx <- coef(object, newdata = newdata, type = "Sigma")
+  
+  ### FIXME: warnings appear if zero counts are present! 
+  if (type == "distribution") {
+    ret <- lapply(1:length(ret), function(i) {
+      tmp <- t(t(ret[[i]]) / sqrt(Vx$diag[,marginal]))
+      pnorm(tmp)
+    })
+  }
+  if (type == "density") {
+    newdata_m1 <- newdata
+    y <- unlist(lapply(object$marginals[marginal], function(m)
+      variable.names(m, "response")))
+    if (y %in% names(newdata_m1)) newdata_m1[,y] <- newdata_m1[,y] - 1L
+    ret_m1 <- lapply(object$marginals[marginal], function(m)
+      predict(m, newdata = newdata_m1, ...))
+    ret <- lapply(1:length(ret), function(i) {
+      tmp <- t(t(ret[[i]]) / sqrt(Vx$diag[,marginal]))
+      tmp_m1 <- t(t(ret_m1[[i]]) / sqrt(Vx$diag[,marginal]))
+      tmp_m1[is.na(tmp_m1)] <- -Inf
+      pnorm(tmp) - pnorm(tmp_m1)
+    })
+  }
+  if (length(ret) == 1) return(ret[[1]])
+  return(ret)
+}
 }
