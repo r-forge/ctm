@@ -287,13 +287,20 @@ mmlt <- function(..., formula = ~ 1, data, conditional = GAUSSIAN,
     start <- unname(theta)
   }
   else {
-    if(inherits(formula, "formula") && formula == ~1) {
+    if ((inherits(formula, "formula") && formula == ~1) || !conditional) {
       ### don't bother with .start(), simply use the marginal coefficients
       ### and zero for the lambda parameters
       start <- do.call("c", lapply(m, function(mod) coef(as.mlt(mod))))
-      start <- c(start, rep(0, Jp * ncol(lX)))
+      if (!conditional) {
+        cll <- function(cpar) ll(c(start, cpar))
+        csc <- function(cpar) sc(c(start, cpar))[-(1:length(start))]
+        op <- optim(rep(0, Jp * ncol(lX)), fn = cll, gr = csc, method = "BFGS")
+        start <- c(start, op$par)
+      } else {
+        start <- c(start, rep(0, Jp * ncol(lX)))
+      }
     }
-    else { # formula != ~ 1
+    else { # formula != ~ 1 || conditional
       start <- .start(m, bx = bx, data = data)
       start <- c(start$mpar, c(t(start$cpar)))
     }
