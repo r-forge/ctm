@@ -308,7 +308,7 @@ diagonals.ltmatrices <- function(x, ...) {
             L[lower.tri(L, diag = TRUE)] <- 1:ncol(x)
             idx <- diag(L)
         }
-        ret <- x[, idx]
+        ret <- x[, idx, drop = FALSE]
         colnames(ret) <- rcnames
         return(ret)
     }
