@@ -1,6 +1,62 @@
 
 library("tram")
 library("mvtnorm")
+library("multcomp")
+
+set.seed(25)
+chk <- function(...) all.equal(...)
+
+J <- 4
+N <- 1000
+S <- cov2cor(tcrossprod(matrix(runif(J * J), ncol = J)))
+# S <- diag(J)
+y <- rmvnorm(N, sigma = S)
+u <- as.data.frame(plogis(y))
+x <- runif(N)
+d <- cbind(u, x)
+un <- colnames(d)[1:J]
+
+m <- lapply(un, function(i)
+    BoxCox(as.formula(paste(i, "~ x")), data = d, bounds = c(0, 1), support = c(0, 1)))
+m$data <- d
+m$formula <- ~ 1
+mm <- do.call("mmlt", m)
+
+chk(c(logLik(mm)), sum(predict(mm, newdata = d, type = "density", log = TRUE)))
+L <- as.array(coef(mm, type = "Lambda"))[,,1]
+chk(as.array(coef(mm, type = "Lambdainv"))[,,1], solve(L))
+chk(as.array(coef(mm, type = "Sigma"))[,,1], tcrossprod(solve(L)))
+chk(as.array(coef(mm, type = "Cor"))[,,1], cov2cor(tcrossprod(solve(L))))
+
+### marginal normal
+m$conditional <- FALSE
+mmN <- do.call("mmlt", m)
+
+chk(logLik(mm), logLik(mmN))
+chk(c(logLik(mmN)), sum(predict(mmN, newdata = d, type = "density", log = TRUE)))
+
+cf1 <- do.call("c", lapply(m[1:J], function(x) coef(as.mlt(x))))
+cf2 <- coef(mmN)[1:length(cf1)]
+cbind(cf1, cf2)
+
+sd1 <- sqrt(do.call("c", lapply(m[1:J], function(x) diag(vcov(as.mlt(x))))))
+sd2 <- sqrt(diag(vcov(mmN)))[1:length(sd1)]
+
+cbind(sd1, sd2)
+vcov(mmN)["V1.x", "V4.x"]
+
+f <- function(par) mmN$ll(c(cf1, par))
+optim(rep(0, 6), f)
+unclass(coef(mmN, type = "Lambda"))
+
+f <- function(par) mmN$ll(c(cf2, par))
+optim(rep(0, 6), f)
+unclass(coef(mmN, type = "Lambda"))
+
+logLik(mmN)
+
+library("tram")
+library("mvtnorm")
 
 set.seed(25)
 chk <- function(...) all.equal(...)
@@ -32,6 +88,17 @@ mmN <- do.call("mmlt", m)
 
 chk(logLik(mm), logLik(mmN))
 chk(c(logLik(mmN)), sum(predict(mmN, newdata = d, type = "density", log = TRUE)))
+
+cf1 <- do.call("c", lapply(m[1:J], function(x) coef(as.mlt(x))))
+cf2 <- coef(mmN)[1:length(cf1)]
+cbind(cf1, cf2)
+
+sd1 <- sqrt(do.call("c", lapply(m[1:J], function(x) diag(vcov(as.mlt(x))))))
+sd2 <- sqrt(diag(vcov(mmN)))[1:length(sd1)]
+
+cbind(sd1, sd2)
+vcov(mmN)["V1.x", "V4.x"]
+
 
 chk(as.array(coef(mm, type = "Lambda"))[,,1], 
     as.array(coef(mmN, type = "Lambda"))[,,1])
@@ -362,9 +429,9 @@ mc2 <- mmlt(m2, m3, m1, m4, formula = ~ x.1 + x.2, data = d)
 logLik(mc1)
 logLik(mc2)
 
-S <- diag(4)
+J <- 4
+S <- cov2cor(tcrossprod(matrix(runif(J * J), ncol = J)))
 x <- matrix(runif(N*2), ncol = 2)
-S[lower.tri(S)] <- S[upper.tri(S)] <- .5
 
 y <- x %*% matrix(c(1, -1, -.5, .5, -.2, .2, .3, -.3), nrow = 2) + rmvnorm(N, sigma = S)
 d <- data.frame(y = y, x = x)
@@ -373,7 +440,6 @@ m1 <- Lm(y.1 ~ x.1 + x.2, data = d)
 m2 <- Lm(y.2 ~ x.1 + x.2, data = d)
 m3 <- Lm(y.3 ~ x.1 + x.2, data = d)
 m4 <- Lm(y.4 ~ x.1 + x.2, data = d)
-# m1$todistr$name <- m2$todistr$name <- m3$todistr$name <- m4$todistr$name <- "CF"
 
 ## simple formula
 mc01 <- mmlt(m1, m2, m3, m4, formula = ~ 1, data = d, conditional = FALSE)
@@ -389,8 +455,31 @@ ret <- cbind(c(coef(m1), coef(m2), coef(m3), coef(m4)),
              vr[i])
 ret
 
+vc <- vcov(mc01)
+i <- grep("x.1", colnames(vc))
+vc[i,i]
+
+summary(g1 <- glht(mmm(m1 = as.mlt(m1), m2 = as.mlt(m2), m3 = as.mlt(m3), m4 = as.mlt(m4)), mlf("x.1 = 0")))
+
+summary(g2 <- glht(mc01, c("y.1.x.1 = 0", "y.2.x.1 = 0", "y.3.x.1 = 0", "y.4.x.1 = 0")))
+
+vcov(g1)
+vcov(g2)
+
+
 #### check density
 
-C <- as.array(coef(mc01, type = "Cor"))[,,1]
-d1 <- sapply(1:N, function(i) dmvnorm(y[i,], mean = x[i,,drop = FALSE] %*% matrix(ret[,1], nrow = 2), sigma = C, log = TRUE))
+Shat <- as.array(coef(mc01, type = "Cor"))[,,1]
+
+int <- cf[paste("y", 1:J, "(Intercept)", sep = ".")]
+fct <- cf[paste("y", 1:J, "y", 1:J, sep = ".")]
+
+d1 <- sapply(1:N, function(i) dmvnorm(int + fct * y[i,], mean = x[i,,drop = FALSE] %*% matrix(ret[,1], nrow = 2), sigma = Shat, log = TRUE))
 d2 <- predict(mc01, newdata = d, type = "density", log = TRUE)
+
+all.equal(d1, d2)
+
+logLik(mmlt(m1, m2, m3, m4, formula = ~ 1, data = d))
+logLik(mc01)
+sum(d2)
+
