@@ -144,7 +144,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = GAUSSIAN,
       Sigmas <- sqrt(Sigmas2)
         
       F_Zj_Yp <- Phi_01_inv <- Phi_Sigmas_inv <- Yp
-        
+
       for (j in 1:J) {
         if (!link[j]) {
           F_Zj_Yp[, j] <- m[[j]]$todistr$p(Yp[, j], log.p = TRUE)
@@ -152,20 +152,16 @@ mmlt <- function(..., formula = ~ 1, data, conditional = GAUSSIAN,
           Phi_Sigmas_inv[, j] <- Sigmas[, j] * Phi_01_inv[, j]
         } else {
           Phi_Sigmas_inv[, j] <- Sigmas[, j] * Yp[, j]
-        }
+        } 
       }
+
       C <- .mult(Xp, Phi_Sigmas_inv)
         
       ret <- sum(.log(Yprimep))
-      for (j in 1:J) {
-        ret <- ret + sum(dnorm(C[, j], log = TRUE))
-#        if (!link[j]) {
-          ret <- ret + 
-            sum(m[[j]]$todistr$d(Yp[, j], log = TRUE)) +
-            sum(.log(Sigmas[, j])) +
-            0.5 * sum(Phi_01_inv[, j]^2)
-#        } 
-      }
+      ret <- ret + sum(dnorm(C, log = TRUE))
+      for (j in 1:J)
+        ret <- ret + sum(m[[j]]$todistr$d(Yp[, j], log = TRUE))
+      ret <- ret + sum(.log(Sigmas)) + 0.5 * sum(Phi_01_inv^2)
       ret <- ret - J * N * log(1 / sqrt(2 * pi))
     }
     return(-ret)
@@ -219,7 +215,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = GAUSSIAN,
       Sigmas <- sqrt(Sigmas2)
         
       F_Zj_Yp <- Phi_01_inv <- Phi_Sigmas_inv <- Yp
-        
+
       for (j in 1:J) {
         if (!link[j]) {
           F_Zj_Yp[, j] <- m[[j]]$todistr$p(Yp[, j], log.p = TRUE)
@@ -227,9 +223,9 @@ mmlt <- function(..., formula = ~ 1, data, conditional = GAUSSIAN,
           Phi_Sigmas_inv[, j] <- Sigmas[, j] * Phi_01_inv[, j]
         } else {
           Phi_Sigmas_inv[, j] <- Sigmas[, j] * Yp[, j]
-        }
+        } 
       }
-        
+     
       C <- .mult(Xp, Phi_Sigmas_inv)
       C1 <- -C
       B <- C[, -1L, drop = FALSE]
@@ -239,18 +235,13 @@ mmlt <- function(..., formula = ~ 1, data, conditional = GAUSSIAN,
         Lk <- L[,k]
         D <- cbind(matrix(rep(0, (k-1)*N), nrow = N), 1, unclass(Xp)[,Lk[Lk > 0]])
           
-#        if(link[k]) {
-#          mret[[k]] <- colSums(rowSums(C1 * D) * lu[[k]]$exact) +
-#                       colSums(lu[[k]]$prime / Yprimep[,k])
-#        } else { ## k-th model not BoxCox
-          f_k <- m[[k]]$todistr$d
-          omega_k <- m[[k]]$todistr$dd2d
-          mret[[k]] <- colSums(rowSums(C1 * D) * Sigmas[, k] * 
-                                   f_k(Yp[, k]) * lu[[k]]$exact / dnorm(Phi_01_inv[, k])) +
-              colSums(Phi_01_inv[, k] * f_k(Yp[, k]) * lu[[k]]$exact / dnorm(Phi_01_inv[, k])) +
-              colSums(omega_k(Yp[, k]) * lu[[k]]$exact) +
-              colSums(lu[[k]]$prime / Yprimep[, k])
-#        }
+        f_k <- m[[k]]$todistr$d
+        omega_k <- m[[k]]$todistr$dd2d
+        mret[[k]] <- colSums(rowSums(C1 * D) * Sigmas[, k] * 
+                             f_k(Yp[, k]) * lu[[k]]$exact / dnorm(Phi_01_inv[, k])) +
+                     colSums(Phi_01_inv[, k] * f_k(Yp[, k]) * lu[[k]]$exact / dnorm(Phi_01_inv[, k])) +
+                     colSums(omega_k(Yp[, k]) * lu[[k]]$exact) +
+                     colSums(lu[[k]]$prime / Yprimep[, k])
       }
         
       cret <- vector(length = J - 1, mode = "list")
@@ -259,23 +250,15 @@ mmlt <- function(..., formula = ~ 1, data, conditional = GAUSSIAN,
         tmp1 <- - B1 * Phi_Sigmas_inv[,1:k]
         tmp2 <- - B1 * Phi_01_inv[,k+1]
         ret <- c()
-
-#        if(link[[k+1]]) {
-#          for (i in 1:k) {
-#            tmp3 <- matrix(rep(tmp1[,i], ncol(lX)), ncol = ncol(lX))
-#            ret <- c(ret, colSums(tmp3 * lX))
-#          }
-#        } else {
-          Lk <- L[k+1, ]
-          lambda_ktk <- unclass(Xp)[, Lk[Lk > 0]]
-          tmp4 <- tmp1 + 
-              (lambda_ktk / Sigmas[, k+1]) * tmp2  +
-              lambda_ktk / Sigmas2[, k+1]
-          for (i in 1:k) {
-            tmp3 <- matrix(rep(tmp4[,i], ncol(lX)), ncol = ncol(lX))
-            ret <- c(ret, colSums(tmp3 * lX))
-          }
-#        }
+        Lk <- L[k+1, ]
+        lambda_ktk <- unclass(Xp)[, Lk[Lk > 0]]
+        tmp4 <- tmp1 + 
+               (lambda_ktk / Sigmas[, k+1]) * tmp2  +
+               lambda_ktk / Sigmas2[, k+1]
+        for (i in 1:k) {
+          tmp3 <- matrix(rep(tmp4[,i], ncol(lX)), ncol = ncol(lX))
+          ret <- c(ret, colSums(tmp3 * lX))
+        }
         cret[[k]] <- ret
       }
     }
