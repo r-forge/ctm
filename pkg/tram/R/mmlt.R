@@ -102,7 +102,6 @@ mmlt <- function(..., formula = ~ 1, data, conditional = GAUSSIAN,
   GAUSSIAN <- all(link <- sapply(m, function(x) x$todistr$name == "normal"))
   if (!GAUSSIAN && conditional)
      stop("Conditional parameterisation only implemented for probit models")
-  if (!conditional) link[] <- FALSE
 
   bx <- formula
   if (inherits(formula, "formula"))
@@ -134,9 +133,8 @@ mmlt <- function(..., formula = ~ 1, data, conditional = GAUSSIAN,
     Yp <- matrix(Y %*% mpar, nrow = N)
     Yprimep <- matrix(Yprime %*% mpar, nrow = N)
     Xp <- ltmatrices(lX %*% cpar, byrow = TRUE, diag = FALSE, names = nm)
-
       
-    if (all(link)) {
+    if (conditional) { ### all probit
       C <- .mult(Xp, Yp)
       ret <- sum(.log(Yprimep))
       ret <- ret + sum(dnorm(C, log = TRUE))
@@ -152,6 +150,8 @@ mmlt <- function(..., formula = ~ 1, data, conditional = GAUSSIAN,
           F_Zj_Yp[, j] <- m[[j]]$todistr$p(Yp[, j], log.p = TRUE)
           Phi_01_inv[, j] <- qnorm(F_Zj_Yp[, j], log.p = TRUE)
           Phi_Sigmas_inv[, j] <- Sigmas[, j] * Phi_01_inv[, j]
+        } else {
+          Phi_Sigmas_inv[, j] <- Sigmas[, j] * Yp[, j]
         }
       }
       C <- .mult(Xp, Phi_Sigmas_inv)
@@ -159,12 +159,12 @@ mmlt <- function(..., formula = ~ 1, data, conditional = GAUSSIAN,
       ret <- sum(.log(Yprimep))
       for (j in 1:J) {
         ret <- ret + sum(dnorm(C[, j], log = TRUE))
-        if (!link[j]) {
+#        if (!link[j]) {
           ret <- ret + 
             sum(m[[j]]$todistr$d(Yp[, j], log = TRUE)) +
             sum(.log(Sigmas[, j])) +
             0.5 * sum(Phi_01_inv[, j]^2)
-        } 
+#        } 
       }
       ret <- ret - J * N * log(1 / sqrt(2 * pi))
     }
@@ -188,7 +188,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = GAUSSIAN,
         L[lower.tri(L)] <- 1:Jp
     }
       
-    if (all(link)) {
+    if (conditional) { ### all probit
         
       C <- .mult(Xp, Yp)
       C1 <- -C
@@ -225,6 +225,8 @@ mmlt <- function(..., formula = ~ 1, data, conditional = GAUSSIAN,
           F_Zj_Yp[, j] <- m[[j]]$todistr$p(Yp[, j], log.p = TRUE)
           Phi_01_inv[, j] <- qnorm(F_Zj_Yp[, j], log.p = TRUE)
           Phi_Sigmas_inv[, j] <- Sigmas[, j] * Phi_01_inv[, j]
+        } else {
+          Phi_Sigmas_inv[, j] <- Sigmas[, j] * Yp[, j]
         }
       }
         
@@ -237,10 +239,10 @@ mmlt <- function(..., formula = ~ 1, data, conditional = GAUSSIAN,
         Lk <- L[,k]
         D <- cbind(matrix(rep(0, (k-1)*N), nrow = N), 1, unclass(Xp)[,Lk[Lk > 0]])
           
-        if(link[k]) {
-          mret[[k]] <- colSums(rowSums(C1 * D) * lu[[k]]$exact) +
-                       colSums(lu[[k]]$prime / Yprimep[,k])
-        } else { ## k-th model not BoxCox
+#        if(link[k]) {
+#          mret[[k]] <- colSums(rowSums(C1 * D) * lu[[k]]$exact) +
+#                       colSums(lu[[k]]$prime / Yprimep[,k])
+#        } else { ## k-th model not BoxCox
           f_k <- m[[k]]$todistr$d
           omega_k <- m[[k]]$todistr$dd2d
           mret[[k]] <- colSums(rowSums(C1 * D) * Sigmas[, k] * 
@@ -248,7 +250,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = GAUSSIAN,
               colSums(Phi_01_inv[, k] * f_k(Yp[, k]) * lu[[k]]$exact / dnorm(Phi_01_inv[, k])) +
               colSums(omega_k(Yp[, k]) * lu[[k]]$exact) +
               colSums(lu[[k]]$prime / Yprimep[, k])
-        }
+#        }
       }
         
       cret <- vector(length = J - 1, mode = "list")
@@ -258,12 +260,12 @@ mmlt <- function(..., formula = ~ 1, data, conditional = GAUSSIAN,
         tmp2 <- - B1 * Phi_01_inv[,k+1]
         ret <- c()
 
-        if(link[[k+1]]) {
-          for (i in 1:k) {
-            tmp3 <- matrix(rep(tmp1[,i], ncol(lX)), ncol = ncol(lX))
-            ret <- c(ret, colSums(tmp3 * lX))
-          }
-        } else {
+#        if(link[[k+1]]) {
+#          for (i in 1:k) {
+#            tmp3 <- matrix(rep(tmp1[,i], ncol(lX)), ncol = ncol(lX))
+#            ret <- c(ret, colSums(tmp3 * lX))
+#          }
+#        } else {
           Lk <- L[k+1, ]
           lambda_ktk <- unclass(Xp)[, Lk[Lk > 0]]
           tmp4 <- tmp1 + 
@@ -273,7 +275,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = GAUSSIAN,
             tmp3 <- matrix(rep(tmp4[,i], ncol(lX)), ncol = ncol(lX))
             ret <- c(ret, colSums(tmp3 * lX))
           }
-        }
+#        }
         cret[[k]] <- ret
       }
     }
@@ -358,6 +360,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = GAUSSIAN,
   
   ret <- list(marginals = mmod, formula = formula, bx = bx, data = data,
               call = call, diag = FALSE, link = link,
+              conditional = conditional,
               pars = list(mpar = mpar, cpar = cpar),
               par = opt$par, ll = ll, sc = sc, logLik = -opt$value,
               hessian = opt$hessian, names = nm)
@@ -380,13 +383,13 @@ predict.mmlt <- function(object, newdata, margins = 1:J,
   if (length(margins) == 1L) {
 
     ### Section 2.6: tilde{h} are already marginals for F_Z != Phi
-    if (!link)
+    if (!object$conditional)
         return(predict(object$marginals[[margins]], newdata = newdata, type = type, log = log, ...))
 
     ### lists currently not allowed
     stopifnot(is.data.frame(newdata)) 
 
-    ### F_Z = Phi: need to rescale
+    ### F_Z = Phi and conditional: need to rescale
     tr <- predict(object$marginals[[margins]], newdata = newdata, type = "trafo", ...)
     if (type == "trafo") return(tr)
     Vx <- coef(object, newdata = newdata, type = "Sigma")
@@ -408,19 +411,20 @@ predict.mmlt <- function(object, newdata, margins = 1:J,
 
   ret <- numeric(nrow(newdata))
 
+  Vx <- coef(object, newdata = newdata, type = "Sigma")[, margins]
+  sdg <- sqrt(diagonals(Vx))
+  Z <- h <- tr
+
   if (any(!link)) {
     logF <- do.call("cbind", lapply(margins[!link], function(i)
             c(predict(object$marginals[[i]], newdata = newdata, type = "distribution", log = TRUE))))
-    Vx <- coef(object, newdata = newdata, type = "Sigma")
-    sdg <- sqrt(diagonals(Vx))[, margins[!link]]
-    h <- tr
-    h[,!link] <- (Z <- qnorm(logF, log.p = TRUE)) * sdg
-  } else {
-    h <- tr
+    Z[, !link] <- qnorm(logF, log.p = TRUE)
   }
+  if (!object$conditional) 
+    h <- Z * sdg
 
   if (type == "distribution") {
-    Smat <- as.array(coef(object, newdata = newdata, type = "Sigma")[, margins])
+    Smat <- as.array(Vx)
     for (i in 1:nrow(newdata))
       ret[i] <- pmvnorm(lower = rep(-Inf, length(margins)), upper = h[i,], sigma = Smat[,, i])
     if (log) return(.log(ret))
@@ -430,26 +434,24 @@ predict.mmlt <- function(object, newdata, margins = 1:J,
       Lmat <- coef(object, newdata = newdata, type = "Lambda")[, margins]
     } else {
       if (length(margins) == 1L) {
-        Vx <- coef(object, newdata = newdata, type = "Sigma")
-        Lmat <- ltmatrices(sqrt(diagonals(Vx))[, margins, drop = FALSE], diag = TRUE)
+        Lmat <- ltmatrices(sdg)
       } else {
         stop("cannot evaluate density for selected margins; reorder and refit such that margins = 1:j")
       }
     }
-    if (any(link)) {
-      trp <- do.call("cbind", lapply(margins[link], function(i)
-                     c(predict(object$marginals[[i]], newdata = newdata, type = "trafo", deriv = dx[i]))))
+
+    trp <- do.call("cbind", lapply(margins, function(i)
+                   c(predict(object$marginals[[i]], newdata = newdata, type = "trafo", deriv = dx[i]))))
+    ret <- rowSums(dnorm(.mult(Lmat, h), log = TRUE)) #+ .log(trp))
+
+    if (!object$conditional) {    
+        ld <- do.call("cbind", lapply(margins, function(i)
+                      c(predict(object$marginals[[i]], newdata = newdata, 
+                                type = "logdensity"))))
+        ret <- ret + rowSums(ld) + rowSums(.log(sdg)) + .5 * rowSums(Z^2)
+        ret <- ret - length(margins) * log(1 / sqrt(2 * pi))
     } else {
-      trp <- 1
-    }
-    ret <- rowSums(dnorm(.mult(Lmat, h), log = TRUE) + .log(trp))
-      
-    if (any(!link)) {
-      ld <- do.call("cbind", lapply(margins[!link], function(i)
-                    c(predict(object$marginals[[i]], newdata = newdata, 
-                              type = "logdensity"))))
-      ret <- ret + rowSums(ld) + rowSums(.log(sdg)) + .5 * rowSums(Z^2)
-      ret <- ret - length(margins) * log(1 / sqrt(2 * pi))
+        ret <- ret + rowSums(.log(trp))
     }
 
     if (log) return(ret)
