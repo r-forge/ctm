@@ -456,7 +456,7 @@ mcotram <- function(..., formula = ~ 1, data, theta = NULL, # diag = FALSE,
   }
 
   ret <- list(marginals = mmod, formula = formula, bx = bx, data = data,
-              call = call, link = link,
+              call = call, link = link, conditional = all(link), ### <- check this
               gaussian = gaussian, diag = diag,
               pars = list(mpar = mpar, cpar = cpar),
               par = opt$par, ll = ll, sc = sc, logLik = -opt$value,
