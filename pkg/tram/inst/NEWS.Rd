@@ -2,6 +2,12 @@
 \name{NEWS}
 \title{NEWS file for the tram package}
 
+\section{Changes in Version 0.8-1 (2022-11-02)}{
+  \itemize{
+    \item{Add \code{simulate.mmlt}.}
+  }
+}
+
 \section{Changes in Version 0.8-0 (2022-11-02)}{
   \itemize{
     \item{Stabilise and generalise \code{mmlt}: Alternative link functions, 
