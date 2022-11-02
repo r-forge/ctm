@@ -1,5 +1,5 @@
 
-R version 4.2.1 (2022-06-23) -- "Funny-Looking Kid"
+R version 4.2.2 (2022-10-31) -- "Innocent and Trusting"
 Copyright (C) 2022 The R Foundation for Statistical Computing
 Platform: x86_64-pc-linux-gnu (64-bit)
 
@@ -250,18 +250,30 @@ Log-Likelihood:
 > 
 >   ## lambda defining the Cholesky factor of the precision matrix
 >   coef(m_all_2, newdata = spiders[1,], type = "Lambda")
-  [,1]  [,2] [,3] [,4] [,5] [,6]   [,7] [,8]  [,9] [,10] [,11] [,12] [,13]
-1 -0.2 0.077 0.22 -1.2    1 0.19 -0.066 -1.1 -0.21  0.53  0.11 -0.33 -0.55
-  [,14]  [,15]
-1 0.033 -0.025
+, , 1
+
+       Prds_f  Hrp_  Cll_  Clt_ Prds_l Prds_r
+Prds_f  1.000  0.00  0.00 0.000  0.000      0
+Hrp_   -0.195  1.00  0.00 0.000  0.000      0
+Cll_    0.077  0.22  1.00 0.000  0.000      0
+Clt_   -1.224  1.03  0.19 1.000  0.000      0
+Prds_l -0.066 -1.12 -0.21 0.533  1.000      0
+Prds_r  0.112 -0.33 -0.55 0.033 -0.025      1
+
 > 
 >   ## linear correlation, ie Pearson correlation of the models after
 >   ## transformation to bivariate normality
 >   (r2 <- coef(m_all_2, newdata = spiders[1,], type = "Corr"))
-     [,1]  [,2] [,3] [,4]  [,5]  [,6]  [,7] [,8] [,9] [,10]  [,11] [,12] [,13]
-[1,] 0.19 -0.11  0.7  0.1 -0.32 -0.16 -0.36 0.74  0.2  -0.1 -0.017  0.43 -0.46
-     [,14] [,15]
-[1,] -0.41  0.22
+, , 1
+
+       Prds_f  Hrp_    Cll_   Clt_  Prds_l Prds_r
+Prds_f   1.00  0.19 -0.1169  0.594 -0.1487  -0.13
+Hrp_     0.19  1.00 -0.2338 -0.435  0.7537   0.20
+Cll_    -0.12 -0.23  1.0000 -0.056 -0.0023   0.42
+Clt_     0.59 -0.43 -0.0557  1.000 -0.7017  -0.28
+Prds_l  -0.15  0.75 -0.0023 -0.702  1.0000   0.30
+Prds_r  -0.13  0.20  0.4249 -0.282  0.2997   1.00
+
 > 
 >   options(op)
 > 
@@ -273,7 +285,7 @@ Log-Likelihood:
 > cleanEx()
 > options(digits = 7L)
 > base::cat("Time elapsed: ", proc.time() - base::get("ptime", pos = 'CheckExEnv'),"\n")
-Time elapsed:  5.373 0.039 5.42 0 0 
+Time elapsed:  3.634 0.054 3.69 0 0 
 > grDevices::dev.off()
 null device 
           1 
