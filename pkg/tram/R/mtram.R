@@ -65,10 +65,6 @@ mtram <- function(object, formula, data,
     
     gr <- NULL
     
-    ### catch constraint violations here
-    .log <- function(x) 
-        log(pmax(.Machine$double.eps, x))
-    
     ## continuous case
     if (length(eY$which) > 0) {
         L <- Cholesky(crossprod(Lambdat %*% ZtW), LDL = FALSE, Imult = 1)

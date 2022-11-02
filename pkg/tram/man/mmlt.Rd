@@ -2,6 +2,7 @@
 \alias{mmlt}
 \alias{coef.mmlt}
 \alias{predict.mmlt}
+\alias{simulate.mmlt}
 \title{
   Multivariate Conditional Transformation Models
 }
@@ -19,6 +20,7 @@ mmlt(..., formula = ~ 1, data, conditional = GAUSSIAN, theta = NULL,
 \method{predict}{mmlt}(object, newdata, margins = 1:J, 
                        type = c("trafo", "distribution", "density"), 
                        log = FALSE, ...)
+\method{simulate}{mmlt}(object, nsim = 1L, seed = NULL, newdata, K = 50, ...)
 }
 \arguments{
   \item{\dots}{marginal transformation models, one for each response, for
@@ -60,6 +62,9 @@ variable, or multiple integers (currently only \code{1:j} implemented).
   \item{log}{logical; return log-probabilities or log-densities of
 \code{TRUE}.
 }
+  \item{nsim}{number of samples to generate.}
+  \item{seed}{optional seed for the random number generator.}
+  \item{K}{number of grid points to generate.}
 }
 \details{
   The function implements multivariate conditional transformation models

@@ -560,3 +560,59 @@ print.mmlt <- function(x, ...) {
     }
   invisible(x)
 }
+
+simulate.mmlt <- function(object, nsim = 1L, seed = NULL, newdata, K = 50, ...) {
+
+    ### from stats:::simulate.lm
+    if (!exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)) 
+        runif(1)
+    if (is.null(seed)) 
+        RNGstate <- get(".Random.seed", envir = .GlobalEnv)
+    else {
+        R.seed <- get(".Random.seed", envir = .GlobalEnv)
+        set.seed(seed)
+        RNGstate <- structure(seed, kind = as.list(RNGkind()))
+        on.exit(assign(".Random.seed", R.seed, envir = .GlobalEnv))
+    }
+
+    if (!is.data.frame(newdata))
+        stop("not yet implemented")
+
+    args <- list(...)
+    if (length(args) > 0L)
+        stop("argument(s)", paste(names(args), collapse = ", "), "ignored")
+
+    if (nsim > 1L) 
+        return(replicate(nsim, simulate(object, newdata = newdata, K = K, ...), 
+                         simplify = FALSE))
+
+    J <- length(object$marginals)
+    L <- coef(object, newdata = newdata, type = "Lambda")
+    N <- nrow(newdata)
+
+    Z <- matrix(rnorm(J * N), ncol = J)
+    Ztilde <- .mult(solve(L), Z)
+
+    ret <- matrix(0.0, nrow = N, ncol = J)
+
+    if (object$conditional) {
+        for (j in 1:J) {
+            q <- mkgrid(object$marginals[[j]], n = K)[[1L]]
+            pr <- predict(object$marginals[[j]], newdata = newdata, type = "trafo", q = q)
+            if (!is.matrix(pr)) pr <- matrix(pr, nrow = length(pr), ncol = NROW(newdata))
+            ret[,j] <- as.double(mlt:::.invf(object$marginals[[j]], f = t(pr), 
+                                             q = q, z = Ztilde[,j,drop = FALSE]))
+        }
+    } else {
+        dvc <- sqrt(diagonals(coef(object, newdata = newdata, type = "Sigma")))
+        Ztilde <- pnorm(Ztilde / dvc, log.p = TRUE)
+        for (j in 1:J) {
+            q <- mkgrid(object$marginals[[j]], n = K)[[1L]]
+            pr <- predict(object$marginals[[j]], newdata = newdata, type = "logdistribution", q = q)
+            if (!is.matrix(pr)) pr <- matrix(pr, nrow = length(pr), ncol = NROW(newdata))
+            ret[,j] <- as.double(mlt:::.invf(object$marginals[[j]], f = t(pr), 
+                                             q = q, z = Ztilde[,j,drop = FALSE]))
+        }
+    }
+    return(ret)
+}
