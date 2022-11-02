@@ -2,6 +2,14 @@
 \name{NEWS}
 \title{NEWS file for the mlt package}
 
+\section{Changes in Version 1.4-4 (2022-11-02)}{
+  \subsection{New features}{
+    \itemize{
+      \item{Improve numerical stability in \code{simulate.ctm}.}
+    }
+  }
+}
+
 \section{Changes in Version 1.4-3 (2022-10-31)}{
   \subsection{New features}{
     \itemize{
