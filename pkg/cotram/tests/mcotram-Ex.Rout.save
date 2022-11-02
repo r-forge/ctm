@@ -1,5 +1,5 @@
 
-R version 4.2.1 (2022-06-23) -- "Funny-Looking Kid"
+R version 4.2.2 (2022-10-31) -- "Innocent and Trusting"
 Copyright (C) 2022 The R Foundation for Statistical Computing
 Platform: x86_64-pc-linux-gnu (64-bit)
 
@@ -97,35 +97,55 @@ Loading required package: variables
 > value ## recall original value for Lambda
 [1] 0.9
 > coef(uc1, type = "Lambda")[1,] 
-   1 
-0.94 
+, , (Intercept)
+
+     y.1 y.2
+y.1 1.00   0
+y.2 0.94   1
+
 > coef(uc2, type = "Lambda")[1,]
-1 
-1 
+, , (Intercept)
+
+    y.2 y.1
+y.2   1   0
+y.1   1   1
+
 > cov2cor(Sigma)[1, 2] ## original value for correlation
 [1] -0.67
 > coef(uc1, type = "Corr")[1,]
-[1] -0.68
+y.2.y.1 
+  -0.68 
 > ## IGNORE_RDIFF_BEGIN
 > coef(uc2, type = "Corr")[1,]
-[1] -0.71
+y.1.y.2 
+  -0.71 
 > ## IGNORE_RDIFF_END
 > 
 > ## log_first = FALSE
 > # coef(uc1l)
 > # coef(uc2l)
 > coef(uc1l, type = "Lambda")[1,]
-   1 
-0.94 
+, , (Intercept)
+
+     y.1 y.2
+y.1 1.00   0
+y.2 0.94   1
+
 > coef(uc2l, type = "Lambda")[1,]
-   1 
-0.99 
+, , (Intercept)
+
+     y.2 y.1
+y.2 1.00   0
+y.1 0.99   1
+
 > 
 > coef(uc1l, type = "Corr")[1,]
-[1] -0.69
+y.2.y.1 
+  -0.69 
 > ## IGNORE_RDIFF_BEGIN
 > coef(uc2l, type = "Corr")[1,]
-[1] -0.7
+y.1.y.2 
+   -0.7 
 > ## IGNORE_RDIFF_END
 > 
 > ## transformation theory check
@@ -288,51 +308,91 @@ Loading required package: variables
 > # coef(mb1)
 > # coef(mb2)
 > coef(mb1, type = "Lambda")[1,]
-  1 
-0.9 
+, , (Intercept)
+
+     yt.1 yt.2
+yt.1  1.0    0
+yt.2  0.9    1
+
 > coef(mb2, type = "Lambda")[1,]
-  1 
-0.9 
+, , (Intercept)
+
+     yt.2 yt.1
+yt.2  1.0    0
+yt.1  0.9    1
+
 > coef(mb1, type = "Corr")[1,]
-[1] -0.67
+yt.2.yt.1 
+    -0.67 
 > coef(mb2, type = "Corr")[1,]
-[1] -0.67
+yt.1.yt.2 
+    -0.67 
 > 
 > coef(mb1u, type = "Lambda")[1,]
-   1 
-0.86 
+, , (Intercept)
+
+     yt.1 yt.2
+yt.1 1.00    0
+yt.2 0.86    1
+
 > coef(mb2u, type = "Lambda")[1,]
-   1 
-0.86 
+, , (Intercept)
+
+     yt.2 yt.1
+yt.2 1.00    0
+yt.1 0.86    1
+
 > coef(mb1u, type = "Corr")[1,]
-[1] -0.65
+yt.2.yt.1 
+    -0.65 
 > coef(mb2u, type = "Corr")[1,]
-[1] -0.65
+yt.1.yt.2 
+    -0.65 
 > 
 > ## log_first = FALSE
 > # coef(mb1l)
 > # coef(mb2l)
 > coef(mb1l, type = "Lambda")[1,]
-   1 
-0.89 
+, , (Intercept)
+
+     yt.1 yt.2
+yt.1 1.00    0
+yt.2 0.89    1
+
 > coef(mb2l, type = "Lambda")[1,]
-  1 
-0.9 
+, , (Intercept)
+
+     yt.2 yt.1
+yt.2  1.0    0
+yt.1  0.9    1
+
 > coef(mb1l, type = "Corr")[1,]
-[1] -0.67
+yt.2.yt.1 
+    -0.67 
 > coef(mb2l, type = "Corr")[1,]
-[1] -0.67
+yt.1.yt.2 
+    -0.67 
 > 
 > coef(mb1ul, type = "Lambda")[1,]
-   1 
-0.86 
+, , (Intercept)
+
+     yt.1 yt.2
+yt.1 1.00    0
+yt.2 0.86    1
+
 > coef(mb2ul, type = "Lambda")[1,]
-   1 
-0.86 
+, , (Intercept)
+
+     yt.2 yt.1
+yt.2 1.00    0
+yt.1 0.86    1
+
 > coef(mb1ul, type = "Corr")[1,]
-[1] -0.65
+yt.2.yt.1 
+    -0.65 
 > coef(mb2ul, type = "Corr")[1,]
-[1] -0.65
+yt.1.yt.2 
+    -0.65 
 > 
 > ## transformation theory check
 > ## for constant lambdas, the transformed coefficients should agree with the
@@ -389,6 +449,10 @@ yt.2.Bs1(ytut.2) yt.2.Bs2(ytut.2) yt.2.Bs3(ytut.2) yt.2.Bs4(ytut.2)
            -1.53            -0.81            -0.81            -0.70 
 yt.2.Bs5(ytut.2) yt.2.Bs6(ytut.2) yt.2.Bs7(ytut.2) 
             0.11             0.37             1.31 
+yt.1.Bs1(ytut.1) yt.1.Bs2(ytut.1) yt.1.Bs3(ytut.1) yt.1.Bs4(ytut.1) 
+          -1.335           -0.963           -0.963           -0.087 
+yt.1.Bs5(ytut.1) yt.1.Bs6(ytut.1) yt.1.Bs7(ytut.1) 
+          -0.087            0.593            1.337 
 yt.1.Bs1(ytut.1) yt.1.Bs2(ytut.1) yt.1.Bs3(ytut.1) yt.1.Bs4(ytut.1) 
           -1.335           -0.963           -0.963           -0.086 
 yt.1.Bs5(ytut.1) yt.1.Bs6(ytut.1) yt.1.Bs7(ytut.1) 
@@ -459,62 +523,62 @@ yt.1.Bs6(ytu.1) yt.1.Bs7(ytu.1)
 > cbind(b1 = predict(b1, newdata = d[1:3, ], type = "distribution"),
 +       mb1 = predict(mb1, marginal = 1, newdata = d[1:3, ], type = "distribution"),
 +       mb2 = predict(mb2, marginal = 2, newdata = d[1:3, ], type = "distribution"))
-     b1            
-1 0.263 0.267 0.267
-2 0.529 0.531 0.531
-3 0.014 0.013 0.013
+     b1    mb1    mb2
+1 0.263 0.0134 0.0134
+2 0.529 0.1512 0.1512
+3 0.014 0.0046 0.0046
 > cbind(b2 = predict(b2, newdata = d[1:3, ], type = "distribution"),
 +       mb1 = predict(mb1, marginal = 2, newdata = d[1:3, ], type = "distribution"),
 +       mb2 = predict(mb2, marginal = 1, newdata = d[1:3, ], type = "distribution"))
-    b2          
-1 0.31 0.31 0.31
-2 0.50 0.50 0.50
-3 0.92 0.92 0.92
+    b2    mb1    mb2
+1 0.31 0.0134 0.0134
+2 0.50 0.1512 0.1512
+3 0.92 0.0046 0.0046
 > 
 > cbind(b1u = predict(b1u, newdata = d[1:3, ], type = "distribution"),
 +       mb1u = predict(mb1u, marginal = 1, newdata = d[1:3, ], type = "distribution"),
 +       mb2u = predict(mb2u, marginal = 2, newdata = d[1:3, ], type = "distribution"))
-    b1u            
-1 0.304 0.305 0.305
-2 0.578 0.578 0.578
-3 0.022 0.023 0.023
+    b1u   mb1u   mb2u
+1 0.304 0.0344 0.0344
+2 0.578 0.1796 0.1796
+3 0.022 0.0089 0.0089
 > cbind(b2u = predict(b2u, newdata = d[1:3, ], type = "distribution"),
 +       mb1u = predict(mb1u, marginal = 2, newdata = d[1:3, ], type = "distribution"),
 +       mb2u = predict(mb2u, marginal = 1, newdata = d[1:3, ], type = "distribution"))
-   b2u          
-1 0.40 0.40 0.40
-2 0.50 0.50 0.50
-3 0.91 0.91 0.91
+   b2u   mb1u   mb2u
+1 0.40 0.0344 0.0344
+2 0.50 0.1796 0.1796
+3 0.91 0.0089 0.0089
 > 
 > cbind(b1l = predict(b1l, newdata = d[1:3, ], type = "distribution"),
 +       mb1l = predict(mb1l, marginal = 1, newdata = d[1:3, ], type = "distribution"),
 +       mb2l = predict(mb2l, marginal = 2, newdata = d[1:3, ], type = "distribution"))
-    b1l            
-1 0.280 0.284 0.284
-2 0.527 0.528 0.528
-3 0.019 0.018 0.018
+    b1l   mb1l   mb2l
+1 0.280 0.0179 0.0179
+2 0.527 0.1479 0.1479
+3 0.019 0.0069 0.0069
 > cbind(b2l = predict(b2l, newdata = d[1:3, ], type = "distribution"),
 +       mb1l = predict(mb1l, marginal = 2, newdata = d[1:3, ], type = "distribution"),
 +       mb2l = predict(mb2l, marginal = 1, newdata = d[1:3, ], type = "distribution"))
-   b2l          
-1 0.33 0.33 0.33
-2 0.50 0.50 0.50
-3 0.92 0.92 0.92
+   b2l   mb1l   mb2l
+1 0.33 0.0179 0.0179
+2 0.50 0.1479 0.1479
+3 0.92 0.0069 0.0069
 > 
 > cbind(b1ul = predict(b1ul, newdata = d[1:3, ], type = "distribution"),
 +       mb1ul = predict(mb1ul, marginal = 1, newdata = d[1:3, ], type = "distribution"),
 +       mb2ul = predict(mb2ul, marginal = 2, newdata = d[1:3, ], type = "distribution"))
-   b1ul            
-1 0.305 0.306 0.306
-2 0.580 0.579 0.579
-3 0.025 0.025 0.025
+   b1ul  mb1ul  mb2ul
+1 0.305 0.0357 0.0357
+2 0.580 0.1766 0.1766
+3 0.025 0.0096 0.0096
 > cbind(b2ul = predict(b2ul, newdata = d[1:3, ], type = "distribution"),
 +       mb1ul = predict(mb1ul, marginal = 2, newdata = d[1:3, ], type = "distribution"),
 +       mb2ul = predict(mb2ul, marginal = 1, newdata = d[1:3, ], type = "distribution"))
-  b2ul          
-1 0.40 0.41 0.41
-2 0.49 0.50 0.50
-3 0.90 0.90 0.90
+  b2ul  mb1ul  mb2ul
+1 0.40 0.0357 0.0357
+2 0.49 0.1766 0.1766
+3 0.90 0.0096 0.0096
 > 
 > ## QQ-plot to check that marginal transformations are standard normal:
 > nd <- d
@@ -1282,4 +1346,4 @@ yt.1.Bs6(ytu.1) yt.1.Bs7(ytu.1)
 > 
 > proc.time()
    user  system elapsed 
-  5.352   0.092   5.439 
+  5.908   0.068   5.972 
