@@ -2,12 +2,13 @@
 \name{NEWS}
 \title{NEWS file for the tram package}
 
-\section{Changes in Version 0.8-0 (2022-10-27)}{
+\section{Changes in Version 0.8-0 (2022-11-02)}{
   \itemize{
     \item{Stabilise and generalise \code{mmlt}: Alternative link functions, 
           separate lower triangular matrix storage and computations from
           \code{mmlt}.}
-    \item{\code{coef(<mmlt>, type = "Sigma")} was incorrect for more than three dimensions.}
+    \item{\code{coef(<mmlt>, type = "Sigma")} and \code{coef(<mmlt>, type = "Corr")}
+          were incorrect for more than three dimensions.}
     \item{Improved numerical stability in \code{mtram}.}
   }
 }
