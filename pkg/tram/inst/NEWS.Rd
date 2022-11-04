@@ -5,6 +5,7 @@
 \section{Changes in Version 0.8-1 (2022-11-02)}{
   \itemize{
     \item{Add \code{simulate.mmlt}.}
+    \item{\code{Survreg} didn't work with constraints, reported by Lucas Kook.}
   }
 }
 
