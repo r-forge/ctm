@@ -131,3 +131,8 @@ tmp[, "crim"] <- tmp[p, "crim"]
 m2 <- Colr(Surv(cmedv, cmedv < 50) ~ chas + crim, data = tmp)
 stopifnot(all.equal(coef(m1), coef(as.mlt(m2)), tol = 1e-3))
 stopifnot(all.equal(logLik(m1), logLik(m2), tol = 1e-6))
+
+### contraints, by Lucas Kook
+data("GBSG2", package = "TH.data")
+# gave an error
+m <- Survreg(Surv(time, cens) ~ horTh + age, data = GBSG2, constraints = c("age >= 0"))

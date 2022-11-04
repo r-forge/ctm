@@ -119,9 +119,9 @@ tram <- function(formula, data, subset, weights, offset, cluster, na.action = na
     call <- match.call()
     fitted <- NULL
     if (!is.null(constraints)) {
-        call$constraints <- NULL
+#        call$constraints <- NULL
 #        call$dofit <- FALSE
-        fitted <- eval(call, parent.frame())
+        fitted <- eval(call[!names(call) %in% c("constraints", "model_only")], parent.frame())
     }
 
     if (!inherits(td <- formula, "tram_data")) {
