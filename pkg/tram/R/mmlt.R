@@ -614,5 +614,86 @@ simulate.mmlt <- function(object, nsim = 1L, seed = NULL, newdata, K = 50, ...) 
                                              q = q, z = Ztilde[,j,drop = FALSE]))
         }
     }
+    colnames(ret) <- variable.names(object, response_only = TRUE)
     return(ret)
+}
+
+variable.names.mmlt <- function(object, response_only = FALSE, ...) {
+
+    if (response_only)
+        return(sapply(object$marginals, function(x) variable.names(x)[1L]))
+    vn <- unique(c(sapply(object$marginals, function(x) variable.names(x)), 
+                 all.vars(object$formula)))
+    return(vn)
+}
+    
+confregion <- function(object, level = .95, ...)
+    UseMethod("confregion")
+
+confregion.mmlt <- function(object, level = .95, newdata, K = 250, ...) {
+
+    if (!missing(newdata)) stopifnot(nrow(newdata) == 1)
+
+    if (object$conditional) {
+        Linv <- coef(object, newdata = newdata, type = "Lambdainv")
+        Linv <- as.array(Linv)[,,1]
+    } else {
+        CR <- as.array(coef(object, newdata = newdata, type = "Corr"))[,,1]
+        Linv <- t(chol(CR))
+    }
+    J <- nrow(Linv)
+
+    q <- qchisq(level, df = J)
+
+    if (J == 2) {
+        angle <- seq(0, 2 * pi, length = K)
+        x <- cbind(cos(angle), sin(angle))
+    } else {
+        x <- matrix(rnorm(K * J), nrow = K, ncol = J)
+        x <- x / sqrt(rowSums(x^2))
+    }
+    x <- sqrt(q) * x
+    a <- x %*% t(Linv)
+
+    nd <- if (missing(newdata)) data.frame(1) else newdata
+
+    ret <- lapply(1:J, function(j) {
+        prb <- object$marginals[[j]]$todistr$p(a[,j])
+        predict(object$marginals[[j]], newdata = nd, type = "quantile", prob = prb)
+    })
+    
+    ret <- do.call("cbind", ret)
+    return(ret)
+}
+
+HDR <- function(object, level = .95, ...)
+    UseMethod("HDR")
+
+HDR.mmlt <- function(object, level = .95, newdata, nsim = 1000L, K = 25, ...) {
+
+    if (!missing(newdata)) {
+        stopifnot(nrow(newdata) == 1)
+    } else {
+        newdata <- data.frame(1)
+    }
+
+    ### https://doi.org/10.2307/2684423 Section 3.2
+    y <- simulate(object, newdata = newdata[rep(1, nsim),,drop = FALSE])
+    y <- cbind(y, newdata)
+    d <- predict(object, newdata = y, type = "density")
+
+    ret <- do.call("expand.grid", lapply(object$marginals, function(x) mkgrid(x, n = K)[[1L]]))
+    colnames(ret) <- variable.names(object, response_only = TRUE)
+    ret <- cbind(ret, newdata)
+    ret$density <- predict(object, newdata = ret, type = "density")
+    attr(ret, "cuts") <- quantile(d, prob = 1 - level)
+    ret
+}
+
+mkgrid.mmlt <- function(object, ...) {
+
+    lx <- mkgrid(as.basis(object$formula, data = object$data), ...)
+    grd <- do.call("c", lapply(object$marginals, mkgrid, ...))
+    grd <- c(grd, lx)
+    do.call("expand.grid", grd[unique(names(grd))])
 }
