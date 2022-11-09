@@ -66,6 +66,8 @@ S3method("summary", "mmlt")
 S3method("print", "summary.mmlt")
 S3method("print", "mmlt")
 S3method("simulate", "mmlt")
+S3method("variable.names", "mmlt")
+S3method("mkgrid", "mmlt")
 
 S3method("PI", "tram")
 S3method("PI", "stram")
