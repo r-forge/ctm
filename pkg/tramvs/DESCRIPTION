@@ -1,7 +1,7 @@
 Package: tramvs
 Type: Package
 Title: Optimal Subset Selection for Transformation Models
-Version: 0.0-2
+Version: 0.0-3
 Authors@R: c(person("Lucas", "Kook", email = "lucasheinrich.kook@uzh.ch", 
     role = c("aut", "cre")), person("Sandra", "Siegfried", role = "ctb"),
     person("Torsten", "Hothorn", role = "ctb"))
