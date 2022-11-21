@@ -290,7 +290,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = GAUSSIAN,
       start <- c(start$mpar, c(t(start$cpar)))
     }
   }
-  
+ 
   if (scale) {
     Ytmp <- cbind(do.call("cbind", lapply(lu, function(m) m$exact)), 
                   kronecker(matrix(1, ncol = Jp), lX))
