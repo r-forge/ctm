@@ -153,78 +153,20 @@ solve.ltmatrices <- function(a, b, ...) {
     diag <- attr(x, "diag")
     byrow <- attr(x, "byrow")
     rcnames <- attr(x, "rcnames")
-    class(x) <- class(x)[-1L]
-    xdim <- dim(x)
     J <- length(rcnames)
-  
-    if (diag) {
-        L <- diag(0, nrow = J)
-        L[!upper.tri(L)] <- 1:ncol(x)  ## column-wise
-        idx_d <- diag(L)
-        idx_l <- L[lower.tri(L)] ## column-wise
-    
-        x_orig <- x
-        x_diag <- x[, idx_d, drop = FALSE]
-        x <- x[, -idx_d, drop = FALSE]
-    
-        idx_f <- rep(1, J - 1L)
-        if(J > 2) {
-            for (j in 2:J)
-                idx_f <- c(idx_f, rep(j, J - j))
-        }
-    
-        x <- x / x_diag[, idx_f, drop = FALSE]
-        if(J == 2) x <- t(x)
-    }
-  
-    xij <- function(x = NULL, i, j) {
-        if (i == j) return(1)
-        if (j == 1) {
-            ret <- i - 1
-        } else {
-            idx <- J - (1:(J - 1L))
-            ret <- sum(idx[1:(j - 1)]) + (i - (J - idx[j]))
-        }
-        if (is.null(x))
-            return(ret)
-        return(x[, ret, drop = FALSE])
-    }
 
-    ret <- matrix(0, nrow = nrow(x), ncol(x))
-    for (i in 2:J) {
-        for (j in 1:(i - 1L)) {
-            s <- 0L
-            for (k in j:(i - 1L))
-                s <- s + xij(x, i, k) * xij(ret, k, j)
-            ret[, xij(NULL, i, j)] <- -s
-        }
-    }
-    if (!diag) {
-        ret <- .reorder(ltmatrices(ret, diag = diag, byrow = byrow, 
-                                   names = rcnames), 
-                        byrow = byrow_orig)
-        if (missing(b)) return(ret)
-        return(.mult(ret, b))
-    }
+    ret <- .Call("R_ltmatrices_solve", unclass(x), nrow(x), J, diag)
+    ret <- t(matrix(ret, ncol = nrow(x)))
+    if (!diag)
+        ### ret always includes diagonal elements
+        ret <- ret[, - cumsum(c(1, J:2)), drop = FALSE]
 
-    x_norm <- ret
-    
-    idx_f1 <- 2:J
-    if(J > 2) {
-        for (j in 3:J)
-          idx_f1 <- c(idx_f1, j:J)
-    }
-    
-    ret <- matrix(0, nrow = xdim[1L], ncol = xdim[2L])
-    ret[, idx_l] <- x_norm / x_diag[, idx_f1]
-    ret[, idx_d] <- 1 / x_diag
-    
     ret <- .reorder(ltmatrices(ret, diag = diag, byrow = byrow, 
                                names = rcnames), 
                      byrow = byrow_orig)
     if (missing(b)) return(ret)
     return(.mult(ret, b))
-} 
+}
 
 ### L %*% t(L)
 ### NOTE: this returns symatrices (symmetric)
