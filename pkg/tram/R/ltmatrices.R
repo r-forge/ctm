@@ -155,7 +155,19 @@ solve.ltmatrices <- function(a, b, ...) {
     rcnames <- attr(x, "rcnames")
     J <- length(rcnames)
 
-    ret <- .Call("R_ltmatrices_solve", unclass(x), nrow(x), J, diag)
+    if (!missing(b)) {
+        if (!is.matrix(b)) b <- matrix(b, ncol = J)
+        stopifnot(nrow(b) == nrow(x))
+        stopifnot(ncol(b) == J)
+        stopifnot(storage.mode(b) == "double")
+        ret <- .Call("R_ltmatrices_solve", unclass(x), t(b), nrow(x), J, diag)
+        ret <- t(matrix(ret, nrow = J))
+        rownames(ret) <- rownames(x)
+        colnames(ret) <- rcnames
+        return(ret)
+    }
+
+    ret <- .Call("R_ltmatrices_solve", unclass(x), NULL, nrow(x), J, diag)
     ret <- t(matrix(ret, ncol = nrow(x)))
     if (!diag)
         ### ret always includes diagonal elements
@@ -164,8 +176,7 @@ solve.ltmatrices <- function(a, b, ...) {
     ret <- .reorder(ltmatrices(ret, diag = diag, byrow = byrow, 
                                names = rcnames), 
                      byrow = byrow_orig)
-    if (missing(b)) return(ret)
-    return(.mult(ret, b))
+    return(ret)
 }
 
 ### L %*% t(L)
