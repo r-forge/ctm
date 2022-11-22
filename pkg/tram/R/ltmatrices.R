@@ -179,11 +179,10 @@ solve.ltmatrices <- function(a, b, ...) {
     return(ret)
 }
 
-### L %*% t(L)
-### NOTE: this returns symatrices (symmetric)
-.tcrossprod.ltmatrices <- function(x, y = NULL, diag_only = FALSE) {
+### L %*% t(L) => returns object of class symatrices
+### diag(L %*% t(L)) => returns matrix of diagonal elements
+.tcrossprod.ltmatrices <- function(x, diag_only = FALSE) {
 
-    stopifnot(is.null(y))
     byrow_orig <- attr(x, "byrow")
     rcnames <- attr(x, "rcnames")
     diag <- attr(x, "diag")
@@ -195,43 +194,18 @@ solve.ltmatrices <- function(a, b, ...) {
     xdim <- dim(x)
     N <- xdim[1L]
 
-    L <- diag(0, J)
-    if (diag) {
-        L[lower.tri(L, diag = diag)] <- 1:ncol(x)
-    } else {
-        L[lower.tri(L, diag = diag)] <- 1L + 1:ncol(x)
-        diag(L) <- 1L
-        x <- cbind(1, x)
-    }
-    tL <- t(L)
-
+    ret <- matrix(.Call("R_ltmatrices_tcrossprod", x, N, J, diag, diag_only), 
+                  nrow = N)
+    rownames(ret) <- rownames(x)
     if (diag_only) {
-        ret <- matrix(0, nrow = nrow(x), ncol = J)
         colnames(ret) <- rcnames
-        rownames(ret) <- rownames(x)
-        k <- 0
-        for (i in 1:J) {
-            idx <- L[i,] * tL[,i] > 0
-            k <- k + 1
-            ret[, k] <- rowSums(x[, L[i,idx], drop = FALSE]^2)
-        }
-        return(ret)
+    } else {
+        ret <- .reorder(ltmatrices(ret, diag = TRUE, 
+                                   byrow = FALSE, names = rcnames), 
+                        byrow = byrow_orig)
+        class(ret)[1L] <- "symatrices"
     }
-
-    ret <- matrix(0, nrow = nrow(x), ncol = J * (J - 1) / 2 + J)
-    k <- 0
-    for (i in 1:J) {
-        for (j in 1:i) {
-            idx <- L[i,] * tL[,j] > 0
-            k <- k + 1
-            ret[, k] <- rowSums(x[, L[i,idx], drop = FALSE] * x[,tL[idx,j], drop = FALSE])
-        }
-    }
-
-    ret <- .reorder(ltmatrices(ret, diag = TRUE, byrow = TRUE, names = rcnames), 
-                    byrow = byrow_orig)
-    class(ret)[1L] <- "symatrices"
-    ret
+    return(ret)
 }
 
 diagonals <- function(x, ...)
