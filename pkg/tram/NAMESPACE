@@ -13,8 +13,8 @@ importFrom("stats", "model.matrix", "coef", "vcov", "nobs", "predict", "quantile
            "printCoefmat", "qqline", "qqplot", "qunif", "variable.names", "pchisq",
            "model.frame", "pnorm", "qnorm", "sigma", "residuals", "qchisq", "approx", "spline",
            "confint", "relevel", "resid", "ecdf", "dnorm", "weights", "lm", "simulate", 
-           "plogis", "qlogis", "dist", "uniroot", "optim", "runif", "rnorm")
-import("Matrix")
+           "plogis", "qlogis", "dist", "uniroot", "optim", "runif", "rnorm", "update")
+importFrom("Matrix", "Matrix", "bdiag", "Diagonal", "Cholesky")
 importFrom("survival", "survfit", "Surv", "coxph.control")
 importFrom("graphics", "plot", "lines", "polygon", "abline")
 importFrom("mvtnorm", "pmvnorm")
