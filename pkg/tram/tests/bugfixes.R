@@ -136,3 +136,21 @@ stopifnot(all.equal(logLik(m1), logLik(m2), tol = 1e-6))
 data("GBSG2", package = "TH.data")
 # gave an error
 m <- Survreg(Surv(time, cens) ~ horTh + age, data = GBSG2, constraints = c("age >= 0"))
+
+### mtram with interval censoring, spotted by Sandra Siegfried
+dir <- system.file("rda", package = "TH.data")
+load(file.path(dir, "Primary_endpoint_data.rda"))
+trt <- "randarm5-FU + Oxaliplatin"
+### convert "exact" event dates to interval-censoring (+/- one day)
+tmp <- CAOsurv$iDFS
+exact <- tmp[,3] == 1 
+tmp[exact,2] <- tmp[exact,1] + 2
+tmp[exact,1] <- pmax(tmp[exact,1] - 2, 0)
+tmp[exact,3] <- 3
+CAOsurv$iDFS2 <- tmp
+CAO_SR <- Survreg(iDFS2 ~ randarm, data = CAOsurv, support = c(1, 1700), bounds = c(0, Inf))
+CAO_SR_mtram <- mtram(CAO_SR, ~ (1 | Block), data = CAOsurv)
+CAO_Cox <- Coxph(iDFS2 ~ randarm, data = CAOsurv, support = c(1, 1700), bounds = c(0, Inf), log_first = TRUE, order = 1)
+CAO_Cox_mtram <- mtram(CAO_Cox, ~ (1 | Block), data = CAOsurv)
+### wasn't equal
+stopifnot(isTRUE(all.equal(logLik(CAO_SR_mtram), logLik(CAO_Cox_mtram), tol = 1e-5)))

@@ -211,9 +211,9 @@ mtram <- function(object, formula, data,
             gamma <- parm[-(1:ncol(iY$Yleft))]
             Lambdat@x[] <- mapping(gamma)
             lplower <- c(iY$Yleft %*% theta + offset)
-            lplower[is.na(lplower)] <- -Inf
+            lplower[!is.finite(lplower)] <- -Inf
             lpupper <- c(iY$Yright %*% theta + offset)
-            lpupper[is.na(lpupper)] <- Inf
+            lpupper[!is.finite(lpupper)] <- Inf
             
             ## don't spend time on Matrix dispatch
             mLt <- t(as(Lambdat[wh, wh], "matrix"))
