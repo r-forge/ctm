@@ -910,7 +910,7 @@ exp(confint(CAO_Cox_2_tramME, parm = "randarm5-FU + Oxaliplatin",
 
 
 ## ----sim, eval = FALSE--------------------------------------------------------
-## source(system.time("mtram_sim.R", package = "tram"), echo = TRUE)
+## source(system.file("simulations", "mtram_sim.R", package = "tram"), echo = TRUE)
 
 
 ## ----mtram-sessionInfo, echo = FALSE, results = "hide"------------------------
