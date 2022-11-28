@@ -22,7 +22,7 @@ Description: Count transformation models featuring
         The package also contains an experimental implementation of 
         multivariate count transformation models with an application
         to multi-species distribution models <arXiv:2201.13095>.
-Depends: R (>= 3.5.0), tram (>= 0.7-2), mlt (>= 1.2-1)
+Depends: R (>= 3.5.0), tram (>= 0.8-0), mlt (>= 1.2-1)
 Imports: variables (>= 1.0-2), basefun (>= 1.0-5), alabama, Matrix, methods, survival, utils
 Suggests: TH.data, knitr, lattice, colorspace, multcomp, mvtnorm, numDeriv
 VignetteBuilder: knitr
