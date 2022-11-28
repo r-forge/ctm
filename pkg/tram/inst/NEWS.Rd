@@ -6,6 +6,7 @@
   \itemize{
     \item{Add \code{simulate.mmlt}.}
     \item{\code{Survreg} didn't work with constraints, reported by Lucas Kook.}
+    \item{\code{mtram} didn't deal properly with interval censoring in all cases.}
   }
 }
 

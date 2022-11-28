@@ -122,6 +122,8 @@ SEXP R_ltmatrices_tcrossprod (SEXP A, SEXP N, SEXP J, SEXP diag, SEXP diag_only)
     Rboolean Rdiag = asLogical(diag);
 
     dA = REAL(A);
+
+    /* maybe input t(A) and move through matrix by pointer addition? */
     
     if (Rdiag_only) {
         PROTECT(ans = allocVector(REALSXP, iN * iJ));
