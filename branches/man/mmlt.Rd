@@ -19,7 +19,7 @@ mmlt(..., formula = ~ 1, data, conditional = GAUSSIAN, theta = NULL,
                      ...)
 \method{predict}{mmlt}(object, newdata, margins = 1:J, 
                        type = c("trafo", "distribution", "density"), 
-                       log = FALSE, ...)
+                       log = FALSE, w = NULL, seed = NULL, ...)
 \method{simulate}{mmlt}(object, nsim = 1L, seed = NULL, newdata, K = 50, ...)
 }
 \arguments{
@@ -64,6 +64,8 @@ variable, or multiple integers (currently only \code{1:j} implemented).
 }
   \item{nsim}{number of samples to generate.}
   \item{seed}{optional seed for the random number generator.}
+  \item{w}{an optional matrix of weights for (quasi)-Monte-Carlo
+           integration; see \code{\link[mvtnorm]{lmvnorm}}.}
   \item{K}{number of grid points to generate.}
 }
 \details{
