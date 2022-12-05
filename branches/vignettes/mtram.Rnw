@@ -1,0 +1,12 @@
+
+%\VignetteEngine{knitr::knitr}
+%\VignetteIndexEntry{mtram}
+%\VignetteDepends{tram}
+
+\documentclass{article}
+
+\usepackage{pdfpages}
+\begin{document}
+\includepdf[pages=-, fitpaper=true]{mtram-rendered.pdf}
+\end{document}
+
