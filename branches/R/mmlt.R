@@ -132,15 +132,15 @@ mmlt <- function(..., formula = ~ 1, data, conditional = GAUSSIAN,
       
     Yp <- matrix(Y %*% mpar, nrow = N)
     Yprimep <- matrix(Yprime %*% mpar, nrow = N)
-    Xp <- ltmatrices(lX %*% cpar, byrow = TRUE, diag = FALSE, names = nm)
+    Xp <- ltMatrices(lX %*% cpar, byrow = TRUE, diag = FALSE, names = nm)
       
     if (conditional) { ### all probit
-      C <- .mult(Xp, Yp)
+      C <- Mult(Xp, t(Yp))
       ret <- sum(.log(Yprimep))
       ret <- ret + sum(dnorm(C, log = TRUE))
     } else {
         
-      Sigmas2 <- .tcrossprod.ltmatrices(solve(Xp), diag_only = TRUE)
+      Sigmas2 <- t(Tcrossprod(solve(Xp), diag_only = TRUE))
       Sigmas <- sqrt(Sigmas2)
         
       F_Zj_Yp <- Phi_01_inv <- Phi_Sigmas_inv <- Yp
@@ -155,7 +155,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = GAUSSIAN,
         } 
       }
 
-      C <- .mult(Xp, Phi_Sigmas_inv)
+      C <- Mult(Xp, t(Phi_Sigmas_inv))
         
       ret <- sum(.log(Yprimep))
       ret <- ret + sum(dnorm(C, log = TRUE))
@@ -174,7 +174,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = GAUSSIAN,
       
     Yp <- matrix(Y %*% mpar, nrow = N)
     Yprimep <- matrix(Yprime %*% mpar, nrow = N)
-    Xp <- ltmatrices(lX %*% cpar, byrow = TRUE, diag = FALSE, names = nm)
+    Xp <- ltMatrices(lX %*% cpar, byrow = TRUE, diag = FALSE, names = nm)
 
     L <- diag(0, J)
     if (attr(Xp, "byrow")) {
@@ -186,7 +186,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = GAUSSIAN,
       
     if (conditional) { ### all probit
         
-      C <- .mult(Xp, Yp)
+      C <- t(Mult(Xp, t(Yp)))
       C1 <- -C
       B <- C[, -1L, drop = FALSE]
         
@@ -211,7 +211,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = GAUSSIAN,
       }
     } else {
         
-      Sigmas2 <- .tcrossprod.ltmatrices(solve(Xp), diag_only = TRUE)
+      Sigmas2 <- t(Tcrossprod(solve(Xp), diag_only = TRUE))
       Sigmas <- sqrt(Sigmas2)
         
       F_Zj_Yp <- Phi_01_inv <- Phi_Sigmas_inv <- Yp
@@ -226,7 +226,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = GAUSSIAN,
         } 
       }
      
-      C <- .mult(Xp, Phi_Sigmas_inv)
+      C <- t(Mult(Xp, t(Phi_Sigmas_inv)))
       C1 <- -C
       B <- C[, -1L, drop = FALSE]
         
@@ -332,7 +332,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = GAUSSIAN,
     coef(mmod[[j]]) <- mlist[[j]]
   }
   cpar <- matrix(opt$par[-(1:length(mpar))], ncol = Jp)
-  tmp <- ltmatrices(cpar, byrow = TRUE, diag = FALSE, names = nm)
+  tmp <- ltMatrices(cpar, byrow = TRUE, diag = FALSE, names = nm)
   args <- expand.grid(colnames(lX), colnames(unclass(tmp)))[,2:1]
   colnames(cpar) <- colnames(unclass(tmp))
   rownames(cpar) <- colnames(lX)
@@ -352,7 +352,8 @@ mmlt <- function(..., formula = ~ 1, data, conditional = GAUSSIAN,
 }
 
 predict.mmlt <- function(object, newdata, margins = 1:J, 
-                         type = c("trafo", "distribution", "density"), log = FALSE, ...) {
+                         type = c("trafo", "distribution", "density"), log = FALSE, 
+                         w = NULL, seed = NULL, ...) {
 
   type <- match.arg(type)
 
@@ -376,7 +377,7 @@ predict.mmlt <- function(object, newdata, margins = 1:J,
     tr <- predict(object$marginals[[margins]], newdata = newdata, type = "trafo", ...)
     if (type == "trafo") return(tr)
     Vx <- coef(object, newdata = newdata, type = "Sigma")
-    sdg <- matrix(sqrt(diagonals(Vx))[, margins], nrow = NROW(tr), ncol = NCOL(tr), byrow = TRUE)
+    sdg <- matrix(sqrt(diagonals(Vx))[margins,], nrow = NROW(tr), ncol = NCOL(tr), byrow = TRUE)
     if (type == "distribution")
       return(pnorm(tr / sdg, log.p = log))
     trp <- predict(object$marginals[[margins]], newdata = newdata, type = "trafo", deriv = dx[margins], ...)
@@ -395,7 +396,7 @@ predict.mmlt <- function(object, newdata, margins = 1:J,
   ret <- numeric(nrow(newdata))
 
   Vx <- coef(object, newdata = newdata, type = "Sigma")[, margins]
-  sdg <- sqrt(diagonals(Vx))
+  sdg <- t(sqrt(diagonals(Vx)))
   Z <- h <- tr
 
   if (any(!link)) {
@@ -407,17 +408,17 @@ predict.mmlt <- function(object, newdata, margins = 1:J,
     h <- Z * sdg
 
   if (type == "distribution") {
-    Smat <- as.array(Vx)
-    for (i in 1:nrow(newdata))
-      ret[i] <- pmvnorm(lower = rep(-Inf, length(margins)), upper = h[i,], sigma = Smat[,, i])
-    if (log) return(.log(ret))
+    Chol <- coef(object, newdata = newdata, type = "Lambdainv")[, margins]
+    minf <- matrix(-Inf, nrow = ncol(h), ncol = nrow(h))
+    ret <- lmvnorm(lower = minf, upper = t(h), chol = Chol, logLik = FALSE, w = w, seed = seed)
+    if (!log) return(exp(ret))
     return(ret)
   } else {
     if (1 %in% margins && all(diff(margins) == 1L)) {
       Lmat <- coef(object, newdata = newdata, type = "Lambda")[, margins]
     } else {
       if (length(margins) == 1L) {
-        Lmat <- ltmatrices(sdg)
+        Lmat <- ltMatrices(sdg)
       } else {
         stop("cannot evaluate density for selected margins; reorder and refit such that margins = 1:j")
       }
@@ -425,7 +426,7 @@ predict.mmlt <- function(object, newdata, margins = 1:J,
 
     trp <- do.call("cbind", lapply(margins, function(i)
                    c(predict(object$marginals[[i]], newdata = newdata, type = "trafo", deriv = dx[i]))))
-    ret <- rowSums(dnorm(.mult(Lmat, h), log = TRUE)) #+ .log(trp))
+    ret <- rowSums(dnorm(t(Mult(Lmat, t(h))), log = TRUE)) #+ .log(trp))
 
     if (!object$conditional) {    
         ld <- do.call("cbind", lapply(margins, function(i)
@@ -466,10 +467,10 @@ coef.mmlt <- function(object, newdata,
   if (missing(newdata)) {
       if (nrow(object$pars$cpar) > 1L)
           stop("newdata not specified")
-      ret <- ltmatrices(object$pars$cpar, byrow = TRUE, diag = FALSE, names = object$names)
+      ret <- ltMatrices(object$pars$cpar, byrow = TRUE, diag = FALSE, names = object$names)
   } else {
       X <- model.matrix(object$bx, data = newdata)
-      ret <- ltmatrices(X %*% object$pars$cpar, byrow = TRUE, diag = FALSE, names = object$names)
+      ret <- ltMatrices(X %*% object$pars$cpar, byrow = TRUE, diag = FALSE, names = object$names)
   }
 
   if (type == "Spearman")
@@ -477,30 +478,30 @@ coef.mmlt <- function(object, newdata,
 
   ret <- switch(type, "Lambda" = ret,
                       "Lambdainv" = solve(ret),
-                      "Sigma" = .tcrossprod.ltmatrices(solve(ret)),
+                      "Sigma" = Tcrossprod(solve(ret)),
                       "Corr" = {
                         inv <- solve(ret)
-                        ret <- .tcrossprod.ltmatrices(inv)
-                        isd <- 1 / sqrt(.tcrossprod.ltmatrices(inv, diag_only = TRUE))
+                        ret <- Tcrossprod(inv)
+                        isd <- t(1 / sqrt(diagonals(ret)))
                         J <- length(object$marginals)
 
                         if (attr(ret, "diag")) {
-                            ### remove diagonal elements from ret
-                            L <- diag(0, J)
-                            L[upper.tri(L, diag = TRUE)] <- 1:ncol(unclass(ret))
-                            L <- t(L)
-                            ret <- unclass(ret)[, -diag(L), drop = FALSE]
+                            if (attr(ret, "byrow"))
+                                idx <- cumsum(c(1, 2:dim(ret)[2L]))
+                            else
+                                idx <- cumsum(c(1, dim(ret)[2L]:2))
+                            ret <- unclass(ret)[, -idx, drop = FALSE]
                         } else {
                             ret <- unclass(ret)
                         }
 
                         L1 <- matrix(1:J, nrow = J, ncol = J)
                         L2 <- matrix(1:J, nrow = J, ncol = J, byrow = TRUE)
-                        tmp <- ltmatrices(isd[, L2[lower.tri(L2)], drop = FALSE] * 
+                        tmp <- ltMatrices(isd[, L2[lower.tri(L2)], drop = FALSE] * 
                                           isd[, L1[lower.tri(L1)], drop = FALSE], byrow = FALSE, diag = FALSE)
-                        ret <- ret * unclass(.reorder(tmp, byrow = TRUE))
-                        ret <- ltmatrices(ret, byrow = TRUE, diag = FALSE, names = object$names)
-                        class(ret)[1L] <- "symatrices"
+                        ret <- ret * unclass(ltMatrices(tmp, byrow = TRUE))
+                        ret <- ltMatrices(ret, byrow = TRUE, diag = FALSE, names = object$names)
+                        class(ret)[1L] <- "syMatrices"
                         ret
                       })
   return(ret)
@@ -591,7 +592,7 @@ simulate.mmlt <- function(object, nsim = 1L, seed = NULL, newdata, K = 50, ...) 
     N <- nrow(newdata)
 
     Z <- matrix(rnorm(J * N), ncol = J)
-    Ztilde <- .mult(solve(L), Z)
+    Ztilde <- solve(L, Z)
 
     ret <- matrix(0.0, nrow = N, ncol = J)
 
