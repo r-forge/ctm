@@ -103,23 +103,30 @@ mmlt <- function(..., formula = ~ 1, data, conditional = GAUSSIAN,
   if (!GAUSSIAN && conditional)
      stop("Conditional parameterisation only implemented for probit models")
 
+  N <- nrow(data)
+  nobs <- sapply(lu, function(m) nrow(m$exact))
+  stopifnot(length(unique(nobs)) == 1L)
+  Y <- do.call("bdiag", lapply(lu, function(m) m$exact))
+  ncY <- ncol(Y)
+  Yprime <- do.call("bdiag", lapply(lu, function(m) m$prime))
+
   bx <- formula
   if (inherits(formula, "formula"))
     bx <- as.basis(formula, data)
-  lX <- model.matrix(bx, data = data)
-  
-  N <- nrow(lX)
-  nobs <- sapply(lu, function(m) nrow(m$exact))
-  stopifnot(length(unique(nobs)) == 1L)
-  
-  Y <- do.call("bdiag", lapply(lu, function(m) m$exact))
-  Yprime <- do.call("bdiag", lapply(lu, function(m) m$prime))
+  if (isTRUE(all.equal(formula, ~ 1))) {
+    lX <- model.matrix(bx, data = data[1,,drop = FALSE])
+    idx <- rep(1, N)
+  } else {
+    lX <- model.matrix(bx, data = data)
+    idx <- 1:N
+  }
+  p <- ncol(lX)
   
   cnstr <- do.call("bdiag", 
                    lapply(lu, function(m) attr(m$exact, "constraint")$ui))
-  ui <- bdiag(cnstr, Diagonal(Jp * ncol(lX)))
+  ui <- bdiag(cnstr, Diagonal(Jp * p))
   ci <- do.call("c", lapply(lu, function(m) attr(m$exact, "constraint")$ci))
-  ci <- c(ci, rep(-Inf, Jp * ncol(lX)))
+  ci <- c(ci, rep(-Inf, Jp * p))
   ui <- ui[is.finite(ci),]
   ci <- ci[is.finite(ci)]
   ui <- as(ui, "matrix")
@@ -127,54 +134,58 @@ mmlt <- function(..., formula = ~ 1, data, conditional = GAUSSIAN,
   
   ll <- function(par) {
       
-    mpar <- par[1:ncol(Y)]
-    cpar <- matrix(par[-(1:ncol(Y))], nrow = ncol(lX))
+    mpar <- par[1:ncY]
+    cpar <- matrix(par[-(1:ncY)], nrow = p)
       
     Yp <- matrix(Y %*% mpar, nrow = N)
     Yprimep <- matrix(Yprime %*% mpar, nrow = N)
-    Xp <- ltMatrices(lX %*% cpar, byrow = TRUE, diag = FALSE, names = nm)
+    Xp <- ltMatrices(lX %*% cpar, byrow = TRUE, trans = FALSE, 
+                     diag = FALSE, names = nm)
       
     if (conditional) { ### all probit
       C <- Mult(Xp, t(Yp))
       ret <- sum(.log(Yprimep))
       ret <- ret + sum(dnorm(C, log = TRUE))
-    } else {
-        
-      Sigmas2 <- t(Tcrossprod(solve(Xp), diag_only = TRUE))
-      Sigmas <- sqrt(Sigmas2)
-        
-      F_Zj_Yp <- Phi_01_inv <- Phi_Sigmas_inv <- Yp
-
-      for (j in 1:J) {
-        if (!link[j]) {
-          F_Zj_Yp[, j] <- m[[j]]$todistr$p(Yp[, j], log.p = TRUE)
-          Phi_01_inv[, j] <- qnorm(F_Zj_Yp[, j], log.p = TRUE)
-          Phi_Sigmas_inv[, j] <- Sigmas[, j] * Phi_01_inv[, j]
-        } else {
-          Phi_Sigmas_inv[, j] <- Sigmas[, j] * Yp[, j]
-        } 
-      }
-
-      C <- Mult(Xp, t(Phi_Sigmas_inv))
-        
-      ret <- sum(.log(Yprimep))
-      ret <- ret + sum(dnorm(C, log = TRUE))
-      for (j in 1:J)
-        ret <- ret + sum(m[[j]]$todistr$d(Yp[, j], log = TRUE))
-      ret <- ret + sum(.log(Sigmas)) + 0.5 * sum(Phi_01_inv^2)
-      ret <- ret - J * N * log(1 / sqrt(2 * pi))
+      return(-ret)
     }
+  
+    Sigmas2 <- t(Tcrossprod(solve(Xp), diag_only = TRUE))
+    Sigmas <- sqrt(Sigmas2)
+    if (nrow(Sigmas) == 1L)
+      Sigmas <- matrix(Sigmas, nrow = N, ncol = J, byrow = TRUE)
+        
+    F_Zj_Yp <- Phi_01_inv <- Phi_Sigmas_inv <- Yp
+
+    for (j in 1:J) {
+      if (!link[j]) {
+        F_Zj_Yp[, j] <- m[[j]]$todistr$p(Yp[, j], log.p = TRUE)
+        Phi_01_inv[, j] <- qnorm(F_Zj_Yp[, j], log.p = TRUE)
+        Phi_Sigmas_inv[, j] <- Sigmas[, j] * Phi_01_inv[, j]
+      } else {
+        Phi_Sigmas_inv[, j] <- Sigmas[, j] * Yp[, j]
+      } 
+    }
+
+    C <- Mult(Xp, t(Phi_Sigmas_inv))
+        
+    ret <- sum(.log(Yprimep))
+    ret <- ret + sum(dnorm(C, log = TRUE))
+    for (j in 1:J)
+      ret <- ret + sum(m[[j]]$todistr$d(Yp[, j], log = TRUE))
+    ret <- ret + sum(.log(Sigmas)) + 0.5 * sum(Phi_01_inv^2)
+    ret <- ret - J * N * log(1 / sqrt(2 * pi))
     return(-ret)
   }
    
   sc <- function(par) {
       
-    mpar <- par[1:ncol(Y)] 
-    cpar <- matrix(par[-(1:ncol(Y))], nrow = ncol(lX))
-      
+    mpar <- par[1:ncY]
+    cpar <- matrix(par[-(1:ncY)], nrow = p)
+
     Yp <- matrix(Y %*% mpar, nrow = N)
     Yprimep <- matrix(Yprime %*% mpar, nrow = N)
-    Xp <- ltMatrices(lX %*% cpar, byrow = TRUE, diag = FALSE, names = nm)
+    Xp <- ltMatrices(lX %*% cpar, byrow = TRUE, trans = FALSE, 
+                     diag = FALSE, names = nm)
 
     L <- diag(0, J)
     if (attr(Xp, "byrow")) {
@@ -193,7 +204,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = GAUSSIAN,
       mret <- vector(length = J, mode = "list")
       for (k in 1:J) {
         Lk <- L[,k]
-        D <- cbind(matrix(rep(0, (k-1)*N), nrow = N), 1, unclass(Xp)[,Lk[Lk > 0]])
+        D <- cbind(matrix(rep(0, (k-1)*N), nrow = N), 1, unclass(Xp)[idx,Lk[Lk > 0]])
         mret[[k]] <- colSums(rowSums(C1 * D) * lu[[k]]$exact) +
                      colSums(lu[[k]]$prime / Yprimep[,k])
       }
@@ -204,8 +215,8 @@ mmlt <- function(..., formula = ~ 1, data, conditional = GAUSSIAN,
         tmp <- -B1 * Yp[,1:k]
         ret <- c()
         for (i in 1:k) {
-          tmp1 <- matrix(rep(tmp[,i], ncol(lX)), ncol = ncol(lX))
-          ret <- c(ret, colSums(tmp1 * lX))
+          tmp1 <- matrix(rep(tmp[,i], p), ncol = p)
+          ret <- c(ret, colSums(tmp1 * lX[idx,]))
         }
         cret[[k]] <- ret
       }
@@ -213,6 +224,8 @@ mmlt <- function(..., formula = ~ 1, data, conditional = GAUSSIAN,
         
       Sigmas2 <- t(Tcrossprod(solve(Xp), diag_only = TRUE))
       Sigmas <- sqrt(Sigmas2)
+      if (nrow(Sigmas) == 1L)
+        Sigmas <- matrix(Sigmas, nrow = N, ncol = J, byrow = TRUE)
         
       F_Zj_Yp <- Phi_01_inv <- Phi_Sigmas_inv <- Yp
 
@@ -233,7 +246,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = GAUSSIAN,
       mret <- vector(length = J, mode = "list")
       for (k in 1:J) {
         Lk <- L[,k]
-        D <- cbind(matrix(rep(0, (k-1)*N), nrow = N), 1, unclass(Xp)[,Lk[Lk > 0]])
+        D <- cbind(matrix(rep(0, (k-1)*N), nrow = N), 1, unclass(Xp)[idx,Lk[Lk > 0]])
           
         f_k <- m[[k]]$todistr$d
         omega_k <- m[[k]]$todistr$dd2d
@@ -251,13 +264,13 @@ mmlt <- function(..., formula = ~ 1, data, conditional = GAUSSIAN,
         tmp2 <- - B1 * Phi_01_inv[,k+1]
         ret <- c()
         Lk <- L[k+1, ]
-        lambda_ktk <- unclass(Xp)[, Lk[Lk > 0]]
+        lambda_ktk <- unclass(Xp)[idx, Lk[Lk > 0]]
         tmp4 <- tmp1 + 
                (lambda_ktk / Sigmas[, k+1]) * tmp2  +
                lambda_ktk / Sigmas2[, k+1]
         for (i in 1:k) {
-          tmp3 <- matrix(rep(tmp4[,i], ncol(lX)), ncol = ncol(lX))
-          ret <- c(ret, colSums(tmp3 * lX))
+          tmp3 <- matrix(rep(tmp4[,i], p), ncol = p)
+          ret <- c(ret, colSums(tmp3 * lX[idx, ]))
         }
         cret[[k]] <- ret
       }
@@ -272,17 +285,17 @@ mmlt <- function(..., formula = ~ 1, data, conditional = GAUSSIAN,
     start <- unname(theta)
   }
   else {
-    if ((inherits(formula, "formula") && formula == ~1) || !conditional) {
+    if ((inherits(formula, "formula") && isTRUE(all.equal(formula, ~1))) || !conditional) {
       ### don't bother with .start(), simply use the marginal coefficients
       ### and zero for the lambda parameters
       start <- do.call("c", lapply(m, function(mod) coef(as.mlt(mod))))
       if (!conditional) {
         cll <- function(cpar) ll(c(start, cpar))
         csc <- function(cpar) sc(c(start, cpar))[-(1:length(start))]
-        op <- optim(rep(0, Jp * ncol(lX)), fn = cll, gr = csc, method = "BFGS")
+        op <- optim(rep(0, Jp * p), fn = cll, gr = csc, method = "BFGS")
         start <- c(start, op$par)
       } else {
-        start <- c(start, rep(0, Jp * ncol(lX)))
+        start <- c(start, rep(0, Jp * p))
       }
     }
     else { # formula != ~ 1 || conditional
@@ -293,7 +306,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = GAUSSIAN,
  
   if (scale) {
     Ytmp <- cbind(do.call("cbind", lapply(lu, function(m) m$exact)), 
-                  kronecker(matrix(1, ncol = Jp), lX))
+                  kronecker(matrix(1, ncol = Jp), lX[idx,]))
     Ytmp[!is.finite(Ytmp)] <- NA
     scl <- apply(abs(Ytmp), 2, max, na.rm = TRUE)
     lt1 <- scl < 1.1
@@ -377,8 +390,7 @@ predict.mmlt <- function(object, newdata, margins = 1:J,
     tr <- predict(object$marginals[[margins]], newdata = newdata, type = "trafo", ...)
     if (type == "trafo") return(tr)
     Vx <- coef(object, newdata = newdata, type = "Sigma")
-    sdg <- matrix(sqrt(diagonals(Vx))[margins,], nrow = NROW(tr), ncol = NCOL(tr), byrow =
-    FALSE)
+    sdg <- t(matrix(sqrt(diagonals(Vx))[margins,,drop = FALSE], ncol = NROW(tr), nrow = NCOL(tr)))
     if (type == "distribution")
       return(pnorm(tr / sdg, log.p = log))
     trp <- predict(object$marginals[[margins]], newdata = newdata, type = "trafo", deriv = dx[margins], ...)
@@ -396,8 +408,8 @@ predict.mmlt <- function(object, newdata, margins = 1:J,
 
   ret <- numeric(nrow(newdata))
 
-  Vx <- coef(object, newdata = newdata, type = "Sigma")[, margins]
-  sdg <- t(sqrt(diagonals(Vx)))
+  Vx <- coef(object, newdata = newdata, type = "Sigma")
+  sdg <- t(matrix(sqrt(diagonals(Vx))[margins,,drop = FALSE], ncol = NROW(tr), nrow = NCOL(tr)))
   Z <- h <- tr
 
   if (any(!link)) {
@@ -468,10 +480,14 @@ coef.mmlt <- function(object, newdata,
   if (missing(newdata)) {
       if (nrow(object$pars$cpar) > 1L)
           stop("newdata not specified")
-      ret <- ltMatrices(object$pars$cpar, byrow = TRUE, diag = FALSE, names = object$names)
+      ret <- ltMatrices(object$pars$cpar, byrow = TRUE, trans = FALSE, diag = FALSE, names = object$names)
   } else {
-      X <- model.matrix(object$bx, data = newdata)
-      ret <- ltMatrices(X %*% object$pars$cpar, byrow = TRUE, diag = FALSE, names = object$names)
+      if (inherits(object$formula, "formula") && isTRUE(all.equal(object$formula, ~1))) {
+          lX <- matrix(1)
+      } else {
+          lX <- model.matrix(object$bx, data = newdata)
+      }
+      ret <- ltMatrices(lX %*% object$pars$cpar, byrow = TRUE, trans = FALSE, diag = FALSE, names = object$names)
   }
 
   if (type == "Spearman")
