@@ -483,7 +483,7 @@ coef.mmlt <- function(object, newdata,
       ret <- ltMatrices(object$pars$cpar, byrow = TRUE, trans = FALSE, diag = FALSE, names = object$names)
   } else {
       if (inherits(object$formula, "formula") && isTRUE(all.equal(object$formula, ~1))) {
-          lX <- matrix(1)
+          lX <- model.matrix(object$bx, data = newdata[1,,drop = FALSE])
       } else {
           lX <- model.matrix(object$bx, data = newdata)
       }
@@ -608,8 +608,8 @@ simulate.mmlt <- function(object, nsim = 1L, seed = NULL, newdata, K = 50, ...) 
     L <- coef(object, newdata = newdata, type = "Lambda")
     N <- nrow(newdata)
 
-    Z <- matrix(rnorm(J * N), ncol = J)
-    Ztilde <- solve(L, Z)
+    Z <- matrix(rnorm(J * N), nrow = J)
+    Ztilde <- t(solve(L, Z))
 
     ret <- matrix(0.0, nrow = N, ncol = J)
 
@@ -623,7 +623,7 @@ simulate.mmlt <- function(object, nsim = 1L, seed = NULL, newdata, K = 50, ...) 
         }
     } else {
         dvc <- sqrt(diagonals(coef(object, newdata = newdata, type = "Sigma")))
-        Ztilde <- pnorm(Ztilde / dvc, log.p = TRUE)
+        Ztilde <- pnorm(Ztilde / c(dvc), log.p = TRUE)
         for (j in 1:J) {
             q <- mkgrid(object$marginals[[j]], n = K)[[1L]]
             pr <- predict(object$marginals[[j]], newdata = newdata, type = "logdistribution", q = q)
