@@ -2,6 +2,7 @@
 library("tram")
 library("mvtnorm")
 library("multcomp")
+library("randtoolbox")
 
 options(digits = 2)
 
@@ -58,17 +59,27 @@ chk(as.array(coef(mm, type = "Spearman"))[,,1],
 
 chk(predict(mm, newdata = d, type = "density", log = TRUE), 
     predict(mmN, newdata = d, type = "density", log = TRUE))
-chk(predict(mm, newdata = d, type = "distribution", log = TRUE), 
-    predict(mmN, newdata = d, type = "distribution", log = TRUE))
+
+w <- t(halton(10000, dim = J - 1))
+chk(predict(mm, newdata = d, type = "distribution", log = TRUE, w = w), 
+    predict(mmN, newdata = d, type = "distribution", log = TRUE, w = w))
 
 chk(predict(mm, newdata = d, margins = 1:2, type = "density", log = TRUE), 
     predict(mmN, newdata = d, margins = 1:2, type = "density", log = TRUE))
-chk(predict(mm, newdata = d, margins = 1:2, type = "distribution", log = TRUE), 
-    predict(mmN, newdata = d, margins = 1:2, type = "distribution", log = TRUE))
+
+w <- t(halton(10000, dim = 1))
+
+chk(predict(mm, newdata = d, margins = 1:2, type = "distribution", log = TRUE, w = w), 
+    predict(mmN, newdata = d, margins = 1:2, type = "distribution", log = TRUE, w = w))
 chk(predict(mm, newdata = d, margins = 1:3, type = "density", log = TRUE), 
     predict(mmN, newdata = d, margins = 1:3, type = "density", log = TRUE))
-chk(predict(mm, newdata = d, margins = 1:3, type = "distribution", log = TRUE), 
-    predict(mmN, newdata = d, margins = 1:3, type = "distribution", log = TRUE))
+
+w <- t(halton(10000, dim = 2))
+
+chk(predict(mm, newdata = d, margins = 1:3, type = "distribution", log =
+TRUE, w = w), 
+    predict(mmN, newdata = d, margins = 1:3, type = "distribution", log =
+TRUE, w = w))
 
 chk(sapply(1:J, function(i) predict(mm, margins = i, newdata = d, type = "density", log = TRUE)),
     sapply(1:J, function(i) predict(mmN, margins = i, newdata = d, type = "density", log = TRUE)))
@@ -82,12 +93,20 @@ chk(c(predict(m1, newdata = d, type = "density", log = TRUE)),
     c(predict(mmN, newdata = d, margins = 1, type = "density", log = TRUE)))
 chk(predict(m2, newdata = d, margins = 1:2, type = "density", log = TRUE), 
     predict(mmN, newdata = d, margins = 1:2, type = "density", log = TRUE))
-chk(predict(m2, newdata = d, margins = 1:2, type = "distribution", log = TRUE), 
-    predict(mmN, newdata = d, margins = 1:2, type = "distribution", log = TRUE))
+
+w <- t(halton(10000, dim = 1))
+
+chk(predict(m2, newdata = d, margins = 1:2, type = "distribution", log = TRUE, w = w), 
+    predict(mmN, newdata = d, margins = 1:2, type = "distribution", log = TRUE, w = w))
 chk(predict(m3, newdata = d, margins = 1:3, type = "density", log = TRUE), 
     predict(mmN, newdata = d, margins = 1:3, type = "density", log = TRUE))
-chk(predict(m3, newdata = d, margins = 1:3, type = "distribution", log = TRUE), 
-    predict(mmN, newdata = d, margins = 1:3, type = "distribution", log = TRUE))
+
+w <- t(halton(10000, dim = 2))
+
+chk(predict(m3, newdata = d, margins = 1:3, type = "distribution", log =
+TRUE, w = w), 
+    predict(mmN, newdata = d, margins = 1:3, type = "distribution", log =
+TRUE, w = w))
 
 ### marginal normal, implemented differently
 for (j in 1:J) m[[j]]$todistr$name <- "CarlFriedrich"
@@ -117,17 +136,30 @@ chk(as.array(coef(mm, type = "Spearman"))[,,1],
 
 chk(predict(mm, newdata = d, type = "density", log = TRUE), 
     predict(mmN, newdata = d, type = "density", log = TRUE))
-chk(predict(mm, newdata = d, type = "distribution", log = TRUE), 
-    predict(mmN, newdata = d, type = "distribution", log = TRUE))
+
+w <- t(halton(10000, dim = J - 1))
+
+chk(predict(mm, newdata = d, type = "distribution", log = TRUE, w = w), 
+    predict(mmN, newdata = d, type = "distribution", log = TRUE, w = w))
 
 chk(predict(mm, newdata = d, margins = 1:2, type = "density", log = TRUE), 
     predict(mmN, newdata = d, margins = 1:2, type = "density", log = TRUE))
-chk(predict(mm, newdata = d, margins = 1:2, type = "distribution", log = TRUE), 
-    predict(mmN, newdata = d, margins = 1:2, type = "distribution", log = TRUE))
+
+w <- t(halton(10000, dim = 1))
+
+chk(predict(mm, newdata = d, margins = 1:2, type = "distribution", log =
+TRUE, w = w), 
+    predict(mmN, newdata = d, margins = 1:2, type = "distribution", log =
+TRUE, w = w))
 chk(predict(mm, newdata = d, margins = 1:3, type = "density", log = TRUE), 
     predict(mmN, newdata = d, margins = 1:3, type = "density", log = TRUE))
-chk(predict(mm, newdata = d, margins = 1:3, type = "distribution", log = TRUE), 
-    predict(mmN, newdata = d, margins = 1:3, type = "distribution", log = TRUE))
+
+w <- t(halton(10000, dim = 2))
+
+chk(predict(mm, newdata = d, margins = 1:3, type = "distribution", log =
+TRUE, w = w), 
+    predict(mmN, newdata = d, margins = 1:3, type = "distribution", log =
+TRUE, w = w))
 
 chk(sapply(1:J, function(i) predict(mm, margins = i, newdata = d, type = "density", log = TRUE)),
     sapply(1:J, function(i) predict(mmN, margins = i, newdata = d, type = "density", log = TRUE)))
@@ -173,17 +205,30 @@ chk(as.array(coef(mm, newdata = d, type = "Spearman"))[,,1],
 
 chk(predict(mm, newdata = d, type = "density", log = TRUE), 
     predict(mmN, newdata = d, type = "density", log = TRUE))
-chk(predict(mm, newdata = d, type = "distribution", log = TRUE), 
-    predict(mmN, newdata = d, type = "distribution", log = TRUE))
+
+w <- t(halton(10000, dim = J - 1))
+
+chk(predict(mm, newdata = d, type = "distribution", log = TRUE, w = w), 
+    predict(mmN, newdata = d, type = "distribution", log = TRUE, w = w))
 
 chk(predict(mm, newdata = d, margins = 1:2, type = "density", log = TRUE), 
     predict(mmN, newdata = d, margins = 1:2, type = "density", log = TRUE))
-chk(predict(mm, newdata = d, margins = 1:2, type = "distribution", log = TRUE), 
-    predict(mmN, newdata = d, margins = 1:2, type = "distribution", log = TRUE))
+
+w <- t(halton(10000, dim = 1))
+
+chk(predict(mm, newdata = d, margins = 1:2, type = "distribution", log =
+TRUE, w = w), 
+    predict(mmN, newdata = d, margins = 1:2, type = "distribution", log =
+TRUE, w = w))
 chk(predict(mm, newdata = d, margins = 1:3, type = "density", log = TRUE), 
     predict(mmN, newdata = d, margins = 1:3, type = "density", log = TRUE))
-chk(predict(mm, newdata = d, margins = 1:3, type = "distribution", log = TRUE), 
-    predict(mmN, newdata = d, margins = 1:3, type = "distribution", log = TRUE))
+
+w <- t(halton(10000, dim = 2))
+
+chk(predict(mm, newdata = d, margins = 1:3, type = "distribution", log =
+TRUE, w = w), 
+    predict(mmN, newdata = d, margins = 1:3, type = "distribution", log =
+TRUE, w = w))
 
 chk(sapply(1:J, function(i) predict(mm, margins = i, newdata = d, type = "density", log = TRUE)),
     sapply(1:J, function(i) predict(mmN, margins = i, newdata = d, type = "density", log = TRUE)))
@@ -206,17 +251,30 @@ chk(as.array(coef(mm, newdata = d, type = "Spearman"))[,,1],
 
 chk(predict(mm, newdata = d, type = "density", log = TRUE), 
     predict(mmN, newdata = d, type = "density", log = TRUE))
-chk(predict(mm, newdata = d, type = "distribution", log = TRUE), 
-    predict(mmN, newdata = d, type = "distribution", log = TRUE))
+
+w <- t(halton(10000, dim = J - 1))
+
+chk(predict(mm, newdata = d, type = "distribution", log = TRUE, w = w), 
+    predict(mmN, newdata = d, type = "distribution", log = TRUE, w = w))
 
 chk(predict(mm, newdata = d, margins = 1:2, type = "density", log = TRUE), 
     predict(mmN, newdata = d, margins = 1:2, type = "density", log = TRUE))
-chk(predict(mm, newdata = d, margins = 1:2, type = "distribution", log = TRUE), 
-    predict(mmN, newdata = d, margins = 1:2, type = "distribution", log = TRUE))
+
+w <- t(halton(10000, dim = 1))
+
+chk(predict(mm, newdata = d, margins = 1:2, type = "distribution", log =
+TRUE, w = w), 
+    predict(mmN, newdata = d, margins = 1:2, type = "distribution", log =
+TRUE, w = w))
 chk(predict(mm, newdata = d, margins = 1:3, type = "density", log = TRUE), 
     predict(mmN, newdata = d, margins = 1:3, type = "density", log = TRUE))
-chk(predict(mm, newdata = d, margins = 1:3, type = "distribution", log = TRUE), 
-    predict(mmN, newdata = d, margins = 1:3, type = "distribution", log = TRUE))
+
+w <- t(halton(10000, dim = 2))
+
+chk(predict(mm, newdata = d, margins = 1:3, type = "distribution", log =
+TRUE, w = w), 
+    predict(mmN, newdata = d, margins = 1:3, type = "distribution", log =
+TRUE, w = w))
 
 chk(sapply(1:J, function(i) predict(mm, margins = i, newdata = d, type = "density", log = TRUE)),
     sapply(1:J, function(i) predict(mmN, margins = i, newdata = d, type = "density", log = TRUE)))
@@ -232,6 +290,7 @@ chk(c(logLik(mmC)), sum(predict(mmC, newdata = d, type = "density", log = TRUE))
 logLik(mmC)
 
 ##### FIRST SCENARIO: CONSTANT LAMBDA #####
+set.seed(290875)
 ll <- numeric(50)
 p <- 3
 X <- matrix(runif(N * p), ncol = p)
@@ -280,7 +339,6 @@ predict(mm02, newdata = d[1:5,], q = -2:2,
 chk(c(coef(mm01, newdata = d[1:5,], type = "Cor")), 
     c(coef(mm02, newdata = d[1:5,], type = "Cor")))
 
-
 ##### mix of BoxCox and Colr margins: ##### 
 d$Y1 <- (d$Y1 - min(d$Y1))/(max(d$Y1) - min(d$Y1))
 
@@ -304,8 +362,8 @@ chk(c(numDeriv::grad(mm01$ll, coef(mm01))), c(mm01$sc(coef(mm01))))
 chk(c(numDeriv::grad(mm02$ll, coef(mm02))), c(mm02$sc(coef(mm02)))) 
 
 ##### SECOND SCENARIO: COVARIATE DEPENDENT LAMBDA #####
+set.seed(290875)
 ll <- numeric(50)
-
 X <- matrix(runif(N * p), ncol = p)
 m1 <- 1 + X %*% c(2, 1, 1)
 m2 <- 1 + X %*% c(1, 2, 1)
@@ -415,6 +473,7 @@ chk(c(numDeriv::grad(mm1$ll, coef(mm1))),c(mm1$sc(coef(mm1))))
 chk(c(numDeriv::grad(mm2$ll, coef(mm2))),c(mm2$sc(coef(mm2))))
 
 ### very simple checks with marginal Lm models
+set.seed(290875)
 J <- 4
 S <- cov2cor(tcrossprod(matrix(runif(J * J), ncol = J)))
 x <- matrix(runif(N*2), ncol = 2)
