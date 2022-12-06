@@ -377,7 +377,8 @@ predict.mmlt <- function(object, newdata, margins = 1:J,
     tr <- predict(object$marginals[[margins]], newdata = newdata, type = "trafo", ...)
     if (type == "trafo") return(tr)
     Vx <- coef(object, newdata = newdata, type = "Sigma")
-    sdg <- matrix(sqrt(diagonals(Vx))[margins,], nrow = NROW(tr), ncol = NCOL(tr), byrow = TRUE)
+    sdg <- matrix(sqrt(diagonals(Vx))[margins,], nrow = NROW(tr), ncol = NCOL(tr), byrow =
+    FALSE)
     if (type == "distribution")
       return(pnorm(tr / sdg, log.p = log))
     trp <- predict(object$marginals[[margins]], newdata = newdata, type = "trafo", deriv = dx[margins], ...)
