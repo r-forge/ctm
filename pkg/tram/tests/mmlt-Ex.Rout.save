@@ -21,6 +21,13 @@ Loading required package: mlt
 Loading required package: basefun
 Loading required package: variables
 > library("mvtnorm")
+
+Attaching package: 'mvtnorm'
+
+The following object is masked from 'package:tram':
+
+    diagonals
+
 > library("multcomp")
 Loading required package: survival
 Loading required package: TH.data
@@ -465,6 +472,7 @@ x       0.34 0.34
 'log Lik.' 311 (df=44)
 > 
 > ##### FIRST SCENARIO: CONSTANT LAMBDA #####
+> set.seed(290875)
 > ll <- numeric(50)
 > p <- 3
 > X <- matrix(runif(N * p), ncol = p)
@@ -511,20 +519,20 @@ x       0.34 0.34
 +         margins = 1, type = "distribution")
        
 Y1         [,1]    [,2]    [,3]    [,4]    [,5]
-     -2 5.7e-05 9.6e-05 7.5e-07 7.8e-06 9.7e-08
-     -1 2.6e-03 3.8e-03 8.8e-05 5.6e-04 1.7e-05
-      0 4.1e-02 5.4e-02 3.6e-03 1.4e-02 1.0e-03
-      1 2.5e-01 2.9e-01 5.2e-02 1.3e-01 2.2e-02
-      2 6.5e-01 7.0e-01 2.9e-01 4.7e-01 1.7e-01
+     -2 4.9e-09 1.8e-05 5.6e-14 4.3e-08 1.1e-09
+     -1 2.0e-06 1.3e-03 1.4e-10 1.1e-05 5.7e-07
+      0 2.3e-04 2.8e-02 1.0e-07 9.1e-04 8.9e-05
+      1 8.6e-03 2.2e-01 2.3e-05 2.3e-02 4.3e-03
+      2 1.0e-01 6.3e-01 1.5e-03 1.9e-01 6.5e-02
 > predict(mm02, newdata = d[1:5,], q = -2:2, 
 +         margins = 2, type = "distribution")
        
 Y1         [,1]    [,2]    [,3]    [,4]    [,5]
-     -2 5.7e-05 9.6e-05 7.5e-07 7.8e-06 9.7e-08
-     -1 2.6e-03 3.8e-03 8.8e-05 5.6e-04 1.7e-05
-      0 4.1e-02 5.4e-02 3.6e-03 1.4e-02 1.0e-03
-      1 2.5e-01 2.9e-01 5.2e-02 1.3e-01 2.2e-02
-      2 6.5e-01 7.0e-01 2.9e-01 4.7e-01 1.7e-01
+     -2 4.9e-09 1.8e-05 5.6e-14 4.3e-08 1.1e-09
+     -1 2.0e-06 1.3e-03 1.4e-10 1.1e-05 5.7e-07
+      0 2.3e-04 2.8e-02 1.0e-07 9.1e-04 8.9e-05
+      1 8.6e-03 2.2e-01 2.3e-05 2.3e-02 4.3e-03
+      2 1.0e-01 6.3e-01 1.5e-03 1.9e-01 6.5e-02
 > 
 > ## expect correlations to be the same for the model with constant lambdas
 > chk(c(coef(mm01, newdata = d[1:5,], type = "Cor")), 
@@ -559,8 +567,8 @@ Y1         [,1]    [,2]    [,3]    [,4]    [,5]
 [1] TRUE
 > 
 > ##### SECOND SCENARIO: COVARIATE DEPENDENT LAMBDA #####
+> set.seed(290875)
 > ll <- numeric(50)
-> 
 > X <- matrix(runif(N * p), ncol = p)
 > m1 <- 1 + X %*% c(2, 1, 1)
 > m2 <- 1 + X %*% c(1, 2, 1)
@@ -603,9 +611,9 @@ In c.basis(bresponse = function (data, deriv = 0L)  :
   more than one basis contains an intercept term
 > 
 > logLik(mm1)
-'log Lik.' -265 (df=14)
+'log Lik.' -266 (df=14)
 > logLik(mm2)
-'log Lik.' -270 (df=14)
+'log Lik.' -282 (df=14)
 > 
 > ## checking gradients
 > chk(c(numDeriv::grad(mm01$ll, mm02$par)),c(mm01$sc(mm02$par)))
@@ -618,9 +626,9 @@ In c.basis(bresponse = function (data, deriv = 0L)  :
 > mm2 <- mmlt(b2, b1, formula = ~ X1 + X2 + X3, data = d, conditional = FALSE)
 > 
 > logLik(mm1)
-'log Lik.' -266 (df=14)
+'log Lik.' -277 (df=14)
 > logLik(mm2)
-'log Lik.' -266 (df=14)
+'log Lik.' -277 (df=14)
 > 
 > ## predicting marginal distributions and comparing across models with constant lambda
 > x <- 0:4 / 4
@@ -628,40 +636,40 @@ In c.basis(bresponse = function (data, deriv = 0L)  :
 > predict(mm01, newdata = nd[1:5,], q = -2:2, 
 +         margins = 1, type = "distribution")
        
-Y1        [,1]    [,2]    [,3]    [,4]    [,5]
-     -2 0.0044 0.00037 1.9e-05 5.4e-07 9.0e-09
-     -1 0.0641 0.01149 1.2e-03 7.9e-05 2.9e-06
-      0 0.3360 0.11982 2.7e-02 3.7e-03 3.0e-04
-      1 0.7501 0.46898 2.0e-01 5.7e-02 9.8e-03
-      2 0.9619 0.84618 6.1e-01 3.1e-01 1.1e-01
+Y1         [,1]    [,2]    [,3]    [,4]    [,5]
+     -2 0.00045 3.8e-05 2.1e-06 8.2e-08 2.1e-09
+     -1 0.01047 1.6e-03 1.7e-04 1.2e-05 5.8e-07
+      0 0.09727 2.6e-02 5.0e-03 6.6e-04 5.9e-05
+      1 0.38760 1.8e-01 5.9e-02 1.4e-02 2.3e-03
+      2 0.76610 5.3e-01 2.9e-01 1.2e-01 3.4e-02
 > predict(mm02, newdata = nd[1:5,], q = -2:2, 
 +         margins = 2, type = "distribution")
        
-Y1        [,1]    [,2]    [,3]    [,4]    [,5]
-     -2 0.0044 0.00037 1.9e-05 5.4e-07 9.0e-09
-     -1 0.0641 0.01149 1.2e-03 7.9e-05 2.9e-06
-      0 0.3360 0.11982 2.7e-02 3.7e-03 3.0e-04
-      1 0.7501 0.46897 2.0e-01 5.7e-02 9.8e-03
-      2 0.9619 0.84618 6.1e-01 3.1e-01 1.1e-01
+Y1         [,1]    [,2]    [,3]    [,4]    [,5]
+     -2 0.00045 3.8e-05 2.1e-06 8.2e-08 2.1e-09
+     -1 0.01047 1.6e-03 1.7e-04 1.2e-05 5.8e-07
+      0 0.09727 2.6e-02 5.0e-03 6.6e-04 5.9e-05
+      1 0.38758 1.8e-01 5.9e-02 1.4e-02 2.3e-03
+      2 0.76608 5.3e-01 2.9e-01 1.2e-01 3.4e-02
 > 
 > predict(mm1, newdata = nd[1:5,], q = -2:2, 
 +         margins = 1, type = "distribution")
        
-Y1       [,1]    [,2]    [,3]    [,4]    [,5]
-     -2 0.004 0.00033 1.6e-05 4.4e-07 7.1e-09
-     -1 0.063 0.01122 1.2e-03 7.5e-05 2.7e-06
-      0 0.343 0.12312 2.8e-02 3.8e-03 3.1e-04
-      1 0.764 0.48557 2.1e-01 6.1e-02 1.1e-02
-      2 0.967 0.86152 6.3e-01 3.4e-01 1.2e-01
+Y1         [,1]    [,2]    [,3]    [,4]    [,5]
+     -2 0.00025 1.8e-05 8.3e-07 2.6e-08 5.3e-10
+     -1 0.00769 1.0e-03 9.5e-05 5.7e-06 2.3e-07
+      0 0.08624 2.2e-02 3.8e-03 4.4e-04 3.4e-05
+      1 0.38017 1.7e-01 5.3e-02 1.2e-02 1.7e-03
+      2 0.77463 5.4e-01 2.9e-01 1.1e-01 3.1e-02
 > predict(mm2, newdata = nd[1:5,], q = -2:2, 
 +         margins = 2, type = "distribution")
        
-Y1       [,1]    [,2]    [,3]    [,4]    [,5]
-     -2 0.004 0.00033 1.6e-05 4.4e-07 7.1e-09
-     -1 0.063 0.01122 1.2e-03 7.5e-05 2.7e-06
-      0 0.343 0.12312 2.8e-02 3.8e-03 3.1e-04
-      1 0.764 0.48557 2.1e-01 6.1e-02 1.1e-02
-      2 0.967 0.86152 6.3e-01 3.4e-01 1.2e-01
+Y1         [,1]    [,2]    [,3]    [,4]    [,5]
+     -2 0.00025 1.8e-05 8.3e-07 2.6e-08 5.3e-10
+     -1 0.00769 1.0e-03 9.5e-05 5.7e-06 2.3e-07
+      0 0.08624 2.2e-02 3.8e-03 4.4e-04 3.4e-05
+      1 0.38017 1.7e-01 5.3e-02 1.2e-02 1.7e-03
+      2 0.77463 5.4e-01 2.9e-01 1.1e-01 3.1e-02
 > 
 > ## expect correlations to be the same for the model with constant lambdas
 > chk(c(coef(mm01, newdata = nd[1:5,], type = "Cor")), 
@@ -670,9 +678,9 @@ Y1       [,1]    [,2]    [,3]    [,4]    [,5]
 > 
 > ## correlations for models with x-dependent lambda
 > c(coef(mm1, newdata = nd[1:5,], type = "Cor"))
-[1] -0.74 -0.71 -0.68 -0.65 -0.60
+[1] -0.88 -0.85 -0.80 -0.73 -0.63
 > c(coef(mm2, newdata = nd[1:5,], type = "Cor"))
-[1] -0.74 -0.71 -0.68 -0.65 -0.60
+[1] -0.88 -0.85 -0.80 -0.73 -0.63
 > 
 > 
 > ##### mix of BoxCox and Colr margins: ##### 
@@ -689,24 +697,24 @@ Y1       [,1]    [,2]    [,3]    [,4]    [,5]
 > 
 > coef(b1)
 Bs1(Y1) Bs2(Y1)      X1      X2      X3 
-    1.7     8.3    -5.2    -2.0    -2.7 
+   0.52    6.09   -4.35   -1.43   -0.66 
 > coef(b2)
 (Intercept)          Y2          X1          X2          X3 
-     -1.367       0.648       0.041       1.331       0.070 
+      -0.18        0.53        0.34        1.06        1.20 
 > coef(mm01)
        Y1.Bs1(Y1)        Y1.Bs2(Y1)             Y1.X1             Y1.X2 
-            1.638             8.273            -5.117            -2.056 
+             0.50              6.08             -4.25             -1.44 
             Y1.X3    Y2.(Intercept)             Y2.Y2             Y2.X1 
-           -2.626            -1.405             0.643             0.106 
+            -0.66             -0.17              0.52              0.41 
             Y2.X2             Y2.X3 Y2.Y1.(Intercept) 
-            1.221             0.083             1.272 
+             1.01              1.17              1.51 
 > coef(mm02)
    Y2.(Intercept)             Y2.Y2             Y2.X1             Y2.X2 
-           -1.405             0.643             0.106             1.221 
+            -0.17              0.52              0.41              1.01 
             Y2.X3        Y1.Bs1(Y1)        Y1.Bs2(Y1)             Y1.X1 
-            0.083             1.638             8.273            -5.117 
+             1.17              0.50              6.08             -4.25 
             Y1.X2             Y1.X3 Y1.Y2.(Intercept) 
-           -2.056            -2.626             1.272 
+            -1.44             -0.66              1.51 
 > # remember that: lb <- (off <- 0.5) + X %*% (cf <- c(0, 2, 0))
 > 
 > 
@@ -720,34 +728,34 @@ Bs1(Y1) Bs2(Y1)      X1      X2      X3
 > mm1 <- mmlt(b1, b2, formula = ~ X1 + X2 + X3, data = d)
 > mm2 <- mmlt(b2, b1, formula = ~ X1 + X2 + X3, data = d)
 > logLik(mm1)
-'log Lik.' -89 (df=14)
+'log Lik.' -88 (df=14)
 > logLik(mm2)
-'log Lik.' -89 (df=14)
+'log Lik.' -88 (df=14)
 > 
 > coef(b1)
 Bs1(Y1) Bs2(Y1)      X1      X2      X3 
-    1.7     8.3    -5.2    -2.0    -2.7 
+   0.52    6.09   -4.35   -1.43   -0.66 
 > coef(b2)
 (Intercept)          Y2          X1          X2          X3 
-     -1.367       0.648       0.041       1.331       0.070 
+      -0.18        0.53        0.34        1.06        1.20 
 > coef(mm1)
        Y1.Bs1(Y1)        Y1.Bs2(Y1)             Y1.X1             Y1.X2 
-           1.7073            8.4990           -5.1735           -2.2671 
+             0.43              6.29             -4.43             -1.28 
             Y1.X3    Y2.(Intercept)             Y2.Y2             Y2.X1 
-          -2.6038           -1.3282            0.6225            0.0450 
+            -0.81             -0.10              0.50              0.32 
             Y2.X2             Y2.X3 Y2.Y1.(Intercept)          Y2.Y1.X1 
-           1.3406            0.0099            1.1577           -0.3013 
+             1.13              1.11              1.92             -1.13 
          Y2.Y1.X2          Y2.Y1.X3 
-           1.3577           -0.6458 
+             1.76             -1.09 
 > coef(mm2)
    Y2.(Intercept)             Y2.Y2             Y2.X1             Y2.X2 
-          -1.3282            0.6225            0.0450            1.3406 
+            -0.10              0.50              0.32              1.13 
             Y2.X3        Y1.Bs1(Y1)        Y1.Bs2(Y1)             Y1.X1 
-           0.0099            1.7073            8.4990           -5.1735 
+             1.11              0.43              6.29             -4.43 
             Y1.X2             Y1.X3 Y1.Y2.(Intercept)          Y1.Y2.X1 
-          -2.2671           -2.6038            1.1577           -0.3013 
+            -1.28             -0.81              1.92             -1.13 
          Y1.Y2.X2          Y1.Y2.X3 
-           1.3577           -0.6458 
+             1.76             -1.09 
 > # remember that: lb <- (off <- 0.5) + X %*% (cf <- c(0, 2, 0))
 > 
 > ## checking gradient for diag = TRUE
@@ -757,6 +765,7 @@ Bs1(Y1) Bs2(Y1)      X1      X2      X3
 [1] TRUE
 > 
 > ### very simple checks with marginal Lm models
+> set.seed(290875)
 > J <- 4
 > S <- cov2cor(tcrossprod(matrix(runif(J * J), ncol = J)))
 > x <- matrix(runif(N*2), ncol = 2)
@@ -783,34 +792,34 @@ Bs1(Y1) Bs2(Y1)      X1      X2      X3
 +              vr[i])
 > ret
       [,1]   [,2] [,3] [,4]
-x.1  1.549  1.559 0.13 0.13
-x.2 -0.818 -0.826 0.11 0.11
-x.1 -0.701 -0.707 0.12 0.12
-x.2  0.856  0.862 0.11 0.11
-x.1 -0.022 -0.026 0.11 0.11
-x.2  0.580  0.585 0.11 0.11
-x.1  0.863  0.867 0.12 0.11
-x.2 -0.052 -0.054 0.11 0.11
+x.1  1.036  1.036 0.13 0.13
+x.2 -1.184 -1.184 0.14 0.14
+x.1 -0.702 -0.702 0.12 0.12
+x.2  0.743  0.743 0.13 0.13
+x.1 -0.585 -0.585 0.12 0.12
+x.2  0.156  0.156 0.13 0.13
+x.1  0.038  0.038 0.12 0.12
+x.2 -0.420 -0.420 0.13 0.13
 > 
 > vc <- vcov(mc01)
 > i <- grep("x.1", colnames(vc))
 > vc[i,i]
         y.1.x.1 y.2.x.1 y.3.x.1 y.4.x.1
-y.1.x.1   0.125   0.061   0.101   0.106
-y.2.x.1   0.061   0.116   0.098   0.073
-y.3.x.1   0.101   0.098   0.113   0.103
-y.4.x.1   0.110   0.072   0.103   0.114
+y.1.x.1   0.127   0.029   0.086   0.072
+y.2.x.1   0.029   0.124   0.087   0.070
+y.3.x.1   0.085   0.087   0.123   0.111
+y.4.x.1   0.072   0.070   0.111   0.122
 > 
 > summary(g1 <- glht(mmm(m1 = as.mlt(m1), m2 = as.mlt(m2), m3 = as.mlt(m3), m4 = as.mlt(m4)), mlf("x.1 = 0")))
 
 	 Simultaneous Tests for General Linear Hypotheses
 
 Linear Hypotheses:
-             Estimate Std. Error z value Pr(>|z|)    
-m1: x.1 == 0   1.5490     0.3543    4.37   <0.001 ***
-m2: x.1 == 0  -0.7006     0.3405   -2.06    0.088 .  
-m3: x.1 == 0  -0.0224     0.3369   -0.07    1.000    
-m4: x.1 == 0   0.8633     0.3424    2.52    0.028 *  
+             Estimate Std. Error z value Pr(>|z|)  
+m1: x.1 == 0   1.0365     0.3569    2.90    0.012 *
+m2: x.1 == 0  -0.7019     0.3528   -1.99    0.126  
+m3: x.1 == 0  -0.5846     0.3517   -1.66    0.240  
+m4: x.1 == 0   0.0383     0.3493    0.11    1.000  
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 (Adjusted p values reported -- single-step method)
@@ -823,11 +832,11 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 Fit: mmlt(m1, m2, m3, m4, formula = ~1, data = d, conditional = FALSE)
 
 Linear Hypotheses:
-             Estimate Std. Error z value Pr(>|z|)    
-y.1.x.1 == 0   1.5585     0.3541    4.40   <0.001 ***
-y.2.x.1 == 0  -0.7073     0.3405   -2.08    0.084 .  
-y.3.x.1 == 0  -0.0262     0.3369   -0.08    1.000    
-y.4.x.1 == 0   0.8667     0.3383    2.56    0.025 *  
+             Estimate Std. Error z value Pr(>|z|)  
+y.1.x.1 == 0   1.0365     0.3569    2.90    0.012 *
+y.2.x.1 == 0  -0.7019     0.3528   -1.99    0.124  
+y.3.x.1 == 0  -0.5846     0.3508   -1.67    0.239  
+y.4.x.1 == 0   0.0383     0.3493    0.11    1.000  
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 (Adjusted p values reported -- single-step method)
@@ -835,16 +844,16 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 > 
 > vcov(g1)
         m1: x.1 m2: x.1 m3: x.1 m4: x.1
-m1: x.1   0.125   0.064   0.102   0.110
-m2: x.1   0.064   0.116   0.098   0.075
-m3: x.1   0.102   0.098   0.113   0.104
-m4: x.1   0.110   0.075   0.104   0.117
+m1: x.1   0.127   0.029   0.086   0.078
+m2: x.1   0.029   0.124   0.086   0.065
+m3: x.1   0.086   0.086   0.124   0.111
+m4: x.1   0.078   0.065   0.111   0.122
 > vcov(g2)
         y.1.x.1 y.2.x.1 y.3.x.1 y.4.x.1
-y.1.x.1   0.125   0.061   0.101   0.106
-y.2.x.1   0.061   0.116   0.098   0.073
-y.3.x.1   0.101   0.098   0.113   0.103
-y.4.x.1   0.110   0.072   0.103   0.114
+y.1.x.1   0.127   0.029   0.086   0.072
+y.2.x.1   0.029   0.124   0.087   0.070
+y.3.x.1   0.085   0.087   0.123   0.111
+y.4.x.1   0.072   0.070   0.111   0.122
 > 
 > 
 > #### check density
@@ -857,7 +866,7 @@ y.4.x.1   0.110   0.072   0.103   0.114
 > d2 <- predict(mc01, newdata = d, type = "density", log = TRUE)
 > 
 > chk(c(d1), c(d2))
-[1] "Mean relative difference: 0.16"
+[1] "Mean relative difference: 0.076"
 > 
 > chk(c(logLik(mmlt(m1, m2, m3, m4, formula = ~ 1, data = d))),
 +     c(logLik(mc01)))
@@ -869,4 +878,4 @@ y.4.x.1   0.110   0.072   0.103   0.114
 > 
 > proc.time()
    user  system elapsed 
- 16.011   0.065  16.075 
+  11.85    0.12   11.97 
