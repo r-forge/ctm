@@ -232,6 +232,7 @@ chk(c(logLik(mmC)), sum(predict(mmC, newdata = d, type = "density", log = TRUE))
 logLik(mmC)
 
 ##### FIRST SCENARIO: CONSTANT LAMBDA #####
+set.seed(290875)
 ll <- numeric(50)
 p <- 3
 X <- matrix(runif(N * p), ncol = p)
@@ -304,8 +305,8 @@ chk(c(numDeriv::grad(mm01$ll, coef(mm01))), c(mm01$sc(coef(mm01))))
 chk(c(numDeriv::grad(mm02$ll, coef(mm02))), c(mm02$sc(coef(mm02)))) 
 
 ##### SECOND SCENARIO: COVARIATE DEPENDENT LAMBDA #####
+set.seed(290875)
 ll <- numeric(50)
-
 X <- matrix(runif(N * p), ncol = p)
 m1 <- 1 + X %*% c(2, 1, 1)
 m2 <- 1 + X %*% c(1, 2, 1)
@@ -415,6 +416,7 @@ chk(c(numDeriv::grad(mm1$ll, coef(mm1))),c(mm1$sc(coef(mm1))))
 chk(c(numDeriv::grad(mm2$ll, coef(mm2))),c(mm2$sc(coef(mm2))))
 
 ### very simple checks with marginal Lm models
+set.seed(290875)
 J <- 4
 S <- cov2cor(tcrossprod(matrix(runif(J * J), ncol = J)))
 x <- matrix(runif(N*2), ncol = 2)
