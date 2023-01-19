@@ -244,15 +244,13 @@ tram <- function(formula, data, subset, weights, offset, cluster, na.action = na
     fixed <- c(list(...)$fixed, Xfixed)
 
     if (!is.null(iS) && !is.null(isX)) {
-
-        fm <- as.formula(paste("~", 
-            as.character(as.expression(td$mt$x[[2]])), "+",
-            as.character(as.expression(td$mt$z[[2]]))))
-        nS <- colnames(model.matrix(fm, data = td$mf[1:10,])) 
-        nsX <- colnames(model.matrix(isX, data = td$mf[1:10,]))
-        if (any(xin <- !nsX %in% nS))
-            stop("scaling variables not allowed as stratifying variables")
-    } 
+      nS <-  as.character(td$mt$s[[2]])
+      nS <- nS[!grepl("[+]", nS)]
+      nsX <- as.character(td$mt$z[[2]])
+      nsX <- nsX[!grepl("[+]", nsX)]
+      if (any(xin <- nsX %in% nS))
+        stop("scaling variables not allowed as stratifying variables")
+    }
 
     args <- list(...)
     args$model <- model
