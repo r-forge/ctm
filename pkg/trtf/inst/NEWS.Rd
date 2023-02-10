@@ -2,6 +2,14 @@
 \name{NEWS}
 \title{NEWS file for the trtf package}
 
+\section{Changes in Version 0.4-2 (2023-02-10)}{
+  \itemize{
+    \item{\code{min_update} is the number of observations with non-zero weight. 
+          Documentation was correct but code worked with \code{sum(weights)}.}
+  }
+}
+
+
 \section{Changes in Version 0.4-1 (2022-04-07)}{
   \itemize{
     \item{Documention and test updates.}
