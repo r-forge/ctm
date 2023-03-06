@@ -21,55 +21,43 @@ Type 'q()' to quit R.
 > old <- options(digits = 3)
 > 
 > set.seed(24101968)
-> library(tramvs)
+> library("tramvs")
 Loading required package: tram
 Loading required package: mlt
 Loading required package: basefun
 Loading required package: variables
-> library(abess)
-> library(survival)
 > 
-> data("GBSG2", package = "TH.data")
-> 
-> res <- tramvs(Surv(time, cens) ~ . - time - cens, data = GBSG2, modFUN = Coxph)
-  |                                                          |                                                  |   0%  |                                                          |======                                            |  11%  |                                                          |===========                                       |  22%  |                                                          |=================                                 |  33%  |                                                          |======================                            |  44%  |                                                          |============================                      |  56%  |                                                          |=================================                 |  67%  |                                                          |=======================================           |  78%  |                                                          |============================================      |  89%  |                                                          |==================================================| 100%There were 50 or more warnings (use warnings() to see the first 50)
-> res_abess <- abess(model.matrix(~ . - time - cens, data = GBSG2)[, -1],
-+                    y = with(GBSG2, Surv(time, cens)),
-+                    data = GBSG2, family = "cox")
-> 
-> # M1 diffs
-> round(coef(res), 2)
-9 x 9 sparse Matrix of class "dgCMatrix"
-                1    2    3    4     5     6     7     8     9
-horThyes     .    .    .    .    -0.32 -0.32 -0.33 -0.34 -0.35
-age          .    .    .    .     .     .     0.00 -0.01 -0.01
-menostatPost .    .    .    .     .     .     .     0.26  0.26
-tsize        .    .    .    0.01  0.01  0.01  0.01  0.01  0.01
-tgrade.L     .    .    0.46 0.45  0.41  0.41  0.41  0.41  0.57
-tgrade.Q     .    .    .    .     .     .     .     .    -0.20
-pnodes       0.06 0.06 0.06 0.05  0.05  0.05  0.05  0.05  0.05
-progrec      .    0.00 0.00 0.00  0.00  0.00  0.00  0.00  0.00
-estrec       .    .    .    .     .     0.00  0.00  0.00  0.00
-> round(coef(res_abess)[,-1], 2)
-10 x 9 sparse Matrix of class "dgCMatrix"
-                1    2    3     4     5     6     7     8     9
-(intercept)  .    .    .     .     .     .     .     .     .   
-horThyes     .    .    .    -0.31 -0.31 -0.32 -0.35 -0.35 -0.35
-age          .    .    .     .     .     .     .     .    -0.01
-menostatPost .    .    .     .     .     .     0.13  0.12  0.26
-tsize        .    .    .     .     0.01  0.01  0.01  0.01  0.01
-tgrade.L     .    .    0.45  0.41  0.40  0.56  0.56  0.56  0.55
-tgrade.Q     .    .    .     .     .    -0.20 -0.20 -0.20 -0.20
-pnodes       0.06 0.06 0.06  0.06  0.05  0.05  0.05  0.05  0.05
-progrec      .    0.00 0.00  0.00  0.00  0.00  0.00  0.00  0.00
-estrec       .    .    .     .     .     .     .     0.00  0.00
-> 
-> # Active set
-> support(res)
-[1] "tgrade.L" "pnodes"   "progrec" 
+> if (require("TH.data") & require("abess") & require("survival")) {
++   data("GBSG2", package = "TH.data")
++ 
++   res <- tramvs(Surv(time, cens) ~ . - time - cens, data = GBSG2, modFUN = Coxph)
++   res_abess <- abess(model.matrix(~ . - time - cens, data = GBSG2)[, -1],
++                      y = with(GBSG2, Surv(time, cens)),
++                      data = GBSG2, family = "cox")
++ 
++   # M1 diffs
++   round(coef(res), 2)
++   round(coef(res_abess)[,-1], 2)
++ 
++   # Active set
++   support(res)
++ }
+Loading required package: TH.data
+Loading required package: survival
+Loading required package: MASS
+
+Attaching package: 'TH.data'
+
+The following object is masked from 'package:MASS':
+
+    geyser
+
+Loading required package: abess
+  |                                                          |                                                  |   0%  |                                                          |======                                            |  11%  |                                                          |===========                                       |  22%  |                                                          |=================                                 |  33%  |                                                          |======================                            |  44%  |                                                          |============================                      |  56%  |                                                          |=================================                 |  67%  |                                                          |=======================================           |  78%  |                                                          |============================================      |  89%  |                                                          |==================================================| 100%[1] "tgrade.L" "pnodes"   "progrec" 
+There were 50 or more warnings (use warnings() to see the first 50)
 > 
 > options(old)
 > 
 > proc.time()
    user  system elapsed 
-647.808   0.736 124.862 
+181.870   0.072  44.695 
