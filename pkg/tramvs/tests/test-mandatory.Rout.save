@@ -116,4 +116,4 @@ Active set: scl_x.5 x.1 x.2 x.3
 > 
 > proc.time()
    user  system elapsed 
- 11.983   0.078  12.061 
+  6.687   0.049   6.729 

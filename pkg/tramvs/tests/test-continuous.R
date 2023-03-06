@@ -4,8 +4,7 @@
 old <- options(digits = 3)
 
 set.seed(24101968)
-library(tramvs)
-library(abess)
+library("tramvs")
 
 N <- 1e2
 P <- 5
@@ -16,13 +15,9 @@ Y <- 1 + X %*% beta + rnorm(N)
 
 dat <- data.frame(y = Y, x = X)
 res <- tramvs(y ~ ., data = dat, modFUN = Lm)
-res_abess <- abess(y ~ ., data = dat, family = "gaussian")
-
 as(as.matrix(coef(res, as.lm = TRUE)), "sparseMatrix")
-coef(res_abess)[,-1]
 
 # S3 methods
-
 print(res)
 summary(res)
 plot(res, type = "b")
@@ -37,3 +32,10 @@ residuals(res)
 support(res)
 
 options(old)
+
+# Compare with abess ------------------------------------------------------
+
+if (require("abess")) {
+  res_abess <- abess(y ~ ., data = dat, family = "gaussian")
+  coef(res_abess)[,-1]
+}

@@ -21,43 +21,31 @@ Type 'q()' to quit R.
 > old <- options(digits = 3)
 > 
 > set.seed(24101968)
-> library(tramvs)
+> library("tramvs")
 Loading required package: tram
 Loading required package: mlt
 Loading required package: basefun
 Loading required package: variables
 > 
-> data("wine", package = "ordinal")
-> wine$noise <- rnorm(nrow(wine))
-> 
-> # Estimate support size via HBIC
-> res <- tramvs(rating ~ temp + contact + noise, data = wine, modFUN = Polr)
-  |                                                          |                                                  |   0%  |                                                          |=================                                 |  33%  |                                                          |=================================                 |  67%  |                                                          |==================================================| 100%> plot(res, type = "b")
-> plot(res, which = "path")
-> 
-> coef(res)
-3 x 3 sparse Matrix of class "dgCMatrix"
-              1    2      3
-tempwarm   2.29 2.50  2.529
-contactyes .    1.53  1.554
-noise      .    .    -0.159
-> coef(res, with_baseline = TRUE)
-7 x 3 sparse Matrix of class "dgCMatrix"
-                1     2      3
-rating1    -1.936 -1.34 -1.336
-rating2     0.435  1.25  1.255
-rating3     2.432  3.47  3.488
-rating4     3.827  5.01  5.047
-tempwarm    2.287  2.50  2.529
-contactyes  .      1.53  1.554
-noise       .      .    -0.159
-> 
-> # Active set
-> support(res)
-[1] "tempwarm"   "contactyes"
-> 
-> options(old)
-> 
+> if (require("ordinal")) {
++   data("wine", package = "ordinal")
++   wine$noise <- rnorm(nrow(wine))
++ 
++   # Estimate support size via HBIC
++   res <- tramvs(rating ~ temp + contact + noise, data = wine, modFUN = Polr)
++   plot(res, type = "b")
++   plot(res, which = "path")
++ 
++   coef(res)
++   coef(res, with_baseline = TRUE)
++ 
++   # Active set
++   support(res)
++ 
++   options(old)
++ }
+Loading required package: ordinal
+  |                                                          |                                                  |   0%  |                                                          |=================                                 |  33%  |                                                          |=================================                 |  67%  |                                                          |==================================================| 100%> 
 > proc.time()
    user  system elapsed 
-  2.351   0.045   2.386 
+  1.818   0.065   1.889 

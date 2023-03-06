@@ -1,6 +1,6 @@
 %\VignetteIndexEntry{tramvs}
 %\VignetteEngine{knitr::knitr}
-%\VignetteDepends{tramvs, abess, tramnet, colorspace, cotram, mlt, TH.data}
+%\VignetteDepends{tramvs,abess,tramnet,colorspace,cotram,mlt,TH.data}
 
 \documentclass[a4paper,11pt]{article}
 \usepackage{natbib}
@@ -53,15 +53,16 @@ knitr::opts_chunk$set(echo = TRUE, results = 'markup', error = FALSE,
 ## R settings
 options(width = 80, digits = 3)
 
-library(tramvs)
-library(tramnet)
-library(abess)
-library(colorspace)
+library("tramvs")
+
+abess_available <- require("abess")
+tramnet_available <- require("tramnet")
 
 # Colors
-
-col <- diverge_hcl(2, h = c(246, 40), c = 96, l = c(65, 90))
-fill <- diverge_hcl(2, h = c(246, 40), c = 96, l = c(65, 90), alpha = .3)
+if (require("colorspace")) {
+  col <- diverge_hcl(2, h = c(246, 40), c = 96, l = c(65, 90))
+  fill <- diverge_hcl(2, h = c(246, 40), c = 96, l = c(65, 90), alpha = .3)
+}
 @
 
 \begin{document}
@@ -254,6 +255,10 @@ Y <- 1 + X %*% beta + rnorm(N)
 
 dat <- data.frame(y = Y, x = X)
 cont_res <- tramvs(y ~ ., data = dat, modFUN = Lm)
+@
+
+
+<<tram11, results='hide', eval=abess_available>>=
 res_abess <- abess(y ~ ., data = dat, family = "gaussian")
 @
 
@@ -262,6 +267,10 @@ The two methods agree on the optimal subset, which can be easily extracted using
 
 <<tram2>>=
 support(cont_res)
+@
+
+
+<<tram21, eval=abess_available>>=
 extract(res_abess, support.size = res_abess$best.size)$support.vars
 @
 
@@ -373,7 +382,7 @@ a single random covariate from a group of highly correlated ones
 $\ell_1$-regularization paths in the example with continuous response from
 Section~\ref{sec:tram}.
 
-<<profile>>=
+<<profile, eval=tramnet_available>>=
 m0 <- Lm(y ~ 1, data = dat)
 X <- model.matrix(y ~ 0 + ., data = dat)
 mt <- tramnet(m0, X, lambda = 0, alpha = 1)
@@ -382,7 +391,7 @@ pfl <- prof_lambda(mt, nprof = 5)
 
 %---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---
 \begin{figure}
-<<pprofile, out.width="49%", fig.show='hold', echo=FALSE>>=
+<<pprofile, out.width="49%", fig.show='hold', echo=FALSE, eval=tramnet_available>>=
 plot(cont_res, which = "path")
 opar <- par(no.readonly = TRUE)
 par(mar = c(5.1, 5.1, 4.1, 2.1), las = 1)
