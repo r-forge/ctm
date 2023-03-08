@@ -46,7 +46,7 @@
 \method{coef}{Survreg}(object, as.survreg = FALSE, ...)
 \method{vcov}{tram}(object, with_baseline = FALSE, complete = FALSE, ...) 
 \method{logLik}{tram}(object, parm = coef(as.mlt(object), fixed = FALSE), ...)
-\method{estfun}{tram}(object, parm = coef(as.mlt(object), fixed = FALSE), ...)
+\method{estfun}{tram}(x, parm = coef(as.mlt(x), fixed = FALSE), ...)
 \method{predict}{tram}(object, newdata = model.frame(object), 
         type = c("lp", "trafo", "distribution", "survivor", "density", 
                  "logdensity", "hazard", "loghazard", "cumhazard", 

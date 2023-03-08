@@ -46,8 +46,7 @@ Gradient(object, ...)
 \method{as.mlt}{mlt}(object)
 }
 \arguments{
-  \item{object}{a fitted conditional transformation model as returned by \code{\link{mlt}}}
-  \item{x}{a fitted conditional transformation model as returned by \code{\link{mlt}}}
+  \item{object, x}{a fitted conditional transformation model as returned by \code{\link{mlt}}}
   \item{fixed}{a logical indicating if only estimated coefficients (\code{fixed = FALSE}) 
                should be returned OR (for \code{update})
                a named vector of fixed regression coefficients; the names
