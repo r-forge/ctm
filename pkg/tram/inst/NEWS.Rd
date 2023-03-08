@@ -2,12 +2,13 @@
 \name{NEWS}
 \title{NEWS file for the tram package}
 
-\section{Changes in Version 0.8-1 (2022-11-02)}{
+\section{Changes in Version 0.8-1 (2023-03-08)}{
   \itemize{
     \item{Add \code{simulate.mmlt}.}
     \item{\code{Survreg} didn't work with constraints, reported by Lucas Kook.}
     \item{\code{mtram} didn't deal properly with interval censoring in all cases.}
     \item{Enable stratification for shift-scale transformation models (still experimental).}
+    \item{Fix S3 argument issues.}
   }
 }
 
