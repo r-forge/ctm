@@ -100,21 +100,21 @@ logLik.mlt <- function(object, parm = coef(object, fixed = FALSE),
     ret
 }
 
-estfun.mlt <- function(object, parm = coef(object, fixed = FALSE), 
+estfun.mlt <- function(x, parm = coef(x, fixed = FALSE), 
                        w = NULL, newdata, ...) {
     args <- list(...)
     if (length(args) > 0)
         warning("Arguments ", names(args), " are ignored")
     if (!missing(newdata)) {
-        tmpmod <- mlt(object$model, data = newdata, dofit = FALSE)
-        coef(tmpmod) <- coef(object)
+        tmpmod <- mlt(x$model, data = newdata, dofit = FALSE)
+        coef(tmpmod) <- coef(x)
         return(estfun(tmpmod, parm = parm, weights = w))
     }
     if (is.null(w))
-        w <- weights(object)
-    sc <- -object$score(parm, weights = w)
-    if (!is.null(object$subset))
-        sc <- sc[object$subset,,drop = FALSE]
+        w <- weights(x)
+    sc <- -x$score(parm, weights = w)
+    if (!is.null(x$subset))
+        sc <- sc[x$subset,,drop = FALSE]
     return(sc)
 }
 
@@ -165,8 +165,8 @@ mkgrid.ctm <- function(object, n = n, ...)
 variable.names.mlt <- function(object, ...)
     variable.names(object$model, ...)
 
-model <- function(object)
-    UseMethod("model")
+Model <- function(object)
+    UseMethod("Model")
 
 .one_factor_only <- function(object) {
     f <- inherits(object, "formula_basis")
@@ -174,7 +174,7 @@ model <- function(object)
     f && (length(v) == 1 && inherits(v[[1L]], "factor_var"))
 }
     
-model.ctm <- function(object) {
+Model.ctm <- function(object) {
     x <- object$bases
     ret <- list(response_trafo = c("continuous", "discrete")[.one_factor_only(x$response) + 1L],
                 response_type = sapply(x$response, class),
@@ -190,8 +190,8 @@ model.ctm <- function(object) {
     return(ret)
 }
 
-model.mlt <- function(object) {
-    c(model(object$model), 
+Model.mlt <- function(object) {
+    c(Model(object$model), 
       list(todistr = object$todistr$name,
            fixed = object$fixed))
 }
@@ -283,7 +283,7 @@ vcov.fmlt <- function(object, parm = coef(object, fixed = FALSE),
 
 description <- function(object) {
     stopifnot(inherits(object, "mlt"))
-    m <- model(object)
+    m <- Model(object)
     cond <- m$interaction_trafo || m$shift_trafo
     strat <- m$interaction_trafo && m$interaction_type == "discrete"
     lin <- cond && (!m$interaction_trafo || strat)
@@ -373,5 +373,5 @@ print.response <- function(x, digits = getOption("digits"), ...) {
     print(ret, quote = FALSE, ...)
 }
 
-bread.mlt_fit <- function(x) vcov(x) * nrow(x$data) # sandwich estimator
-bread.mlt <- function(x) vcov(x) * nrow(x$data) # sandwich estimator
+bread.mlt_fit <- function(x, ...) vcov(x) * nrow(x$data) # sandwich estimator
+bread.mlt <- function(x, ...) vcov(x) * nrow(x$data) # sandwich estimator

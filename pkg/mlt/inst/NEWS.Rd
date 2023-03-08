@@ -2,6 +2,14 @@
 \name{NEWS}
 \title{NEWS file for the mlt package}
 
+\section{Changes in Version 1.4-5 (2023-03-08)}{
+  \subsection{Bug Fixes}{
+    \itemize{
+      \item{Fix S3 argument mismatches.}
+    }
+  }
+}
+
 \section{Changes in Version 1.4-4 (2022-11-02)}{
   \subsection{New features}{
     \itemize{
@@ -9,6 +17,7 @@
     }
   }
 }
+
 
 \section{Changes in Version 1.4-3 (2022-10-31)}{
   \subsection{New features}{
