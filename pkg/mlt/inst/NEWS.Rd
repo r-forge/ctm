@@ -2,10 +2,11 @@
 \name{NEWS}
 \title{NEWS file for the mlt package}
 
-\section{Changes in Version 1.4-5 (2023-03-08)}{
+\section{Changes in Version 1.4-5 (2023-03-09)}{
   \subsection{Bug Fixes}{
     \itemize{
       \item{Fix S3 argument mismatches.}
+      \item{Try to detect negative standard errors in case optimisation failed silently.}
     }
   }
 }

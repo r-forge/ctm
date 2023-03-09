@@ -68,8 +68,11 @@ vcov.mlt <- function(object, parm = coef(object, fixed = FALSE), complete = FALS
     while((step <- step + 1) <= 3) {
         ret <- try(solve(H + (step - 1) * lam * diag(nrow(H))))
         if (!inherits(ret, "try-error")) break
+        if (any(diag(ret) < 0)) break
     }
     if (inherits(ret, "try-error"))
+        stop("Hessian is not invertible")
+    if (any(diag(ret) < 0)) 
         stop("Hessian is not invertible")
     if (step > 1)
         warning("Hessian is not invertible, an approximation is used")
