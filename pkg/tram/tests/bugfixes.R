@@ -154,3 +154,25 @@ CAO_Cox <- Coxph(iDFS2 ~ randarm, data = CAOsurv, support = c(1, 1700), bounds =
 CAO_Cox_mtram <- mtram(CAO_Cox, ~ (1 | Block), data = CAOsurv)
 ### wasn't equal
 stopifnot(isTRUE(all.equal(logLik(CAO_SR_mtram), logLik(CAO_Cox_mtram), tol = 1e-5)))
+
+## produces negative variances in shift-scale model
+set.seed(100)
+N <- 100
+sc <- -5.5
+sh <- 3
+ 
+FZ <- pnorm
+FZi <- qnorm
+h2y <- function(y) log(-FZ(y, lower.tail = FALSE, log.p = TRUE))
+ 
+x <- rep(x0 <- gl(2, 1), each = N)
+xx <- (0:1)[x]
+ 
+U <- runif(length(x))
+scale <- sqrt(exp(sc * xx))
+shift <- sh * xx
+d <- data.frame(y = h2y( shift + FZi(U) / scale),
+                x = x)
+m <- BoxCox(y ~ x | x, data = d, scale_shift = TRUE)
+coef(m)
+try(diag(vcov(m)))

@@ -95,7 +95,7 @@ SEXP R_ltmatrices_solve (SEXP A, SEXP b, SEXP N, SEXP J, SEXP diag)
             ptrb = dansx + n * iJ;
             for (j = 0; j < iJ; j++)
                 ptrb[j] = db[n * iJ + j];
-            F77_CALL(dtpsv)(&lo, &tr, &di, &iJ, ptrA, ptrb, &ONE FCONE FCONE);
+            F77_CALL(dtpsv)(&lo, &tr, &di, &iJ, ptrA, ptrb, &ONE FCONE FCONE FCONE);
         }
     }
     
