@@ -3,11 +3,11 @@
 \alias{estfun.tramnet}
 \title{estfun method for class \code{"tramnet"}}
 \usage{
-\method{estfun}{tramnet}(object, parm = coef(object, with_baseline =
+\method{estfun}{tramnet}(x, parm = coef(x, with_baseline =
   TRUE, tol = 0), w = NULL, newdata, ...)
 }
 \arguments{
-\item{object}{object of class \code{"tramnet"}}
+\item{x}{object of class \code{"tramnet"}}
 
 \item{parm}{parameters for evaluating the score}
 

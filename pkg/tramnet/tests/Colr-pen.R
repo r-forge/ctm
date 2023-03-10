@@ -1,40 +1,44 @@
 # Tests for COLR models
 
+set.seed(0)
+
 ## Depencies
 ## IGNORE_RDIFF_BEGIN
 library("tramnet")
-library("survival")
 library("sandwich")
+
 ## IGNORE_RDIFF_END
 old <- options(digits = 3)
 
-## Exact and Right censored
-data("GBSG2", package = "TH.data")
-GBSG2$surv <- with(GBSG2, Surv(time, cens))
-x <- matrix(1 * (GBSG2$horTh == "yes"), ncol = 1)
-colnames(x) <- "horTh"
+if (require("survival") & require("TH.data")) {
+  ## Exact and Right censored
+  data("GBSG2", package = "TH.data")
+  GBSG2$surv <- with(GBSG2, Surv(time, cens))
+  x <- matrix(1 * (GBSG2$horTh == "yes"), ncol = 1)
+  colnames(x) <- "horTh"
 
-yCOLR <- Colr(surv ~ 1, data = GBSG2, log_first = TRUE, order = 10)
-modCOLR <- tramnet(yCOLR, x, lambda = 0, alpha = 0)
-yCOLRb <- Colr(surv ~ horTh, data = GBSG2, log_first = TRUE, order = 10)
-max(abs(coef(yCOLRb, with_baseline = FALSE) -
-        coef(modCOLR, with_baseline = FALSE)))
-logLik(yCOLRb)
-logLik(modCOLR)
--modCOLR$result$value
-logLik(modCOLR, newdata = tramnet:::.get_tramnet_data(modCOLR)[1:10, ])
+  yCOLR <- Colr(surv ~ 1, data = GBSG2, log_first = TRUE, order = 10, support = c(1e-12, max(GBSG2$time)))
+  modCOLR <- tramnet(yCOLR, x, lambda = 0, alpha = 0)
+  yCOLRb <- Colr(surv ~ horTh, data = GBSG2, log_first = TRUE, order = 10)
+  print(max(abs(coef(yCOLRb, with_baseline = FALSE) -
+                  coef(modCOLR, with_baseline = FALSE))))
+  print(logLik(yCOLRb))
+  print(logLik(modCOLR))
+  print(-modCOLR$result$value)
+  print(logLik(modCOLR, newdata = tramnet:::.get_tramnet_data(modCOLR)[1:10, ]))
 
-## methods
-coef(modCOLR, tol = 0, with_baseline = TRUE)
-logLik(modCOLR)
-c(resid(modCOLR)[1:10])
-predict(modCOLR, type = "distribution", q = 1)[, 1:10]
-predict(modCOLR, type = "quantile", prob = 0.5)[, 1:10]
-head(simulate(modCOLR))
-as.data.frame(head(estfun(modCOLR)))
-plot(modCOLR, type = "survivor")
-plot(modCOLR, type = "density", K = 120)
-print(modCOLR)
+  ## methods
+  print(coef(modCOLR, tol = 0, with_baseline = TRUE))
+  print(logLik(modCOLR))
+  print(c(resid(modCOLR)[1:10]))
+  print(predict(modCOLR, type = "distribution", q = 1)[, 1:10])
+  print(predict(modCOLR, type = "quantile", prob = 0.5)[, 1:10])
+  print.default(head(simulate(modCOLR)))
+  print(as.data.frame(head(estfun(modCOLR))))
+  plot(modCOLR, type = "survivor")
+  plot(modCOLR, type = "density", K = 120)
+  print(modCOLR)
+}
 
 
 if (FALSE) {

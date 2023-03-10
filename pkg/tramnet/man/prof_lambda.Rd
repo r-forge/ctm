@@ -30,14 +30,14 @@ lambda}
 \examples{
 \donttest{
 library("tramnet")
-library("survival")
-
-data("nki70", package = "penalized")
-nki70$resp <- with(nki70, Surv(time, event))
-x <- scale(model.matrix( ~ 0 + DIAPH3 + NUSAP1 + TSPYL5 + C20orf46, data = nki70))
-y <- Coxph(resp ~ 1, data = nki70, order = 10, log_first = TRUE)
-fit <- tramnet(y, x, lambda = 0, alpha = 1)
-pfl <- prof_lambda(fit)
-plot_path(pfl)
+if (require("survival") & require("penalized")) {
+  data("nki70", package = "penalized")
+  nki70$resp <- with(nki70, Surv(time, event))
+  x <- scale(model.matrix( ~ 0 + DIAPH3 + NUSAP1 + TSPYL5 + C20orf46, data = nki70))
+  y <- Coxph(resp ~ 1, data = nki70, order = 10, log_first = TRUE)
+  fit <- tramnet(y, x, lambda = 0, alpha = 1)
+  pfl <- prof_lambda(fit)
+  plot_path(pfl)
+}
 }
 }
