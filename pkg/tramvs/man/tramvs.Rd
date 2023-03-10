@@ -15,6 +15,7 @@ tramvs(
   init = TRUE,
   m_max = 10,
   m0 = NULL,
+  verbose = TRUE,
   ...
 )
 }
@@ -47,6 +48,8 @@ of an unconditional \code{modFUN(update(formula, . ~ 1))}.}
 \item{m_max}{maximum number of iterating the splicing algorithm.}
 
 \item{m0}{Transformation model for initialization}
+
+\item{verbose}{show progress bar (default: \code{TRUE})}
 
 \item{...}{additional arguments supplied to \code{modFUN}.}
 }

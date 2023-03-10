@@ -37,7 +37,7 @@ Loading required package: variables
 > # Mandatory noise covariate
 > tramvs(y ~ . | x.5, data = dat, modFUN = Lm,
 +               mandatory = y ~ x.5)
-  |                                                          |                                                  |   0%  |                                                          |========                                          |  17%  |                                                          |=================                                 |  33%  |                                                          |=========================                         |  50%  |                                                          |=================================                 |  67%  |                                                          |==========================================        |  83%  |                                                          |==================================================| 100%
+
 L0-penalized tram:
 
   Shift-Scale Normal Regression Model 
@@ -63,7 +63,7 @@ Active set: x.1 x.2 x.3 x.5
 > # Mandatory noise covariate in shift and scale
 > tramvs(y ~ . | x.5, data = dat, modFUN = Lm,
 +               mandatory = y ~ x.5 | x.5)
-  |                                                          |                                                  |   0%  |                                                          |========                                          |  17%  |                                                          |=================                                 |  33%  |                                                          |=========================                         |  50%  |                                                          |=================================                 |  67%  |                                                          |==========================================        |  83%  |                                                          |==================================================| 100%
+
 L0-penalized tram:
 
   Shift-Scale Normal Regression Model 
@@ -89,7 +89,7 @@ Active set: scl_x.5 x.1 x.2 x.3 x.5
 > # Mandatory noise covariate in scale only
 > tramvs(y ~ . | x.5, data = dat, modFUN = Lm,
 +               mandatory = y ~ 1 | x.5)
-  |                                                          |                                                  |   0%  |                                                          |========                                          |  17%  |                                                          |=================                                 |  33%  |                                                          |=========================                         |  50%  |                                                          |=================================                 |  67%  |                                                          |==========================================        |  83%  |                                                          |==================================================| 100%
+
 L0-penalized tram:
 
   Shift-Scale Normal Regression Model 
@@ -116,4 +116,4 @@ Active set: scl_x.5 x.1 x.2 x.3
 > 
 > proc.time()
    user  system elapsed 
-  6.687   0.049   6.729 
+  7.572   0.052   7.617 

@@ -36,7 +36,7 @@ Loading required package: variables
 > 
 > dat <- data.frame(y = Y, x = X)
 > res <- tramvs(y ~ ., data = dat, modFUN = Lm)
-  |                                                          |                                                  |   0%  |                                                          |==========                                        |  20%  |                                                          |====================                              |  40%  |                                                          |==============================                    |  60%  |                                                          |========================================          |  80%  |                                                          |==================================================| 100%> as(as.matrix(coef(res, as.lm = TRUE)), "sparseMatrix")
+> as(as.matrix(coef(res, as.lm = TRUE)), "sparseMatrix")
 6 x 5 sparse Matrix of class "dgCMatrix"
                 1     2     3      4      5
 (Intercept) 0.439 0.527 0.919 0.9225 0.9240
@@ -186,4 +186,4 @@ x.5         .        .         .         .         0.02284576
 > 
 > proc.time()
    user  system elapsed 
-  1.908   0.048   1.949 
+  2.101   0.032   2.137 
