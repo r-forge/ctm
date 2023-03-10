@@ -72,14 +72,13 @@ simulate.tramnet <- function(object, nsim = 1, seed = NULL,
 
 # estfun method for class "tramnet"
 
-estfun.tramnet <- function(object,
-                           parm = coef(object, with_baseline = TRUE, tol = 0),
+estfun.tramnet <- function(x, parm = coef(x, with_baseline = TRUE, tol = 0),
                            w = NULL, newdata, ...) {
-  if (any(object$tuning_parm > 0))
+  if (any(x$tuning_parm > 0))
     stop("Cannot compute the score for penalised parameters.")
-  ctmobj <- .tramnet2ctm(object)
+  ctmobj <- .tramnet2ctm(x)
   if (missing(newdata))
-    newdata <- .get_tramnet_data(object)
+    newdata <- .get_tramnet_data(x)
   mltobj <- mlt(ctmobj, data = newdata, dofit = FALSE)
   return(estfun(mltobj, parm = parm, w = w))
 }

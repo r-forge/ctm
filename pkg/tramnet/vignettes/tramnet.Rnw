@@ -445,7 +445,7 @@
 \newcommand{\given}{\rvert}
 \newcommand{\Prb}{\mathbb{P}}
 
-<<setup, echo = FALSE, results = "hide", message = FALSE>>=
+<<setup, echo = FALSE, results = "hide", message = FALSE, warning=FALSE>>=
 set.seed(241068)
 
 knitr::opts_chunk$set(echo = TRUE, results = 'markup', error = FALSE,
@@ -460,16 +460,6 @@ knitr::set_header(highlight = '')  # do not \usepackage{Sweave}
 ## R settings
 options(prompt = "R> ", continue = "+  ", useFancyQuotes = FALSE)  # JSS style
 options(width = 75, digits = 3)
-
-# lattice theme for vignette and publication
-
-library("lattice")
-library("colorspace")
-
-# Colors
-
-col <- diverge_hcl(2, h = c(246, 40), c = 96, l = c(65, 90))
-fill <- diverge_hcl(2, h = c(246, 40), c = 96, l = c(65, 90), alpha = .3)
 
 .cmp <- function(x, y) {
   ret <- cbind(x, y, x - y, (x - y) / x)
@@ -495,13 +485,17 @@ print_mbo <- function(x, ...) {
 }
 
 # Dependencies
-
 library("tramnet")
-library("penalized")
-library("glmnet")
-library("mvtnorm")
-library("Matrix")
-library("coin")
+pkgs <- c("penalized", "glmnet", "mvtnorm", "Matrix", "coin", "kableExtra",
+          "lattice", "colorspace")
+av <- !any(!sapply(pkgs, \(x) require(x, character.only = TRUE)))
+
+# Colors
+if (av) {
+  col <- diverge_hcl(2, h = c(246, 40), c = 96, l = c(65, 90))
+  fill <- diverge_hcl(2, h = c(246, 40), c = 96, l = c(65, 90), alpha = .3)
+}
+
 @
 
 \begin{document}
@@ -929,7 +923,7 @@ on the log-transformed or untransformed response.
 }
 \end{table}
 
-<<BH_Linear1>>=
+<<BH_Linear1, eval=av>>=
 fm_Pr <- psa ~ lcavol + lweight + age + lbph + svi + lcp + gleason + pgg45
 fm_Pr1 <- update(fm_Pr, ~ 0 + .)
 x <- model.matrix(fm_Pr1, data = Prostate)
@@ -939,7 +933,7 @@ The normal linear regression model is implemented in \pkg{tram}'s \cmd{Lm} funct
 to be taken when interpreting the resulting regression coefficients $\shiftparm$.
 In order to compare the results to an equivalent, already existing implementation,
 the same model is fitted using \pkg{penalized}.
-<<BH_Linear2, results='hide'>>=
+<<BH_Linear2, results='hide', eval=av>>=
 m0 <- Lm(lpsa ~ 1, data = Prostate)
 mt <- tramnet(m0, x = x, alpha = 0, lambda = 0)
 mp <- penalized(response = Prostate$lpsa, penalized = x,
@@ -960,7 +954,7 @@ $\eparm_2 = 1 / \sigma$ is the slope of the baseline transformation and the
 regression coefficients $\shiftparm = \tilde{\shiftparm} / \sigma$ represent
 scaled shift terms, influencing only the intercept. To recover the usual
 parametrization \cmd{tramnet::coef.Lm} offers the \code{as.lm = TRUE} argument.
-<<BH_Linear3>>=
+<<BH_Linear3, eval=av>>=
 cfx_tramnet <- coef(mt, as.lm = TRUE)
 @
 The transformation function for the linear model is depicted in Figure
@@ -970,7 +964,7 @@ response's conditional distribution, it is advantageous to replace the linear ba
 transformation by a more flexible one. In the case of the Box-Cox type regression
 model the linear baseline transformation $\h(\ry) = \eparm_1 + \eparm_2 \log\ry$
 is replaced by the basis expansion $\h(\ry) = \bern{7}(\log\ry)^\top \parm$.
-<<BH_BoxCox1>>=
+<<BH_BoxCox1, eval=av>>=
 ord <- 7 # flexible baseline transformation
 m01 <- BoxCox(psa ~ 1, data = Prostate, order = ord,
               extrapolate = TRUE, log_first = TRUE)
@@ -989,7 +983,7 @@ a basis expansion thereof. Instead of prespecifying the log-transformation, its
 `logarithmic nature' can be estimated from the data. Afterwards one can compare the
 deviation from a log-linear baseline transformation graphically and by inspecting
 the predictive performance of the model in terms of the out-of-sample log-likelihood.
-<<Prostate_baseline_trafo>>=
+<<Prostate_baseline_trafo, eval=av>>=
 m02 <- BoxCox(psa ~ 1, order = 11, data = Prostate, extrapolate = TRUE)
 mt2 <- tramnet(m02, x = x, lambda = 0, alpha = 0)
 @
@@ -1000,7 +994,7 @@ and \code{mt2} are based on the original scale of the response, the resulting
 model log-likelihoods are not comparable. To overcome this issue, one can fit a
 Box-Cox type model with maximum order 1, as this results in a linear, but
 alternatively parametrized baseline transformation.
-<<linear_boxcox>>=
+<<linear_boxcox, eval=av>>=
 m0p <- BoxCox(psa ~ 1, order = 1, data = Prostate, log_first = TRUE)
 mtp <- tramnet(m0p, x = x, lambda = 0, alpha = 0)
 @
@@ -1022,9 +1016,10 @@ of \code{mt2} is smaller than for \code{mt1} (Table \ref{tab:prostatemods}). Tak
 this exemplary analysis highlights the flexibility and usefulness of transformation
 models to judge crucial modelling assumptions.
 
+%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---
 \begin{figure}[!ht]
 \centering
-<<BH_Linear5, echo=FALSE, fig.height=3, fig.width=5>>=
+<<BH_Linear5, echo=FALSE, fig.height=3, fig.width=5, eval=av>>=
 K <- 1e3
 nd <- Prostate[rep(1, K),]
 nd$lpsa <- seq(min(Prostate$lpsa), max(Prostate$lpsa), length.out = K)
@@ -1068,7 +1063,9 @@ in \code{psa} deviates from being log-linear towards the boundaries of the
 response's support, as there are only few observations.}
 \label{fig:Prostate_trafos}
 \end{figure}
+%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---
 
+%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---
 \begin{table}
 \centering
 \caption{Comparison of the three transformation models on the \code{Prostate} data.
@@ -1084,7 +1081,7 @@ flexible basis expansion in $\log($\code{psa}$)$ and \code{psa}, respectively.
 Model \code{mt1}, allowing for a flexible basis expansion in \code{lpsa}, fits the
 data the best, however the resulting coefficient estimates are similar for all
 models.} \label{tab:prostatemods}
-<<table1, results='asis', echo=FALSE>>=
+<<table1, results='asis', echo=FALSE, eval=av>>=
 cfx_tab <- as.data.frame(rbind(coef(mp, which = "penalized"), coef(mt), coef(mtp),
                                coef(mt1), coef(mt2)))
 cfx_tab$` ` <- c(loglik(mp), logLik(mt), logLik(mtp), logLik(mt1), logLik(mt2))
@@ -1096,6 +1093,7 @@ kableExtra::add_header_above(kbl, header = c("Model" = 1, "Coefficient estimates
                              bold = TRUE)
 @
 \end{table}
+%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---%---
 
 
 \subsection{Hyperparameter tuning} \label{sec:tuning}
@@ -1174,7 +1172,7 @@ in an elastic net problem instead of optimizing over one hyperparameter at a tim
 or having to specify LASSO or ridge regression \emph{a priori}. The output of
 \cmd{mbo\_tramnet} is quite verbose and can be shortened by using the helper
 function \cmd{print\_mbo}.
-<<prostate_mbo_recommended>>=
+<<prostate_mbo_recommended, eval=av>>=
 print_mbo(tmbo)
 @
 Interpreting the output, model-based optimization suggests an unpenalized model
@@ -1183,7 +1181,7 @@ This result stresses the advantages of model-based optimization over naive or ra
 grid search in terms of complexity and computational efficiency. In the end, the
 proposed model is unpenalized and thus does not introduce sparsity in the regression
 coefficients.
-<<prostate_coefs>>=
+<<prostate_coefs, eval=av>>=
 coef(mtmbo)
 summary(mtmbo)$sparsity
 @
@@ -1205,7 +1203,7 @@ in Figure \ref{fig:prof}.
 <<profiling, eval=FALSE>>=
 pfl <- prof_lambda(mt)
 @
-<<load_from_dat2, echo=FALSE>>=
+<<load_from_dat2, echo=FALSE, eval=av>>=
 if (file.exists("cache2.rda")) {
     load("cache2.rda")
 } else {
@@ -1224,10 +1222,10 @@ plot_path(pfl, plot_logLik = FALSE, las = 1, col = coll)
 
 \begin{figure}
 \centering
-<<plot_setup, include=FALSE, echo=FALSE>>=
+<<plot_setup, include=FALSE, echo=FALSE, eval=av>>=
 coll <- qualitative_hcl(n = ncol(pfl$cfx))
 @
-<<profiling_plot, fig.height=4, fig.width=6.5, out.width="1\\textwidth", echo=FALSE>>=
+<<profiling_plot, fig.height=4, fig.width=6.5, out.width="1\\textwidth", echo=FALSE, eval=av>>=
 plot_path(pfl, plot_logLik = FALSE, las = 1, col = coll)
 @
 \caption{Full regularization paths for the tuning parameter $\lambda$ using the
@@ -1245,7 +1243,7 @@ which are internally handled as \code{constraints[[1]] \%*\% beta $>$ constraint
 Hence, to specify the constraint of strictly positive regression coefficients,
 one would supply an identity matrix of dimension $p$ for the left hand side and
 the zero $p$-vector for the left hand side, as done in the following example.
-<<addconst>>=
+<<addconst, eval=av>>=
 m0 <- BoxCox(lpsa ~ 1, data = Prostate, extrapolate = TRUE)
 mt <- tramnet(m0, x, alpha = 0, lambda = 0, constraints = list(diag(8),
                                                                rep(0, 8)))
@@ -1254,7 +1252,7 @@ coef(mt)
 The coefficients with a negative sign in the model without additional positivity
 constraints now shrink to zero and the other coefficient estimates change
 as well.
-<<addconst_sparsity>>=
+<<addconst_sparsity, eval=av>>=
 summary(mt)$sparsity
 @
 One can compare this model to the implementation in \pkg{tram}, where it is also
@@ -1263,7 +1261,7 @@ $\shiftparm$. Here, it is sufficient to specify
 \code{constraints = c("age >= 0", "lcp >= 0")}
 for the two non-positive coefficient estimates, due to the convexity of the
 underlying problem.
-<<addconst_tram_cmp>>=
+<<addconst_tram_cmp, eval=av>>=
 m <- BoxCox(lpsa ~ . - psa, data = Prostate, extrapolate = TRUE,
             constraints = c("age >= 0", "lcp >= 0"))
 max(abs(coef(m) - coef(mt, tol = 0)))
@@ -1285,13 +1283,13 @@ $\hat\parm$ by default and considers shift parameter estimates $\hat\shiftparm$
 below $10^{-6}$ as $0$ to stress the selected variables only.
 This threshold can be controlled by the \code{tol} argument.
 Hence, \code{coef(mt, with\_baseline = TRUE, tol = 0)} returns all coefficients.
-<<coef_method>>=
+<<coef_method, eval=av>>=
 coef(mtmbo, with_baseline = TRUE, tol = 0)
 @
 The \cmd{logLik.tramnet} method allows the log-likelihoods re-computation under
 new data (i.e. out-of-sample) and different coefficients (\code{parm}) and weights
 (\code{w}), as illustrated below.
-<<logLik_method>>=
+<<logLik_method, eval=av>>=
 logLik(mtmbo)
 cfx <- coef(mtmbo, with_baseline = TRUE, tol = 0)
 cfx[5:8] <- 0.5
@@ -1303,8 +1301,12 @@ In the spirit of \pkg{mlt}'s plotting methods for classes \cls{mlt} and \cls{ctm
 \cmd{plot.tramnet} offers diverse plotting options for objects of class \cls{tramnet}.
 The specification of new data and the type of plot is illustrated in the follwing code
 chunk and Figure \ref{fig:plot}.
-<<plot_method_chunk, fig.height=7, fig.width=5, eval=FALSE>>=
-par(mfrow = c(3, 2)); K <- 1e3
+<<include=FALSE, eval=FALSE>>=
+mtmbo$model$data <- mtmbo$model$data[1:10,,drop=FALSE]
+mtmbo$x <- mtmbo$x[1:10,,drop=FALSE]
+@
+<<plot_method_chunk, fig.height=7, fig.width=5, eval=FALSE, eval=av>>=
+par(mfrow = c(3, 2)); K <- 3e2
 plot(mtmbo, type = "distribution", K = K, main = "A") # A, default
 plot(mtmbo, type = "survivor", K = K, main = "B") # B
 plot(mtmbo, type = "trafo", K = K, main = "C") # C
@@ -1315,8 +1317,8 @@ plot(mtmbo, type = "trafo", newdata = Prostate[1, ], col = 1, K = K, main = "F")
 
 \begin{figure}
 \centering
-<<plot_method_fig, fig.height=7, fig.width=5, echo=FALSE>>=
-par(mfrow = c(3, 2)); K <- 1e3
+<<plot_method_fig, fig.height=7, fig.width=5, echo=FALSE, eval=av>>=
+par(mfrow = c(3, 2)); K <- 3e2
 plot(mtmbo, type = "distribution", K = K, main = "A") # A, default
 plot(mtmbo, type = "survivor", K = K, main = "B") # B
 plot(mtmbo, type = "trafo", K = K, main = "C") # C
@@ -1351,13 +1353,13 @@ as such supports the types \code{trafo, distribution, survivor, density, logdens
 hazard, loghazard, cumhazard} and \code{quantile}. For \code{type = "quantile"}
 the corresponding probabilities (\code{prob}) have to be supplied as an argument
 to evaluate the quantile function at.
-<<predict_method>>=
+<<predict_method, eval=av>>=
 predict(mtmbo, type = "quantile", prob = 0.2, newdata = Prostate[1:5,])
 @
 Another method offered by this package implements parametric bootstrap-based
 sampling. In particular, \cmd{simulate.tramnet} calls the \cmd{simulate.ctm}
 function after converting the \cls{tramnet} object to a \cls{ctm} object.
-<<simulate_method>>=
+<<simulate_method, eval=av>>=
 simulate(mtmbo, nsim = 1, newdata = Prostate[1:5,], seed = 1)
 @
 Lastly, \cmd{residuals.tramnet} computes the generalized residual $r$ defined as
@@ -1371,7 +1373,7 @@ yields the generalized residual with respect to $\gamma$ for the model
 \begin{eqnarray*}
   \pY(\ry \given \rs, \rx) = F\left(\h(y \mid \rs) - \rx^\top \shiftparm - \gamma \right).
 \end{eqnarray*}
-<<residuals_method>>=
+<<residuals_method, eval=av>>=
 residuals(mtmbo)[1:5]
 @
 In residual analysis and boosting it is common practice to check for associations
@@ -1385,7 +1387,7 @@ extracted using the \cmd{residuals.tramnet} method. Lastly, an independence test
 using a maximum statistic (\code{teststat~=~"max"}) and a Monte Carlo based
 approximation of the null distribution based on resampling $10^6$ times
 (\code{distribution~=~approximate(1e6)}), yields the results printed below.
-<<coin_illustration, eval=FALSE>>=
+<<coin_illustration, eval=FALSE, eval=av>>=
 library("coin")
 m0 <- BoxCox(lpsa ~ 1, data = Prostate, extrapolate = TRUE)
 x_no_age_lcp <- x[, !colnames(x) %in% c("age", "lcp")]
@@ -1416,7 +1418,7 @@ the above mentioned publications.
 %EOF%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
-\bibliography{kook-hothorn,packages}
+\bibliography{kook-hothorn}
 
 \address{Lucas Kook, Torsten Hothorn\\
   Institut f\"ur Epidemiologie, Biostatistik und Pr\"avention \\
@@ -1427,7 +1429,7 @@ the above mentioned publications.
 
 \newpage
 
-<<packages, echo = FALSE, results = "hide">>=
+<<packages, echo = FALSE, results = "hide", eval=av>>=
 if (file.exists("packages.bib")) file.remove("packages.bib")
 pkgversion <- function(pkg) {
     pkgbib(pkg)
@@ -1456,7 +1458,6 @@ pkg("tbm")
 <<sesinf, echo=FALSE>>=
 sessionInfo()
 @
-
 
 \end{article}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -17,14 +17,14 @@ modelling functions from package tram.}
 \item{alpha}{a mixing parameter (between zero and one) defining the fraction
 between absolute and quadratic penalty terms}
 
-\item{constraints}{an optional list containing a matrix of linear inequality 
+\item{constraints}{an optional list containing a matrix of linear inequality
     contraints on the regression coefficients and a vector specifying the rhs
     of the inequality}
 
 \item{\dots}{additional parameters to \code{\link[CVXR]{solve}}}
 }
 \value{
-An object of class \code{"tramnet"} with \code{coef}, \code{logLik}, 
+An object of class \code{"tramnet"} with \code{coef}, \code{logLik},
 \code{summary}, \code{simulate}, \code{residuals} and \code{plot} methods
 }
 \description{
@@ -35,19 +35,19 @@ accompanying this package.
 }
 \examples{
 \donttest{
-library("penalized")
-library("survival")
-## --- Comparison with penalized
-data("nki70", package = "penalized")
-nki70$resp <- with(nki70, Surv(time, event))
-x <- scale(model.matrix( ~ 0 + DIAPH3 + NUSAP1 + TSPYL5 + C20orf46,
-                        data = nki70))
-fit <- penalized(response = resp, penalized = x, lambda1 = 1, lambda2 = 0,
-                 standardize = FALSE, data = nki70)
-y <- Coxph(resp ~ 1, data = nki70, order = 10, log_first = TRUE)
-fit2 <- tramnet(y, x, lambda = 1, alpha = 1) ## L1 only
-coef(fit)
-coef(fit2)
+if (require("penalized") & require("survival")) {
+  ## --- Comparison with penalized
+  data("nki70", package = "penalized")
+  nki70$resp <- with(nki70, Surv(time, event))
+  x <- scale(model.matrix( ~ 0 + DIAPH3 + NUSAP1 + TSPYL5 + C20orf46,
+                          data = nki70))
+  fit <- penalized(response = resp, penalized = x, lambda1 = 1, lambda2 = 0,
+                   standardize = FALSE, data = nki70)
+  y <- Coxph(resp ~ 1, data = nki70, order = 10, log_first = TRUE)
+  fit2 <- tramnet(y, x, lambda = 1, alpha = 1) ## L1 only
+  coef(fit)
+  coef(fit2)
+}
 }
 }
 \author{
