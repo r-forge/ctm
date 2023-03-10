@@ -144,6 +144,7 @@ cor_init.stram <- function(m0, mb) {
 #'
 #' @inheritParams abess_tram
 #' @param supp_max maximum support which to call \code{abess_tram} with.
+#' @param verbose show progress bar (default: \code{TRUE})
 #'
 #' @details L0-penalized (i.e., best subset selection) transformation models
 #'     using the abess algorithm.
@@ -173,7 +174,7 @@ cor_init.stram <- function(m0, mb) {
 #' @export
 tramvs <- function(formula, data, modFUN, mandatory = NULL, supp_max = NULL,
                    k_max = NULL, thresh = NULL, init = TRUE, m_max = 10,
-                   m0 = NULL, ...) {
+                   m0 = NULL, verbose = TRUE, ...) {
   if (is.null(supp_max)) {
     m0 <- modFUN(formula, data, ... = ...)
     supp_max <- length(coef(m0))
@@ -181,9 +182,11 @@ tramvs <- function(formula, data, modFUN, mandatory = NULL, supp_max = NULL,
 
   fits <- list()
   SIC <- numeric(supp_max)
-  pb <- txtProgressBar(style = 3, width = 50, min = 0, max = supp_max)
+  if (verbose & interactive())
+    pb <- txtProgressBar(style = 3, width = 50, min = 0, max = supp_max)
   for (ts in seq_len(supp_max)) {
-    setTxtProgressBar(pb, ts)
+    if (verbose & interactive())
+      setTxtProgressBar(pb, ts)
     fit <- abess_tram(formula = formula, data = data, modFUN = modFUN,
                       mandatory = mandatory, supp = ts, k_max = k_max,
                       thresh = thresh, init = init, m_max = m_max, m0 = m0,

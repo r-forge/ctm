@@ -45,7 +45,7 @@ Loading required package: variables
 +   options(old)
 + }
 Loading required package: ordinal
-  |                                                          |                                                  |   0%  |                                                          |=================                                 |  33%  |                                                          |=================================                 |  67%  |                                                          |==================================================| 100%> 
+> 
 > proc.time()
    user  system elapsed 
-  1.818   0.065   1.889 
+  1.692   0.051   1.737 

@@ -53,11 +53,11 @@ The following object is masked from 'package:MASS':
     geyser
 
 Loading required package: abess
-  |                                                          |                                                  |   0%  |                                                          |======                                            |  11%  |                                                          |===========                                       |  22%  |                                                          |=================                                 |  33%  |                                                          |======================                            |  44%  |                                                          |============================                      |  56%  |                                                          |=================================                 |  67%  |                                                          |=======================================           |  78%  |                                                          |============================================      |  89%  |                                                          |==================================================| 100%[1] "tgrade.L" "pnodes"   "progrec" 
+[1] "tgrade.L" "pnodes"   "progrec" 
 There were 50 or more warnings (use warnings() to see the first 50)
 > 
 > options(old)
 > 
 > proc.time()
    user  system elapsed 
-181.870   0.072  44.695 
+159.488   0.251  40.789 
