@@ -7,7 +7,9 @@
 #' @importFrom tram BoxCox
 #' @export
 BoxCoxVS <- function(formula, data, supp_max = NULL, k_max = NULL, thresh = NULL,
-                     init = TRUE, m_max = 10, ...) {
+                     init = TRUE, m_max = 10, parallel = FALSE,
+                     future_args = list(strategy = "multisession",
+                                        workers = supp_max), ...) {
   tramvs(formula, data, BoxCox, supp_max, k_max, thresh, init, m_max,
          ... = ...)
 }
@@ -19,7 +21,9 @@ BoxCoxVS <- function(formula, data, supp_max = NULL, k_max = NULL, thresh = NULL
 #' @importFrom tram Colr
 #' @export
 ColrVS <- function(formula, data, supp_max = NULL, k_max = NULL, thresh = NULL,
-                   init = TRUE, m_max = 10, ...) {
+                   init = TRUE, m_max = 10, parallel = FALSE,
+                     future_args = list(strategy = "multisession",
+                                        workers = supp_max), ...) {
   tramvs(formula, data, Colr, supp_max, k_max, thresh, init, m_max,
          ... = ...)
 }
@@ -31,7 +35,9 @@ ColrVS <- function(formula, data, supp_max = NULL, k_max = NULL, thresh = NULL,
 #' @importFrom tram Coxph
 #' @export
 CoxphVS <- function(formula, data, supp_max = NULL, k_max = NULL, thresh = NULL,
-                   init = TRUE, m_max = 10, ...) {
+                   init = TRUE, m_max = 10, parallel = FALSE,
+                     future_args = list(strategy = "multisession",
+                                        workers = supp_max), ...) {
   tramvs(formula, data, Coxph, supp_max, k_max, thresh, init, m_max,
          ... = ...)
 }
@@ -43,7 +49,9 @@ CoxphVS <- function(formula, data, supp_max = NULL, k_max = NULL, thresh = NULL,
 #' @importFrom tram Lm
 #' @export
 LmVS <- function(formula, data, supp_max = NULL, k_max = NULL, thresh = NULL,
-                   init = TRUE, m_max = 10, ...) {
+                   init = TRUE, m_max = 10, parallel = FALSE,
+                     future_args = list(strategy = "multisession",
+                                        workers = supp_max), ...) {
   tramvs(formula, data, Lm, supp_max, k_max, thresh, init, m_max,
          ... = ...)
 }
@@ -55,7 +63,9 @@ LmVS <- function(formula, data, supp_max = NULL, k_max = NULL, thresh = NULL,
 #' @importFrom tram Lehmann
 #' @export
 LehmannVS <- function(formula, data, supp_max = NULL, k_max = NULL, thresh = NULL,
-                      init = TRUE, m_max = 10, ...) {
+                      init = TRUE, m_max = 10, parallel = FALSE,
+                     future_args = list(strategy = "multisession",
+                                        workers = supp_max), ...) {
   tramvs(formula, data, Lehmann, supp_max, k_max, thresh, init, m_max,
          ... = ...)
 }
@@ -67,7 +77,9 @@ LehmannVS <- function(formula, data, supp_max = NULL, k_max = NULL, thresh = NUL
 #' @importFrom tram Polr
 #' @export
 PolrVS <- function(formula, data, supp_max = NULL, k_max = NULL, thresh = NULL,
-                   init = TRUE, m_max = 10, ...) {
+                   init = TRUE, m_max = 10, parallel = FALSE,
+                     future_args = list(strategy = "multisession",
+                                        workers = supp_max), ...) {
   tramvs(formula, data, Polr, supp_max, k_max, thresh, init, m_max,
          ... = ...)
 }
@@ -79,7 +91,9 @@ PolrVS <- function(formula, data, supp_max = NULL, k_max = NULL, thresh = NULL,
 #' @importFrom tram Survreg
 #' @export
 SurvregVS <- function(formula, data, supp_max = NULL, k_max = NULL, thresh = NULL,
-                      init = TRUE, m_max = 10, ...) {
+                      init = TRUE, m_max = 10, parallel = FALSE,
+                     future_args = list(strategy = "multisession",
+                                        workers = supp_max), ...) {
   tramvs(formula, data, Survreg, supp_max, k_max, thresh, init, m_max,
          ... = ...)
 }
@@ -91,7 +105,9 @@ SurvregVS <- function(formula, data, supp_max = NULL, k_max = NULL, thresh = NUL
 #' @importFrom cotram cotram
 #' @export
 cotramVS <- function(formula, data, supp_max = NULL, k_max = NULL, thresh = NULL,
-                     init = TRUE, m_max = 10, ...) {
+                     init = TRUE, m_max = 10, parallel = FALSE,
+                     future_args = list(strategy = "multisession",
+                                        workers = supp_max), ...) {
   tramvs(formula, data, cotram, supp_max, k_max, thresh, init, m_max,
          ... = ...)
 }

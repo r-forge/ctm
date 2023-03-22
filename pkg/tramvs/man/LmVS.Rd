@@ -12,6 +12,8 @@ LmVS(
   thresh = NULL,
   init = TRUE,
   m_max = 10,
+  parallel = FALSE,
+  future_args = list(strategy = "multisession", workers = supp_max),
   ...
 )
 }
@@ -34,6 +36,12 @@ active set with those covariates that are most correlated with score residuals
 of an unconditional \code{modFUN(update(formula, . ~ 1))}.}
 
 \item{m_max}{maximum number of iterating the splicing algorithm.}
+
+\item{parallel}{toggle for parallel computing via
+\code{\link[future.apply]{future_lapply}}}
+
+\item{future_args}{arguments passed to \code{\link[future]{plan}}; defaults
+to a \code{"multisession"} with \code{supp_max} workers}
 
 \item{...}{Additional arguments supplied to \code{\link[tram]{Lm}}}
 }

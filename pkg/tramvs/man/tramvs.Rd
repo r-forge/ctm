@@ -16,6 +16,8 @@ tramvs(
   m_max = 10,
   m0 = NULL,
   verbose = TRUE,
+  parallel = FALSE,
+  future_args = list(strategy = "multisession", workers = supp_max),
   ...
 )
 }
@@ -51,7 +53,17 @@ of an unconditional \code{modFUN(update(formula, . ~ 1))}.}
 
 \item{verbose}{show progress bar (default: \code{TRUE})}
 
-\item{...}{additional arguments supplied to \code{modFUN}.}
+\item{parallel}{toggle for parallel computing via
+\code{\link[future.apply]{future_lapply}}}
+
+\item{future_args}{arguments passed to \code{\link[future]{plan}}; defaults
+to a \code{"multisession"} with \code{supp_max} workers}
+
+\item{...}{
+  Arguments passed on to \code{\link[=abess_tram]{abess_tram}}
+  \describe{
+    \item{\code{supp}}{support size of the coefficient vector}
+  }}
 }
 \value{
 object of class \code{"tramvs"}, containing the regularization path
@@ -67,7 +79,7 @@ L0-penalized (i.e., best subset selection) transformation models
 }
 \examples{
 set.seed(24101968)
-library(tramvs)
+library("tramvs")
 
 N <- 1e2
 P <- 5
