@@ -119,11 +119,13 @@ vcov.tram <- function(object, with_baseline = FALSE, complete = FALSE, ...)
     return(ret)
 }
 
-nobs.tram <- function(object, ...) {
+nobs.mlt <- function(object, ...) {
     if (!is.null(object$weights)) 
         return(sum(object$weights != 0))
     return(NROW(object$data))
 }
+
+nobs.tram <- function(object, ...) nobs(as.mlt(object), ...)
 
 logLik.tram <- function(object, parm = coef(as.mlt(object), fixed = FALSE), ...)
     logLik(as.mlt(object), parm = parm, ...)
