@@ -1,4 +1,5 @@
 ### Demo for location-scale transformation models ###
+### DOI:10.48550/arXiv.2208.05302 
 
 ## general setup ##
 library("lattice")
@@ -9,8 +10,12 @@ library("reshape2")
 library("colorspace")
 library("xtable")
 
-col <- diverge_hcl(2, h = c(246, 40), c = 96, l = c(65, 90))
-acol <- diverge_hcl(2, h = c(246, 40), c = 70 - 25, l = c(65, 90) + 20)
+set.seed(290873)
+
+acol <- sequential_hcl(6, "BluYl")[1:5]
+
+col <- acol[c(2, (length(acol)) - 1)]
+lcol <- lighten(col, amount = .4) ## lighten color for overlayed lines 
 
 ## lattice
 trellis.par.set(
@@ -26,8 +31,8 @@ ltheme <- canonical.theme(color = FALSE)     ## in-built B&W theme
 ltheme$strip.background$col <- "transparent" ## change strip bg
 lattice.options(default.theme = ltheme)
 
-## formatting
-big.mark <- "'"
+## Formatting
+big.mark <- ","
 frmt0 <- round
 
 is.neg <- function(x) x < 0
@@ -99,19 +104,18 @@ blood$MBLi <- Surv(c(0, sMBL[-length(sMBL)])[i], sMBL[i], type = "interval2")
 
 ## remove outlier
 blood <- blood[blood$MBL < 4000, ]
-tab <- table(blood$mode)
-tab
+(tab <- table(blood$mode))
 
 ## ----STRAT-model--------------------------------------------------------------
 OR <- 15
 
 ## stratified transformation model
-m <- Colr(MBLi | mode ~ 1, data = blood,
+m <- BoxCox(MBLi | mode ~ 1, data = blood,
      order = OR, bounds = c(0, Inf), support = c(0, 2000))
 logLik(m)
 
 ## location-scale transformation model
-sm <- Colr(MBLi ~ mode | mode, data = blood, 
+sm <- BoxCox(MBLi ~ mode | mode, data = blood,
      order = OR, bounds = c(0, Inf), support = c(0, 2000))
 logLik(sm)
 
@@ -140,12 +144,11 @@ plot(seq_along(q), ylim = ylim, type = "n", ylab = "Distribution",
      main = main, xlab = xlab, lwd = 1.5, cex.main = 1.05, cex.axis = .9)
 abline(h = h, lty = 2, col = "lightgrey")
 
-### ECDF
+#### ECDF
 sapply(1:nlevels(blood$mode),
   function(i) lines(ecdf(subset(blood, mode == levels(blood$mode)[i])$MBL),
-                    cex = .75, col = acol[i]))
+                    cex = .75, col = lcol[i]))
 
-### lines
 p <- predict(fit, newdata = nd, type = "distribution", q = q)
 sapply(1:ncol(p),
   function(i) {lines(x = q, y = p[, i], type = type, col = col[i])})
@@ -161,12 +164,12 @@ plot(seq_along(q), ylim = ylimd, type = "n", ylab = "Density",
      main = main, xlab = xlab, lwd = 1.5, cex.axis = .9)
 abline(h = 0, lty = 2, col = "lightgrey")
 
+d <- predict(fit, newdata = nd, type = "density", q = q)
+sapply(1:ncol(d), function(i) {lines(x = q, y = d[, i], type = type, col = col[i])})
+
 ### logLiks
 text(max(q) - max(q) / 3, ylimd[2] / 10 * 9.7, labels = frmtll(logLik(fit)))
 
-### lines
-d <- predict(fit, newdata = nd, type = "density", q = q)
-sapply(1:ncol(d), function(i) {lines(x = q, y = d[, i], type = type, col = col[i])})
 par(op)
 
 ## plot location-scale model
@@ -186,9 +189,8 @@ abline(h = h, lty = 2, col = "lightgrey")
 ### ECDF
 sapply(1:nlevels(blood$mode),
   function(i) lines(ecdf(subset(blood, mode == levels(blood$mode)[i])$MBL),
-                    cex = .75, col = acol[i]))
+                    cex = .75, col = lcol[i]))
 
-### lines
 p <- predict(fit, newdata = nd, type = "distribution", q = q)
 sapply(1:ncol(p),
   function(i) {lines(x = q, y = p[, i], type = type, col = col[i])})
@@ -204,16 +206,49 @@ plot(seq_along(q), ylim = ylimd, type = "n", ylab = "Density",
      main = main, xlab = xlab, lwd = 1.5, cex.axis = .9)
 abline(h = 0, lty = 2, col = "lightgrey")
 
-## logLiks
-text(max(q) - max(q) / 3, ylimd[2] / 10 * 9.7, labels = frmtll(logLik(fit)))
-
-### lines
+## lines
 d <- predict(fit, newdata = nd, type = "density", q = q)
 sapply(1:ncol(d), function(i) {lines(x = q, y = d[, i], type = type, col = col[i])})
 
-## reset options
-layout(matrix(1))
+## logLiks
+text(max(q) - max(q) / 3, ylimd[2] / 10 * 9.7, labels = frmtll(logLik(fit)))
+
 par(op)
+layout(matrix(1))
+
+
+## ----STRAT_PI-----------------------------------------------------------------
+PI.stram <- function(object, newdata = model.frame(sm), reference = 0) {
+  stopifnot(sm$model$todistr$name == "normal")
+  mu <- predict(object, type = "lp", newdata = newdata, what = "shifting")
+  sigma <- sqrt(exp(predict(object, type = "lp", newdata = newdata,
+                            what = "scaling")))
+  
+  if (reference == 0) {
+    refmu <- 0
+    refsigma <- 1
+  } else {
+      refmu <- predict(object, type = "lp", newdata = reference,
+                       what = "shifting")
+      refsigma <- sqrt(exp(predict(object, type = "lp",
+                                   newdata = newdata, what = "scaling")))
+  }
+  
+  object$model$todistr$p((sigma * mu - refsigma * refmu) / 
+                           sqrt(sigma^2 + refsigma^2))
+}
+pi <- PI.stram(sm, newdata = nd[nd$mode == "Cesarean section",, drop = FALSE])
+
+library("mvtnorm")
+smm <- sm
+vc <- vcov(sm)
+rx <- rmvnorm(10000, coef(sm), vc)
+FUN <- function(cf) {
+  coef(smm) <- cf
+  PI.stram(smm, newdata = nd[nd$mode == "Cesarean section",, drop = FALSE])
+}
+ret <- apply(rx, MARGIN = 1, FUN = FUN)
+ci <- quantile(ret, probs = c(.025, .975))
 
 
 ## Section 3.1.2. Crossing hazards ##
@@ -225,74 +260,134 @@ library("coin")
 library("mpr")
 
 ## ----XH-preproc, include = FALSE----------------------------------------------
-## hepatitis data: DOI: 10.1056/NEJMoa1101214
-data("hepatitis", package = "survELtest")
+## gastric cancer data: DOI: 10.1002/1097-0142(19820501)49:9<1771::AID-CNCR2820490907>3.0.CO;2-M
+data("gastric", package = "KONPsurv")
 
 ## groups
-## 85: prednisolone-N-acetylcystein; 89: pednisolone-only
-hepatitis$group <- factor(hepatitis$group, levels = c(2, 1),
+gastric$group <- factor(gastric$group, levels = c(1, 2),
                           labels = c("Control", "Intervention"))
-table(hepatitis$group)
+table(gastric$group)
 
 ## Surv object
-hepatitis$y <- with(hepatitis, Surv(time, censor))
+gastric$y <- with(gastric, Surv(time, status))
 
 ## grid of group
-nd <- data.frame(group = factor(levels(hepatitis$group)))
+nd <- data.frame(group = factor(levels(gastric$group)))
 
-## ----XH-plot-model, fig.height = 2.5, fig.width = 6, out.width = ".9\\textwidth"----
 ## plot setup
 ylab <- "Probability of survival"
 xlab <- "Days"
-s <- c(1, 150)
-q <- 1:180
+q <- seq(0, 1500)
 lty <- 1:3
 
-## KM
-plot(survfit(Surv(time, censor) ~ group, data = hepatitis), las = 1, lwd = 1.5, col = col,
-  ylab = ylab, xlab = xlab, ylim = c(.5, 1), xlim = c(0, rev(q)[1]), cex = .8)
-legend("topright", legend = levels(nd$group), col = col, lty = lty[1], lwd = 1.5, bty = "n", cex = .8)
+## order of stram
+OR <- 6
 
+
+## ----XH-models----------------------------------------------------------------
 ## Weibull (mpr)
-mp <- mpr(y ~ list(~ group, ~ group), data = hepatitis, family = "Weibull") ## always with intercept
+mp <- mpr(y ~ list(~ group, ~ group), data = gastric, family = "Weibull") ## always with intercept
 prmp <- predict(mp, type = "survivor", newdata = nd, tvec = q)
-sapply(1:2, function(i) lines(q, prmp[i, ], col = col[i], lty = lty[2], lwd = 1.5))
 
 ## Cox model (tram)
-OR <- 6
-sm <- Coxph(y ~ group | group, data = hepatitis, log_first = TRUE, order = OR, support = s)
+sm <- Coxph(y ~ group | group, data = gastric, log_first = TRUE, order = OR)
 prsm <- predict(sm, type = "survivor", newdata = nd, q = q)
-sapply(1:2, function(i) lines(q, prsm[, i], col = col[i], lty = lty[3], lwd = 1.5))
 
-## legend
-legend("bottomleft", legend = c("Kaplan-Meier", 
-    paste0("Weibull location-scale (logLik = ", frmt1(unlist(mp$model["loglike"]), math = FALSE), ")"),
-    paste0("Distribution-free location-scale (logLik = ", frmt1(logLik(sm), math = FALSE), ")")),
-  lty = lty, lwd = 1.5, bty = "n", cex = .8)
+## t at crossing
+## t = h^{-1}[beta / (1 - sqrt(exp(gamma)))] => h^{-1}(q) = Q(F_Z(q))
+sh <- predict(sm, newdata = nd[2,,drop = FALSE], type = "lp", what = c("shifting"))
+scl <- sqrt(exp(predict(sm, newdata = nd[2,,drop = FALSE], type = "lp",  what = c("scaling"))))
+p <- sm$model$todistr$p(sh / (1 - scl))
+tx <- predict(sm, newdata = nd[2,,drop = FALSE], prob = p, type = "quantile")
+sx <- predict(sm, newdata = nd[2,,drop = FALSE], q = tx, type = "survivor")
 
-## check different parametrisations
-hepatitis$one <- 1
-sr1 <- Survreg(y ~ group | group, data = hepatitis)
-sr2 <- Survreg(y ~ one + group | group, data = hepatitis, fixed = c("(Intercept)" = 0))
+### check different parametrisations
+gastric$one <- 1
+sr1 <- Survreg(y ~ group | group, data = gastric)
+sr2 <- Survreg(y ~ one + group | group, data = gastric, fixed = c("(Intercept)" = 0))
 stopifnot(isTRUE(all.equal(c(logLik(sr1)), mp$model$loglike, check.attributes = FALSE)))
-stopifnot(isTRUE(all.equal(c(logLik(sr2)), mp$model$loglike, check.attributes = FALSE)))
+stopifnot(isTRUE(all.equal(c(logLik(sr2)), mp$model$loglike, check.attributes = FALSE,
+                           tol = .Machine$double.eps^{1/4})))
 
-## ----XH-tests------------------------------------------------------------------
+
+## ----XH-plot-model, fig.height = 3.4, fig.width = 6---------------------------
+layout(matrix(1:2, nrow = 1, byrow = FALSE))
+
+## plot Weibull model
+show_legend <- FALSE
+surv <- t(prmp)
+main <- "Weibull Model"
+ll <- unlist(unname(mp$model["loglike"]))
+### survival function
+h <- ylim <- c(0, 1)
+type <- "l"
+
+op <- par(mgp = c(2.5, 1, 0), mar = c(2.5, 3.5, 2, 2), las = 1)
+
+#### KM
+plot(sf <- survfit(Surv(time, status) ~ group, data = gastric),
+     ylab = "Probability of survival", main = main, xlab = xlab, 
+     col = lcol, ylim = ylim, xlim = range(q),
+     lwd = 1.2, cex.main = .85, cex.axis = .85)
+abline(h = h, lty = 2, col = "lightgrey")
+
+sapply(1:ncol(surv),
+       function(i) {lines(x = q, y = surv[, i], type = type, col = col[i], lwd = 2)})
+
+if (show_legend) legend("topright", legend = nd$group,
+                        col = col[seq_along(nd$group)], lty = 1, bty = "n", cex = .8)
+
+### logLiks
+text(min(q) + 350, ylim[1] + .05, labels = frmtll(ll), cex = .85)
+
+par(op)
+
+## plot location-scale transformation model
+show_legend <- TRUE
+surv <- prsm
+main <- toUpper(stram)
+ll <- logLik(sm)
+### survival function
+h <- ylim <- c(0, 1)
+type <- "l"
+
+op <- par(mgp = c(2.5, 1, 0), mar = c(2.5, 3.5, 2, 2), las = 1)
+
+#### KM
+plot(sf <- survfit(Surv(time, status) ~ group, data = gastric),
+     ylab = "Probability of survival", main = main, xlab = xlab, 
+     col = lcol, ylim = ylim, xlim = range(q),
+     lwd = 1.2, cex.main = .85, cex.axis = .85)
+abline(h = h, lty = 2, col = "lightgrey")
+
+sapply(1:ncol(surv),
+       function(i) {lines(x = q, y = surv[, i], type = type, col = col[i], lwd = 2)})
+
+if (show_legend) legend("topright", legend = nd$group,
+                        col = col[seq_along(nd$group)], lty = 1, bty = "n", cex = .8)
+
+### logLiks
+text(min(q) + 350, ylim[1] + .05, labels = frmtll(ll), cex = .85)
+
+par(op)
+layout(matrix(1))
+
+## ----XH-test------------------------------------------------------------------
 ### logrank test
-# survdiff(formula = y ~ group, data = hepatitis)
+survdiff(formula = y ~ group, data = gastric)
 
 ## null model & scores
-m0 <- Coxph(y ~ 1, data = hepatitis, order = OR)
+m0 <- Coxph(y ~ 1, data = gastric, order = OR)
 
 r <- resid(m0, what = "shifting")
 rs <- resid(m0, what = "scaling")
 
 ### logrank test
-(plr <- pvalue(independence_test(r ~ group, data = hepatitis)))
+(plr <- pvalue(independence_test(r ~ group, data = gastric)))
 
 ### bivariate test <- logrank + scale test combined
-(plrsM <- pvalue(independence_test(r + rs ~ group, data = hepatitis)))
-(plrsQ <- pvalue(independence_test(r + rs ~ group, data = hepatitis, teststat = "quad")))
+(plrsM <- pvalue(independence_test(r + rs ~ group, data = gastric)))
+(plrsQ <- pvalue(independence_test(r + rs ~ group, data = gastric, teststat = "quad")))
 
 
 ## Section 3.1.3 Partial proportional hazards ##
@@ -306,7 +401,7 @@ library("gamlss")
 library("gamlss.cens")
 
 ## ----PPH-data, echo = FALSE, results = "asis", message = FALSE, warning = FALSE----
-## load DVC data: DOI: 10.1016/j.aap.2015.04.037
+## deer-vehicle collision data: DOI: 10.1016/j.aap.2015.04.037
 file <- "analysis/DVC.rda"
 tgz <- "DVC.tgz"
 url <- "https://zenodo.org/record/17179/files"
@@ -349,11 +444,8 @@ colnames(Xtime) <- tvars <- paste0("tvar", 1:ncol(Xtime))
 
 d <- cbind(df, Xtime)
 
-## interval-censoring for correct likelihood
-d$DVC <- as.integer(d$DVC)
-d$DVCi <- with(d, Surv(ifelse(DVC > 0, DVC - 1, -Inf), DVC, type = "interval2"))
 
-## ----PPH-model, echo = FALSE, message = FALSE, results = "hide", cache = TRUE----
+## ----PPH-model, echo = FALSE, message = FALSE, warning = FALSE, results = "hide", cache = TRUE----
 ## formulae
 lvars <- c("weekday", "year", tvars)
 svars <-  tvars
@@ -372,13 +464,17 @@ logLik(sm)
 
 vc <- vcov(sm)
 
-## check different parametrisations
-### location-scale Weibull model (stram)
+## location-scale count Weibull model (stram)
 smW <- cotram(sfm, data = d, method = "cloglog", order = 1)
 logLik(smW)
 
+## check different parametrisations
 ### location-scale Weibull model (gamlss with interval-censored likelihood)
 gen.cens(WEI, type = "interval")
+#### correct likelihood
+d$DVC <- as.integer(d$DVC)
+d$DVCi <- with(d, Surv(ifelse(DVC > 0, DVC - 1, -Inf), DVC, type = "interval2"))
+
 fmi <- as.formula(paste("DVCi ~", mu))
 gm <- gamlss(formula = fmi, sigma.fo = as.formula(paste("~", sigma)),
   data = d, family = WEIic, control = gamlss.control(n.cyc = 300, trace = FALSE))
@@ -399,7 +495,7 @@ tmp <- expand.grid(DVC = q, day = nd$day)
 tmp <- merge(tmp, nd[, -(which(names(nd) == "DVC"))], by = "day")
 tmp$day <- as.Date(tmp$day)
 
-## ----PPH-plot, echo = FALSE, message = FALSE, fig.height = 8.5, results='hide', out.width = ".9\\textwidth"----
+## ----PPH-plot, echo = FALSE, message = FALSE, fig.height = 8.5, results='hide', out.width = ".9\\textwidth", warning = FALSE----
 h <- 1:4 * 50
 v <- as.numeric(as.Date(paste("2002", 1:12, "01", sep = "-")))
 at <- as.Date(paste("2002", 1:12, "01", sep = "-"))
@@ -409,7 +505,7 @@ panel_DVC <- function(text, ...) {
   panel.text(max(as.numeric(tmp$day) - 60), 190, label = text)
 }
 
-## cloglog location transformation model
+## location count transformation model
 model <- m
 main <- toUpper(tram)
 
@@ -419,15 +515,15 @@ tmp$z <- c(predict(model, type = "distribution", newdata = nd, q = q, smooth = T
 ### plot quantiles
 loglik <- frmtll(logLik(model))
 p <- levelplot(z ~ day * DVC, data = tmp, panel = panel_DVC, 
-          at = 1:3 / 4, contour = TRUE, labels = TRUE, pretty = FALSE,
-          col.regions = rgb(.3, .3, .3, .3), colorkey = NULL,
+          at = 1:3 / 4, contour = TRUE, labels = list(labels = TRUE, cex = .7),
+          pretty = FALSE, col.regions = rgb(.3, .3, .3, .3), colorkey = NULL,
           scales = list(x = list(at = at, format = "%b"), alternating = 1),
           main = main, ylab = "DVCs", xlab = "Day of year", text = loglik, 
           par.settings = list(layout.heights = list(main.key.padding = 0, bottom.padding = 0))
 )
 pm <- p
 
-## Weibull location-scale Weibull model (stram)
+## location-scale count Weibull model (stram)
 model <- smW
 main <- "Location-Scale Weibull Model"
 
@@ -437,15 +533,15 @@ tmp$z <- c(predict(model, type = "distribution", newdata = nd, q = q, smooth = T
 ### plot quantiles
 loglik <- frmtll(logLik(model))
 p <- levelplot(z ~ day * DVC, data = tmp, panel = panel_DVC, 
-          at = 1:3 / 4, contour = TRUE, labels = TRUE, pretty = FALSE,
-          col.regions = rgb(.3, .3, .3, .3), colorkey = NULL,
+          at = 1:3 / 4, contour = TRUE, labels = list(labels = TRUE, cex = .7),
+          pretty = FALSE, col.regions = rgb(.3, .3, .3, .3), colorkey = NULL,
           scales = list(x = list(at = at, format = "%b"), alternating = 1),
           main = main, ylab = "DVCs", xlab = "Day of year", text = loglik, 
           par.settings = list(layout.heights = list(main.key.padding = 0, bottom.padding = 0))
 )
 psmW <- p
 
-### cloglog location-scale model
+## location-scale count transformation model (stram)
 model <- sm
 main <- toUpper(stram)
 
@@ -455,8 +551,8 @@ tmp$z <- c(predict(model, type = "distribution", newdata = nd, q = q, smooth = T
 ### plot quantiles
 loglik <- frmtll(logLik(model))
 p <- levelplot(z ~ day * DVC, data = tmp, panel = panel_DVC, 
-          at = 1:3 / 4, contour = TRUE, labels = TRUE, pretty = FALSE,
-          col.regions = rgb(.3, .3, .3, .3), colorkey = NULL,
+          at = 1:3 / 4, contour = TRUE, labels = list(labels = TRUE, cex = .7),
+          pretty = FALSE, col.regions = rgb(.3, .3, .3, .3), colorkey = NULL,
           scales = list(x = list(at = at, format = "%b"), alternating = 1),
           main = main, ylab = "DVCs", xlab = "Day of year", text = loglik, 
           par.settings = list(layout.heights = list(main.key.padding = 0, bottom.padding = 0))
@@ -465,7 +561,8 @@ psm <- p
 
 grid.arrange(pm, psmW, psm)
 
-## ----PPH-seq, echo = FALSE, results = "asis"----------------------------------
+
+## ----PPH-seq, echo = FALSE, results = "asis", warning = FALSE-----------------
 ### fake contrast matrix
 K <- glht(lm(DVC ~ year, data = d), mcp(year = "Sequen"))$linfct[, -1]
 cf <- coef(sm)
@@ -479,7 +576,7 @@ if (sm$negative) HR[,2:3] <- HR[,3:2]
 HR <- formatC(HR, format = "f", digits = 2)
 rownames(HR) <- sub(" - ", " -- ", rownames(HR))
 tab <- data.frame(rownames(HR), cbind(HR[, 1], paste0(HR[, 2], " -- ",HR[, 3, drop = FALSE])))
-colnames(tab) <- c("Year", "Estimate", "95\\% CI")
+colnames(tab) <- c("Year", "Hazard ratio", "95\\% CI")
 print(xtable(tab, align = "llrr"), floating = FALSE, include.rownames = FALSE,
       sanitize.colnames.function = function(x){x}, 
       hline.after = c(-1, 0, nrow(tab)), booktabs = TRUE)
@@ -494,6 +591,7 @@ library("trtf")
 library("ATR")
 
 ## ----TRTF-preproc, include = FALSE--------------------------------------------
+## CHFLS data: DOI: 10.1016/j.evolhumbehav.2008.11.002.
 load(file.path(path.package(package = "TH.data"), "rda", "CHFLS.rda"))
 
 ### choose necessary variables (from multcomp vignette)
@@ -566,6 +664,7 @@ orgA$wealthdiff <- orgA$RincomeComp - orgA$AincomeComp
 orgA$Aincome <- orgA$AincomeComp
 
 ## ----TRTF-model---------------------------------------------------------------
+## variable list taken from tram::mtram vignette
 ## null model
 m0 <- Polr(orgasm ~ 1, data = orgA, method = "logistic")
 
@@ -576,14 +675,15 @@ tr <- trafotree(m0, formula = orgasm ~ 1 | Aincome + Aheight + RAduration +
   data = orgA, intercept = "shift-scale", parm = NULL, maxsurrogate = 3L)
 logLik(tr)
 
-## ----TRTF-plot, fig.width = 13, fig.height = 8, out.width = "\\textwidth"-----
+
+## ----TRTF-plot, fig.width = 14, fig.height = 8, out.width = "\\textwidth"-----
 ### this is a _very_ dirty hack, for plotting only
 lev <- levels(tr$data$Rregion)
-lev[1] <- "Other                                 "
+lev[1] <- paste("Other", paste(rep(" ", 100), collapse = ""))
 levels(tr$data$Rregion) <- lev
 
 plot(rotate(tr), tp_args = list(newdata = model.frame(tr)[1, -1, drop = FALSE],
-  type = "density", fill = "lightgrey"), terminal_panel = trtf:::node_mlt, cex = .8)
+  type = "density", fill = "lightgrey"), terminal_panel = trtf:::node_mlt, cex = 1.1)
 
 
 ## Section 3.3. Transformation additive models for location and scale ##
@@ -685,10 +785,10 @@ mlt_TM <- refit(mTM) ## fitted mlt model
 coef(mlt_TM)
 logLik(mlt_TM)
 
-## ----TAMLS-plot, fig.height = 6, out.width = ".9\\textwidth", warning=FALSE, message=FALSE----
+## ----TAMLS-plot, fig.height = 6.8, out.width = ".9\\textwidth", warning=FALSE, message=FALSE----
 ## plot setup 
 pfun <- function(x, y, z, subscripts, at, text, ...) {
-  panel.contourplot(x, y, z, subscripts, 
+  panel.contourplot(x, y, z, subscripts,
     at = c(0.4, 2, 10, 25, 50, 75, 90, 98, 99.6) / 100, ...)
   panel.xyplot(x = db$age, y = db$head, pch = 20,
     col = rgb(.1, .1, .1, .1), ...)
@@ -712,7 +812,7 @@ pr$p <- with(pr, pBCT(q = y, mu = mu, sigma = sigma, nu = nu, tau = tau))
 ### plot
 main <- "BCT GAMLSS "
 loglik <- frmtll(logLik(mBCT))
-p <- contourplot(p ~ age + head | cut, data = pr, panel = pfun, region = FALSE,
+p <- contourplot(p ~ age + head | cut, data = pr, panel = pfun, region = FALSE, labels = list(cex = .8),
   xlab = "Age (years)", ylab = "Head circumference (cm)", main = main, text = loglik,
   scales = list(x = list(relation = "free"), alternating = 1), layout = c(2, 1), 
   par.setting = list(layout.heights = list(bottom.padding = 0))
@@ -730,7 +830,8 @@ pr$p <- c(predict(mlt_TM, newdata = with(pr, data.frame(y = head, m = m, s = s))
 ### plot
 main <- "TAMLS"
 loglik <- frmtll(logLik(mTM))
-p <- contourplot(p ~ age + head | cut, data = pr, panel = pfun, region = FALSE,
+## plot
+p <- contourplot(p ~ age + head | cut, data = pr, panel = pfun, region = FALSE, labels = list(cex = .8),
   xlab = "Age (years)", ylab = "Head circumference (cm)", main = main, text = loglik,
   scales = list(x = list(relation = "free"), alternating = 1), layout = c(2, 1), 
   par.setting = list(layout.heights = list(bottom.padding = 0))
@@ -739,7 +840,6 @@ ptm <- p
 
 grid.arrange(pg, ptm)
 }
-
 
 ## Section 3.4. Model selection ##
 ## not run by default (computationally too intensive)
@@ -763,7 +863,7 @@ nmes$visits <- with(nmes, R(visits, as.R.ordered = TRUE))
 mm <- model.matrix(~ health, data = nmes)[,-1]
 nmes <- cbind(nmes, mm)
 
-## formulae
+## formula
 vars <- c("healthpoor", "healthexcellent", "chronic", "sex", "school",
   "insurance")
 
@@ -772,16 +872,14 @@ fm <- as.formula(paste("visits ~ one + " , mu)) ## location only
 sfm <- as.formula(paste("visits ~ one + " , mu, "|", sigma)) ## location-scale
 
 ## ----VS-model, echo = FALSE, purl = TRUE, eval = FALSE------------------------
-## full model: cloglog model maximising non-parametric likelihood
-mML <- Polr(sfm, data = nmes, method = "cloglog")
-mML
+## transformation model maximising non-parametric likelihood (ML)
+(mML <- Polr(sfm, data = nmes, method = "cloglog"))
 
-## best subset model: L0 penalty on scale term only
-mBSS <- PolrVS(sfm, data = nmes, method = "cloglog", mandatory = fm)
-mBSS
+## best subset transformation model with L0 penalty on scale term only (BSS)
+(mBSS <- PolrVS(sfm, data = nmes, method = "cloglog", mandatory = fm))
 
 ## ----VS-table, results = "asis"-----------------------------------------------
-## full model
+## ML model
 vars <- c("health", vars[-grep("health", vars)]) ## model matrix
 cf <- coef(mML)
 cf[mML$shiftcoef] <- c(-1, 1)[mML$negative + 1L] * cf[mML$shiftcoef]
@@ -800,7 +898,7 @@ colnames(tab) <- c("Variable", "Level", "$\\hat{\\beta}$","$\\hat{\\gamma}$")
 tab[3:4] <- frmt4(as.matrix(tab[3:4]))
 tabf <- tab
 
-## best subset model
+## BSS model
 cf <- coef(mBSS$mod)
 cf[mBSS$mod$shiftcoef] <- c(-1, 1)[mBSS$mod$negative + 1L] * cf[mBSS$mod$shiftcoef]
 ifx <- sapply(nmes[, vars], is.factor)
@@ -835,8 +933,9 @@ print(xtab, floating = FALSE, sanitize.colnames.function = function(x){x},
 }
 
 
-## Section 5. Discussion -- Receiver operating characteristics ##
+## Supplementary Material B. Re-analysis of DOI: 10.1177/0272989x8800800309 ##
 ## ----ROC-setup, include = FALSE-----------------------------------------------
+
 ## libraries
 library("tram")
 
@@ -861,11 +960,13 @@ ROC.stram <- function(object, newdata = model.frame(object), prob = 1:99 / 100, 
 }
 
 plot.ROCstram <- function(x, col = "black", fill = "lightgrey",
-                          lty = 1, lwd = 1, add = FALSE, ...) {
+                          lty = 1, lwd = 1, add = FALSE,
+                          xlab = "1 - Specificity",
+                          ylab = "Sensitivity", ...) {
     prob <- attr(x, "prob")
     if (!add) {
     plot(0, 1, xlim = c(0, 1), ylim = c(0, 1), type = "n", 
-         xlab = "1 - Specificity", ylab = "Sensitivity", ...)
+         xlab = xlab, ylab = ylab, ...)
     abline(a = 0, b = 1, col = "lightgrey")
     abline(v = 0:10/10, col = "lightgrey", lty = 3)
     abline(h = 0:10/10, col = "lightgrey", lty = 3)
@@ -880,7 +981,7 @@ plot.ROCstram <- function(x, col = "black", fill = "lightgrey",
 }
 
 ## ----ROC-data, echo = FALSE, results = "asis", message = FALSE, warning = FALSE----
-## load ultrasound data: DOI: 10.1177/0272989x8800800309
+## ultrasound data: DOI: 10.1177/0272989x8800800309
 url <- "https://research.fredhutch.org/content/dam/stripe/diagnostic-biomarkers-statistical-center/files"
 file <- "tostbegg2.csv"
 
@@ -897,24 +998,27 @@ dat$d <- factor(dat$d, levels = c(0, 1), labels = c("no", "yes"))
 dat$y <- factor(dat$y, ordered = TRUE)
 dat$type <- factor(dat$type, levels = c(0, 1), labels = c("Colon", "Breast"))
 
-## same as in Tosteson & Begg (1988)
 dat$x1 <- model.matrix(~ d, dat)[,-1] ## hepatitis: 0 = no, 1 = yes
-dat$x2 <- model.matrix(~ type, dat)[,-1] ## primary tumour side: 0 = colon, 1 = breast
+dat$x2 <- model.matrix(~ type, dat)[,-1] ## primary tumor side: 0 = colon, 1 = breast
 dat$x3 <- ifelse(dat$x1 == 1 & dat$x2 == 1, 1, 0) ## interaction hepatitis & breast: 0 = no, 1 = yes
 
 ## ----ROC-model----------------------------------------------------------------
+## model from DOI: 10.1177/0272989x8800800309
 m <- Polr(y ~ x1 + x2 + x3 | x1 + x2 + x3, data = dat, method = "probit", scale_shift = TRUE)
 
-## ----ROC-plot, fig.height = 3.5, fig.width = 3.5, out.width = ".5\\textwidth"----
+## ----ROC-plot, fig.height = 3.5, fig.width = 3.5, out.width = ".45\\textwidth", results = 'hold', fig.show = 'hide'----
+op <- par(mgp = c(2.5, 1, 0), mar = c(3.5, 4, 0.5, 4), cex = .9)
 nd <- data.frame(x1 = 1, x2 = c(0, 1), x3 = c(0, 1)) ## breast cancer no / yes
 r <- ROC.stram(m, newdata = nd)
-par(mgp = c(2.5, 1, 0), mar = c(4, 4, 2, 1))
-plot(r, col = col, lwd = 1.5, las = 1)
-legend("bottomright", legend = c("Colon cancer", "Breast cancer"),
-       lty = 1, col = col, bty = "n", lwd = 1.5)
+par(mgp = c(2.5, 1, 0), mar = c(4, 4, 2.5, 1), pty = "s")
+plot(r, lty = 1:2, col = 1, lwd = 1.5, las = 1, cex = .5, # asp = 1,
+     ylab = "True positive ratio", xlab = "False positive ratio")
+legend("bottomright", legend = c("Colon", "Breast"),
+       lty = 1:2, col = 1, bty = "n", lwd = 1.5)
+par(op)
 
 
-## Appendix B Simulation results  ##
+## Supplementary Material D. Simulation ##
 ## not run by default (computationally too intensive)
 if (FALSE) {
 ## ----SIM-setup----------------------------------------------------------------
@@ -1038,6 +1142,7 @@ p2 <- bwplot(value ~ factor(beta) | coef, data = d, subset = d$variable == "scl_
    par.settings = list(layout.heights = list(main.key.padding = 0, bottom.padding = 0))
 )
 
+## combine all plots 
 grid.arrange(p1, p2, ncol = 1)
 
 
@@ -1087,9 +1192,10 @@ i <- rep(3:10, 2)
 l <- rep(c("location", "scale"), each = 8)
 label <- sapply(seq_along(i), function(t) as.expression(bquote(.(l[t])~x[.(i[t])])))
 
+## plot
 trellis.par.set(list(axis.components = list(top = list(tck = 0))))
 p <- xyplot(value ~ variable | gamma * beta, data = dv, 
-  ylab = "Estimate", xlab = "Variable", ylim = ylim,
+  ylab = "Estimate", xlab = "Covariate", ylim = ylim,
   scales = list(x = list(rot = 45, cex = .6, 
     label = label), alternating = 1),
   main = "Uninformative covariates", ## better formatting / title?
@@ -1107,9 +1213,10 @@ pv <- useOuterStrips(p,
   strip.left = strip.custom(which.given = 1,
     factor.levels = sapply(beta, function(b) as.expression(bquote(beta~"="~.(b))))))
 
-## combine all VS plots 
+## combine all plots 
 grid.arrange(p1, p2, pv, heights = c(2, 2, 4))
 }
+
 
 ## Session info ##
 warnings()
