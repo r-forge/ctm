@@ -244,9 +244,9 @@ FUN <- function(cf) {
   coef(smm) <- cf
   PI.stram(smm, newdata = nd[nd$mode == "Cesarean section",, drop = FALSE])
 }
-ret <- apply(rx, MARGIN = 1, FUN = FUN)
 retPI <- apply(rx, MARGIN = 1, FUN = FUN)
-ciPI <- quantile(retPI, probs = c(.025, .975))
+(ciPI <- quantile(retPI, probs = c(.025, .975)))
+(estPI <- PI.stram(sm, newdata = nd[nd$mode == "Cesarean section",, drop = FALSE]))
 
 
 ## Section 3.1.2. Crossing hazards ##
@@ -314,7 +314,7 @@ layout(matrix(1:2, nrow = 1, byrow = FALSE))
 ## plot Weibull model
 show_legend <- FALSE
 surv <- t(prmp)
-main <- "Weibull Model"
+main <- "Location-Scale Weibull Model"
 ll <- unlist(unname(mp$model["loglike"]))
 h <- ylim <- c(0, 1)
 type <- "l"
@@ -329,7 +329,7 @@ plot(sf <- survfit(Surv(time, status) ~ group, data = gastric),
 abline(h = h, lty = 2, col = "lightgrey")
 
 sapply(1:ncol(surv),
-       function(i) {lines(x = q, y = surv[, i], type = type, col = col[i], lwd = 2)})
+       function(i) {lines(x = q, y = surv[, i], type = type, col = col[i], lwd = 1.5)})
 
 if (show_legend) legend("topright", legend = nd$group,
                         col = col[seq_along(nd$group)], lty = 1, bty = "n", cex = .8)
@@ -456,8 +456,6 @@ logLik(m)
 sm <- cotram(sfm, data = d, method = "cloglog")
 logLik(sm)
 
-vc <- vcov(sm)
-
 ## location-scale count Weibull model (stram)
 smW <- cotram(sfm, data = d, method = "cloglog", order = 1)
 logLik(smW)
@@ -562,6 +560,8 @@ K <- glht(lm(DVC ~ year, data = d), mcp(year = "Sequen"))$linfct[, -1]
 cf <- coef(sm)
 y <- grep("year", names(cf))
 cfy <- cf[y]
+
+vc <- vcov(sm)
 vcy <- vc[y, y]
 
 ### yearly multiplicative change in hazards
