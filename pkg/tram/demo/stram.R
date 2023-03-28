@@ -978,13 +978,15 @@ plot.ROCstram <- function(x, col = "black", fill = "lightgrey",
 
 ## ----ROC-data, echo = FALSE, results = "asis", message = FALSE, warning = FALSE----
 ## ultrasound data: DOI: 10.1177/0272989x8800800309
+tmpd <- tempdir()
 url <- "https://research.fredhutch.org/content/dam/stripe/diagnostic-biomarkers-statistical-center/files"
-file <- "tostbegg2.csv"
+csv <- "tostbegg2.csv"
+file <- file.path(tmpd, csv)
 
 if (!file.exists(file)) {
-    op <- options(timeout = 120)
-    download.file(url = paste(url, file, sep = "/"), destfile = file)
-    options(op)
+  op <- options(timeout = 120)
+  download.file(url = paste(url, csv, sep = "/"), destfile = file)
+  options(op)
 }
 dat <- read.csv(file)
 
