@@ -2,6 +2,12 @@
 \name{NEWS}
 \title{NEWS file for the tram package}
 
+\section{Changes in Version 0.8-2 (2023-03-28)}{
+  \itemize{
+    \item{Update demo \code{stram}.}
+  }
+}
+
 \section{Changes in Version 0.8-1 (2023-03-09)}{
   \itemize{
     \item{Add \code{simulate.mmlt}.}
