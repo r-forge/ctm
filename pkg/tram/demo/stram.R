@@ -396,14 +396,15 @@ library("gamlss.cens")
 
 ## ----PPH-data, echo = FALSE, results = "asis", message = FALSE, warning = FALSE----
 ## deer-vehicle collision data: DOI: 10.1016/j.aap.2015.04.037
-file <- "analysis/DVC.rda"
-tgz <- "DVC.tgz"
+tmpd <- tempdir()
+file <- file.path(tmpd, "analysis", "DVC.rda")
+tgz <- file.path(tmpd, "DVC.tgz")
 url <- "https://zenodo.org/record/17179/files"
 if (!file.exists(file)) {
     op <- options(timeout = 120)
-    download.file(url = paste(url, tgz, sep = "/"), destfile = tgz)
+    download.file(url = paste(url, "DVC.tgz", sep = "/"), destfile = tgz)
     options(op)
-    untar(tgz, file = file)
+    untar(tgz, exdir = tmpd)
 }
 load(file)
 
