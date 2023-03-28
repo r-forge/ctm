@@ -10,8 +10,6 @@ library("reshape2")
 library("colorspace")
 library("xtable")
 
-set.seed(290873)
-
 acol <- sequential_hcl(6, "BluYl")[1:5]
 
 col <- acol[c(2, (length(acol)) - 1)]
@@ -237,7 +235,6 @@ PI.stram <- function(object, newdata = model.frame(sm), reference = 0) {
   object$model$todistr$p((sigma * mu - refsigma * refmu) / 
                            sqrt(sigma^2 + refsigma^2))
 }
-pi <- PI.stram(sm, newdata = nd[nd$mode == "Cesarean section",, drop = FALSE])
 
 library("mvtnorm")
 smm <- sm
@@ -248,7 +245,8 @@ FUN <- function(cf) {
   PI.stram(smm, newdata = nd[nd$mode == "Cesarean section",, drop = FALSE])
 }
 ret <- apply(rx, MARGIN = 1, FUN = FUN)
-ci <- quantile(ret, probs = c(.025, .975))
+retPI <- apply(rx, MARGIN = 1, FUN = FUN)
+ciPI <- quantile(retPI, probs = c(.025, .975))
 
 
 ## Section 3.1.2. Crossing hazards ##
@@ -318,7 +316,6 @@ show_legend <- FALSE
 surv <- t(prmp)
 main <- "Weibull Model"
 ll <- unlist(unname(mp$model["loglike"]))
-### survival function
 h <- ylim <- c(0, 1)
 type <- "l"
 
@@ -347,7 +344,6 @@ show_legend <- TRUE
 surv <- prsm
 main <- toUpper(stram)
 ll <- logLik(sm)
-### survival function
 h <- ylim <- c(0, 1)
 type <- "l"
 
@@ -373,9 +369,6 @@ par(op)
 layout(matrix(1))
 
 ## ----XH-test------------------------------------------------------------------
-### logrank test
-survdiff(formula = y ~ group, data = gastric)
-
 ## null model & scores
 m0 <- Coxph(y ~ 1, data = gastric, order = OR)
 
@@ -383,6 +376,7 @@ r <- resid(m0, what = "shifting")
 rs <- resid(m0, what = "scaling")
 
 ### logrank test
+survdiff(formula = y ~ group, data = gastric)
 (plr <- pvalue(independence_test(r ~ group, data = gastric)))
 
 ### bivariate test <- logrank + scale test combined
@@ -478,7 +472,7 @@ d$DVCi <- with(d, Surv(ifelse(DVC > 0, DVC - 1, -Inf), DVC, type = "interval2"))
 fmi <- as.formula(paste("DVCi ~", mu))
 gm <- gamlss(formula = fmi, sigma.fo = as.formula(paste("~", sigma)),
   data = d, family = WEIic, control = gamlss.control(n.cyc = 300, trace = FALSE))
-## WEI2() would be the equivalent model, but does not converge.
+### WEI2() would be the equivalent model, but does not converge
 logLik(gm)
 stopifnot(abs(c(logLik(smW) - logLik(gm))) < 20)
 
@@ -633,7 +627,8 @@ org$Aheight[org$Aheight < 0] <- NA
 
 ## outcome
 olevels <- c("never", "rarely", "sometimes", "often", "always")
-orgA <- subset(org, Rgender == "female" & Rhomosexual != "yes" & Agender != "woman" & orgasm %in% olevels)
+orgA <- subset(org, Rgender == "female" & Rhomosexual != "yes" &
+                 Agender != "woman" & orgasm %in% olevels)
 
 orgA$orgasm <- ordered(as.character(orgA$orgasm), levels = olevels)
 
@@ -668,7 +663,7 @@ orgA$Aincome <- orgA$AincomeComp
 ## null model
 m0 <- Polr(orgasm ~ 1, data = orgA, method = "logistic")
 
-### split wrt all baseline parameters (parm = NULL: take out baseline trafo for m0)
+## split wrt all baseline parameters (parm = NULL: take out baseline trafo for m0)
 set.seed(20220608)
 tr <- trafotree(m0, formula = orgasm ~ 1 | Aincome + Aheight + RAduration +
   Rage + edudiff + wealthdiff + Reducation + Rhealth + Rhappy + Rregion,
@@ -677,7 +672,7 @@ logLik(tr)
 
 
 ## ----TRTF-plot, fig.width = 14, fig.height = 8, out.width = "\\textwidth"-----
-### this is a _very_ dirty hack, for plotting only
+## this is a _very_ dirty hack, for plotting only
 lev <- levels(tr$data$Rregion)
 lev[1] <- paste("Other", paste(rep(" ", 100), collapse = ""))
 levels(tr$data$Rregion) <- lev
@@ -1094,7 +1089,7 @@ SIM <- function(sim) {
 }
 
 ## ----SIM-run------------------------------------------------------------------
-## parallelise for tramvs
+## parallelise for "tramvs"
 if (VS) {
   library("parallel")
 
