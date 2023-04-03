@@ -1,6 +1,7 @@
 \name{mmlt}
 \alias{mmlt}
-\alias{coef.mmlt}
+\alias{coef.cmmlt}
+\alias{coef.mmmlt}
 \alias{predict.mmlt}
 \alias{simulate.mmlt}
 \title{
@@ -11,9 +12,13 @@
 transformation models
 }
 \usage{
-mmlt(..., formula = ~ 1, data, conditional = GAUSSIAN, theta = NULL, 
-     control.outer = list(trace = FALSE), scale = FALSE, dofit = TRUE)
-\method{coef}{mmlt}(object, newdata, 
+mmlt(..., formula = ~ 1, data, control.outer = list(trace = FALSE), 
+     scale = FALSE, conditional = FALSE, args = list(seed = 1, M = 100), dofit = TRUE)
+\method{coef}{cmmlt}(object, newdata, 
+                    type = c("all", "conditional", "Lambda", "Lambdainv", 
+                             "Sigma", "Corr", "Spearman"), 
+                     ...)
+\method{coef}{mmmlt}(object, newdata, 
                     type = c("all", "marginal", "Lambda", "Lambdainv", 
                              "Sigma", "Corr", "Spearman"), 
                      ...)
@@ -38,13 +43,12 @@ directly interpreted marginally, this is explained in Section 2.6 by Klein
 et al. (2022). Using \code{conditional = FALSE} with probit-only models
 gives the same likelihood but different parameter estimates.
 }
-  \item{theta}{an optional vector of starting values.
-}
   \item{control.outer}{a list controlling \code{\link[alabama]{auglag}}
 }
   \item{scale}{logical; parameters are not scaled prior to optimisation by
 default.
 }
+  \item{args}{a list of arguments for \code{\link[mvtnorm]{lpmvnorm}}.}
   \item{dofit}{logical; parameters are fitted by default, otherwise a list
                with log-likelihood and score function is returned.
 }
