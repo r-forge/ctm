@@ -1,7 +1,0 @@
-cleanup
-^.*\.Rproj$
-^\.Rproj\.user$
-undernutrition.Rout
-undernutrition.Rout.save
-Rplots_old.pdf
-
