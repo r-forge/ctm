@@ -358,15 +358,15 @@ logLik(mm2)
 ## predicting marginal distributions and comparing across models with constant lambda
 x <- 0:4 / 4
 nd <- expand.grid(X1 = x, X2 = x, X3 = x)
-#predict(mm01, newdata = nd[1:5,], q = -2:2, 
-#        margins = 1, type = "distribution")
-#predict(mm02, newdata = nd[1:5,], q = -2:2, 
-#        margins = 2, type = "distribution")
-#
-#predict(mm1, newdata = nd[1:5,], q = -2:2, 
-#        margins = 1, type = "distribution")
-#predict(mm2, newdata = nd[1:5,], q = -2:2, 
-#        margins = 2, type = "distribution")
+predict(mm01, newdata = nd[1:5,], q = -2:2, 
+        margins = 1, type = "distribution")
+predict(mm02, newdata = nd[1:5,], q = -2:2, 
+        margins = 2, type = "distribution")
+
+predict(mm1, newdata = nd[1:5,], q = -2:2, 
+        margins = 1, type = "distribution")
+predict(mm2, newdata = nd[1:5,], q = -2:2, 
+        margins = 2, type = "distribution")
 
 ## expect correlations to be the same for the model with constant lambdas
 chk(c(coef(mm01, newdata = nd[1:5,], type = "Cor")), 
