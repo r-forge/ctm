@@ -280,13 +280,14 @@ fe_terms <- function(mod) {
 ## @return A list containing data and parameter values to be used in the TMB model.
 re_terms <- function(ranef, data, negative, drop.unused.levels = TRUE) {
   if (is.null(ranef)) {
-    out <- list(Zt = Matrix::Matrix(0, nrow = 0, ncol = nrow(data), doDiag = FALSE),
+    out <- list(Zt = nullTMatrix(nrow = 0, ncol = nrow(data)),
                 termsize = integer(0), blocksize = integer(0),
                 ui = Matrix::Matrix(0, nrow = 0, ncol = 0),
                 ci = numeric(0),
                 gamma = numeric(0), theta = numeric(0))
   } else {
-    rt <- lme4::mkReTrms(ranef, data, drop.unused.levels = drop.unused.levels)
+    rt <- lme4::mkReTrms(ranef, data, drop.unused.levels = drop.unused.levels,
+                         reorder.terms = FALSE)
     out <- list()
     out$Zt <- rt$Zt
     if (negative) out$Zt <- -out$Zt
@@ -319,7 +320,7 @@ sm_terms <- function(smooth, data, negative) {
   out <- list()
   if (is.null(smooth)) {
     out$X <- matrix(0, nrow = nrow(data), ncol = 0)
-    out$Z <- Matrix::Matrix(0, nrow = nrow(data), ncol = 0, doDiag = FALSE)
+    out$Z <- nullTMatrix(nrow = nrow(data), ncol = 0)
     out$re_dims <- numeric(0)
   } else {
     if (inherits(smooth, "tramME_smooth")) {
@@ -329,11 +330,10 @@ sm_terms <- function(smooth, data, negative) {
     }
     out$X <- do.call("cbind", sm$X)
     if (length(sm$Z)) {
-      out$Z <- as(do.call("cbind", sm$Z), "dgTMatrix")
+      out$Z <- as_dgTMatrix(do.call("cbind", sm$Z))
       out$re_dims <- sapply(sm$Z, ncol)
     } else {
-      out$Z <- Matrix::Matrix(0, nrow = nrow(out$X), ncol = 0,
-                              doDiag = FALSE)
+      out$Z <- nullTMatrix(nrow = nrow(out$X), ncol = 0L)
       out$re_dims <- numeric(0)
     }
   }
@@ -505,9 +505,7 @@ tramTMB <- function(data, parameters, constraint, negative, map = list(),
   if (is.null(data$postest_scale) || data$postest_scale == 0L) {
     data$Ype <- matrix(0, nrow = 0, ncol = length(parameters$beta0))
     data$Xpe <- matrix(0, nrow = 0, ncol = length(parameters$beta))
-    ## data$Zpe <- Matrix::Matrix(0, nrow = 0, ncol = length(parameters$gamma),
-    ##                            doDiag = FALSE)
-    data$Zpe <- as(matrix(0, nrow = 0, ncol = length(parameters$gamma)), "dgTMatrix")
+    data$Zpe <- nullTMatrix(nrow = 0L, ncol = length(parameters$gamma))
     data$postest_scale <- 0
   }
   if (is.null(data$as_lm)) data$as_lm <- 0
@@ -840,8 +838,7 @@ optim_control <- function(method = c("nlminb", "BFGS", "CG", "L-BFGS-B"),
   dat <- obj$env$data
   ## 1) First try: use the strategy similar to mlt
   if (is.null(par)) {
-    if (inherits(resp, "response"))
-      resp <- resp$approxy
+    resp <- R(resp)$approxy
     ## -- NOTE: crude weighted ECDF
     we <- dat$weights
     rwe <- round(we)
@@ -934,54 +931,22 @@ optim_control <- function(method = c("nlminb", "BFGS", "CG", "L-BFGS-B"),
 }
 
 
-##' Variance-covariance matrix of the parameters
-##' @param object A \code{tramTMB} object.
-##' @param par An optional vector of parameter values.
-##' @param method Method for calculating the covariance matrix.
-##' @param control Optional named list of controls to be passed to the specific methods.
-##' @param ... Optional arguments (ignored)
-##' @importFrom stats vcov optimHess
-##' @export
-## FIXME: might not be needed when .Hessian is also available
-vcov.tramTMB <- function(object, par = object$env$par_checked,
-                         method = c("optimHess", "numDeriv", "analytical"),
-                         control = list(), ...) {
-  method <- match.arg(method)
-  if (!.check_par(object, par))
-    stop("The supplied parameter vector does not satisfy the constraints.")
-  he <- switch(method,
-    optimHess = optimHess(par, object$fn, object$gr, control = control),
-    numDeriv = {
-      if (!is.null(control$method)) {
-        meth <- control$method
-        control$method <- NULL
-      } else {
-        meth <- "Richardson"
-      }
-      numDeriv::jacobian(func = object$gr, x = par,
-                         method = meth, method.args = control)
-    },
-    analytical = {
-      stopifnot(is.null(object$env$random))
-      object$he(par)
-    })
-  vc <- .robustInv(he)
-  rownames(vc) <- colnames(vc) <- names(par)
-  return(vc)
-}
-
 ## Hessian of the negative log-likelihood function
 ## @param object A \code{tramTMB} object.
 ## @param par An optional vector of parameter values.
 ## @param method Method for calculating the covariance matrix.
 ## @param control Optional named list of controls to be passed to the specific methods.
 ## @param joint If \code{TRUE}, calculate joint precision.
+## @param sparse If \code{TRUE}, the output is forced to be a symmetric sparse matrix
 ## @param ... Optional arguments (ignored)
 ##' @importFrom stats optimHess
-## FIXME: should I make it a proper method of tramTMB?
-.Hessian <- function(object, par = object$env$par_checked,
-                     method = c("optimHess", "numDeriv", "analytical"),
-                     control = list(), joint = FALSE, ...) {
+##' @importFrom Matrix forceSymmetric
+Hess <- function(object, par = object$env$par_checked,
+                 method = c("optimHess", "numDeriv", "analytical"),
+                 control = list(), joint = FALSE,
+                 sparse = FALSE, ...) {
+  if (missing(method) && is.null(object$env$random))
+    method <- "analytical"
   method <- match.arg(method)
   if (!.check_par(object, par))
     stop("The supplied parameter vector does not satisfy the constraints.")
@@ -1007,28 +972,12 @@ vcov.tramTMB <- function(object, par = object$env$par_checked,
                          getJointPrecision = TRUE)
     he <- sdr$jointPrecision
   }
+  if (sparse)
+    he <- forceSymmetric(he)
   return(he)
 }
 
-## Invert (a block) of the Hessian using Schur complements
-## @param he The Hessian.
-## @param block Index vector of the block we want to invert.
-## @param ... Optional arguments passed to \code{.robustInv}
-.invHess <- function(he, block = NULL, ...) {
-  if (!is.null(block)) {
-    h1 <- he[block, block]
-    h2 <- he[-block, -block]
-    h3 <- he[-block, block]
-    he2 <- try(h1 - crossprod(h3, solve(h2, h3)), silent = TRUE) ## w/ crossprod?
-    if (inherits(he2, "try-error")) {
-      return(.robustInv(he, ...)[block, block])
-    } else {
-      he <- he2
-    }
-  }
-  .robustInv(he, ...)
-}
-
+## FIXME: replace this with try_solve in predict.tramTMB
 ## Trying harder to invert the Hessian (same as in \code{vcov.mlt})
 ## @param he The Hessian matrix
 ## @param lam Adjustmet factor. \code{lam = 0} switches off the robust option.
