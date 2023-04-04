@@ -1,6 +1,6 @@
 
-R version 4.2.2 (2022-10-31) -- "Innocent and Trusting"
-Copyright (C) 2022 The R Foundation for Statistical Computing
+R version 4.2.3 (2023-03-15) -- "Shortstop Beagle"
+Copyright (C) 2023 The R Foundation for Statistical Computing
 Platform: x86_64-pc-linux-gnu (64-bit)
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
@@ -20,14 +20,8 @@ Type 'q()' to quit R.
 Loading required package: mlt
 Loading required package: basefun
 Loading required package: variables
+Loading required package: mvtnorm
 > library("mvtnorm")
-
-Attaching package: 'mvtnorm'
-
-The following object is masked from 'package:tram':
-
-    diagonals
-
 > library("multcomp")
 Loading required package: survival
 Loading required package: TH.data
@@ -83,34 +77,34 @@ The following object is masked from 'package:MASS':
 > cf2 <- coef(mmN)[1:length(cf1)]
 > cbind(cf1, cf2)
            cf1    cf2
-Bs1(V1) -3.893 -4.583
+Bs1(V1) -3.893 -4.582
 Bs2(V1) -0.905 -0.649
 Bs3(V1) -0.905 -0.649
 Bs4(V1) -0.078 -0.071
 Bs5(V1)  0.935  0.750
 Bs6(V1)  0.935  0.750
-Bs7(V1)  3.951  4.364
+Bs7(V1)  3.951  4.365
 x        0.013  0.028
 Bs1(V2) -3.536 -3.254
-Bs2(V2) -0.465 -1.312
+Bs2(V2) -0.465 -1.311
 Bs3(V2) -0.250  0.358
 Bs4(V2)  0.159  0.358
 Bs5(V2)  0.373  0.358
-Bs6(V2)  1.912  1.616
-Bs7(V2)  3.608  3.587
+Bs6(V2)  1.912  1.615
+Bs7(V2)  3.608  3.588
 x        0.363  0.376
 Bs1(V3) -3.179 -3.624
 Bs2(V3) -0.690 -0.662
 Bs3(V3) -0.690 -0.662
-Bs4(V3) -0.114  0.215
+Bs4(V3) -0.114  0.214
 Bs5(V3)  1.193  1.211
 Bs6(V3)  1.193  1.211
-Bs7(V3)  3.948  3.407
+Bs7(V3)  3.948  3.408
 x        0.395  0.437
-Bs1(V4) -3.748 -3.789
-Bs2(V4) -0.297 -0.323
-Bs3(V4) -0.297 -0.323
-Bs4(V4) -0.297  0.015
+Bs1(V4) -3.748 -3.790
+Bs2(V4) -0.297 -0.322
+Bs3(V4) -0.297 -0.322
+Bs4(V4) -0.297  0.016
 Bs5(V4)  1.221  1.029
 Bs6(V4)  1.221  1.029
 Bs7(V4)  3.180  3.436
@@ -137,24 +131,24 @@ Bs5(V2) 3.74 0.22
 Bs6(V2) 2.36 0.43
 Bs7(V2) 1.24 0.55
 x       0.34 0.34
-Bs1(V3) 1.13 0.48
-Bs2(V3) 2.39 0.31
-Bs3(V3) 3.87 0.31
+Bs1(V3) 1.13 0.51
+Bs2(V3) 2.39 0.32
+Bs3(V3) 3.87 0.32
 Bs4(V3) 4.67 0.54
 Bs5(V3) 4.34 0.31
 Bs6(V3) 3.05 0.31
-Bs7(V3) 1.68 0.51
+Bs7(V3) 1.68 0.54
 x       0.34 0.34
-Bs1(V4) 1.72 0.59
+Bs1(V4) 1.72 0.58
 Bs2(V4) 3.06 0.34
 Bs3(V4) 4.15 0.34
 Bs4(V4) 4.21 0.61
 Bs5(V4) 3.22 0.34
 Bs6(V4) 1.81 0.34
-Bs7(V4) 0.87 0.57
+Bs7(V4) 0.87 0.55
 x       0.34 0.34
 > vcov(mmN)["V1.x", "V4.x"]
-[1] 0.058
+[1] 0.059
 > 
 > 
 > chk(as.array(coef(mm, type = "Lambda"))[,,1], 
@@ -207,10 +201,10 @@ x       0.34 0.34
 [1] "Mean relative difference: 0.14"
 > chk(predict(m2, newdata = d, margins = 1:2, type = "distribution", log = TRUE), 
 +     predict(mmN, newdata = d, margins = 1:2, type = "distribution", log = TRUE))
-[1] "Mean relative difference: 0.037"
+[1] "Mean relative difference: 0.036"
 > chk(predict(m3, newdata = d, margins = 1:3, type = "density", log = TRUE), 
 +     predict(mmN, newdata = d, margins = 1:3, type = "density", log = TRUE))
-[1] "Mean relative difference: 0.083"
+[1] "Mean relative difference: 0.082"
 > chk(predict(m3, newdata = d, margins = 1:3, type = "distribution", log = TRUE), 
 +     predict(mmN, newdata = d, margins = 1:3, type = "distribution", log = TRUE))
 [1] "Mean relative difference: 0.026"
@@ -234,14 +228,14 @@ Bs3(V1) -0.905 -0.649
 Bs4(V1) -0.078 -0.071
 Bs5(V1)  0.935  0.750
 Bs6(V1)  0.935  0.750
-Bs7(V1)  3.951  4.363
+Bs7(V1)  3.951  4.365
 x        0.013  0.028
 Bs1(V2) -3.536 -3.254
-Bs2(V2) -0.465 -1.311
+Bs2(V2) -0.465 -1.312
 Bs3(V2) -0.250  0.358
 Bs4(V2)  0.159  0.358
 Bs5(V2)  0.373  0.358
-Bs6(V2)  1.912  1.615
+Bs6(V2)  1.912  1.616
 Bs7(V2)  3.608  3.587
 x        0.363  0.376
 Bs1(V3) -3.179 -3.624
@@ -252,14 +246,14 @@ Bs5(V3)  1.193  1.211
 Bs6(V3)  1.193  1.211
 Bs7(V3)  3.948  3.408
 x        0.395  0.437
-Bs1(V4) -3.748 -3.789
+Bs1(V4) -3.748 -3.790
 Bs2(V4) -0.297 -0.323
 Bs3(V4) -0.297 -0.323
-Bs4(V4) -0.297  0.016
+Bs4(V4) -0.297  0.015
 Bs5(V4)  1.221  1.029
 Bs6(V4)  1.221  1.029
 Bs7(V4)  3.180  3.436
-x        0.148  0.165
+x        0.148  0.164
 > 
 > sd1 <- sqrt(do.call("c", lapply(m[1:J], function(x) diag(vcov(as.mlt(x))))))
 > sd2 <- sqrt(diag(vcov(mmN)))[1:length(sd1)]
@@ -282,21 +276,21 @@ Bs5(V2) 3.74 0.22
 Bs6(V2) 2.36 0.43
 Bs7(V2) 1.24 0.55
 x       0.34 0.34
-Bs1(V3) 1.13 0.48
-Bs2(V3) 2.39 0.31
-Bs3(V3) 3.87 0.31
+Bs1(V3) 1.13 0.51
+Bs2(V3) 2.39 0.32
+Bs3(V3) 3.87 0.32
 Bs4(V3) 4.67 0.54
 Bs5(V3) 4.34 0.31
 Bs6(V3) 3.05 0.31
-Bs7(V3) 1.68 0.51
+Bs7(V3) 1.68 0.54
 x       0.34 0.34
-Bs1(V4) 1.72 0.59
+Bs1(V4) 1.72 0.58
 Bs2(V4) 3.06 0.34
 Bs3(V4) 4.15 0.34
 Bs4(V4) 4.21 0.61
 Bs5(V4) 3.22 0.34
 Bs6(V4) 1.81 0.34
-Bs7(V4) 0.87 0.57
+Bs7(V4) 0.87 0.55
 x       0.34 0.34
 > vcov(mmN)["V1.x", "V4.x"]
 [1] 0.059
@@ -372,92 +366,92 @@ x       0.34 0.34
 > mmN <- do.call("mmlt", m)
 > 
 > chk(logLik(mm), logLik(mmN))
-[1] "Mean relative difference: 0.0037"
+[1] TRUE
 > chk(c(logLik(mmN)), sum(predict(mmN, newdata = d, type = "density", log = TRUE)))
 [1] TRUE
 > 
 > chk(as.array(coef(mm, newdata = d, type = "Lambda"))[,,1], 
 +     as.array(coef(mmN, newdata = d, type = "Lambda"))[,,1])
-[1] "Mean relative difference: 0.015"
+[1] TRUE
 > chk(as.array(coef(mm, newdata = d, type = "Lambdainv"))[,,1], 
 +     as.array(coef(mmN, newdata = d, type = "Lambdainv"))[,,1])
-[1] "Mean relative difference: 0.036"
+[1] TRUE
 > chk(as.array(coef(mm, newdata = d, type = "Sigma"))[,,1], 
 +     as.array(coef(mmN, newdata = d, type = "Sigma"))[,,1])
-[1] "Mean relative difference: 0.064"
+[1] TRUE
 > chk(as.array(coef(mm, newdata = d, type = "Spearman"))[,,1], 
 +     as.array(coef(mmN, newdata = d, type = "Spearman"))[,,1])
-[1] "Mean relative difference: 0.028"
+[1] TRUE
 > 
 > chk(predict(mm, newdata = d, type = "density", log = TRUE), 
 +     predict(mmN, newdata = d, type = "density", log = TRUE))
-[1] "Mean relative difference: 0.026"
+[1] TRUE
 > chk(predict(mm, newdata = d, type = "distribution", log = TRUE), 
 +     predict(mmN, newdata = d, type = "distribution", log = TRUE))
-[1] "Mean relative difference: 0.013"
+[1] TRUE
 > 
 > chk(predict(mm, newdata = d, margins = 1:2, type = "density", log = TRUE), 
 +     predict(mmN, newdata = d, margins = 1:2, type = "density", log = TRUE))
-[1] "Mean relative difference: 0.026"
+[1] TRUE
 > chk(predict(mm, newdata = d, margins = 1:2, type = "distribution", log = TRUE), 
 +     predict(mmN, newdata = d, margins = 1:2, type = "distribution", log = TRUE))
-[1] "Mean relative difference: 0.0089"
+[1] TRUE
 > chk(predict(mm, newdata = d, margins = 1:3, type = "density", log = TRUE), 
 +     predict(mmN, newdata = d, margins = 1:3, type = "density", log = TRUE))
-[1] "Mean relative difference: 0.034"
+[1] TRUE
 > chk(predict(mm, newdata = d, margins = 1:3, type = "distribution", log = TRUE), 
 +     predict(mmN, newdata = d, margins = 1:3, type = "distribution", log = TRUE))
-[1] "Mean relative difference: 0.014"
+[1] TRUE
 > 
 > chk(sapply(1:J, function(i) predict(mm, margins = i, newdata = d, type = "density", log = TRUE)),
 +     sapply(1:J, function(i) predict(mmN, margins = i, newdata = d, type = "density", log = TRUE)))
-[1] "Mean relative difference: 0.047"
+[1] TRUE
 > 
 > ### implemented differently
 > for (j in 1:J) m[[j]]$todistr$name <- "CarlFriedrich"
 > mmN <- do.call("mmlt", m)
 > 
 > chk(logLik(mm), logLik(mmN))
-[1] "Mean relative difference: 0.0037"
+[1] TRUE
 > chk(c(logLik(mmN)), sum(predict(mmN, newdata = d, type = "density", log = TRUE)))
 [1] TRUE
 > 
 > chk(as.array(coef(mm, newdata = d, type = "Lambda"))[,,1], 
 +     as.array(coef(mmN, newdata = d, type = "Lambda"))[,,1])
-[1] "Mean relative difference: 0.015"
+[1] TRUE
 > chk(as.array(coef(mm, newdata = d, type = "Lambdainv"))[,,1], 
 +     as.array(coef(mmN, newdata = d, type = "Lambdainv"))[,,1])
-[1] "Mean relative difference: 0.036"
+[1] TRUE
 > chk(as.array(coef(mm, newdata = d, type = "Sigma"))[,,1], 
 +     as.array(coef(mmN, newdata = d, type = "Sigma"))[,,1])
-[1] "Mean relative difference: 0.064"
+[1] TRUE
 > chk(as.array(coef(mm, newdata = d, type = "Spearman"))[,,1], 
 +     as.array(coef(mmN, newdata = d, type = "Spearman"))[,,1])
-[1] "Mean relative difference: 0.028"
+[1] TRUE
 > 
 > chk(predict(mm, newdata = d, type = "density", log = TRUE), 
 +     predict(mmN, newdata = d, type = "density", log = TRUE))
-[1] "Mean relative difference: 0.026"
+[1] TRUE
 > chk(predict(mm, newdata = d, type = "distribution", log = TRUE), 
 +     predict(mmN, newdata = d, type = "distribution", log = TRUE))
-[1] "Mean relative difference: 0.013"
+[1] TRUE
 > 
 > chk(predict(mm, newdata = d, margins = 1:2, type = "density", log = TRUE), 
 +     predict(mmN, newdata = d, margins = 1:2, type = "density", log = TRUE))
-[1] "Mean relative difference: 0.026"
+[1] TRUE
 > chk(predict(mm, newdata = d, margins = 1:2, type = "distribution", log = TRUE), 
 +     predict(mmN, newdata = d, margins = 1:2, type = "distribution", log = TRUE))
-[1] "Mean relative difference: 0.0089"
+[1] TRUE
 > chk(predict(mm, newdata = d, margins = 1:3, type = "density", log = TRUE), 
 +     predict(mmN, newdata = d, margins = 1:3, type = "density", log = TRUE))
-[1] "Mean relative difference: 0.034"
+[1] TRUE
 > chk(predict(mm, newdata = d, margins = 1:3, type = "distribution", log = TRUE), 
 +     predict(mmN, newdata = d, margins = 1:3, type = "distribution", log = TRUE))
-[1] "Mean relative difference: 0.014"
+[1] TRUE
 > 
 > chk(sapply(1:J, function(i) predict(mm, margins = i, newdata = d, type = "density", log = TRUE)),
 +     sapply(1:J, function(i) predict(mmN, margins = i, newdata = d, type = "density", log = TRUE)))
-[1] "Mean relative difference: 0.047"
+[1] TRUE
 > 
 > ### conditional Colr
 > m <- lapply(un, function(i)
@@ -469,7 +463,7 @@ x       0.34 0.34
 > chk(c(logLik(mmC)), sum(predict(mmC, newdata = d, type = "density", log = TRUE)))
 [1] TRUE
 > logLik(mmC)
-'log Lik.' 311 (df=44)
+'log Lik.' 313 (df=44)
 > 
 > ##### FIRST SCENARIO: CONSTANT LAMBDA #####
 > set.seed(290875)
@@ -602,18 +596,12 @@ Y1         [,1]    [,2]    [,3]    [,4]    [,5]
 > 
 > ## x-dependent correlations. expect slightly different logliks
 > mm1 <- mmlt(b1, b2, formula = ~ X1 + X2 + X3, data = d)
-Warning message:
-In c.basis(bresponse = function (data, deriv = 0L)  :
-  more than one basis contains an intercept term
 > mm2 <- mmlt(b2, b1, formula = ~ X1 + X2 + X3, data = d)
-Warning message:
-In c.basis(bresponse = function (data, deriv = 0L)  :
-  more than one basis contains an intercept term
 > 
 > logLik(mm1)
-'log Lik.' -266 (df=14)
+'log Lik.' -277 (df=14)
 > logLik(mm2)
-'log Lik.' -282 (df=14)
+'log Lik.' -277 (df=14)
 > 
 > ## checking gradients
 > chk(c(numDeriv::grad(mm01$ll, mm02$par)),c(mm01$sc(mm02$par)))
@@ -640,8 +628,8 @@ Y1         [,1]    [,2]    [,3]    [,4]    [,5]
      -2 0.00045 3.8e-05 2.1e-06 8.2e-08 2.1e-09
      -1 0.01047 1.6e-03 1.7e-04 1.2e-05 5.8e-07
       0 0.09727 2.6e-02 5.0e-03 6.6e-04 5.9e-05
-      1 0.38760 1.8e-01 5.9e-02 1.4e-02 2.3e-03
-      2 0.76610 5.3e-01 2.9e-01 1.2e-01 3.4e-02
+      1 0.38757 1.8e-01 5.9e-02 1.4e-02 2.3e-03
+      2 0.76608 5.3e-01 2.9e-01 1.2e-01 3.4e-02
 > predict(mm02, newdata = nd[1:5,], q = -2:2, 
 +         margins = 2, type = "distribution")
        
@@ -649,7 +637,7 @@ Y1         [,1]    [,2]    [,3]    [,4]    [,5]
      -2 0.00045 3.8e-05 2.1e-06 8.2e-08 2.1e-09
      -1 0.01047 1.6e-03 1.7e-04 1.2e-05 5.8e-07
       0 0.09727 2.6e-02 5.0e-03 6.6e-04 5.9e-05
-      1 0.38758 1.8e-01 5.9e-02 1.4e-02 2.3e-03
+      1 0.38757 1.8e-01 5.9e-02 1.4e-02 2.3e-03
       2 0.76608 5.3e-01 2.9e-01 1.2e-01 3.4e-02
 > 
 > predict(mm1, newdata = nd[1:5,], q = -2:2, 
@@ -805,9 +793,9 @@ x.2 -0.420 -0.420 0.13 0.13
 > i <- grep("x.1", colnames(vc))
 > vc[i,i]
         y.1.x.1 y.2.x.1 y.3.x.1 y.4.x.1
-y.1.x.1   0.127   0.029   0.086   0.072
+y.1.x.1   0.127   0.029   0.085   0.072
 y.2.x.1   0.029   0.124   0.087   0.070
-y.3.x.1   0.085   0.087   0.123   0.111
+y.3.x.1   0.085   0.087   0.124   0.111
 y.4.x.1   0.072   0.070   0.111   0.122
 > 
 > summary(g1 <- glht(mmm(m1 = as.mlt(m1), m2 = as.mlt(m2), m3 = as.mlt(m3), m4 = as.mlt(m4)), mlf("x.1 = 0")))
@@ -834,8 +822,8 @@ Fit: mmlt(m1, m2, m3, m4, formula = ~1, data = d, conditional = FALSE)
 Linear Hypotheses:
              Estimate Std. Error z value Pr(>|z|)  
 y.1.x.1 == 0   1.0365     0.3569    2.90    0.012 *
-y.2.x.1 == 0  -0.7019     0.3528   -1.99    0.124  
-y.3.x.1 == 0  -0.5846     0.3508   -1.67    0.239  
+y.2.x.1 == 0  -0.7019     0.3528   -1.99    0.125  
+y.3.x.1 == 0  -0.5846     0.3517   -1.66    0.241  
 y.4.x.1 == 0   0.0383     0.3493    0.11    1.000  
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
@@ -850,9 +838,9 @@ m3: x.1   0.086   0.086   0.124   0.111
 m4: x.1   0.078   0.065   0.111   0.122
 > vcov(g2)
         y.1.x.1 y.2.x.1 y.3.x.1 y.4.x.1
-y.1.x.1   0.127   0.029   0.086   0.072
+y.1.x.1   0.127   0.029   0.085   0.072
 y.2.x.1   0.029   0.124   0.087   0.070
-y.3.x.1   0.085   0.087   0.123   0.111
+y.3.x.1   0.085   0.087   0.124   0.111
 y.4.x.1   0.072   0.070   0.111   0.122
 > 
 > 
@@ -878,4 +866,4 @@ y.4.x.1   0.072   0.070   0.111   0.122
 > 
 > proc.time()
    user  system elapsed 
-  11.85    0.12   11.97 
+ 44.784   0.092  44.881 

@@ -278,12 +278,19 @@
         return(list(left = ml, right = mr))
     })
 
+    ### needs newdata for predict
+    nn <- sapply(1:J, function(j) {
+        !is.null(m[[j]]$fixed) ||
+        !isTRUE(all.equal(unique(m[[j]]$offset), 0)) ||
+        m[[j]]$model$scale_shift
+    })
+
     type <- lapply(1:J, function(j)
         mlt:::.type_of_response(m[[j]]$response))
 
     return(list(models = m, mf = mf, cont = cmod, type = type, normal = normal, 
                 nobs = nobs, weights = w, nparm = P, parm = parm, 
-                ui = ui, ci = ci, mm = mm, names = nm))
+                ui = ui, ci = ci, mm = mm, names = nm, nn = nn))
 }
 
 .model_matrix <- function(models, j = 1, newdata = NULL, prime = FALSE) {
@@ -316,7 +323,7 @@
 .mget <- function(models, j = 1, parm, newdata = NULL,
                   what = c("trafo", "dtrafo", "z", "zleft", 
                            "dzleft", "zright", "dzright", "zprime", 
-                           "mm", "mmprime", "estfun")) {
+                           "mm", "mmprime", "estfun"), ...) {
 
     what <- match.arg(what)
 
@@ -332,12 +339,10 @@
     cf[] <- prm
     coef(tmp) <- cf
 
-    ### check for fixed and offset; go through predict if this is the case
+    ### check for fixed, offset, and shift_scale; go through predict if this is the case
     ### (slow but works)
     if (is.null(newdata)) {
-        if (!is.null(tmp$fixed)) newdata <- tmp$data
-        if (!isTRUE(all.equal(unique(tmp$offset), 0)))
-            newdata <- tmp$data
+        if (models$nn[j]) newdata <- tmp$data
     }
 
     if (models$cont[j]) {
@@ -347,12 +352,13 @@
             if (!models$normal[j])
                 trd <- tmp$todistr$d(tr) * trp
         } else {
-            tr <- predict(tmp, newdata = newdata, type = "trafo")
+            tr <- predict(tmp, newdata = newdata, type = "trafo", ...)
             drv <- 1L
             names(drv) <- tmp$model$response
-            trp <- predict(tmp, newdata = newdata, type = "trafo", deriv = drv)
+            trp <- predict(tmp, newdata = newdata, type = "trafo", 
+                           deriv = drv, ...)
             if (!models$normal[j])
-                trd <- predict(tmp, newdata = newdata, type = "density")
+                trd <- predict(tmp, newdata = newdata, type = "density", ...)
         }
     } else {
         if (is.null(newdata)) {
@@ -728,13 +734,21 @@ predict.mmlt <- function (object, newdata, margins = 1:J, type = c("trafo", "dis
     margins <- sort(margins)
     stopifnot(all(margins %in% 1:J))
 
+    if (length(margins) == 1L) {
+        ### ... may carry q = something
+        tmp <- object$models$models[[margins]]
+        cf <- coef(tmp)
+        cf[] <- object$models$parm(coef(object))[[margins]]
+        coef(tmp) <- cf
+        ret <- predict(tmp, newdata = newdata, type = type, log = log, ...)
+        return(ret)
+    }
+
+    ### don't feed ...
     z <- .mget(object$models, margins, parm = coef(object, type = "all"),
                newdata = newdata, what = "z")
-    if (length(margins) > 1L) {
-        z <- do.call("rbind", z)
-    } else {
-        z <- matrix(z, nrow = 1)
-    }
+    z <- do.call("rbind", z)
+
     if (type == "trafo") {
         stopifnot(!log)
         L <- coef(object, newdata = newdata, type = "Lambda")
@@ -803,18 +817,18 @@ simulate.mmlt <- function(object, nsim = 1L, seed = NULL, newdata, K = 50, ...) 
     L <- coef(object, newdata = newdata, type = "Lambda")
     N <- nrow(newdata)
 
-    Z <- matrix(rnorm(J * N), ncol = J)
+    Z <- matrix(rnorm(J * N), ncol = N)
     Ztilde <- solve(L, Z)
 
     ret <- matrix(0.0, nrow = N, ncol = J)
 
-    if (object$conditional) {
+    if (inherits(object, "cmmlt")) {
         for (j in 1:J) {
             q <- mkgrid(object$models$models[[j]], n = K)[[1L]]
             pr <- predict(object$models$models[[j]], newdata = newdata, type = "trafo", q = q)
             if (!is.matrix(pr)) pr <- matrix(pr, nrow = length(pr), ncol = NROW(newdata))
-            ret[,j] <- as.double(mlt:::.invf(object$marginals[[j]], f = t(pr), 
-                                             q = q, z = Ztilde[,j,drop = FALSE]))
+            ret[,j] <- as.double(mlt:::.invf(object$models$models[[j]], f = t(pr), 
+                                             q = q, z = t(Ztilde[j,,drop = FALSE])))
         }
     } else {
         Ztilde <- pnorm(Ztilde, log.p = TRUE)
@@ -822,8 +836,8 @@ simulate.mmlt <- function(object, nsim = 1L, seed = NULL, newdata, K = 50, ...) 
             q <- mkgrid(object$models$models[[j]], n = K)[[1L]]
             pr <- predict(object$models$models[[j]], newdata = newdata, type = "logdistribution", q = q)
             if (!is.matrix(pr)) pr <- matrix(pr, nrow = length(pr), ncol = NROW(newdata))
-            ret[,j] <- as.double(mlt:::.invf(object$marginals[[j]], f = t(pr), 
-                                             q = q, z = Ztilde[,j,drop = FALSE]))
+            ret[,j] <- as.double(mlt:::.invf(object$models$models[[j]], f = t(pr), 
+                                             q = q, z = t(Ztilde[j,,drop = FALSE])))
         }
     }
     colnames(ret) <- variable.names(object, response_only = TRUE)
@@ -870,8 +884,8 @@ confregion.mmlt <- function(object, level = .95, newdata, K = 250, ...) {
     nd <- if (missing(newdata)) data.frame(1) else newdata
 
     ret <- lapply(1:J, function(j) {
-        prb <- object$marginals[[j]]$todistr$p(a[,j])
-        predict(object$marginals[[j]], newdata = nd, type = "quantile", prob = prb)
+        prb <- object$models$models[[j]]$todistr$p(a[,j])
+        predict(object$models$models[[j]], newdata = nd, type = "quantile", prob = prb)
     })
     
     ret <- do.call("cbind", ret)
