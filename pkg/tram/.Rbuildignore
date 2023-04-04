@@ -3,5 +3,6 @@ cleanup
 ^\.Rproj\.user$
 undernutrition.Rout
 undernutrition.Rout.save
+stram.Rout.save
 Rplots_old.pdf
 mmlt-Ex.Rout.save
