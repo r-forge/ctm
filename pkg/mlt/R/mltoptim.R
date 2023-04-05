@@ -82,6 +82,7 @@ mltoptim <- function(auglag = list(maxtry = 5, kkt2.check = FALSE),
                 ret <- list(par = theta, convergence = 1)
             } else {
                 ret$par <- ret$solution
+                ret$value <- ret$objective
             }
             return(ret)
         }
