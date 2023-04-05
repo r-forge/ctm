@@ -25,7 +25,8 @@
     IDX <- t(M <- matrix(1:J^2, nrow = J, ncol = J))
     i <- cumsum(c(1, rep(J + 1, J - 1)))
     ID <- diagonals(as.integer(J), byrow = attr(Lambda, "byrow"))
-    ID <- ID[rep(1, N),]
+    if (dim(ID)[1L] != dim(chol)[1L])
+        ID <- ID[rep(1, dim(chol)[1L]),]
 
     if (inherits(Dchol, "ltMatrices")) {
         T1 <- matrix(as.array(Dchol), nrow = dim(Dchol)[2L]^2)
@@ -423,16 +424,33 @@
     }
 }
 
-mmlt <- function(..., formula = ~ 1, data, control.outer = list(trace = FALSE), 
-                 scale = FALSE, conditional = FALSE, args = list(seed = 1, M = 100), dofit = TRUE)
+.MCw <- function(J, M, seed) {
+
+    ### from stats:::simulate.lm
+    if (!exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)) 
+        runif(1)
+    if (is.null(seed)) 
+        RNGstate <- get(".Random.seed", envir = .GlobalEnv)
+    else {
+        R.seed <- get(".Random.seed", envir = .GlobalEnv)
+        set.seed(seed)
+        RNGstate <- structure(seed, kind = as.list(RNGkind()))
+        on.exit(assign(".Random.seed", R.seed, envir = .GlobalEnv))
+    }
+
+    return(matrix(runif((J - 1) * M), ncol = M))
+}
+
+mmlt <- function(..., formula = ~ 1, data, conditional = FALSE, 
+                 optim = mltoptim(auglag = list(maxtry = 5)), args = list(seed = 1, M = 1000), dofit = TRUE)
 {
   
     call <- match.call()
 
     m <- .models(...)
 
-    if (conditional)
-        stopifnot(all(m$normal))
+    if (conditional && !all(m$normal))
+        stop("Conditional models only available for marginal probit-type models")
 
     cJ <- sum(m$cont)
     dJ <- sum(!m$cont)
@@ -440,10 +458,22 @@ mmlt <- function(..., formula = ~ 1, data, control.outer = list(trace = FALSE),
     Jp <- J * (J - 1) / 2
     llsc <- .ll(c(cJ, dJ), scale = !conditional, args)
 
-    bx <- formula
-    if (inherits(formula, "formula"))
-        bx <- as.basis(formula, data)
-    lX <- model.matrix(bx, data = data)
+    if (dJ && is.null(args$w))
+        args$w <- .MCw(J = dJ, M = args$M, seed = args$seed)
+
+    if (isTRUE(all.equal(formula, ~ 1))) {
+        lX <- matrix(1)
+        colnames(lX) <- "(Intercept)"
+        bx <- NULL
+    } else {
+        bx <- formula
+        if (inherits(formula, "formula")) {
+            bx <- as.basis(formula, data)
+        } 
+        lX <- model.matrix(bx, data = data)
+        if (conditional)
+            warning("Conditional models with covariate-dependent correlations are order-dependent")
+    }
     .Xparm <- function(parm) {
         parm <- parm[-(1:sum(m$nparm))]
         return(matrix(parm, nrow = ncol(lX)))
@@ -509,7 +539,11 @@ mmlt <- function(..., formula = ~ 1, data, control.outer = list(trace = FALSE),
             sc <- llsc$score(obs = z, lower = lower, upper = upper, Lambda = Lambda)
 
         Lmat <- Lower_tri(sc$Lambda)[rep(1:Jp, each = ncol(lX)), , drop = FALSE]
-        scL <- rowSums(Lmat * t(lX[,rep(1:ncol(lX), Jp), drop = FALSE]))
+        if (identical(c(lX), 1)) {
+            scL <- rowSums(Lmat)
+        } else {
+            scL <- rowSums(Lmat * t(lX[,rep(1:ncol(lX), Jp), drop = FALSE]))
+        }
       
         scp <- vector(mode = "list", length = cJ + dJ)
 
@@ -553,9 +587,20 @@ mmlt <- function(..., formula = ~ 1, data, control.outer = list(trace = FALSE),
     }
 
     start <- do.call("c", lapply(m$models, function(mod) coef(mod)))
-    cll <- function(cpar) sum(-ll(c(start, cpar)))
+    if (weights) {
+        cll <- function(cpar) -sum(weights * ll(c(start, cpar)))
+    } else {
+        cll <- function(cpar) -sum(ll(c(start, cpar)))
+    }
     csc <- function(cpar) -sc(c(start, cpar))[-(1:length(start))]
-    op <- optim(rep(0, Jp * ncol(lX)), fn = cll, gr = csc, method = "BFGS")
+
+    for (i in 1:length(optim)) {
+        op <- optim[[i]](theta = rep(0, Jp * ncol(lX)), f = cll, g = csc)
+        if (op$convergence == 0) break()
+    }
+#    if (ret$convergence != 0)
+#        warning("Optimisation did not converge")
+
     start <- c(start, op$par)
 
     if (weights) {
@@ -571,13 +616,12 @@ mmlt <- function(..., formula = ~ 1, data, control.outer = list(trace = FALSE),
     ui <- cbind(ui, matrix(0, nrow = nrow(ui), ncol = Jp * ncol(lX)))
     ci <- m$ci
   
-    ret <- alabama::auglag(par = start, fn = f, gr = g,
-                           hin = function(par) ui %*% par - ci,
-                           hin.jac = function(par) ui,
-                           control.outer = control.outer)[c("par",
-                                                            "value",
-                                                            "gradient",
-                                                            "hessian")]
+    for (i in 1:length(optim)) {
+        ret <- optim[[i]](theta = start, f = f, g = g, ui = ui, ci = ci)
+        if (ret$convergence == 0) break()
+    }
+    if (ret$convergence != 0)
+        warning("Optimisation did not converge")
 
     pnm <- m$parm(ret$par)
     pnm <- sapply(1:J, function(j) paste(m$names[j], names(pnm[[j]]), sep = "."))
@@ -596,7 +640,8 @@ mmlt <- function(..., formula = ~ 1, data, control.outer = list(trace = FALSE),
     ret$formula <- formula
     ret$bx <- bx
     ret$parm <- function(par) c(m$parm(par), list(.Xparm(par)))
-    ret$data <- data
+    if (!missing(data))
+        ret$data <- data
     ret$names <- m$names
     ret$call <- match.call()
     class(ret) <- c(ifelse(conditional, "cmmlt", "mmmlt"), "mmlt")
@@ -605,7 +650,7 @@ mmlt <- function(..., formula = ~ 1, data, control.outer = list(trace = FALSE),
 
 
 .coef.mmlt <- function(object, newdata, 
-                      type = c("all", "Lambda", "Lambdainv", "Sigma", "Corr", "Spearman"), 
+                      type = c("all", "Lambda", "Lambdainv", "Precision", "Sigma", "Corr", "Spearman"), 
                       ...)
 {
   
@@ -618,7 +663,7 @@ mmlt <- function(..., formula = ~ 1, data, control.outer = list(trace = FALSE),
     prm <- object$parm(object$par)
     prm <- prm[[length(prm)]]
 
-    if (missing(newdata)) {
+    if (missing(newdata) || is.null(object$bx)) {
         if (NROW(prm) > 1L && type != "Lambda")
             stop("newdata not specified")
         ret <- ltMatrices(t(prm), byrow = TRUE, diag = FALSE, names = object$names)
@@ -631,13 +676,15 @@ mmlt <- function(..., formula = ~ 1, data, control.outer = list(trace = FALSE),
 
     ret <- switch(type, "Lambda" = ret,
                         "Lambdainv" = solve(ret),
+                        "Precision" = invchol2pre(ret),
                         "Sigma" = invchol2cov(ret),
                         "Corr" = invchol2cor(ret))
     return(ret)
 }
 
 coef.cmmlt <- function(object, newdata,
-                       type = c("all", "conditional", "Lambda", "Lambdainv", "Sigma", "Corr", "Spearman"), 
+                       type = c("all", "conditional", "Lambda", "Lambdainv", 
+                                "Precision", "Sigma", "Corr", "Spearman"), 
                        ...)
 {
 
@@ -650,7 +697,8 @@ coef.cmmlt <- function(object, newdata,
 }
 
 coef.mmmlt <- function(object, newdata,
-                       type = c("all", "marginal", "Lambda", "Lambdainv", "Sigma", "Corr", "Spearman"), 
+                       type = c("all", "marginal", "Lambda", "Lambdainv", 
+                                "Precision", "Sigma", "Corr", "Spearman"), 
                        ...)
 {
 
@@ -666,7 +714,14 @@ coef.mmmlt <- function(object, newdata,
 vcov.mmlt <- function(object, ...) {
     step <- 0
     lam <- 1e-6
-    H <- object$hessian
+    H <- object$optim_hessian
+    if (is.null(H)) {
+        if (requireNamespace("numDeriv")) {
+            H <- numDeriv::hessian(object$ll, object$par)
+        } else {
+            stop("Hessian not available")
+        }
+    }
     while((step <- step + 1) <= 3) {
           ret <- try(solve(H + (step - 1) * lam * diag(nrow(H))))
           if (!inherits(ret, "try-error")) break
