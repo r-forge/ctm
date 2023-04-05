@@ -12,15 +12,15 @@
 transformation models
 }
 \usage{
-mmlt(..., formula = ~ 1, data, control.outer = list(trace = FALSE), 
-     scale = FALSE, conditional = FALSE, args = list(seed = 1, M = 100), dofit = TRUE)
+mmlt(..., formula = ~ 1, data, conditional = FALSE, 
+                 optim = mltoptim(), args = list(seed = 1, M = 1000), dofit = TRUE)
 \method{coef}{cmmlt}(object, newdata, 
                     type = c("all", "conditional", "Lambda", "Lambdainv", 
-                             "Sigma", "Corr", "Spearman"), 
+                             "Precision", "Sigma", "Corr", "Spearman"), 
                      ...)
 \method{coef}{mmmlt}(object, newdata, 
                     type = c("all", "marginal", "Lambda", "Lambdainv", 
-                             "Sigma", "Corr", "Spearman"), 
+                             "Precision", "Sigma", "Corr", "Spearman"), 
                      ...)
 \method{predict}{mmlt}(object, newdata, margins = 1:J, 
                        type = c("trafo", "distribution", "density"), 
@@ -43,10 +43,7 @@ directly interpreted marginally, this is explained in Section 2.6 by Klein
 et al. (2022). Using \code{conditional = FALSE} with probit-only models
 gives the same likelihood but different parameter estimates.
 }
-  \item{control.outer}{a list controlling \code{\link[alabama]{auglag}}
-}
-  \item{scale}{logical; parameters are not scaled prior to optimisation by
-default.
+  \item{optim}{a list of optimisers as returned by \code{\link[mlt]{mltoptim}}
 }
   \item{args}{a list of arguments for \code{\link[mvtnorm]{lpmvnorm}}.}
   \item{dofit}{logical; parameters are fitted by default, otherwise a list
