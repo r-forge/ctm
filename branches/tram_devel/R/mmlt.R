@@ -17,6 +17,9 @@
 
     J <- dim(Lambda)[2L]
 
+    ### vectrick needs byrow = FALSE, so do it here once
+    Lambda <- ltMatrices(Lambda, byrow = FALSE)
+
     chol <- solve(Lambda)
     CCt <- Tcrossprod(chol, diag_only = TRUE)
     DC <- Dchol(chol, D = Dinv <- 1 / sqrt(CCt))
@@ -44,7 +47,8 @@
            vectrick(chol, B, ID)[IDX,] +
            vectrick(Dtmp, T1, ID)
 
-    ret <- - vectrick(chol, ret, chol)
+    ### this means: ret <- - vectrick(chol, ret, chol)
+    ret <- - vectrick(chol, ret)
     ret <- ltMatrices(ret[M[lower.tri(M)],,drop = FALSE],
                       byrow = FALSE, diag = FALSE)
     ret <- ltMatrices(ret, diag = FALSE, byrow = TRUE)
@@ -200,7 +204,8 @@
 
         if (scale) {
             k1 <- matrix(as.array(ret), nrow = J^2)
-            T1 <- -vectrick(Lambda, k1, Lambda)
+            ## this means: T1 <- -vectrick(Lambda, k1, Lambda)
+            T1 <- -vectrick(Lambda, k1)
             ret <- .magic(L1, T1, ncol(obs))
         } else {
             diagonals(ret) <- 0
@@ -442,6 +447,7 @@
 }
 
 mmlt <- function(..., formula = ~ 1, data, conditional = FALSE, 
+                 theta = NULL,
                  optim = mltoptim(auglag = list(maxtry = 5)), args = list(seed = 1, M = 1000), dofit = TRUE)
 {
   
@@ -499,10 +505,16 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
         }
     }
 
+    LAMBDA <- ltMatrices(matrix(0, nrow = Jp, ncol = nrow(lX)),
+                         byrow = TRUE, diag = FALSE, names = names(m$models))
+
     ll <- function(parm) {
 
-        Lambda <- ltMatrices(t(lX %*% .Xparm(parm)), byrow = TRUE, diag = FALSE, 
-                             names = names(m$models))
+        # Lambda <- ltMatrices(t(lX %*% .Xparm(parm)), byrow = TRUE, diag = FALSE, 
+        #                      names = names(m$models))
+        # saves time in ltMatrices
+        Lambda <- LAMBDA
+        Lambda[] <- t(lX %*% .Xparm(parm))
         ret <- 0
         if (cJ) {
             z <- do.call("rbind", .mget(m, j = which(m$cont), parm = parm, what = "z"))
@@ -521,8 +533,11 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
 
     sc <- function(parm) {
 
-        Lambda <- ltMatrices(t(lX %*% .Xparm(parm)), byrow = TRUE, diag = FALSE, 
-                             names = names(m$models))
+        # Lambda <- ltMatrices(t(lX %*% .Xparm(parm)), byrow = TRUE, diag = FALSE, 
+        #                      names = names(m$models))
+        # saves time in ltMatrices
+        Lambda <- LAMBDA
+        Lambda[] <- t(lX %*% .Xparm(parm))
 
         if (cJ) {
             z <- do.call("rbind", .mget(m, j = which(m$cont), parm = parm, what = "z"))
@@ -586,22 +601,29 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
         return(ret)
     }
 
-    start <- do.call("c", lapply(m$models, function(mod) coef(mod)))
-    if (weights) {
-        cll <- function(cpar) -sum(weights * ll(c(start, cpar)))
+    if (is.null(theta)) {
+
+        start <- do.call("c", lapply(m$models, function(mod) coef(mod)))
+        if (weights) {
+            cll <- function(cpar) -sum(weights * ll(c(start, cpar)))
+        } else {
+            cll <- function(cpar) -sum(ll(c(start, cpar)))
+        }
+        csc <- function(cpar) -sc(c(start, cpar))[-(1:length(start))]
+
+        ### note: this is not optimal for conditional = TRUE
+        for (i in 1:length(optim)) {
+            op <- optim[[i]](theta = rep(0, Jp * ncol(lX)), f = cll, g = csc)
+            if (op$convergence == 0) break()
+        }
+        # if (ret$convergence != 0)
+        #     warning("Optimisation did not converge")
+
+        start <- c(start, op$par)
     } else {
-        cll <- function(cpar) -sum(ll(c(start, cpar)))
+        ### use user-supplied starting values
+        start <- theta
     }
-    csc <- function(cpar) -sc(c(start, cpar))[-(1:length(start))]
-
-    for (i in 1:length(optim)) {
-        op <- optim[[i]](theta = rep(0, Jp * ncol(lX)), f = cll, g = csc)
-        if (op$convergence == 0) break()
-    }
-#    if (ret$convergence != 0)
-#        warning("Optimisation did not converge")
-
-    start <- c(start, op$par)
 
     if (weights) {
         f <- function(par) -sum(weights * ll(par))

@@ -12,8 +12,9 @@
 transformation models
 }
 \usage{
-mmlt(..., formula = ~ 1, data, conditional = FALSE, 
-                 optim = mltoptim(), args = list(seed = 1, M = 1000), dofit = TRUE)
+mmlt(..., formula = ~ 1, data, conditional = FALSE, theta = NULL,
+     optim = mltoptim(auglag = list(maxtry = 5)), 
+     args = list(seed = 1, M = 1000), dofit = TRUE)
 \method{coef}{cmmlt}(object, newdata, 
                     type = c("all", "conditional", "Lambda", "Lambdainv", 
                              "Precision", "Sigma", "Corr", "Spearman"), 
@@ -42,6 +43,8 @@ described by Klein et al. (2022). If \code{FALSE}, parameters can be
 directly interpreted marginally, this is explained in Section 2.6 by Klein
 et al. (2022). Using \code{conditional = FALSE} with probit-only models
 gives the same likelihood but different parameter estimates.
+}
+  \item{theta}{an optional vector of starting values.
 }
   \item{optim}{a list of optimisers as returned by \code{\link[mlt]{mltoptim}}
 }
