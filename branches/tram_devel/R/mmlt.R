@@ -824,7 +824,8 @@ predict.mmlt <- function (object, newdata, margins = 1:J,
         ### conditional models
         mcov <- coef(object, newdata = newdata, type = "Sigma")
         msd <- sqrt(diagonals(mcov)[margins,])
-        if (length(unique(msd)) == 1L) {
+        if (length(unique(msd)) == 1L && 
+            !"bscaling" %in% names(tmp$model$model)) { ### no stram model
             cf <- cf / msd
             coef(tmp) <- cf
             ret <- predict(tmp, newdata = newdata, type = type, log = log, ...)
