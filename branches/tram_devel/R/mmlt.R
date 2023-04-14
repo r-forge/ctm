@@ -803,10 +803,9 @@ print.mmlt <- function(x, ...) {
 }
 
 
-predict.mmlt <- function (object, newdata, margins = 1:J, type = c("trafo", "distribution", 
-    "density"), log = FALSE, ...) 
+predict.mmlt <- function (object, newdata, margins = 1:J, 
+    type = c("trafo", "distribution", "density"), log = FALSE, ...) 
 {
-    type <- match.arg(type)
     J <- length(object$models$models)
     margins <- sort(margins)
     stopifnot(all(margins %in% 1:J))
@@ -816,11 +815,35 @@ predict.mmlt <- function (object, newdata, margins = 1:J, type = c("trafo", "dis
         tmp <- object$models$models[[margins]]
         cf <- coef(tmp)
         cf[] <- object$models$parm(coef(object))[[margins]]
-        coef(tmp) <- cf
-        ret <- predict(tmp, newdata = newdata, type = type, log = log, ...)
+        ### marginal models
+        if (!inherits(object, "cmmlt")) {
+            coef(tmp) <- cf
+            ret <- predict(tmp, newdata = newdata, type = type, log = log, ...)
+            return(ret)
+        }
+        ### conditional models
+        mcov <- coef(object, newdata = newdata, type = "Sigma")
+        msd <- sqrt(diagonals(mcov)[margins,])
+        if (length(unique(msd)) == 1L) {
+            cf <- cf / msd
+            coef(tmp) <- cf
+            ret <- predict(tmp, newdata = newdata, type = type, log = log, ...)
+            return(ret)
+        }
+        type <- match.arg(type)
+        tr <- predict(tmp, newdata = newdata, type = "trafo", ...) / msd
+        if (type == "trafo")
+            return(tr)
+        if (type == "distribution")
+            return(pnorm(tr, log.p = log))
+        dx <- 1
+        names(dx) <- tmp$response
+        dtr <- predict(tmp, newdata = newdata, type = "trafo", deriv = dx, ...)
+        ret <- dnorm(tr, log = TRUE) - .log(msd) + .log(dtr)
         return(ret)
     }
 
+    type <- match.arg(type)
     ### don't feed ...
     z <- .mget(object$models, margins, parm = coef(object, type = "all"),
                newdata = newdata, what = "z")
