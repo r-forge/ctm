@@ -69,10 +69,10 @@
         stopifnot(!attr(Lambda, "diag"))
 
         if (!scale)
-            return(dmvnorm(x = t(obs), invchol = Lambda, log = TRUE))
+            return(dmvnorm(x = obs, invchol = Lambda, log = TRUE))
 
         chol <- .chol(Lambda)
-        return(dmvnorm(x = t(obs), chol = chol, log = TRUE))
+        return(dmvnorm(x = obs, chol = chol, log = TRUE))
     }
 
     csc <- function(obs, Lambda, magic = TRUE) {
@@ -83,21 +83,21 @@
         N <- ncol(obs)
 
         if (!scale) {
-            ret <- sldmvnorm(x = t(obs), invchol = Lambda)
+            ret <- sldmvnorm(x = obs, invchol = Lambda)
             names(ret)[names(ret) == "invchol"] <- "Lambda"
             names(ret)[names(ret) == "x"] <- "obs"
             return(ret)
         }
 
         if (!magic) {
-            ret <- sldmvnorm(x = t(obs), invchol = invcholD(Lambda))
+            ret <- sldmvnorm(x = obs, invchol = invcholD(Lambda))
             names(ret)[names(ret) == "invchol"] <- "Lambda"
             names(ret)[names(ret) == "x"] <- "obs"
             return(ret)
         }
 
         chol <- .chol(Lambda)
-        ret <- sldmvnorm(x = t(obs), chol = chol)
+        ret <- sldmvnorm(x = obs, chol = chol)
         dobs <- ret$x
         ret <- .magic(Lambda, ret$chol, N)
         return(list(Lambda = ret, obs = dobs))
@@ -859,7 +859,7 @@ predict.mmlt <- function (object, newdata, margins = 1:J, type = c("trafo", "dis
     L <- coef(object, newdata = newdata, type = "Lambda")
         if (length(margins) != J) 
             L <- marg_mvnorm(invchol = L, which = margins)$invchol
-    ret <- dmvnorm(t(z), invchol = L, log = TRUE)
+    ret <- dmvnorm(z, invchol = L, log = TRUE)
     ret <- ret + colSums(.log(zprime))
     if (log) return(ret)
     return(exp(ret))
@@ -937,13 +937,8 @@ confregion.mmlt <- function(object, level = .95, newdata, K = 250, ...) {
 
     if (!missing(newdata)) stopifnot(nrow(newdata) == 1)
 
-    if (object$conditional) {
-        Linv <- coef(object, newdata = newdata, type = "Lambdainv")
-        Linv <- as.array(Linv)[,,1]
-    } else {
-        CR <- as.array(coef(object, newdata = newdata, type = "Corr"))[,,1]
-        Linv <- t(chol(CR))
-    }
+    Linv <- coef(object, newdata = newdata, type = "Lambdainv")
+    Linv <- as.array(Linv)[,,1]
     J <- nrow(Linv)
 
     q <- qchisq(level, df = J)
