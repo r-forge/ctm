@@ -1,5 +1,6 @@
 \name{mmlt}
 \alias{mmlt}
+\alias{mmltoptim}
 \alias{coef.cmmlt}
 \alias{coef.mmmlt}
 \alias{predict.mmlt}
@@ -15,6 +16,7 @@ transformation models
 mmlt(..., formula = ~ 1, data, conditional = FALSE, theta = NULL,
      optim = mltoptim(auglag = list(maxtry = 5)), 
      args = list(seed = 1, M = 1000), dofit = TRUE)
+mmltoptim(auglag = list(maxtry = 5), ...)
 \method{coef}{cmmlt}(object, newdata, 
                     type = c("all", "conditional", "Lambda", "Lambdainv", 
                              "Precision", "Sigma", "Corr", "Spearman"), 
@@ -52,6 +54,8 @@ gives the same likelihood but different parameter estimates.
   \item{dofit}{logical; parameters are fitted by default, otherwise a list
                with log-likelihood and score function is returned.
 }
+\item{auglag}{a list of arguments to \code{\link[alabama]{auglag}} ensuring
+              a numerically determined Hessian is returned.}
   \item{object}{an object of class \code{mmlt}.
 }
   \item{newdata}{an optional data.frame coefficients and predictions shall
