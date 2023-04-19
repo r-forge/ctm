@@ -14,8 +14,7 @@ transformation models
 }
 \usage{
 mmlt(..., formula = ~ 1, data, conditional = FALSE, theta = NULL,
-     optim = mltoptim(auglag = list(maxtry = 5)), 
-     args = list(seed = 1, M = 1000), dofit = TRUE)
+     optim = mmltoptim(), args = list(seed = 1, M = 1000), dofit = TRUE)
 mmltoptim(auglag = list(maxtry = 5), ...)
 \method{coef}{cmmlt}(object, newdata, 
                     type = c("all", "conditional", "Lambda", "Lambdainv", 

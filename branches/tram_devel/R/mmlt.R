@@ -222,7 +222,7 @@
         lst <- tmp0[rep(1:dJ, cJ),,drop = FALSE]
         dobs <- -margin.table(aL * array(lst, dim = dim(aL)), 2:3)
 
-        ret <- c(list(Lambda = ret, obs = cs$obs + dobs), 
+        ret <- c(list(Lambda = ret, obs = cs$obs + c(dobs)), 
                  ds[c("lower", "upper")])
         return(ret)
     }
@@ -612,7 +612,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
         return(ret)
     }
 
-    if (is.null(theta)) {
+    if (is.null(theta) && dofit) {
 
         start <- do.call("c", lapply(m$models, function(mod) coef(mod)))
         if (weights) {
@@ -643,11 +643,11 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
     }
     g <- function(par) -sc(par)
 
-    if (!dofit) return(list(ll = f, gr = g))
-
     ui <- m$ui
     ui <- cbind(ui, matrix(0, nrow = nrow(ui), ncol = Jp * ncol(lX)))
     ci <- m$ci
+
+    if (!dofit) return(list(ll = f, gr = g, ui = ui, ci = ci))
   
     for (i in 1:length(optim)) {
         ret <- optim[[i]](theta = start, f = f, g = g, ui = ui, ci = ci)
