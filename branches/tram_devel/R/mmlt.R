@@ -220,9 +220,12 @@
         ### post differentiate mean 
         aL <- as.array(Lambda)[-(1:cJ), 1:cJ,,drop = FALSE]
         lst <- tmp0[rep(1:dJ, cJ),,drop = FALSE]
-        dobs <- -margin.table(aL * array(lst, dim = dim(aL)), 2:3)
+        if (dim(aL)[3] == 1)
+            aL <- aL[,,rep(1, ncol(lst)), drop = FALSE]
+        dim <- dim(aL)
+        dobs <- -margin.table(aL * array(lst, dim = dim), 2:3)
 
-        ret <- c(list(Lambda = ret, obs = cs$obs + c(dobs)), 
+        ret <- c(list(Lambda = ret, obs = cs$obs + dobs), 
                  ds[c("lower", "upper")])
         return(ret)
     }
@@ -647,14 +650,20 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
     ui <- cbind(ui, matrix(0, nrow = nrow(ui), ncol = Jp * ncol(lX)))
     ci <- m$ci
 
-    if (!dofit) return(list(ll = f, gr = g, ui = ui, ci = ci))
+    if (is.null(theta) && !dofit) 
+        return(list(ll = f, sc = g, ui = ui, ci = ci))
   
-    for (i in 1:length(optim)) {
-        ret <- optim[[i]](theta = start, f = f, g = g, ui = ui, ci = ci)
-        if (ret$convergence == 0) break()
+    if (dofit) {
+        for (i in 1:length(optim)) {
+            ret <- optim[[i]](theta = start, f = f, g = g, ui = ui, ci = ci)
+            if (ret$convergence == 0) break()
+        }
+        if (ret$convergence != 0)
+            warning("Optimisation did not converge")
+    } else {
+        ret <- list(par = theta, value = ll(theta), convergence = NA,
+                    optim_hessian = NA)
     }
-    if (ret$convergence != 0)
-        warning("Optimisation did not converge")
 
     pnm <- m$parm(ret$par)
     pnm <- do.call("c", lapply(1:J, function(j) paste(m$names[j], names(pnm[[j]]), sep = ".")))
@@ -815,7 +824,8 @@ print.mmlt <- function(x, ...) {
 
 
 predict.mmlt <- function (object, newdata, margins = 1:J, 
-    type = c("trafo", "distribution", "density"), log = FALSE, ...) 
+    type = c("trafo", "distribution", "density"), log = FALSE, 
+    args = object$args, ...) 
 {
     J <- length(object$models$models)
     margins <- sort(margins)
@@ -874,7 +884,7 @@ predict.mmlt <- function (object, newdata, margins = 1:J,
         Linv <- coef(object, newdata = newdata, type = "Lambdainv")
         if (length(margins) != J) 
             Linv <- marg_mvnorm(chol = Linv, which = margins)$chol
-        a <- object$args
+        a <- args
         a$lower <- lower
         a$upper <- upper
         a$logLik <- FALSE
