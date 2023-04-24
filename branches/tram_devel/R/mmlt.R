@@ -75,10 +75,10 @@
             stopifnot(!attr(Lambda, "diag"))
 
         if (!scale)
-            return(dmvnorm(x = obs, invchol = Lambda, log = TRUE))
+            return(ldmvnorm(obs = obs, invchol = Lambda, logLik = FALSE))
 
         chol <- .chol(Lambda)
-        return(dmvnorm(x = obs, chol = chol, log = TRUE))
+        return(ldmvnorm(obs = obs, chol = chol, logLik = FALSE))
     }
 
     csc <- function(obs, Lambda, magic = TRUE) {
@@ -89,22 +89,20 @@
         N <- ncol(obs)
 
         if (!scale) {
-            ret <- sldmvnorm(x = obs, invchol = Lambda)
+            ret <- sldmvnorm(obs = obs, invchol = Lambda)
             names(ret)[names(ret) == "invchol"] <- "Lambda"
-            names(ret)[names(ret) == "x"] <- "obs"
             return(ret)
         }
 
         if (!magic) {
-            ret <- sldmvnorm(x = obs, invchol = invcholD(Lambda))
+            ret <- sldmvnorm(obs = obs, invchol = invcholD(Lambda))
             names(ret)[names(ret) == "invchol"] <- "Lambda"
-            names(ret)[names(ret) == "x"] <- "obs"
             return(ret)
         }
 
         chol <- .chol(Lambda)
-        ret <- sldmvnorm(x = obs, chol = chol)
-        dobs <- ret$x
+        ret <- sldmvnorm(obs = obs, chol = chol)
+        dobs <- ret$obs
         ret <- .magic(Lambda, ret$chol, N)
         return(list(Lambda = ret, obs = dobs))
     }
@@ -908,7 +906,7 @@ predict.mmlt <- function (object, newdata, margins = 1:J,
     L <- coef(object, newdata = newdata, type = "Lambda")
         if (length(margins) != J) 
             L <- marg_mvnorm(invchol = L, which = margins)$invchol
-    ret <- dmvnorm(z, invchol = L, log = TRUE)
+    ret <- ldmvnorm(obs = z, invchol = L, logLik = FALSE)
     ret <- ret + colSums(.log(zprime))
     if (log) return(ret)
     return(exp(ret))
