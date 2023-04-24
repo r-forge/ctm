@@ -166,6 +166,7 @@
         md <- marg_mvnorm(invchol = Lambda, which = 1:cJ)
         ret <- cll(obs = obs, Lambda = md$invchol)
 
+        #### FIXME: WHY here?
         if (scale) Lambda <- invcholD(Lambda)
 
         cd <- cond_mvnorm(invchol = Lambda, which_given = 1:cJ, given = obs, center = TRUE)
@@ -692,7 +693,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
 
 
 .coef.mmlt <- function(object, newdata, 
-                      type = c("all", "Lambda", "Lambdainv", "Precision", "Sigma", "Corr", "Spearman"), 
+                      type = c("all", "Lambda", "Lambdainv", "Precision", "Sigma", "Corr", "Spearman", "Kendall"), 
                       ...)
 {
   
@@ -702,6 +703,9 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
     if (type == "Spearman")
         return(6 * asin(coef(object, newdata = newdata, type = "Cor") / 2) / pi)
   
+    if (type == "Kendall")
+        return(2 * asin(coef(object, newdata = newdata, type = "Cor")) / pi)
+
     prm <- object$parm(object$par)
     prm <- prm[[length(prm)]]
 
@@ -726,7 +730,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
 
 coef.cmmlt <- function(object, newdata,
                        type = c("all", "conditional", "Lambda", "Lambdainv", 
-                                "Precision", "Sigma", "Corr", "Spearman"), 
+                                "Precision", "Sigma", "Corr", "Spearman", "Kendall"), 
                        ...)
 {
 
@@ -740,7 +744,7 @@ coef.cmmlt <- function(object, newdata,
 
 coef.mmmlt <- function(object, newdata,
                        type = c("all", "marginal", "Lambda", "Lambdainv", 
-                                "Precision", "Sigma", "Corr", "Spearman"), 
+                                "Precision", "Sigma", "Corr", "Spearman", "Kendall"), 
                        ...)
 {
 
