@@ -29,9 +29,8 @@
             if (!scale)
                 return(ldmvnorm(obs = obs, invchol = Lambda, logLik = FALSE))
 
-            chol <- solve(Lambda)
-            schol <- standardize(chol = chol)
-            return(ldmvnorm(obs = obs, chol = schol, logLik = FALSE))
+            sLambda <- standardize(invchol = Lambda)
+            return(ldmvnorm(obs = obs, invchol = sLambda, logLik = FALSE))
         }
 
         csc <- function(obs, Lambda) {
@@ -45,8 +44,15 @@
             }
 
            chol <- solve(Lambda)
-           schol <- standardize(chol = chol)
-           ret <- sldmvnorm(obs = obs, chol = schol)
+           ### START readable:
+           # schol <- standardize(chol = chol)
+           # ret <- sldmvnorm(obs = obs, chol = schol)
+           ### avoid calling solve() multiple times
+           D <- sqrt(Tcrossprod(chol, diag_only = TRUE))
+           sLambda <- invcholD(Lambda, D = D)
+           ret <- sldmvnorm(obs = obs, invchol = sLambda)
+           ret$chol <- -vectrick(sLambda, ret$invchol)
+           ### END
            dobs <- ret$obs
            ret <- destandardize(chol = chol, invchol = Lambda, 
                                 score_schol = ret$chol)
@@ -94,8 +100,15 @@
         }
 
         chol <- solve(Lambda)
-        a$chol <- standardize(chol = chol)
+        ### START readable:
+        # a$chol <- standardize(chol = chol)
+        # ret <- do.call("sldpmvnorm", a)
+        ### avoid calling solve() multiple times
+        D <- sqrt(Tcrossprod(chol, diag_only = TRUE))
+        a$invchol <- sLambda <- invcholD(Lambda, D = D)
         ret <- do.call("sldpmvnorm", a)
+        ret$chol <- -vectrick(sLambda, ret$invchol)
+        ### END
         smean <- ret$mean
         sobs <- ret$obs
         slower <- ret$lower
