@@ -219,22 +219,23 @@ layout(matrix(1))
 PI.stram <- function(object, newdata = model.frame(sm), reference = 0) {
   stopifnot(sm$model$todistr$name == "normal")
   mu <- predict(object, type = "lp", newdata = newdata, what = "shifting")
-  sigma <- sqrt(exp(predict(object, type = "lp", newdata = newdata,
-                            what = "scaling")))
+  sigma <- sqrt(exp(-predict(object, type = "lp", newdata = newdata,
+                             what = "scaling")))
   
   if (reference == 0) {
     refmu <- 0
     refsigma <- 1
   } else {
-      refmu <- predict(object, type = "lp", newdata = reference,
-                       what = "shifting")
-      refsigma <- sqrt(exp(predict(object, type = "lp",
-                                   newdata = newdata, what = "scaling")))
+    refmu <- predict(object, type = "lp", newdata = reference,
+                     what = "shifting")
+    refsigma <- sqrt(exp(predict(object, type = "lp",
+                                 newdata = newdata, what = "scaling")))
   }
   
   object$model$todistr$p((sigma * mu - refsigma * refmu) / 
                            sqrt(sigma^2 + refsigma^2))
 }
+(estPI <- PI.stram(sm, newdata = nd[nd$mode == "Cesarean section",, drop = FALSE]))
 
 library("mvtnorm")
 smm <- sm
@@ -246,7 +247,6 @@ FUN <- function(cf) {
 }
 retPI <- apply(rx, MARGIN = 1, FUN = FUN)
 (ciPI <- quantile(retPI, probs = c(.025, .975)))
-(estPI <- PI.stram(sm, newdata = nd[nd$mode == "Cesarean section",, drop = FALSE]))
 
 
 ## Section 3.1.2. Crossing hazards ##

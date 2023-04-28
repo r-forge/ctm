@@ -1,5 +1,5 @@
 
-R version 4.2.3 (2023-03-15) -- "Shortstop Beagle"
+R version 4.3.0 (2023-04-21) -- "Already Tomorrow"
 Copyright (C) 2023 The R Foundation for Statistical Computing
 Platform: x86_64-pc-linux-gnu (64-bit)
 
@@ -292,22 +292,25 @@ NULL
 > PI.stram <- function(object, newdata = model.frame(sm), reference = 0) {
 +   stopifnot(sm$model$todistr$name == "normal")
 +   mu <- predict(object, type = "lp", newdata = newdata, what = "shifting")
-+   sigma <- sqrt(exp(predict(object, type = "lp", newdata = newdata,
-+                             what = "scaling")))
++   sigma <- sqrt(exp(-predict(object, type = "lp", newdata = newdata,
++                              what = "scaling")))
 +   
 +   if (reference == 0) {
 +     refmu <- 0
 +     refsigma <- 1
 +   } else {
-+       refmu <- predict(object, type = "lp", newdata = reference,
-+                        what = "shifting")
-+       refsigma <- sqrt(exp(predict(object, type = "lp",
-+                                    newdata = newdata, what = "scaling")))
++     refmu <- predict(object, type = "lp", newdata = reference,
++                      what = "shifting")
++     refsigma <- sqrt(exp(predict(object, type = "lp",
++                                  newdata = newdata, what = "scaling")))
 +   }
 +   
 +   object$model$todistr$p((sigma * mu - refsigma * refmu) / 
 +                            sqrt(sigma^2 + refsigma^2))
 + }
+> (estPI <- PI.stram(sm, newdata = nd[nd$mode == "Cesarean section",, drop = FALSE]))
+       [,1]
+2 0.7090472
 > 
 > library("mvtnorm")
 
@@ -327,10 +330,7 @@ The following object is masked from ‘package:tram’:
 > retPI <- apply(rx, MARGIN = 1, FUN = FUN)
 > (ciPI <- quantile(retPI, probs = c(.025, .975)))
      2.5%     97.5% 
-0.7620940 0.8402482 
-> (estPI <- PI.stram(sm, newdata = nd[nd$mode == "Cesarean section",, drop = FALSE]))
-       [,1]
-2 0.8037266
+0.6804302 0.7360001 
 > 
 > 
 > ## Section 3.1.2. Crossing hazards ##
@@ -747,8 +747,8 @@ The type of censoring is interval
 > print(xtable(tab, align = "llrr"), floating = FALSE, include.rownames = FALSE,
 +       sanitize.colnames.function = function(x){x}, 
 +       hline.after = c(-1, 0, nrow(tab)), booktabs = TRUE)
-% latex table generated in R 4.2.3 by xtable 1.8-4 package
-% Tue Mar 28 19:16:04 2023
+% latex table generated in R 4.3.0 by xtable 1.8-4 package
+% Thu Apr 27 15:16:31 2023
 \begin{tabular}{lrr}
   \toprule
 Year & Hazard ratio & 95\% CI \\ 
@@ -1419,12 +1419,12 @@ Warning message:
 In trellis.par.set(list(plot.symbol = list(col = 1, pch = 20,  ... :
   Note: The default device has been opened to honour attempt to modify trellis settings
 > sessionInfo()
-R version 4.2.3 (2023-03-15)
+R version 4.3.0 (2023-04-21)
 Platform: x86_64-pc-linux-gnu (64-bit)
 Running under: Ubuntu 22.04.2 LTS
 
 Matrix products: default
-BLAS:   /usr/lib/x86_64-linux-gnu/blas/libblas.so.3.10.0
+BLAS:   /usr/lib/x86_64-linux-gnu/blas/libblas.so.3.10.0 
 LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.10.0
 
 locale:
@@ -1435,35 +1435,38 @@ locale:
  [9] LC_ADDRESS=C               LC_TELEPHONE=C            
 [11] LC_MEASUREMENT=de_CH.UTF-8 LC_IDENTIFICATION=C       
 
+time zone: Europe/Zurich
+tzcode source: system (glibc)
+
 attached base packages:
  [1] parallel  splines   grid      stats     graphics  grDevices utils    
  [8] datasets  methods   base     
 
 other attached packages:
- [1] ATR_0.1-1           trtf_0.4-2          partykit_1.2-19    
+ [1] ATR_0.1-1           trtf_0.4-2          partykit_1.2-20    
  [4] libcoin_1.0-9       gamlss.cens_5.0-1   gamlss_5.4-12      
  [7] nlme_3.1-162        gamlss.dist_6.0-5   gamlss.data_6.0-2  
-[10] multcomp_1.4-23     TH.data_1.1-1       MASS_7.3-58.3      
+[10] multcomp_1.4-23     TH.data_1.1-2       MASS_7.3-59        
 [13] cotram_0.4-2        mpr_1.0.6           coin_1.4-2         
 [16] mvtnorm_1.2-0       survival_3.5-5      tram_0.8-2         
-[19] mlt_1.4-5           basefun_1.1-4       variables_1.1-1    
+[19] mlt_1.4-6           basefun_1.1-3       variables_1.1-1    
 [22] xtable_1.8-4        colorspace_2.1-0    reshape2_1.4.4     
-[25] latticeExtra_0.6-30 gridExtra_2.3       lattice_0.20-45    
+[25] latticeExtra_0.6-30 gridExtra_2.3       lattice_0.21-8     
 
 loaded via a namespace (and not attached):
- [1] zoo_1.8-11           modeltools_0.2-23    inum_1.0-5          
- [4] stats4_4.2.3         rlang_1.1.0          orthopolynom_1.0-6.1
- [7] glue_1.6.2           RColorBrewer_1.1-3   matrixStats_0.63.0  
-[10] jpeg_0.1-10          lifecycle_1.0.3      plyr_1.8.8          
-[13] stringr_1.5.0        gtable_0.3.3         codetools_0.2-19    
-[16] Rcpp_1.0.10          polynom_1.4-1        alabama_2022.4-1    
-[19] deldir_1.0-6         interp_1.1-3         BB_2019.10-1        
-[22] png_0.1-8            stringi_1.7.12       numDeriv_2016.8-1.1 
-[25] quadprog_1.5-8       cli_3.6.1            tools_4.2.3         
-[28] sandwich_3.0-2       magrittr_2.0.3       coneproj_1.16       
-[31] Formula_1.2-5        Matrix_1.5-3         rpart_4.1.19        
-[34] compiler_4.2.3      
+ [1] sandwich_3.0-2       jpeg_0.1-10          stringi_1.7.12      
+ [4] inum_1.0-5           magrittr_2.0.3       RColorBrewer_1.1-3  
+ [7] plyr_1.8.8           Matrix_1.5-4         Formula_1.2-5       
+[10] codetools_0.2-19     numDeriv_2016.8-1.1  modeltools_0.2-23   
+[13] cli_3.6.1            rlang_1.1.0          coneproj_1.16       
+[16] tools_4.3.0          polynom_1.4-1        deldir_1.0-6        
+[19] interp_1.1-4         orthopolynom_1.0-6.1 rpart_4.1.19        
+[22] png_0.1-8            stats4_4.3.0         matrixStats_0.63.0  
+[25] zoo_1.8-12           lifecycle_1.0.3      stringr_1.5.0       
+[28] gtable_0.3.3         glue_1.6.2           BB_2019.10-1        
+[31] Rcpp_1.0.10          compiler_4.3.0       quadprog_1.5-8      
+[34] alabama_2022.4-1    
 > 
 > proc.time()
    user  system elapsed 
-160.502   3.623 165.751 
+147.082   2.038 150.879 
