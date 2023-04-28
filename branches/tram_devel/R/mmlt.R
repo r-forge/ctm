@@ -11,56 +11,6 @@
     return(do.call("rbind", x))
 }
 
-.chol <- function(Lambda) {
-    chol <- solve(Lambda)
-    CCt <- Tcrossprod(chol, diag_only = TRUE)
-    ret <- Dchol(chol, D = 1 / sqrt(CCt))
-    return(ret)
-}
-
-.magic <- function(Lambda, Dchol, N) {
-
-    J <- dim(Lambda)[2L]
-
-    ### vectrick needs byrow = FALSE, so do it here once
-    Lambda <- ltMatrices(Lambda, byrow = FALSE)
-
-    chol <- solve(Lambda)
-    CCt <- Tcrossprod(chol, diag_only = TRUE)
-    DC <- Dchol(chol, D = Dinv <- 1 / sqrt(CCt))
-    SDC <- solve(DC)
-
-    IDX <- t(M <- matrix(1:J^2, nrow = J, ncol = J))
-    i <- cumsum(c(1, rep(J + 1, J - 1)))
-    ID <- diagonals(as.integer(J), byrow = attr(Lambda, "byrow"))
-    if (dim(ID)[1L] != dim(chol)[1L])
-        ID <- ID[rep(1, dim(chol)[1L]),]
-
-    if (inherits(Dchol, "ltMatrices")) {
-        T1 <- matrix(as.array(Dchol), nrow = dim(Dchol)[2L]^2)
-    } else {
-        T1 <- Dchol
-    }
-
-    B <- vectrick(ID, T1, chol)
-    B[i,] <- B[i,] * (-.5) * c(CCt)^(-3/2)
-    B[-i,] <- 0
-
-    Dtmp <- Dchol(ID, D = Dinv)
-
-    ret <- vectrick(ID, B, chol, transpose = c(TRUE, FALSE)) +
-           vectrick(chol, B, ID)[IDX,] +
-           vectrick(Dtmp, T1, ID)
-
-    ### this means: ret <- - vectrick(chol, ret, chol)
-    ret <- - vectrick(chol, ret)
-    ret <- ltMatrices(ret[M[lower.tri(M)],,drop = FALSE],
-                      byrow = FALSE, diag = FALSE)
-    ret <- ltMatrices(ret, diag = FALSE, byrow = TRUE)
-    diagonals(ret) <- 0
-    ret
-}
-
 .ll <- function(dim, scale = TRUE, args = list()) {
 
     if (length(dim) == 1L)
@@ -69,163 +19,90 @@
     cJ <- dim[1L]
     dJ <- dim[2L]
 
-    cll <- function(obs, Lambda) {
+    if (!dJ) {
+
+        cll <- function(obs, Lambda) {
+
+            if (dim(Lambda)[2L] > 1)
+                stopifnot(!attr(Lambda, "diag"))
+
+            if (!scale)
+                return(ldmvnorm(obs = obs, invchol = Lambda, logLik = FALSE))
+
+            chol <- solve(Lambda)
+            schol <- standardize(chol = chol)
+            return(ldmvnorm(obs = obs, chol = schol, logLik = FALSE))
+        }
+
+        csc <- function(obs, Lambda) {
+
+            if (dim(Lambda)[2L] > 1)
+                stopifnot(!attr(Lambda, "diag"))
+
+            if (!scale) {
+                ret <- sldmvnorm(obs = obs, invchol = Lambda)
+                return(list(Lambda = ret$invchol, obs = ret$obs))
+            }
+
+           chol <- solve(Lambda)
+           schol <- standardize(chol = chol)
+           ret <- sldmvnorm(obs = obs, chol = schol)
+           dobs <- ret$obs
+           ret <- destandardize(chol = chol, invchol = Lambda, 
+                                score_schol = ret$chol)
+           return(list(Lambda = ret, obs = dobs))
+       }
+
+       return(list(logLik = cll, score = csc))
+    }
+
+    ll <- function(obs = NULL, lower, upper, Lambda) {
 
         if (dim(Lambda)[2L] > 1)
             stopifnot(!attr(Lambda, "diag"))
 
-        if (!scale)
-            return(ldmvnorm(obs = obs, invchol = Lambda, logLik = FALSE))
-
-        chol <- .chol(Lambda)
-        return(ldmvnorm(obs = obs, chol = chol, logLik = FALSE))
-    }
-
-    csc <- function(obs, Lambda, magic = TRUE) {
-
-        # stopifnot(!attr(Lambda, "diag"))
-        stopifnot(attr(Lambda, "byrow"))
-
-        N <- ncol(obs)
-
-        if (!scale) {
-            ret <- sldmvnorm(obs = obs, invchol = Lambda)
-            names(ret)[names(ret) == "invchol"] <- "Lambda"
-            return(ret)
-        }
-
-        if (!magic) {
-            ret <- sldmvnorm(obs = obs, invchol = invcholD(Lambda))
-            names(ret)[names(ret) == "invchol"] <- "Lambda"
-            return(ret)
-        }
-
-        chol <- .chol(Lambda)
-        ret <- sldmvnorm(obs = obs, chol = chol)
-        dobs <- ret$obs
-        ret <- .magic(Lambda, ret$chol, N)
-        return(list(Lambda = ret, obs = dobs))
-    }
-
-    if (!dJ) return(list(logLik = cll, score = csc))
-
-    dll <- function(lower, upper, Lambda, center = NULL) {
-
-        # stopifnot(!attr(Lambda, "diag"))
-
         a <- args
-        a$center <- center
+        a$obs <- obs
         a$mean <- 0
         a$lower <- lower
         a$upper <- upper
         a$logLik <- FALSE
-        if (!scale || cJ > 0) {
+        if (!scale) {
             a$invchol <- Lambda
         } else {
-            a$chol <- Dchol(solve(Lambda))
+            a$chol <- standardize(chol = solve(Lambda))
         }
-        do.call("lpmvnorm", a)
+        return(do.call("ldpmvnorm", a))
     }
 
-    dsc <- function(lower, upper, Lambda, center = NULL) {
-
-        # stopifnot(!attr(Lambda, "diag"))
-        stopifnot(attr(Lambda, "byrow"))
+    sc <- function(obs = NULL, lower, upper, Lambda) {
 
         a <- args
-        a$center <- center
+        a$obs <- obs
         a$mean <- 0
         a$lower <- lower
         a$upper <- upper
-        if (!scale || cJ > 0) {
+        a$logLik <- TRUE
+        if (!scale) {
             a$invchol <- Lambda
-            a$logLik <- TRUE
-            ret <- do.call("slpmvnorm", a)
-            names(ret)[names(ret) == "invchol"] <- "Lambda"
-            return(ret)
+            ret <- do.call("sldpmvnorm", a)
+            return(list(Lambda = ret$invchol,
+                        obs = ret$obs,
+                        mean = ret$mean, 
+                        lower = ret$lower, 
+                        upper = ret$upper))
         }
 
-        a$chol <- .chol(Lambda)        
-        ret <- do.call("slpmvnorm", a)
+        chol <- solve(Lambda)
+        a$chol <- standardize(chol = chol)
+        ret <- do.call("sldpmvnorm", a)
         smean <- ret$mean
+        sobs <- ret$obs
         slower <- ret$lower
         supper <- ret$upper
-
-        ret <- .magic(Lambda, ret$chol, ncol(lower))
-
-        ret <- list(Lambda = ret, mean = smean, lower = slower, upper = supper)
-        return(ret)
-    }
-
-    if (!cJ) return(list(logLik = dll, score = dsc))
-        
-    ll <- function(obs, lower, upper, Lambda) {
-
-        md <- marg_mvnorm(invchol = Lambda, which = 1:cJ)
-        ret <- cll(obs = obs, Lambda = md$invchol)
-
-        #### FIXME: WHY here?
-        if (scale) Lambda <- invcholD(Lambda)
-
-        cd <- cond_mvnorm(invchol = Lambda, which_given = 1:cJ, given = obs, center = TRUE)
-        ret <- ret + dll(lower = lower, upper = upper, Lambda = cd$invchol, 
-                         center = cd$center)
-        return(ret)
-    }
-
-    sc <- function(obs, lower, upper, Lambda) {
-
-        if (scale) {
-            L1 <- Lambda
-            Lambda <- invcholD(Lambda)
-        }
-        md <- marg_mvnorm(invchol = Lambda, which = 1:cJ)
-        cs <- csc(obs = obs, Lambda = md$invchol, magic = FALSE)
-
-        cd <- cond_mvnorm(invchol = Lambda, which_given = 1:cJ, given = obs, center = TRUE)
-        ds <- dsc(lower = lower, upper = upper, center = cd$center, Lambda = cd$invchol)
-
-        tmp0 <- solve(cd$invchol, ds$mean, transpose = TRUE)
-        tmp <- -tmp0[rep(1:dJ, each = cJ),,drop = FALSE] * obs[rep(1:cJ, dJ),,drop = FALSE]
-        # tmp1 <- do.call("cbind", lapply(1:ncol(obs), function(i) -kronecker(tmp0[,i], obs[,i])))
-        # stopifnot(isTRUE(all.equal(tmp, tmp1, check.attributes = FALSE)))
-
-        J <- cJ + dJ
-        Jp <- J * (J + c(-1, 1)[scale + 1L]) / 2
-        M <- as.array(ltMatrices(1:Jp, diag = scale, byrow = TRUE))[,,1]
-        ret <- matrix(0, nrow = Jp, ncol = ncol(obs))
-        M1 <- M[1:cJ, 1:cJ]
-        idx <- t(M1)[upper.tri(M1, diag = scale)]
-        ret[idx,] <- Lower_tri(cs$Lambda, diag = scale)
-
-        idx <- c(t(M[-(1:cJ), 1:cJ]))
-        ret[idx,] <- tmp
-
-        M3 <- M[-(1:cJ), -(1:cJ)]
-        idx <- t(M3)[upper.tri(M3, diag = scale)]
-        ret[idx,] <- Lower_tri(ds$Lambda, diag = scale)
-
-        ret <- ltMatrices(ret, diag = scale, byrow = TRUE)
-
-        if (scale) {
-            k1 <- matrix(as.array(ret), nrow = J^2)
-            ## this means: T1 <- -vectrick(Lambda, k1, Lambda)
-            T1 <- -vectrick(Lambda, k1)
-            ret <- .magic(L1, T1, ncol(obs))
-        } else {
-            diagonals(ret) <- 0
-        }
-
-        ### post differentiate mean 
-        aL <- as.array(Lambda)[-(1:cJ), 1:cJ,,drop = FALSE]
-        lst <- tmp0[rep(1:dJ, cJ),,drop = FALSE]
-        if (dim(aL)[3] == 1)
-            aL <- aL[,,rep(1, ncol(lst)), drop = FALSE]
-        dim <- dim(aL)
-        dobs <- -margin.table(aL * array(lst, dim = dim), 2:3)
-
-        ret <- c(list(Lambda = ret, obs = cs$obs + dobs), 
-                 ds[c("lower", "upper")])
+        ret <- destandardize(chol = chol, invchol = Lambda, score_schol = ret$chol)
+        ret <- list(Lambda = ret, mean = smean, obs = sobs, 
+                    lower = slower, upper = supper)
         return(ret)
     }
 
