@@ -2,7 +2,8 @@
 library("tram")
 set.seed(29)
 
-chk <- function(...) all.equal(..., tol = 1e-6, check.attributes = FALSE)
+chk <- function(...) 
+    stopifnot(isTRUE(all.equal(..., tol = 1e-6, check.attributes = FALSE)))
 
 thischeck <- expression({
   ltM <- function(x) ltMatrices(x, diag = FALSE, byrow = TRUE)
@@ -75,11 +76,11 @@ thischeck <- expression({
 
   w <- matrix(runif((J - 1) * M), ncol = M)
   fun <- tram:::.ll(c(0, J), scale = FALSE, list(w = w))
-  sum(fun$logLik(lwr, upr, L))
-  s <- fun$score(lwr, upr, L)
+  sum(fun$logLik(lower = lwr, upper = upr, Lambda = L))
+  s <- fun$score(lower = lwr, upper = upr, Lambda = L)
 
   f <- function(lwr = lwr, upr = upr, L = L) 
-    sum(fun$logLik(lwr, upr, ltM(L)))
+    sum(fun$logLik(lower = lwr, upper = upr, Lambda = ltM(L)))
   S <- grad(f, unclass(L), lwr = lwr, upr = upr)
   chk(S, c(Lower_tri(s$Lambda)))
 
@@ -89,11 +90,11 @@ thischeck <- expression({
   chk(S, s$upper)
 
   fun <- tram:::.ll(c(0, J), scale = TRUE, list(w = w))
-  sum(fun$logLik(lwr, upr, L))
-  s <- fun$score(lwr, upr, L)
+  sum(fun$logLik(lower = lwr, upper = upr, Lambda = L))
+  s <- fun$score(lower = lwr, upper = upr, Lambda = L)
 
   f <- function(lwr = lwr, upr = upr, L = L) 
-    sum(fun$logLik(lwr, upr, ltM(L)))
+    sum(fun$logLik(lower = lwr, upper = upr, Lambda = ltM(L)))
   S <- matrix(grad(f, unclass(L), lwr = lwr, upr = upr), ncol = N)
   chk(S, Lower_tri(s$Lambda))
   S <- matrix(grad(f, lwr, upr = upr, L = L), ncol = N)
@@ -123,7 +124,7 @@ thischeck <- expression({
   fun <- tram:::.ll(c(cJ, dJ), scale = TRUE, list(w = w))
   sum(fun$logLik(obs[1:cJ,,drop = FALSE], lwr[-(1:cJ),,drop = FALSE], upr[-(1:cJ),,drop = FALSE], L))
   s <- fun$score(obs[1:cJ,,drop = FALSE], lwr[-(1:cJ),,drop = FALSE], 
-  upr[-(1:cJ),,drop = FALSE], L)
+                 upr[-(1:cJ),,drop = FALSE], L)
 
   f <- function(obs = obs[1:cJ,,drop = FALSE], lwr = lwr[-(1:cJ),,drop = FALSE], upr = upr[-(1:cJ),,drop = FALSE], L = L) 
     sum(fun$logLik(obs, lwr, upr, ltM(L)))
@@ -153,6 +154,14 @@ M <- 10
 eval(thischeck)
 
 J <- (cJ <- 1) + (dJ <- 1)
+
+eval(thischeck)
+
+J <- (cJ <- 1) + (dJ <- 4)
+
+eval(thischeck)
+
+J <- (cJ <- 4) + (dJ <- 1)
 
 eval(thischeck)
 
