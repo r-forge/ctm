@@ -15,7 +15,7 @@ thischeck <- expression({
   lwr <- -2 -abs(obs)
   upr <- 2 + abs(obs)
 
-  fun <- tram:::.ll(c(J, 0), scale = FALSE)
+  fun <- tram:::.ll(c(J, 0), standardize = FALSE)
   sum(fun$logLik(obs, L))
   s <- fun$score(obs, L)
 
@@ -26,7 +26,7 @@ thischeck <- expression({
   S <- matrix(grad(f, obs, L = L), ncol = N)
   chk(S, s$obs)
 
-  fun <- tram:::.ll(c(J, 0), scale = TRUE)
+  fun <- tram:::.ll(c(J, 0), standardize = TRUE)
   sum(fun$logLik(obs, L))
 
   LD <- invcholD(L)
@@ -75,7 +75,7 @@ thischeck <- expression({
   chk(S, s$obs)
 
   w <- matrix(runif((J - 1) * M), ncol = M)
-  fun <- tram:::.ll(c(0, J), scale = FALSE, list(w = w))
+  fun <- tram:::.ll(c(0, J), standardize = FALSE, list(w = w))
   sum(fun$logLik(lower = lwr, upper = upr, Lambda = L))
   s <- fun$score(lower = lwr, upper = upr, Lambda = L)
 
@@ -89,7 +89,7 @@ thischeck <- expression({
   S <- matrix(grad(f, upr, lwr = lwr, L = L), ncol = N)
   chk(S, s$upper)
 
-  fun <- tram:::.ll(c(0, J), scale = TRUE, list(w = w))
+  fun <- tram:::.ll(c(0, J), standardize = TRUE, list(w = w))
   sum(fun$logLik(lower = lwr, upper = upr, Lambda = L))
   s <- fun$score(lower = lwr, upper = upr, Lambda = L)
 
@@ -103,7 +103,7 @@ thischeck <- expression({
   chk(S, s$upper)
 
   w <- matrix(runif((dJ - 1) * M), ncol = M)
-  fun <- tram:::.ll(c(cJ, dJ), scale = FALSE, list(w = w))
+  fun <- tram:::.ll(c(cJ, dJ), standardize = FALSE, list(w = w))
   sum(fun$logLik(obs[1:cJ,,drop = FALSE], lwr[-(1:cJ),,drop = FALSE], upr[-(1:cJ),,drop = FALSE], L))
   s <- fun$score(obs[1:cJ,,drop = FALSE], lwr[-(1:cJ),,drop = FALSE], upr[-(1:cJ),,drop = FALSE], L)
   f <- function(obs = obs[1:cJ,,drop = FALSE], lwr = lwr[-(1:cJ),,drop = FALSE], upr = upr[-(1:cJ),,drop = FALSE], L = L) 
@@ -121,7 +121,7 @@ thischeck <- expression({
                     lwr = lwr[-(1:cJ),,drop = FALSE], L = L), ncol = N)
   chk(S, s$upper)
 
-  fun <- tram:::.ll(c(cJ, dJ), scale = TRUE, list(w = w))
+  fun <- tram:::.ll(c(cJ, dJ), standardize = TRUE, list(w = w))
   sum(fun$logLik(obs[1:cJ,,drop = FALSE], lwr[-(1:cJ),,drop = FALSE], upr[-(1:cJ),,drop = FALSE], L))
   s <- fun$score(obs[1:cJ,,drop = FALSE], lwr[-(1:cJ),,drop = FALSE], 
                  upr[-(1:cJ),,drop = FALSE], L)

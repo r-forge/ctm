@@ -14,7 +14,8 @@ transformation models
 }
 \usage{
 mmlt(..., formula = ~ 1, data, conditional = FALSE, theta = NULL,
-     optim = mmltoptim(), args = list(seed = 1, M = 1000), dofit = TRUE)
+     optim = mmltoptim(), args = list(seed = 1, M = 1000), dofit = TRUE,
+     domargins = TRUE)
 mmltoptim(auglag = list(maxtry = 5), ...)
 \method{coef}{cmmlt}(object, newdata, 
                     type = c("all", "conditional", "Lambda", "Lambdainv", 
@@ -52,6 +53,9 @@ gives the same likelihood but different parameter estimates.
   \item{args}{a list of arguments for \code{\link[mvtnorm]{lpmvnorm}}.}
   \item{dofit}{logical; parameters are fitted by default, otherwise a list
                with log-likelihood and score function is returned.
+}
+  \item{domargins}{logical; all model parameters are fitted by default, 
+                   including the parameters of marginal models.
 }
 \item{auglag}{a list of arguments to \code{\link[alabama]{auglag}} ensuring
               a numerically determined Hessian is returned.}
