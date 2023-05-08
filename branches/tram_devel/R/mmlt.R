@@ -11,7 +11,7 @@
     return(do.call("rbind", x))
 }
 
-.ll <- function(dim, scale = TRUE, args = list()) {
+.ll <- function(dim, standardize = TRUE, args = list()) {
 
     if (length(dim) == 1L)
         dim <- c(dim, 0L)
@@ -26,10 +26,10 @@
             if (dim(Lambda)[2L] > 1)
                 stopifnot(!attr(Lambda, "diag"))
 
-            if (!scale)
+            if (!standardize)
                 return(ldmvnorm(obs = obs, invchol = Lambda, logLik = FALSE))
 
-            sLambda <- standardize(invchol = Lambda)
+            sLambda <- mvtnorm::standardize(invchol = Lambda)
             return(ldmvnorm(obs = obs, invchol = sLambda, logLik = FALSE))
         }
 
@@ -38,14 +38,14 @@
             if (dim(Lambda)[2L] > 1)
                 stopifnot(!attr(Lambda, "diag"))
 
-            if (!scale) {
+            if (!standardize) {
                 ret <- sldmvnorm(obs = obs, invchol = Lambda)
                 return(list(Lambda = ret$invchol, obs = ret$obs))
             }
 
            chol <- solve(Lambda)
            ### START readable:
-           # schol <- standardize(chol = chol)
+           # schol <- mvtnorm::standardize(chol = chol)
            # ret <- sldmvnorm(obs = obs, chol = schol)
            ### avoid calling solve() multiple times
            D <- sqrt(Tcrossprod(chol, diag_only = TRUE))
@@ -73,10 +73,10 @@
         a$lower <- lower
         a$upper <- upper
         a$logLik <- FALSE
-        if (!scale) {
+        if (!standardize) {
             a$invchol <- Lambda
         } else {
-            a$chol <- standardize(chol = solve(Lambda))
+            a$chol <- mvtnorm::standardize(chol = solve(Lambda))
         }
         return(do.call("ldpmvnorm", a))
     }
@@ -89,7 +89,7 @@
         a$lower <- lower
         a$upper <- upper
         a$logLik <- TRUE
-        if (!scale) {
+        if (!standardize) {
             a$invchol <- Lambda
             ret <- do.call("sldpmvnorm", a)
             return(list(Lambda = ret$invchol,
@@ -101,7 +101,7 @@
 
         chol <- solve(Lambda)
         ### START readable:
-        # a$chol <- standardize(chol = chol)
+        # a$chol <- mvtnorm::standardize(chol = chol)
         # ret <- do.call("sldpmvnorm", a)
         ### avoid calling solve() multiple times
         D <- sqrt(Tcrossprod(chol, diag_only = TRUE))
@@ -113,7 +113,8 @@
         sobs <- ret$obs
         slower <- ret$lower
         supper <- ret$upper
-        ret <- destandardize(chol = chol, invchol = Lambda, score_schol = ret$chol)
+        ret <- destandardize(chol = chol, invchol = Lambda, 
+                             score_schol = ret$chol)
         ret <- list(Lambda = ret, mean = smean, obs = sobs, 
                     lower = slower, upper = supper)
         return(ret)
@@ -349,21 +350,26 @@ mmltoptim <- function(auglag = list(maxtry = 5), ...)
 
 mmlt <- function(..., formula = ~ 1, data, conditional = FALSE, 
                  theta = NULL,
-                 optim = mmltoptim(), args = list(seed = 1, M = 1000), dofit = TRUE)
+                 optim = mmltoptim(), args = list(seed = 1, M = 1000), 
+                 dofit = TRUE, domargins = TRUE)
 {
   
     call <- match.call()
 
+
     m <- .models(...)
 
     if (conditional && !all(m$normal))
-        stop("Conditional models only available for marginal probit-type models")
+        stop("Conditional models only available for marginal probit-type models.")
+
+    if (conditional & !domargins)
+        stop("Conditional models must fit marginal and joint parameters.")
 
     cJ <- sum(m$cont)
     dJ <- sum(!m$cont)
     J <- cJ + dJ
     Jp <- J * (J - 1) / 2
-    llsc <- .ll(c(cJ, dJ), scale = !conditional, args)
+    llsc <- .ll(c(cJ, dJ), standardize = !conditional, args)
 
     if (dJ && is.null(args$w))
         args$w <- .MCw(J = dJ, M = args$M, seed = args$seed)
@@ -523,6 +529,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
         #     warning("Optimisation did not converge")
 
         start <- c(start, op$par)
+        if (!domargins) dofit <- FALSE
     } else {
         ### use user-supplied starting values
         start <- theta
