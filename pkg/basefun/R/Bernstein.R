@@ -166,7 +166,7 @@ Bernstein_basis <- function(var, order = 2,
     }
 
     attr(basis, "variables") <- var
-    attr(basis, "intercept") <- zeroint
+    attr(basis, "intercept") <- zeroint ### FIXME: Bernstein has implicit intercept unless zeroint
     attr(basis, "log_first") <- log_first
 
     class(basis) <- c("Bernstein_basis", "basis", class(basis))
