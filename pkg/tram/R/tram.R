@@ -139,7 +139,8 @@ tram <- function(formula, data, subset, weights, offset, cluster, na.action = na
             rvar$bounds[1] <- sqrt(.Machine$double.eps)
     }
     rbasis <- mkbasis(rvar, transformation = transformation, order = order,
-                      extrapolate = extrapolate, log_first = log_first)
+                      extrapolate = extrapolate, log_first = log_first,
+                      remove_intercept = !is.null(td$mt$z) && !scale_shift)
 
     iS <- NULL
     if (!is.null(td$mt$s)) {
@@ -181,7 +182,10 @@ tram <- function(formula, data, subset, weights, offset, cluster, na.action = na
             ui <- ci <- NULL
         }
         ### NOTE: this triggers sumconstr = TRUE
-        iX <- as.basis(td$mt$x, data = td$mf, remove_intercept = TRUE, 
+        ### when there is no scale term. Otherwise h is centered and we
+        ### need an explicit intercept here.
+        iX <- as.basis(td$mt$x, data = td$mf, 
+                       remove_intercept = is.null(td$mt$z) || scale_shift,
                        negative = negative, ui = ui, ci = ci)
     } 
 
@@ -250,7 +254,15 @@ tram <- function(formula, data, subset, weights, offset, cluster, na.action = na
       nsX <- nsX[!grepl("[+]", nsX)]
       if (any(xin <- nsX %in% nS))
         stop("scaling variables not allowed as stratifying variables")
+      warning("Models with both strata and scale terms are highly experimental")
+      ### note: we would need extra constraints for all baseline
+      ### transformations in the discrete case
+      ### we also need stratum-specific intercepts.
     }
+
+    if (!is.null(isX) && transformation == "discrete" 
+                      && !scale_shift)
+        fixed[names(coef(model))[1L]] <- 0
 
     args <- list(...)
     args$model <- model

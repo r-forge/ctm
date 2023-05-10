@@ -53,11 +53,29 @@ asvar.response <- function(object, name, prob = c(.1, .9), support = NULL, bound
 }
 
 mkbasis <- function(yvar, transformation = c("discrete", "linear", "logarithmic", "smooth", "positive_smooth"), 
-                    order = 6, extrapolate = FALSE, log_first = FALSE) {
+                    order = 6, extrapolate = FALSE, log_first = FALSE, remove_intercept = FALSE) {
 
-  transformation <- match.arg(transformation)
+    transformation <- match.arg(transformation)
 
-  if (inherits(yvar, "numeric_var")) {
+    if (remove_intercept) {
+        if (inherits(yvar, "numeric_var")) {
+            return(switch(transformation, 
+                "discrete" = stop("Discrete transformation not defined for numeric variable"),
+                "linear" = {
+                    fm <- as.formula(paste0("~", yvar$name))
+                    as.basis(fm, data = as.data.frame(mkgrid(yvar), check.names = FALSE), 
+                             remove_intercept = TRUE)
+                },
+                "logarithmic" = log_basis(yvar, ui = "increasing", remove_intercept = TRUE),
+                "smooth" = Bernstein_basis(yvar, ui = c("increasing", "zeroint"), order = order,
+                                           extrapolate = extrapolate, log_first = log_first),
+                "positive_smooth" = stop("Not defined")
+                )
+            )
+         }
+    }
+
+    if (inherits(yvar, "numeric_var")) {
       return(switch(transformation, 
           "discrete" = stop("Discrete transformation not defined for numeric variable"),
           "linear" =
