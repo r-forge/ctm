@@ -1,5 +1,6 @@
 
 library("tram")
+options(digits = 3)
 
 ## 
 set.seed(29)
