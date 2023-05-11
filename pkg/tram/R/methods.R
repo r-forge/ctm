@@ -167,8 +167,11 @@ predict.stram <- function(object, newdata = model.frame(object),
         if (what == "shifting") {
             if (is.null(object$shiftcoef))
                 stop("object does not contain a shift term")
-            ret <- model.matrix(object, data = newdata, what = "shifting") %*% 
-                   coef(object, with_baseline = FALSE)[object$shiftcoef]
+            ### remove intercept from linear predictor
+            cf <- coef(object, with_baseline = FALSE)[object$shiftcoef]
+            if (attr(object$model$model$bshifting, "intercept"))
+                cf["(Intercept)"] <- 0
+            ret <- model.matrix(object, data = newdata, what = "shifting") %*% cf
             if (object$negative) return(-ret)
             return(ret)
         }
