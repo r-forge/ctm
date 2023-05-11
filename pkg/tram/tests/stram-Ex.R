@@ -62,7 +62,7 @@ if (suppressPackageStartupMessages(require("gamlss"))) {
   tm <- Lm(y ~ x1 | x2, data = d, scale_shift = TRUE)
 
   ### same model, via gamlss
-  gm <- gamlss(y ~ x1, sigma.formula = ~ x2, data = d, family = NO2)
+  gm <- gamlss(y ~ x1, sigma.formula = ~ x2, data = d, family = NO2, trace = FALSE)
   chk(logLik(gm), logLik(tm))
   chk(-coef(tm)["scl_x2"], coefAll(gm)[[2]]["x2"])
 
@@ -181,9 +181,9 @@ ciS <- rbind(score_test(m2, "(Intercept)")$conf,
 chk(ciW, ciL, tol = 1e-3)
 chk(ciW, ciS, tol = 1e-3)
 
-### not quite the same!
-round(ciW[1,], 3)
-round(perm_test(m2, "x1")$conf, 3)
+### quite similar
+chk(ciW["x1",], perm_test(m2, "x1")$conf, tol = 1e-2)
+chk(ciW["scl_x2",], perm_test(m2, "scl_x2")$conf, tol = 1e-1) 
 
 ### check residuals
 m0 <- Lm(y ~ 1, data = d)
