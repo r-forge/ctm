@@ -111,7 +111,8 @@ tram <- function(formula, data, subset, weights, offset, cluster, na.action = na
                  transformation = c("discrete", "linear", "logarithmic", "smooth"),
                  LRtest = TRUE, 
                  prob = c(.1, .9), support = NULL, bounds = NULL, add = c(0, 0), order = 6, negative =
-                 TRUE, scale = TRUE, scale_shift = FALSE, extrapolate = FALSE, log_first = FALSE, 
+                 TRUE, remove_intercept = TRUE, 
+                 scale = TRUE, scale_shift = FALSE, extrapolate = FALSE, log_first = FALSE, 
                  sparse_nlevels = Inf, model_only = FALSE, 
                  constraints = NULL, ...) 
 {
@@ -140,7 +141,7 @@ tram <- function(formula, data, subset, weights, offset, cluster, na.action = na
     }
     rbasis <- mkbasis(rvar, transformation = transformation, order = order,
                       extrapolate = extrapolate, log_first = log_first,
-                      remove_intercept = !is.null(td$mt$z) && !scale_shift)
+                      remove_intercept = !remove_intercept)
 
     iS <- NULL
     if (!is.null(td$mt$s)) {
@@ -185,9 +186,11 @@ tram <- function(formula, data, subset, weights, offset, cluster, na.action = na
         ### when there is no scale term. Otherwise h is centered and we
         ### need an explicit intercept here.
         iX <- as.basis(td$mt$x, data = td$mf, 
-                       remove_intercept = is.null(td$mt$z) || scale_shift,
+                       remove_intercept = remove_intercept,
                        negative = negative, ui = ui, ci = ci)
-    } 
+    } else {
+        if (!remove_intercept) iX <- intercept_basis(negative = negative)
+    }
 
     isX <- NULL
     if (!is.null(td$mt$z)) {
@@ -260,8 +263,7 @@ tram <- function(formula, data, subset, weights, offset, cluster, na.action = na
       ### we also need stratum-specific intercepts.
     }
 
-    if (!is.null(isX) && transformation == "discrete" 
-                      && !scale_shift)
+    if (!remove_intercept && transformation == "discrete")
         fixed[names(coef(model))[1L]] <- 0
 
     args <- list(...)

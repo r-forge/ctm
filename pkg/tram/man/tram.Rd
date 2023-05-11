@@ -5,7 +5,8 @@
 Stratified Linear Transformation Models
 }
 \description{
-Likelihood-inference for stratified linear transformation models
+Likelihood-inference for stratified linear transformation models, including
+linear shift-scale transformation models.
 }
 \usage{
 tram(formula, data, subset, weights, offset, cluster, na.action = na.omit, 
@@ -14,7 +15,8 @@ tram(formula, data, subset, weights, offset, cluster, na.action = na.omit,
      transformation = c("discrete", "linear", "logarithmic", "smooth"), 
      LRtest = TRUE, prob = c(0.1, 0.9), support = NULL, 
      bounds = NULL, add = c(0, 0), order = 6, 
-     negative = TRUE, scale = TRUE, scale_shift = FALSE, extrapolate = FALSE, 
+     negative = TRUE, remove_intercept = TRUE, 
+     scale = TRUE, scale_shift = FALSE, extrapolate = FALSE, 
      log_first = FALSE, sparse_nlevels = Inf,
      model_only = FALSE, constraints = NULL, ...)
 tram_data(formula, data, subset, weights, offset, cluster, na.action = na.omit) 
@@ -78,6 +80,17 @@ tram_data(formula, data, subset, weights, offset, cluster, na.action = na.omit)
   }
   \item{negative}{logical defining the sign of the linear predictor.
   }
+  \item{remove_intercept}{logical defining if the intercept shall be removed
+  from the linear shift predictor in favour of an (typically implicit) intercept
+  in the baseline transformation. If \code{FALSE}, the linear shift predictor has
+  an intercept (unless \code{-1} is added to the formula) but the baseline
+  transformation is centered. For linear transformation models, this does
+  not change the in-sample log-likelihood. For shift-scale transformation
+  models, using \code{FALSE} ensures that centering of variables in the
+  linear shift predictor does not affect the corresponding estimates and
+  standard errors. Note that linear scale predictors are always fitted
+  without intercept.
+  }
   \item{scale}{logical defining if variables in the linear predictor shall
                be scaled. Scaling is internally used for model estimation,
                rescaled coefficients are reported in model output.
@@ -140,10 +153,12 @@ An object of class \code{tram} inheriting from \code{mlt}.
   Transformations, \emph{Scandinavian Journal of Statistics}, \bold{45}(1),
   110--134, \doi{10.1111/sjos.12291}.
 
-  Torsten Hothorn (2018), Most Likely Transformations: The mlt Package,
-  \emph{Journal of Statistical Software}, forthcoming. URL: 
-  \url{https://cran.r-project.org/package=mlt.docreg}
+  Torsten Hothorn (2020), Most Likely Transformations: The mlt Package,
+  \emph{Journal of Statistical Software}, \bold{92}(1), \doi{10.18637/jss.v092.i01}.
 
+  Sandra Siegfried, Lucas Kook, Torsten Hothorn (2023),
+  Distribution-Free Location-Scale Regression, \emph{The American Statistician},
+  \doi{10.1080/00031305.2023.2203177}.
 }
 \examples{
 

@@ -5,7 +5,7 @@
 \section{Changes in Version 0.8-3 (2023-05-10)}{
   \itemize{
     \item{Remove intercepts from baseline functions in shift-scale models
-          when scale_shift = FALSE. This ensures centering of variables in
+          when remove_intercept = FALSE. This ensures centering of variables in
           the shift term doesn't change the corresponding coefficients or standard
           errors.}
   }
