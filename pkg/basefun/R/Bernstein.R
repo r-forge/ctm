@@ -155,7 +155,7 @@ Bernstein_basis <- function(var, order = 2,
             ### theta_order = -sum(gamma), adjust constraints
             if (deriv == 0L && !is.null(constr$ui)) {
                 ui <- constr$ui
-                ui <- ui[, -ncol(ui), drop = FALSE] - ui[, ncol(ui), drop = TRUE]
+                ui <- ui[, -ncol(ui), drop = FALSE] - as(ui[, ncol(ui), drop = TRUE], "sparseVector")
                 constr$ui <- ui
             }
         }
