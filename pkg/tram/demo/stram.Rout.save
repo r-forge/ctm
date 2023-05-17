@@ -18,7 +18,10 @@ Type 'demo()' for some demos, 'help()' for on-line help, or
 Type 'q()' to quit R.
 
 > ### Demo for location-scale transformation models ###
-> ### DOI:10.48550/arXiv.2208.05302 
+> ### DOI: 10.1080/00031305.2023.2203177
+> 
+> ## run all the code (including the computationally intensive examples)
+> run_all <- FALSE 
 > 
 > ## general setup ##
 > library("lattice")
@@ -145,12 +148,58 @@ Vaginal delivery Cesarean section
 > ## stratified transformation model
 > m <- BoxCox(MBLi | mode ~ 1, data = blood,
 +      order = OR, bounds = c(0, Inf), support = c(0, 2000))
+> coef(as.mlt(m))
+          Bs1(MBLi):(Intercept)           Bs2(MBLi):(Intercept) 
+                    -4.29289086                     -1.79660964 
+          Bs3(MBLi):(Intercept)           Bs4(MBLi):(Intercept) 
+                     0.76406965                      0.94353188 
+          Bs5(MBLi):(Intercept)           Bs6(MBLi):(Intercept) 
+                     0.94793047                      0.94793080 
+          Bs7(MBLi):(Intercept)           Bs8(MBLi):(Intercept) 
+                     1.34334636                      1.68513423 
+          Bs9(MBLi):(Intercept)          Bs10(MBLi):(Intercept) 
+                     1.68727881                      1.68787047 
+         Bs11(MBLi):(Intercept)          Bs12(MBLi):(Intercept) 
+                     1.81905795                      2.34095190 
+         Bs13(MBLi):(Intercept)          Bs14(MBLi):(Intercept) 
+                     2.34095194                      2.34095196 
+         Bs15(MBLi):(Intercept)          Bs16(MBLi):(Intercept) 
+                     2.34095197                      2.57645942 
+ Bs1(MBLi):modeCesarean section  Bs2(MBLi):modeCesarean section 
+                    -0.85424409                     -0.44060488 
+ Bs3(MBLi):modeCesarean section  Bs4(MBLi):modeCesarean section 
+                    -3.00128371                     -0.66945484 
+ Bs5(MBLi):modeCesarean section  Bs6(MBLi):modeCesarean section 
+                     0.02796066                      0.02796035 
+ Bs7(MBLi):modeCesarean section  Bs8(MBLi):modeCesarean section 
+                    -0.36745512                     -0.70897793 
+ Bs9(MBLi):modeCesarean section Bs10(MBLi):modeCesarean section 
+                     0.72754809                      0.72873072 
+Bs11(MBLi):modeCesarean section Bs12(MBLi):modeCesarean section 
+                     0.59767954                      0.07729541 
+Bs13(MBLi):modeCesarean section Bs14(MBLi):modeCesarean section 
+                     0.30593458                      0.46642341 
+Bs15(MBLi):modeCesarean section Bs16(MBLi):modeCesarean section 
+                     0.46642354                      0.58364009 
 > logLik(m)
 'log Lik.' -4206.232 (df=32)
 > 
 > ## location-scale transformation model
 > sm <- BoxCox(MBLi ~ mode | mode, data = blood,
 +      order = OR, bounds = c(0, Inf), support = c(0, 2000))
+> coef(as.mlt(sm))
+               Bs1(MBLi)                Bs2(MBLi)                Bs3(MBLi) 
+              -5.1617092               -0.2447080               -0.2447075 
+               Bs4(MBLi)                Bs5(MBLi)                Bs6(MBLi) 
+               0.5737569                1.2609430                1.2609430 
+               Bs7(MBLi)                Bs8(MBLi)                Bs9(MBLi) 
+               1.2609431                1.4261912                2.0359566 
+              Bs10(MBLi)               Bs11(MBLi)               Bs12(MBLi) 
+               2.0359567                2.0359567                2.2442788 
+              Bs13(MBLi)               Bs14(MBLi)               Bs15(MBLi) 
+               2.4199679                2.4199679                2.4199678 
+              Bs16(MBLi)     modeCesarean section scl_modeCesarean section 
+               2.6534150                1.0169574                0.8801911 
 > logLik(sm)
 'log Lik.' -4217.365 (df=18)
 > 
@@ -313,13 +362,6 @@ NULL
 2 0.7090472
 > 
 > library("mvtnorm")
-
-Attaching package: ‘mvtnorm’
-
-The following object is masked from ‘package:tram’:
-
-    diagonals
-
 > smm <- sm
 > vc <- vcov(sm)
 > rx <- rmvnorm(10000, coef(sm), vc)
@@ -330,7 +372,7 @@ The following object is masked from ‘package:tram’:
 > retPI <- apply(rx, MARGIN = 1, FUN = FUN)
 > (ciPI <- quantile(retPI, probs = c(.025, .975)))
      2.5%     97.5% 
-0.6804302 0.7360001 
+0.6808878 0.7363613 
 > 
 > 
 > ## Section 3.1.2. Crossing hazards ##
@@ -394,9 +436,8 @@ The following object is masked from ‘package:variables’:
 > sx <- predict(sm, newdata = nd[2,,drop = FALSE], q = tx, type = "survivor")
 > 
 > ### check different parametrisations
-> gastric$one <- 1
 > sr1 <- Survreg(y ~ group | group, data = gastric)
-> sr2 <- Survreg(y ~ one + group | group, data = gastric, fixed = c("(Intercept)" = 0))
+> sr2 <- Survreg(y ~ group | group, data = gastric, remove_intercept = FALSE)
 > stopifnot(isTRUE(all.equal(c(logLik(sr1)), mp$model$loglike, check.attributes = FALSE)))
 > stopifnot(isTRUE(all.equal(c(logLik(sr2)), mp$model$loglike, check.attributes = FALSE,
 +                            tol = .Machine$double.eps^{1/4})))
@@ -748,7 +789,7 @@ The type of censoring is interval
 +       sanitize.colnames.function = function(x){x}, 
 +       hline.after = c(-1, 0, nrow(tab)), booktabs = TRUE)
 % latex table generated in R 4.3.0 by xtable 1.8-4 package
-% Thu Apr 27 15:16:31 2023
+% Wed May 17 16:32:09 2023
 \begin{tabular}{lrr}
   \toprule
 Year & Hazard ratio & 95\% CI \\ 
@@ -876,7 +917,7 @@ Loading required package: libcoin
 > 
 > ## Section 3.3. Transformation additive models for location and scale ##
 > ## not run by default (computationally too intensive)
-> if (FALSE) {
+> if (run_all) {
 + ## ----TAMLS-setup--------------------------------------------------------------
 + library("tram")
 + library("gamlss")
@@ -947,24 +988,23 @@ Loading required package: libcoin
 + OR <- 6
 + log_first <- TRUE
 + 
-+ dd <- with(db, data.frame(y = head, m = agepwr, s = agepwr, one = 1))
++ dd <- with(db, data.frame(y = head, m = agepwr, s = agepwr))
 + mf <- BoxCox(y ~ 1, data = dd, order = OR, log_first = log_first) ## thetas
 + ._mff <- BoxCox(y ~ m | s, data = dd, model_only = TRUE, order = OR, log_first = log_first) ## support
 + ._start <- coef(as.mlt(mf))
 + mlt(._mff, data = dd)
 + 
 + ## ----TAMLS-fit----------------------------------------------------------------
-+ ## GAMLSS fit
++ ## GAMLSS: from DOI: 10.18637/jss.v023.i07
 + mBCT <- gamlss(formula = head ~ cs(agepwr, df = 13.77), sigma.fo = ~ cs(agepwr, df = 6.05),
 +                nu.fo = ~ agepwr, tau.fo = ~ agepwr,
 +                family = BCT(), data = db)
 + coefAll(mBCT)
 + logLik(mBCT)
 + 
-+ ## TAMLSS fit
++ ## TAMLS
 + i <- 0
-+ sc_fm <- as.formula("~ 0 + cs(agepwr, df = 6.05)")
-+ mTM <- gamlss(formula = head ~ cs(agepwr, df = 13.77), sigma.fo = ~ cs(agepwr, df = 6.05),
++ mTM <- gamlss(formula = head ~ 0 + cs(agepwr, df = 13.77), sigma.fo = ~ 0 + cs(agepwr, df = 6.05),
 +   data = db, family = TM(), control = gamlss.control(n.cyc = 400, c.crit = 0.001))
 + coefAll(mTM)
 + logLik(mTM)
@@ -1031,40 +1071,46 @@ Loading required package: libcoin
 > 
 > ## Section 3.4. Model selection ##
 > ## not run by default (computationally too intensive)
-> if (FALSE) {
+> if (run_all) {
 + ## ----VS-libraries-------------------------------------------------------------
 + ## libraries
 + library("tram")
 + library("tramvs")
-+ 
++ library("cotram")
++   
++ set.seed(2529)
++   
 + ## ----VS-preproc, echo = FALSE-------------------------------------------------
 + ## medical care data: https://www.jstor.org/stable/2285252
 + data("NMES1988", package = "AER")
 + nmes <- NMES1988
-+ nmes$one <- 1
 + nmes$sex <- nmes$gender
-+ 
-+ ## non-parametric likelihood
-+ nmes$visits <- as.double(nmes$visits)
-+ nmes$visits <- with(nmes, R(visits, as.R.ordered = TRUE))
-+ 
++   
 + mm <- model.matrix(~ health, data = nmes)[,-1]
 + nmes <- cbind(nmes, mm)
-+ 
++   
 + ## formula
 + vars <- c("healthpoor", "healthexcellent", "chronic", "sex", "school",
-+   "insurance")
-+ 
++           "insurance")
++   
 + mu <- sigma <- paste(vars, collapse = " + ")
-+ fm <- as.formula(paste("visits ~ one + " , mu)) ## location only
-+ sfm <- as.formula(paste("visits ~ one + " , mu, "|", sigma)) ## location-scale
-+ 
++ fm <- as.formula(paste("visits ~ " , mu)) ## location only
++ sfm <- as.formula(paste("visits ~ " , mu, "|", sigma)) ## location-scale
++   
++   
 + ## ----VS-model, echo = FALSE, purl = TRUE, eval = FALSE------------------------
-+ ## transformation model maximising non-parametric likelihood (ML)
-+ (mML <- Polr(sfm, data = nmes, method = "cloglog"))
++ order <- 12
 + 
++ ## transformation model maximising the count likelihood (ML)
++ (mML <- cotram(sfm, data = nmes, method = "cloglog",
++               remove_intercept = FALSE, log_first = FALSE, 
++               order = order))
++   
 + ## best subset transformation model with L0 penalty on scale term only (BSS)
-+ (mBSS <- PolrVS(sfm, data = nmes, method = "cloglog", mandatory = fm))
++ (mBSS <- cotramVS(sfm, mandatory = fm, data = nmes, method = "cloglog",
++                  remove_intercept = FALSE, log_first = FALSE, 
++                  order = order))
++                  
 + 
 + ## ----VS-table, results = "asis"-----------------------------------------------
 + ## ML model
@@ -1215,7 +1261,7 @@ downloaded 682 bytes
 > 
 > ## Supplementary Material D. Simulation ##
 > ## not run by default (computationally too intensive)
-> if (FALSE) {
+> if (run_all) {
 + ## ----SIM-setup----------------------------------------------------------------
 + ## libraries
 + library("tram")
@@ -1446,10 +1492,10 @@ other attached packages:
  [1] ATR_0.1-1           trtf_0.4-2          partykit_1.2-20    
  [4] libcoin_1.0-9       gamlss.cens_5.0-1   gamlss_5.4-12      
  [7] nlme_3.1-162        gamlss.dist_6.0-5   gamlss.data_6.0-2  
-[10] multcomp_1.4-23     TH.data_1.1-2       MASS_7.3-59        
+[10] multcomp_1.4-23     TH.data_1.1-2       MASS_7.3-60        
 [13] cotram_0.4-2        mpr_1.0.6           coin_1.4-2         
-[16] mvtnorm_1.2-0       survival_3.5-5      tram_0.8-2         
-[19] mlt_1.4-6           basefun_1.1-3       variables_1.1-1    
+[16] mvtnorm_1.1-3       survival_3.5-5      tram_0.8-3         
+[19] mlt_1.4-7           basefun_1.1-4       variables_1.1-1    
 [22] xtable_1.8-4        colorspace_2.1-0    reshape2_1.4.4     
 [25] latticeExtra_0.6-30 gridExtra_2.3       lattice_0.21-8     
 
@@ -1458,7 +1504,7 @@ loaded via a namespace (and not attached):
  [4] inum_1.0-5           magrittr_2.0.3       RColorBrewer_1.1-3  
  [7] plyr_1.8.8           Matrix_1.5-4         Formula_1.2-5       
 [10] codetools_0.2-19     numDeriv_2016.8-1.1  modeltools_0.2-23   
-[13] cli_3.6.1            rlang_1.1.0          coneproj_1.16       
+[13] cli_3.6.1            rlang_1.1.1          coneproj_1.16       
 [16] tools_4.3.0          polynom_1.4-1        deldir_1.0-6        
 [19] interp_1.1-4         orthopolynom_1.0-6.1 rpart_4.1.19        
 [22] png_0.1-8            stats4_4.3.0         matrixStats_0.63.0  
@@ -1469,4 +1515,4 @@ loaded via a namespace (and not attached):
 > 
 > proc.time()
    user  system elapsed 
-147.082   2.038 150.879 
+193.875   4.689 201.317 
