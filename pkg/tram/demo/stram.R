@@ -1,5 +1,8 @@
 ### Demo for location-scale transformation models ###
-### DOI:10.48550/arXiv.2208.05302 
+### DOI: 10.1080/00031305.2023.2203177
+
+## run all the code (including the computationally intensive examples)
+run_all <- FALSE 
 
 ## general setup ##
 library("lattice")
@@ -110,11 +113,13 @@ OR <- 15
 ## stratified transformation model
 m <- BoxCox(MBLi | mode ~ 1, data = blood,
      order = OR, bounds = c(0, Inf), support = c(0, 2000))
+coef(as.mlt(m))
 logLik(m)
 
 ## location-scale transformation model
 sm <- BoxCox(MBLi ~ mode | mode, data = blood,
      order = OR, bounds = c(0, Inf), support = c(0, 2000))
+coef(as.mlt(sm))
 logLik(sm)
 
 ## ----STRAT-plot, fig.height = 4.6, eval = TRUE--------------------------------
@@ -300,9 +305,8 @@ tx <- predict(sm, newdata = nd[2,,drop = FALSE], prob = p, type = "quantile")
 sx <- predict(sm, newdata = nd[2,,drop = FALSE], q = tx, type = "survivor")
 
 ### check different parametrisations
-gastric$one <- 1
 sr1 <- Survreg(y ~ group | group, data = gastric)
-sr2 <- Survreg(y ~ one + group | group, data = gastric, fixed = c("(Intercept)" = 0))
+sr2 <- Survreg(y ~ group | group, data = gastric, remove_intercept = FALSE)
 stopifnot(isTRUE(all.equal(c(logLik(sr1)), mp$model$loglike, check.attributes = FALSE)))
 stopifnot(isTRUE(all.equal(c(logLik(sr2)), mp$model$loglike, check.attributes = FALSE,
                            tol = .Machine$double.eps^{1/4})))
@@ -684,7 +688,7 @@ plot(rotate(tr), tp_args = list(newdata = model.frame(tr)[1, -1, drop = FALSE],
 
 ## Section 3.3. Transformation additive models for location and scale ##
 ## not run by default (computationally too intensive)
-if (FALSE) {
+if (run_all) {
 ## ----TAMLS-setup--------------------------------------------------------------
 library("tram")
 library("gamlss")
@@ -755,24 +759,23 @@ db$agepwr <- with(db, age^pwr)
 OR <- 6
 log_first <- TRUE
 
-dd <- with(db, data.frame(y = head, m = agepwr, s = agepwr, one = 1))
+dd <- with(db, data.frame(y = head, m = agepwr, s = agepwr))
 mf <- BoxCox(y ~ 1, data = dd, order = OR, log_first = log_first) ## thetas
 ._mff <- BoxCox(y ~ m | s, data = dd, model_only = TRUE, order = OR, log_first = log_first) ## support
 ._start <- coef(as.mlt(mf))
 mlt(._mff, data = dd)
 
 ## ----TAMLS-fit----------------------------------------------------------------
-## GAMLSS fit
+## GAMLSS: from DOI: 10.18637/jss.v023.i07
 mBCT <- gamlss(formula = head ~ cs(agepwr, df = 13.77), sigma.fo = ~ cs(agepwr, df = 6.05),
                nu.fo = ~ agepwr, tau.fo = ~ agepwr,
                family = BCT(), data = db)
 coefAll(mBCT)
 logLik(mBCT)
 
-## TAMLSS fit
+## TAMLS
 i <- 0
-sc_fm <- as.formula("~ 0 + cs(agepwr, df = 6.05)")
-mTM <- gamlss(formula = head ~ cs(agepwr, df = 13.77), sigma.fo = ~ cs(agepwr, df = 6.05),
+mTM <- gamlss(formula = head ~ 0 + cs(agepwr, df = 13.77), sigma.fo = ~ 0 + cs(agepwr, df = 6.05),
   data = db, family = TM(), control = gamlss.control(n.cyc = 400, c.crit = 0.001))
 coefAll(mTM)
 logLik(mTM)
@@ -839,40 +842,46 @@ grid.arrange(pg, ptm)
 
 ## Section 3.4. Model selection ##
 ## not run by default (computationally too intensive)
-if (FALSE) {
+if (run_all) {
 ## ----VS-libraries-------------------------------------------------------------
 ## libraries
 library("tram")
 library("tramvs")
-
+library("cotram")
+  
+set.seed(2529)
+  
 ## ----VS-preproc, echo = FALSE-------------------------------------------------
 ## medical care data: https://www.jstor.org/stable/2285252
 data("NMES1988", package = "AER")
 nmes <- NMES1988
-nmes$one <- 1
 nmes$sex <- nmes$gender
-
-## non-parametric likelihood
-nmes$visits <- as.double(nmes$visits)
-nmes$visits <- with(nmes, R(visits, as.R.ordered = TRUE))
-
+  
 mm <- model.matrix(~ health, data = nmes)[,-1]
 nmes <- cbind(nmes, mm)
-
+  
 ## formula
 vars <- c("healthpoor", "healthexcellent", "chronic", "sex", "school",
-  "insurance")
-
+          "insurance")
+  
 mu <- sigma <- paste(vars, collapse = " + ")
-fm <- as.formula(paste("visits ~ one + " , mu)) ## location only
-sfm <- as.formula(paste("visits ~ one + " , mu, "|", sigma)) ## location-scale
-
+fm <- as.formula(paste("visits ~ " , mu)) ## location only
+sfm <- as.formula(paste("visits ~ " , mu, "|", sigma)) ## location-scale
+  
+  
 ## ----VS-model, echo = FALSE, purl = TRUE, eval = FALSE------------------------
-## transformation model maximising non-parametric likelihood (ML)
-(mML <- Polr(sfm, data = nmes, method = "cloglog"))
+order <- 12
 
+## transformation model maximising the count likelihood (ML)
+(mML <- cotram(sfm, data = nmes, method = "cloglog",
+              remove_intercept = FALSE, log_first = FALSE, 
+              order = order))
+  
 ## best subset transformation model with L0 penalty on scale term only (BSS)
-(mBSS <- PolrVS(sfm, data = nmes, method = "cloglog", mandatory = fm))
+(mBSS <- cotramVS(sfm, mandatory = fm, data = nmes, method = "cloglog",
+                 remove_intercept = FALSE, log_first = FALSE, 
+                 order = order))
+                 
 
 ## ----VS-table, results = "asis"-----------------------------------------------
 ## ML model
@@ -1018,7 +1027,7 @@ par(op)
 
 ## Supplementary Material D. Simulation ##
 ## not run by default (computationally too intensive)
-if (FALSE) {
+if (run_all) {
 ## ----SIM-setup----------------------------------------------------------------
 ## libraries
 library("tram")
