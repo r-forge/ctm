@@ -881,6 +881,7 @@ order <- 12
 (mBSS <- cotramVS(sfm, mandatory = fm, data = nmes, method = "cloglog",
                  remove_intercept = FALSE, log_first = FALSE, 
                  order = order))
+mBSS <- mBSS$best_fit
                  
 
 ## ----VS-table, results = "asis"-----------------------------------------------
