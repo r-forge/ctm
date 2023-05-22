@@ -2,7 +2,7 @@
 \name{NEWS}
 \title{NEWS file for the tram package}
 
-\section{Changes in Version 0.8-3 (2023-05-10)}{
+\section{Changes in Version 0.8-3 (2023-05-22)}{
   \itemize{
     \item{Remove intercepts from baseline functions in shift-scale models
           when remove_intercept = FALSE. This ensures centering of variables in
