@@ -2,7 +2,7 @@
 \name{NEWS}
 \title{NEWS file for the mlt package}
 
-\section{Changes in Version 1.4-7 (2023-05-10)}{
+\section{Changes in Version 1.4-7 (2023-05-22)}{
   \subsection{Bug Fixes}{
     \itemize{
       \item{Starting values might end up being NA; set to zero.}
