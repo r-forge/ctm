@@ -568,6 +568,8 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
                     optim_hessian = NA)
     }
 
+    nm <- do.call("c", lapply(m$models, function(mod) names(coef(mod))))
+    names(ret$par)[1:length(nm)] <- nm
     pnm <- m$parm(ret$par)
     pnm <- do.call("c", lapply(1:J, function(j) paste(m$names[j], names(pnm[[j]]), sep = ".")))
     tmp <- .Xparm(ret$par)
