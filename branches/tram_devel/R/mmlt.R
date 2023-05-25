@@ -277,45 +277,45 @@
     }
 
     if (what == "trafo") {
-        stopifnot(models$cont[j])
+#        stopifnot(models$cont[j])
         return(tr)
     }
     if (what == "dtrafo") {
-        stopifnot(models$cont[j])
+#        stopifnot(models$cont[j])
         return(tmp$todistr$d(tr))
     }
     if (what == "z") {
-        stopifnot(models$cont[j])
+#        stopifnot(models$cont[j])
         if (models$normal[j]) 
             return(tr)
         return(qnorm(tmp$todistr$p(tr, log = TRUE), log.p = TRUE))
     }
     if (what == "zleft") {
-        stopifnot(!models$cont[j])
+#        stopifnot(!models$cont[j])
         if (models$normal[[j]])
             return(trl)
         return(qnorm(tmp$todistr$p(trl, log = TRUE), log.p = TRUE))
     }
     if (what == "dzleft") {
-        stopifnot(!models$cont[j])
+#        stopifnot(!models$cont[j])
         if (models$normal[[j]])
             return(trl)
         return(tmp$todistr$d(trl))
     }
    if (what == "zright") {
-        stopifnot(!models$cont[j])
+#        stopifnot(!models$cont[j])
         if (models$normal[[j]])
             return(trr)
         return(qnorm(tmp$todistr$p(trr, log = TRUE), log.p = TRUE))
     }
     if (what == "dzright") {
-        stopifnot(!models$cont[j])
+#        stopifnot(!models$cont[j])
         if (models$normal[[j]])
             return(trr)
         return(tmp$todistr$d(trr))
     }
     if (what == "zprime") {
-        stopifnot(models$cont[j])
+#        stopifnot(models$cont[j])
         if (models$normal[[j]])
             return(trp)
         qn <- qnorm(tmp$todistr$p(tr, log = TRUE), log.p = TRUE)
@@ -462,9 +462,10 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
 
         Lmat <- Lower_tri(sc$Lambda)[rep(1:Jp, each = ncol(lX)), , drop = FALSE]
         if (identical(c(lX), 1)) {
-            scL <- rowSums(Lmat)
+            scL <- rowSums(Lmat, na.rm = TRUE) ### NaN might appear in scores
         } else {
-            scL <- rowSums(Lmat * t(lX[,rep(1:ncol(lX), Jp), drop = FALSE]))
+            scL <- rowSums(Lmat * t(lX[,rep(1:ncol(lX), Jp), drop = FALSE]), 
+                           na.rm = TRUE)
         }
       
         scp <- vector(mode = "list", length = cJ + dJ)
@@ -512,6 +513,9 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
 
     if (is.null(theta) && dofit) {
 
+        ### note: this is fine for conditonal = FALSE
+        ### but not quite what we want for conditional = TRUE
+
         start <- do.call("c", lapply(m$models, function(mod) coef(mod)))
         if (weights) {
             cll <- function(cpar) -sum(weights * ll(c(start, cpar)))
@@ -529,7 +533,10 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
         #     warning("Optimisation did not converge")
 
         start <- c(start, op$par)
-        if (!domargins) dofit <- FALSE
+        if (!domargins) {
+            dofit <- FALSE
+            theta <- start
+        }
     } else {
         ### use user-supplied starting values
         start <- theta
