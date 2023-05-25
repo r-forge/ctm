@@ -2,6 +2,12 @@
 \name{NEWS}
 \title{NEWS file for the cotram package}
 
+\section{Changes in Version 0.4-4 (2023-05-25)}{
+  \itemize{
+    \item{Remove \code{mcotram} temporarily (will come back once \pkg{tram} 1.0-0 is available.}
+  }
+}
+
 \section{Changes in Version 0.4-3 (2022-11-02)}{
   \itemize{
     \item{Update reference output to \pkg{tram} 0.8-0.}

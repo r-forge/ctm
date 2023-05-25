@@ -4,6 +4,10 @@ DVC.tgz
 ^.*\.Rproj$
 ^\.Rproj\.user$
 test_randomunif.R
-demo/aquabirds.Rout.save
-demo/Rplots_out_save.pdf
+demo/
 Makefile
+tests/mcotram-Ex.R
+R/mcotram.R
+man/mcotram.R
+demo/
+tests/mcotram-Ex.R*

@@ -17,7 +17,7 @@ importFrom("utils", "compareVersion", "packageVersion")
 
 importFrom("survival", "Surv")
 
-export(cotram, mcotram)
+export(cotram)#, mcotram)
 
 S3method("as.mlt", "cotram")
 S3method("mkgrid", "cotram")
@@ -25,4 +25,4 @@ S3method("logLik", "cotram")
 S3method("plot", "cotram")
 S3method("predict", "cotram")
 S3method("confband", "cotram")
-S3method("predict", "mcotram")
+#S3method("predict", "mcotram")

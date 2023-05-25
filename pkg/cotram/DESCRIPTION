@@ -1,7 +1,7 @@
 Package: cotram
 Title: Count Transformation Models
-Version: 0.4-3
-Date: 2022-11-02
+Version: 0.4-4
+Date: 2023-05-24
 Authors@R: c(
 	person(given = "Sandra", family = "Siegfried", role = c("aut", "cre"), 
 	email = "sandra.siegfried@uzh.ch",

@@ -1,6 +1,6 @@
 
-R version 4.2.2 (2022-10-31) -- "Innocent and Trusting"
-Copyright (C) 2022 The R Foundation for Statistical Computing
+R version 4.3.0 (2023-04-21) -- "Already Tomorrow"
+Copyright (C) 2023 The R Foundation for Statistical Computing
 Platform: x86_64-pc-linux-gnu (64-bit)
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
@@ -25,6 +25,7 @@ Loading required package: tram
 Loading required package: mlt
 Loading required package: basefun
 Loading required package: variables
+Loading required package: mvtnorm
 > 
 > base::assign(".oldSearch", base::search(), pos = 'CheckExEnv')
 > base::assign(".old_wd", base::getwd(), pos = 'CheckExEnv')
@@ -179,113 +180,12 @@ Log-Likelihood:
 > 
 > 
 > 
-> cleanEx()
-> nameEx("mcotram")
-> ### * mcotram
-> 
-> flush(stderr()); flush(stdout())
-> 
-> ### Name: mcotram
-> ### Title: Multivariate Count Conditional Transformation Models
-> ### Aliases: mcotram
-> ### Keywords: models
-> 
-> ### ** Examples
-> 
-> 
->   op <- options(digits = 2)
-> 
->   data("spiders", package = "cotram")
-> 
->   ## fit conditional marginal count transformation models
->   m_PF <- cotram(Pardosa_ferruginea ~ Elevation + Canopy_openess, 
-+                  data = spiders, method = "probit")
->   m_HL <- cotram(Harpactea_lepida ~ Elevation + Canopy_openess,
-+                  data = spiders, method = "probit")
->   m_CC <- cotram(Callobius_claustrarius ~ Elevation + Canopy_openess,
-+                  data = spiders, method = "probit")
->   m_CT <- cotram(Coelotes_terrestris ~ Elevation + Canopy_openess,
-+                  data = spiders, method = "probit")
->   m_PL <- cotram(Pardosa_lugubris ~ Elevation + Canopy_openess,
-+                  data = spiders, method = "probit")
->   m_PR <- cotram(Pardosa_riparia ~ Elevation + Canopy_openess,
-+                  data = spiders, method = "probit")
-> 
->   ## fit multi-species count transformation model
->   ## with constant Cholesky factor of the precision matrix
->   ##
->   ## define starting values here (this is not necessary but leads
->   ## to diffs for ATLAS and OpenBlas)
->   cf1 <- c(0.415, 0.921, 0.921, 0.921, 1.257, 1.42, 1.654, 0, 0.001, 0.853,
-+            1.365, 1.365, 1.365, 1.791, 2.094, 2.428, 0.002, 0, -1.219,
-+            -1.218, -0.514, -0.403, -0.403, 0.078, 0.863, -0.001, 0, 0.326,
-+            0.596, 0.91, 0.91, 0.91, 1.481, 2.137, -0.001, 0.001, -1.628,
-+            -1.188, -1.188, -1.129, -0.434, -0.296, 0.395, 0, -0.001, -6.345,
-+            -6.015, -5.291, -5.291, -5.291, -4.541, -3.554, -0.006, 0, 0.69,
-+            -0.345, 0.28, -0.944, 0.787, 0.028, 0.322, -0.559, 0.263, 0.876,
-+            0.006, -0.207, -0.481, -0.083, 0.161)
-> 
-> ### fitting two models takes > 10 sec on Dortmund's Windows machine
-> ### don't test the simple model
-> 
->   ## with covariate-dependent Cholesky factor of the precision matrix
->   cf2 <- c(1.649, 2.078, 2.078, 2.078, 2.391, 2.476, 2.694, 0.001, 0, 3.399,
-+            3.862, 3.862, 3.862, 4.232, 4.593, 4.991, 0.005, -0.001, -3.646, -3.646,
-+            -2.906, -2.777, -2.777, -2.256, -1.429, -0.003, 0.001, -1.257, -1.01,
-+            -0.652, -0.652, -0.652, -0.093, 0.601, -0.002, 0.001, 2.294, 2.77, 2.77,
-+             2.796, 3.593, 3.74, 4.473, 0.006, -0.003, -7.563, -7.173,
-+            -6.384, -6.384, -6.384, -5.571, -4.509, -0.007, 0.001, -4.788,
-+            0.007, -0.001, 3.914, -0.005, 0, 1.534, -0.001, 0, 1.098, -0.002,
-+            -0.001, 2.196, -0.002, 0, -0.072, 0, 0, -0.222, 0.001, -0.001,
-+            -2.876, 0.003, -0.001, -1.135, 0.002, -0.001, 0.07, 0.001,
-+            -0.001, 3.279, -0.004, 0, -1.057, 0.001, 0, -0.953, 0.001, 0,
-+            0.252, 0, 0, 2.443, -0.002, -0.001)
-> 
->   m_all_2 <- mcotram(m_PF, m_HL, m_CC, m_CT, m_PL, m_PR, 
-+                      theta = cf2, ## <- please CRAN timings
-+                      formula = ~ Elevation + Canopy_openess, data = spiders)
-> 
->   logLik(m_all_2)
-'log Lik.' -2376 (df=99)
-> 
->   ## lambda defining the Cholesky factor of the precision matrix
->   coef(m_all_2, newdata = spiders[1,], type = "Lambda")
-, , 1
-
-       Prds_f  Hrp_  Cll_  Clt_ Prds_l Prds_r
-Prds_f  1.000  0.00  0.00 0.000  0.000      0
-Hrp_   -0.195  1.00  0.00 0.000  0.000      0
-Cll_    0.077  0.22  1.00 0.000  0.000      0
-Clt_   -1.224  1.03  0.19 1.000  0.000      0
-Prds_l -0.066 -1.12 -0.21 0.533  1.000      0
-Prds_r  0.112 -0.33 -0.55 0.033 -0.025      1
-
-> 
->   ## linear correlation, ie Pearson correlation of the models after
->   ## transformation to bivariate normality
->   (r2 <- coef(m_all_2, newdata = spiders[1,], type = "Corr"))
-, , 1
-
-       Prds_f  Hrp_    Cll_   Clt_  Prds_l Prds_r
-Prds_f   1.00  0.19 -0.1169  0.594 -0.1487  -0.13
-Hrp_     0.19  1.00 -0.2338 -0.435  0.7537   0.20
-Cll_    -0.12 -0.23  1.0000 -0.056 -0.0023   0.42
-Clt_     0.59 -0.43 -0.0557  1.000 -0.7017  -0.28
-Prds_l  -0.15  0.75 -0.0023 -0.702  1.0000   0.30
-Prds_r  -0.13  0.20  0.4249 -0.282  0.2997   1.00
-
-> 
->   options(op)
-> 
-> 
-> 
-> 
 > ### * <FOOTER>
 > ###
 > cleanEx()
 > options(digits = 7L)
 > base::cat("Time elapsed: ", proc.time() - base::get("ptime", pos = 'CheckExEnv'),"\n")
-Time elapsed:  3.634 0.054 3.69 0 0 
+Time elapsed:  1.342 0.041 1.382 0 0 
 > grDevices::dev.off()
 null device 
           1 
