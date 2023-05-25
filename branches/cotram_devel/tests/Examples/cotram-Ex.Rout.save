@@ -1,0 +1,290 @@
+
+R version 4.3.0 (2023-04-21) -- "Already Tomorrow"
+Copyright (C) 2023 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> pkgname <- "cotram"
+> source(file.path(R.home("share"), "R", "examples-header.R"))
+> options(warn = 1)
+> library('cotram')
+Loading required package: tram
+Loading required package: mlt
+Loading required package: basefun
+Loading required package: variables
+Loading required package: mvtnorm
+> 
+> base::assign(".oldSearch", base::search(), pos = 'CheckExEnv')
+> base::assign(".old_wd", base::getwd(), pos = 'CheckExEnv')
+> cleanEx()
+> nameEx("confband")
+> ### * confband
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: confband
+> ### Title: Confidence Bands
+> ### Aliases: confband confband.cotram
+> 
+> ### ** Examples
+> 
+> 
+>   op <- options(digits = 4)
+> 
+>   data("birds", package = "TH.data")
+>   
+>   ### fit count transformation model with cloglog link
+>   m_birds <- cotram(SG5 ~ AOT + AFS + GST + DBH + DWC + LOG, data = birds,
++                     method = "cloglog")
+>   
+>   ### compute asymptotic confidence bands for the distribution function
+>   ### for the first oberservation
+>   confband(m_birds, newdata = birds[1, ], type = "distribution")
+    q Estimate    lwr    upr
+1   0   0.1493 0.0891 0.2444
+1.1 1   0.3883 0.2710 0.5343
+1.2 2   0.5863 0.4418 0.7371
+1.3 3   0.7667 0.6227 0.8862
+1.4 4   0.8930 0.7758 0.9646
+1.5 5   0.9561 0.8744 0.9910
+1.6 6   0.9829 0.9337 0.9978
+1.7 7   0.9940 0.9642 0.9996
+1.8 8   0.9981 0.9800 1.0000
+1.9 9   0.9994 0.9886 1.0000
+> 
+>   options(op)
+> 
+> 
+> 
+> 
+> cleanEx()
+> nameEx("cotram-methods")
+> ### * cotram-methods
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: cotram-methods
+> ### Title: Methods for Count Transformation Models
+> ### Aliases: predict.cotram plot.cotram as.mlt.cotram logLik.cotram
+> 
+> ### ** Examples
+> 
+>   op <- options(digits = 4)
+> 
+>   data("birds", package = "TH.data")
+>   
+>   ### fit count transformation model with cloglog link
+>   m_birds <- cotram(SG5 ~ AOT + AFS + GST + DBH + DWC + LOG, data = birds,
++                     method = "cloglog")
+>   logLik(m_birds)
+'log Lik.' -504.4 (df=13)
+> 
+>   ### classical likelihood inference
+> ## IGNORE_RDIFF_BEGIN
+>   summary(m_birds)
+
+  Discrete Hazards Cox Count Transformation Model 
+
+Call:
+cotram(formula = SG5 ~ AOT + AFS + GST + DBH + DWC + LOG, data = birds, 
+    method = "cloglog")
+
+Coefficients:
+     Estimate Std. Error z value Pr(>|z|)    
+AOT -5.47e-03   2.26e-03   -2.42  0.01572 *  
+AFS  9.40e-03   2.71e-03    3.47  0.00051 ***
+GST -3.00e-04   5.04e-04   -0.60  0.55139    
+DBH -4.07e-05   5.44e-03   -0.01  0.99404    
+DWC  7.22e-03   5.78e-03    1.25  0.21129    
+LOG -4.28e-03   2.40e-03   -1.78  0.07488 .  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Log-Likelihood:
+ -504.4 (df = 13)
+Likelihood-ratio Test: Chisq = 20.08 on 6 degrees of freedom; p = 0.00268
+
+> ## IGNORE_RDIFF_END
+> 
+>   ### coefficients of the linear predictor (discrete hazard ratios)
+>   exp(-coef(m_birds))
+   AOT    AFS    GST    DBH    DWC    LOG 
+1.0055 0.9906 1.0003 1.0000 0.9928 1.0043 
+> 
+>   ### compute predicted median along with 10% and 90% quantile for the first
+>   ### three observations
+>   nd <- birds[1:3,]
+>   round(predict(m_birds, newdata = nd, type = "quantile", prob = c(.1, .5, .9), 
++                 smooth = TRUE), 3)
+       
+prob     [,1]  [,2]  [,3]
+    0.1 0.084 0.079 0.083
+    0.5 1.556 1.479 1.543
+    0.9 4.079 3.963 4.058
+> 
+>   ### plot the predicted distribution for these observations
+>   plot(m_birds, newdata = nd, type = "distribution",
++        col = c("skyblue", "grey", "seagreen"))
+>        
+>   options(op)
+> 
+> 
+> 
+> cleanEx()
+> nameEx("cotram")
+> ### * cotram
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: cotram
+> ### Title: Count Transformation Models
+> ### Aliases: cotram
+> ### Keywords: models regression
+> 
+> ### ** Examples
+> 
+> 
+>   op <- options(digits = 3)
+> 
+>   data("birds", package = "TH.data")
+>   cotram(SG5 ~ AOT + AFS + GST + DBH + DWC + LOG, data = birds)
+
+  Discrete Odds Count Transformation Model 
+
+Call:
+cotram(formula = SG5 ~ AOT + AFS + GST + DBH + DWC + LOG, data = birds)
+
+Coefficients:
+     AOT      AFS      GST      DBH      DWC      LOG 
+-0.00930  0.01743 -0.00188  0.00914  0.02082 -0.00411 
+
+Log-Likelihood:
+ -502 (df = 13)
+
+> 
+>   options(op)
+> 
+> 
+> 
+> 
+> cleanEx()
+> nameEx("mcotram")
+> ### * mcotram
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: mcotram
+> ### Title: Multivariate Count Conditional Transformation Models
+> ### Aliases: mcotram
+> ### Keywords: models
+> 
+> ### ** Examples
+> 
+> 
+> library("cotram")
+> data("spiders", package = "cotram")
+> 
+> ### for illustration only
+> OR <- 1      ### order of transformation function
+>              ### OR = 1 means log-linear, use OR ~ 6
+> M <- 100     ### number of Halton sequences, seem sufficient here
+> 
+> ### speed-up optimisation
+> spiders$EV <- c(scale(spiders$Elevation))
+> spiders$CO <- c(scale(spiders$Canopy_openess))
+> 
+> ## fit conditional marginal count transformation models
+> ## one for each species
+> m_PF <- cotram(Pardosa_ferruginea ~ EV + CO, 
++                data = spiders, method = "probit", order = OR)
+> m_HL <- cotram(Harpactea_lepida ~ EV + CO,
++                data = spiders, method = "probit", order = OR)
+> m_CC <- cotram(Callobius_claustrarius ~ EV + CO,
++                data = spiders, method = "probit", order = OR)
+> m_CT <- cotram(Coelotes_terrestris ~ EV + CO,
++                data = spiders, method = "probit", order = OR)
+> m_PL <- cotram(Pardosa_lugubris ~ EV + CO,
++                data = spiders, method = "probit", order = OR)
+> m_PR <- cotram(Pardosa_riparia ~ EV + CO,
++                data = spiders, method = "probit", order = OR)
+> 
+> ### fit dependence parameters
+> mm <- mcotram(m_PF, m_HL, m_CC, m_CT, m_PL, m_PR, data = spiders,
++               M = M)
+> logLik(mm)
+'log Lik.' -2476.198 (df=39)
+> 
+> ### Kendall's tau: Dependence of species after accounting
+> ### for elevation and canopy openess in marginal models
+> coef(mm, type = "Kendall")
+, , 1
+
+           Prds_f        Hrp_        Cll_        Clt_     Prds_l      Prds_r
+Prds_f  1.0000000 -0.25501111  0.14862192  0.42776923 -0.3158469  0.10693084
+Hrp_   -0.2550111  1.00000000 -0.15465742 -0.36501892  0.4360795 -0.08782554
+Cll_    0.1486219 -0.15465742  1.00000000  0.06773958 -0.2009182  0.26842749
+Clt_    0.4277692 -0.36501892  0.06773958  1.00000000 -0.4927643  0.10073933
+Prds_l -0.3158469  0.43607951 -0.20091823 -0.49276427  1.0000000 -0.15913226
+Prds_r  0.1069308 -0.08782554  0.26842749  0.10073933 -0.1591323  1.00000000
+
+> 
+> ### regress dependencies on elevation and canopy openess
+> mmc <- mcotram(m_PF, m_HL, m_CC, m_CT, m_PL, m_PR, data = spiders, 
++                formula = ~ EV + CO, M = M)
+> logLik(mmc)
+'log Lik.' -2452.546 (df=69)
+> 
+> ### weak evidence for such effects
+> pchisq(2 * (logLik(mmc) - logLik(mm)), df = 30, lower.tail = FALSE)
+'log Lik.' 0.02323203 (df=69)
+> 
+> ### plot Kendall's tau for different elevations / openess levels
+> nd <- expand.grid(EV = -15:15 / 10, CO = -15:15 / 10)
+> KD <- Lower_tri(coef(mmc, newdata = nd, type = "Kendall"))
+> f <- factor(rownames(KD))
+> nd <- cbind(f = rep(f, nrow(nd)), nd[rep(1:nrow(nd), each = nlevels(f)),])
+> nd$KD <- c(KD)
+> 
+> library("lattice")
+> contourplot(KD ~ EV + CO | f, data = nd, cuts = 18, xlab = "Elevation",
++             ylab = "Canopy openess")
+> 
+> ### for example:
+> ### => constant negative dependence of Pardosa_lugubris and Coelotes_terrestris
+> ### => weak dependence of Harpactea_lepida and Pardosa_ferruginea
+> ###    for low elevations, negative dependence increasing with elevation
+> 
+> 
+> 
+> 
+> ### * <FOOTER>
+> ###
+> cleanEx()
+
+detaching ‘package:lattice’
+
+> options(digits = 7L)
+> base::cat("Time elapsed: ", proc.time() - base::get("ptime", pos = 'CheckExEnv'),"\n")
+Time elapsed:  38.547 0.06 38.628 0 0 
+> grDevices::dev.off()
+null device 
+          1 
+> ###
+> ### Local variables: ***
+> ### mode: outline-minor ***
+> ### outline-regexp: "\\(> \\)?### [*]+" ***
+> ### End: ***
+> quit('no')
