@@ -2,17 +2,19 @@
 mkgrid.cotram <- function(object, n, ...)
   mkgrid(object$count_response, n = n, ...)
 
-as.mlt.cotram <- function(object) {
-  cls <- which(class(object) == "mlt_fit")
-  class(object) <- class(object)[-(1:(cls - 1))]
-  object
-}
-
-# as.mlt.cotram <- function(object) {
-#   class(object) <- class(object)[-which(class(object) == "cotram")]
-#   if (object$log_first) warning("Attention the model was fitted to 'response + 1L'.")
-#   as.mlt(object)
+# mkgrid.cotram <- function(object, n, smooth = FALSE, ...) {
+#   ret <- mkgrid(object$count_response, ...)
+#   y <- variable.names(object, "response")
+#   if (smooth) ret[[y]] <-
+#       seq(from = min(ret[[y]]), to = max(ret[[y]]), length.out = n)
+#   ret
 # }
+
+as.mlt.cotram <- function(object) {
+  class(object) <- class(object)[-which(class(object) == "cotram")]
+  # if (object$log_first) warning("The model was fitted to 'response + 1L'.")
+  as.mlt(object)
+}
 
 logLik.cotram <- function(object, parm = coef(as.mlt(object), fixed = FALSE), newdata, ...){
   response <- variable.names(object, "response")
