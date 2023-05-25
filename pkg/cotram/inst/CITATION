@@ -1,9 +1,9 @@
 
 citHeader("Please cite the cotram package by the following reference:")
 
-citEntry(entry = "Article",
+bibentry(bibtype = "Article",
          title = "Count Transformation Models",
-         author = personList(as.person("Sandra Siegfried"), as.person("Torsten Hothorn")),
+         author = c(as.person("Sandra Siegfried"), as.person("Torsten Hothorn")),
          journal = "Methods in Ecology and Evolution",
          year = "2020",
          volume = "11",
