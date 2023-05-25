@@ -5,6 +5,7 @@ mcotram <- function(..., formula = ~ 1, data, conditional = FALSE,
 
     m <- list(...)
     stopifnot(all(sapply(m, function(x) inherits(x, "cotram"))))
+    m <- lapply(m, as.mlt)
 
     J <- length(m)
     W <- t(ghalton(M, d = J - 1))
