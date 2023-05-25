@@ -48,7 +48,7 @@ gives the same likelihood but different parameter estimates.
 }
   \item{theta}{an optional vector of starting values.
 }
-  \item{optim}{a list of optimisers as returned by \code{\link[mlt]{mltoptim}}
+  \item{optim}{a list of optimisers as returned by \code{\link{mmltoptim}}
 }
   \item{args}{a list of arguments for \code{\link[mvtnorm]{lpmvnorm}}.}
   \item{dofit}{logical; parameters are fitted by default, otherwise a list
