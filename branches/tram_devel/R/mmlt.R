@@ -208,8 +208,6 @@
         stopifnot(!prime)
         Yleft <- models$mm[[j]]$iY$Yleft
         Yright <- models$mm[[j]]$iY$Yright
-        Yleft[!is.finite(Yleft[,1]),] <- 0
-        Yright[!is.finite(Yright[,1]),] <- 0
         return(list(Yleft = Yleft, Yright = Yright))
     }
 
@@ -222,7 +220,12 @@
             return(model.matrix(models$models[[j]]$model, data = newdata))
         }
     }
-    stop("not yet implemented")
+    resp <- models$models[[j]]$model$response
+    y <- R(newdata[[resp]])
+    iY <- mlt:::.mm_interval(model = models$models[[j]]$model, data = newdata, resp, y)
+    Yleft <- iY$Yleft
+    Yright <- iY$Yright
+    return(list(Yleft = Yleft, Yright = Yright))
 }
 
 .mget <- function(models, j = 1, parm, newdata = NULL,
@@ -272,7 +275,11 @@
             trr <- c(models$mm[[j]]$iY$Yright %*% prm)
             trr[!is.finite(trr)] <- Inf
         } else {
-            stop("not yet implemented")
+            mmj <- .model_matrix(models, j = j, newdata = newdata)
+            trl <- c(mmj$Yleft %*% prm)
+            trl[!is.finite(trl)] <- -Inf
+            trr <- c(mmj$Yright %*% prm)
+            trr[!is.finite(trr)] <- Inf
         }
     }
 
@@ -396,8 +403,15 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
         mm <- lapply(1:cJ, function(j) .model_matrix(m, j = j))
         mmp <- lapply(1:cJ, function(j) .model_matrix(m, j = j, prime = TRUE))
     }
-    if (dJ)
+    if (dJ) {
         dmm <- lapply(cJ + 1:dJ, function(j) .model_matrix(m, j = j))
+        dmm <- lapply(dmm, function(x) {
+            x$Yleft[!is.finite(x$Yleft[,1]),] <- 0
+            x$Yright[!is.finite(x$Yright[,1]),] <- 0
+            x
+        })
+    }
+
 
     ### note: estfun() already has weights already multiplied to scores
     weights <- m$weights
@@ -415,7 +429,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
     LAMBDA <- ltMatrices(matrix(0, nrow = Jp, ncol = nrow(lX)),
                          byrow = TRUE, diag = FALSE, names = names(m$models))
 
-    ll <- function(parm) {
+    ll <- function(parm, newdata = NULL) {
 
         # Lambda <- ltMatrices(t(lX %*% .Xparm(parm)), byrow = TRUE, diag = FALSE, 
         #                      names = names(m$models))
@@ -424,21 +438,21 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
         Lambda[] <- t(lX %*% .Xparm(parm))
         ret <- 0
         if (cJ) {
-            z <- .rbind(.mget(m, j = which(m$cont), parm = parm, what = "z"))
-            zp <- .rbind(.mget(m, j = which(m$cont), parm = parm, what = "zprime"))
+            z <- .rbind(.mget(m, j = which(m$cont), parm = parm, what = "z", newdata = newdata))
+            zp <- .rbind(.mget(m, j = which(m$cont), parm = parm, what = "zprime", newdata = newdata))
             ret <- colSums(.log(zp))
             if (!dJ) return(ret + llsc$logLik(obs = z, Lambda = Lambda))
         }
         if (dJ) {
-            lower <- .rbind(.mget(m, j = which(!m$cont), parm = parm, what = "zleft"))
-            upper <- .rbind(.mget(m, j = which(!m$cont), parm = parm, what = "zright"))
+            lower <- .rbind(.mget(m, j = which(!m$cont), parm = parm, what = "zleft", newdata = newdata))
+            upper <- .rbind(.mget(m, j = which(!m$cont), parm = parm, what = "zright", newdata = newdata))
             if (!cJ)
                 return(llsc$logLik(lower = lower, upper = upper, Lambda = Lambda))
         }
         return(ret + llsc$logLik(obs = z, lower = lower, upper = upper, Lambda = Lambda))
     }
 
-    sc <- function(parm) {
+    sc <- function(parm, newdata = NULL) {
 
         # Lambda <- ltMatrices(t(lX %*% .Xparm(parm)), byrow = TRUE, diag = FALSE, 
         #                      names = names(m$models))
@@ -447,13 +461,13 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
         Lambda[] <- t(lX %*% .Xparm(parm))
 
         if (cJ) {
-            z <- .rbind(.mget(m, j = which(m$cont), parm = parm, what = "z"))
+            z <- .rbind(.mget(m, j = which(m$cont), parm = parm, what = "z", newdata = newdata))
             if (!dJ)
                 sc <- llsc$score(obs = z, Lambda = Lambda)
         }
         if (dJ) {
-            lower <- .rbind(.mget(m, j = which(!m$cont), parm = parm, what = "zleft"))
-            upper <- .rbind(.mget(m, j = which(!m$cont), parm = parm, what = "zright"))
+            lower <- .rbind(.mget(m, j = which(!m$cont), parm = parm, what = "zleft", newdata = newdata))
+            upper <- .rbind(.mget(m, j = which(!m$cont), parm = parm, what = "zright", newdata = newdata))
             if (!cJ)
                 sc <- llsc$score(lower = lower, upper = upper, Lambda = Lambda)
         }
@@ -472,13 +486,13 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
 
         if (cJ) {
             if (all(m$normal)) {
-                zp <- .rbind(.mget(m, j = which(m$cont), parm = parm, what = "zprime"))
+                zp <- .rbind(.mget(m, j = which(m$cont), parm = parm, what = "zprime", newdata = newdata))
                 scp[1:cJ] <- lapply(1:cJ, function(j) {
                     colSums(mm[[j]] * c(sc$obs[j,])) + colSums(mmp[[j]] / c(zp[j,]))
                 })
             } else {
-                dz <- .rbind(.mget(m, j = which(m$cont), parm = parm, what = "dtrafo"))
-                ef <- lapply(which(m$cont), function(j) .mget(m, j = j, parm = parm, what = "estfun"))
+                dz <- .rbind(.mget(m, j = which(m$cont), parm = parm, what = "dtrafo", newdata = newdata))
+                ef <- lapply(which(m$cont), function(j) .mget(m, j = j, parm = parm, what = "estfun", newdata = newdata))
                 scp[1:cJ] <- lapply(1:cJ, function(j) {
                     colSums(mm[[j]] * c(sc$obs[j,] + z[j,]) / c(dnorm(z[j,])) * c(dz[j,])) - colSums(ef[[j]])
                 })
@@ -492,9 +506,9 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
                     colSums(dmm[[j]]$Yright * c(sc$upper[j,]))
                 })
             } else {
-                dzl <- .rbind(.mget(m, j = which(!m$cont), parm = parm, what = "dzleft"))
+                dzl <- .rbind(.mget(m, j = which(!m$cont), parm = parm, what = "dzleft", newdata = newdata))
                 dzl[!is.finite(dzl)] <- 0
-                dzr <- .rbind(.mget(m, j = which(!m$cont), parm = parm, what = "dzright"))
+                dzr <- .rbind(.mget(m, j = which(!m$cont), parm = parm, what = "dzright", newdata = newdata))
                 dzr[!is.finite(dzr)] <- 0
                 scp[cJ + 1:dJ] <- lapply(1:dJ, function(j) {
                     dl <- c(dnorm(lower[j,]))
@@ -543,11 +557,14 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
     }
 
     if (weights) {
-        f <- function(par) -sum(weights * ll(par))
+        f <- function(par, newdata = NULL) 
+            -sum(weights * ll(par, newdata = newdata))
     } else {
-        f <- function(par) -sum(ll(par))
+        f <- function(par, newdata = NULL) 
+            -sum(ll(par, newdata = newdata))
     }
-    g <- function(par) -sc(par)
+    g <- function(par, newdata = NULL) 
+        -sc(par, newdata = newdata)
 
     ui <- m$ui
     ui <- cbind(ui, matrix(0, nrow = nrow(ui), ncol = Jp * ncol(lX)))
@@ -558,13 +575,15 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
   
     if (dofit) {
         for (i in 1:length(optim)) {
-            ret <- optim[[i]](theta = start, f = f, g = g, ui = ui, ci = ci)
+            ret <- optim[[i]](theta = start, f = function(par) f(par, newdata = NULL), 
+                                             g = function(par) g(par, newdata = NULL), 
+                              ui = ui, ci = ci)
             if (ret$convergence == 0) break()
         }
         if (ret$convergence != 0)
             warning("Optimisation did not converge")
     } else {
-        ret <- list(par = theta, value = ll(theta), convergence = NA,
+        ret <- list(par = theta, value = f(theta), convergence = NA,
                     optim_hessian = NA)
     }
 
@@ -684,12 +703,12 @@ vcov.mmlt <- function(object, ...) {
     ret
 }
 
-logLik.mmlt <- function (object, parm = coef(object), ...) 
+logLik.mmlt <- function (object, parm = coef(object), newdata = NULL, ...) 
 {
     args <- list(...)
     if (length(args) > 0) 
         warning("Arguments ", names(args), " are ignored")
-    ret <- -object$ll(parm)
+    ret <- -object$ll(parm, newdata = newdata)
     attr(ret, "df") <- length(object$par)
     class(ret) <- "logLik"
     ret
