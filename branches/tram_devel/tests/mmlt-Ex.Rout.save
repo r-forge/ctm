@@ -1,5 +1,5 @@
 
-R version 4.2.3 (2023-03-15) -- "Shortstop Beagle"
+R version 4.3.0 (2023-04-21) -- "Already Tomorrow"
 Copyright (C) 2023 The R Foundation for Statistical Computing
 Platform: x86_64-pc-linux-gnu (64-bit)
 
@@ -863,7 +863,10 @@ y.4.x.1   0.072   0.070   0.111   0.122
 +     sum(d2))
 [1] TRUE
 > 
+> ### check if newdata works in logLik
+> chk(logLik(mc01), logLik(mc01, newdata = d))
+[1] TRUE
 > 
 > proc.time()
    user  system elapsed 
- 40.521   0.071  40.619 
+  37.73    0.12   37.89 

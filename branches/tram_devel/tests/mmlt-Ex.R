@@ -471,3 +471,5 @@ chk(c(logLik(mmlt(m1, m2, m3, m4, formula = ~ 1, data = d))),
 chk(c(logLik(mc01)),
     sum(d2))
 
+### check if newdata works in logLik
+chk(logLik(mc01), logLik(mc01, newdata = d))
