@@ -18,5 +18,20 @@ mcotram <- function(..., formula = ~ 1, data, conditional = FALSE,
     m$args <- list(M = M, w = W)
     m$dofit <- dofit
     m$domargins <- domargins
-    return(do.call("mmlt", m))
+    ret <- do.call("mmlt", m)
+    class(ret) <- c("mcotram", class(ret))
+    return(ret)
+}
+
+simulate.mcotram <- function(object, nsim = 1, seed = NULL, ...) {
+    class(object) <- class(object)[-1L]
+    ret <- as.double(simulate(object = object, nsim = nsim, seed = seed, ...))
+    ret <- ceiling(ret)
+    storage.mode(ret) <- "integer"
+    plus_one <- sapply(object$models$models, function(x) x$log_first)
+    if (any(plus_one)) {
+        po <- matrix(plus_one, nrow = nrow(ret), ncol = ncol(ret), byrow = TRUE)
+        ret <- pmax(ret - po, 0L)
+    }
+    return(ret)
 }
