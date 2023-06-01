@@ -13,7 +13,7 @@
 transformation models
 }
 \usage{
-mmlt(..., formula = ~ 1, data, conditional = FALSE, theta = NULL,
+mmlt(..., formula = ~ 1, data, conditional = FALSE, theta = NULL, fixed = NULL,
      optim = mmltoptim(), args = list(seed = 1, M = 1000), dofit = TRUE,
      domargins = TRUE)
 mmltoptim(auglag = list(maxtry = 5), ...)
@@ -47,6 +47,8 @@ et al. (2022). Using \code{conditional = FALSE} with probit-only models
 gives the same likelihood but different parameter estimates.
 }
   \item{theta}{an optional vector of starting values.
+}
+  \item{fixed}{an optional named numeric vector of predefined parameter values.
 }
   \item{optim}{a list of optimisers as returned by \code{\link{mmltoptim}}
 }
@@ -115,15 +117,20 @@ methods.
   logLik(m_speed_dist)
   sum(predict(m_speed_dist, newdata = cars, type = "density", log = TRUE))
 
-  ## lambda defining the Cholesky of the precision matrix,
-  ## with standard error
-  coef(m_speed_dist, type = "Lambda")
-  sqrt(vcov(m_speed_dist)["dist.sped.(Intercept)", 
-                          "dist.sped.(Intercept)"])
-
-  ## simpler: Wald test of independence of speed and dist (the "dist.sped.(Intercept)"
+  ## Wald test of independence of speed and dist (the "dist.sped.(Intercept)"
   ## coefficient)
   summary(m_speed_dist)
+
+  ## LR test comparing to independence model
+  LR <- 2 * (logLik(m_speed_dist) - logLik(m_speed) - logLik(m_dist))
+  pchisq(LR, df = 1, lower.tail = FALSE)
+
+  ## constrain lambda to zero and fit independence model
+  ## => log-likelihood is the sum of the marginal log-likelihoods
+  mI <- mmlt(m_speed, m_dist, formula = ~1, data = cars, 
+             fixed = c("dist.sped.(Intercept)" = 0))
+  logLik(m_speed) + logLik(m_dist)
+  logLik(mI)
 
   ## linear correlation, ie Pearson correlation of speed and dist after
   ## transformation to bivariate normality

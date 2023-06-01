@@ -356,7 +356,7 @@ mmltoptim <- function(auglag = list(maxtry = 5), ...)
     mltoptim(auglag = auglag, ...)
 
 mmlt <- function(..., formula = ~ 1, data, conditional = FALSE, 
-                 theta = NULL,
+                 theta = NULL, fixed = NULL,
                  optim = mmltoptim(), args = list(seed = 1, M = 1000), 
                  dofit = TRUE, domargins = TRUE)
 {
@@ -398,6 +398,25 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
         parm <- parm[-(1:sum(m$nparm))]
         return(matrix(parm, nrow = ncol(lX)))
     }
+
+    start <- do.call("c", lapply(m$models, function(mod) coef(mod)))
+    mpar <- length(start) 
+    tmp <- c(start, rep(0, Jp * ncol(lX)))
+    nm <- names(start)
+    names(tmp)[1:length(nm)] <- nm
+    pnm <- m$parm(tmp)
+    pnm <- do.call("c", lapply(1:J, function(j) paste(m$names[j], names(pnm[[j]]), sep = ".")))
+    tmp <- .Xparm(tmp)
+    rownames(tmp) <- colnames(lX)
+    tmp <- unclass(ltMatrices(t(tmp), byrow = TRUE, diag = FALSE, names = m$names))
+    tmp <- do.call("paste", expand.grid(rownames(tmp), colnames(tmp), sep = ".", 
+                   stringsAsFactors = FALSE))
+    names(start) <- pnm
+    parnames <- c(pnm, tmp)
+    ### only lambda parameters can be fixed
+    if (!is.null(fixed))
+        stopifnot(all(names(fixed) %in% tmp))
+
 
     if (cJ) {
         mm <- lapply(1:cJ, function(j) .model_matrix(m, j = j))
@@ -452,7 +471,14 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
         return(ret + llsc$logLik(obs = z, lower = lower, upper = upper, Lambda = Lambda))
     }
 
-    sc <- function(parm, newdata = NULL) {
+    sc <- function(parm, newdata = NULL, scores = FALSE) {
+
+        if (scores) {
+            RS <- CS <- function(x, ...) x
+        } else {
+            RS <- rowSums
+            CS <- colSums
+        }
 
         # Lambda <- ltMatrices(t(lX %*% .Xparm(parm)), byrow = TRUE, diag = FALSE, 
         #                      names = names(m$models))
@@ -476,10 +502,10 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
 
         Lmat <- Lower_tri(sc$Lambda)[rep(1:Jp, each = ncol(lX)), , drop = FALSE]
         if (identical(c(lX), 1)) {
-            scL <- rowSums(Lmat, na.rm = TRUE) ### NaN might appear in scores
+            scL <- RS(Lmat, na.rm = TRUE) ### NaN might appear in scores
         } else {
-            scL <- rowSums(Lmat * t(lX[,rep(1:ncol(lX), Jp), drop = FALSE]), 
-                           na.rm = TRUE)
+            scL <- RS(Lmat * t(lX[,rep(1:ncol(lX), Jp), drop = FALSE]), 
+                      na.rm = TRUE)
         }
       
         scp <- vector(mode = "list", length = cJ + dJ)
@@ -488,13 +514,13 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
             if (all(m$normal)) {
                 zp <- .rbind(.mget(m, j = which(m$cont), parm = parm, what = "zprime", newdata = newdata))
                 scp[1:cJ] <- lapply(1:cJ, function(j) {
-                    colSums(mm[[j]] * c(sc$obs[j,])) + colSums(mmp[[j]] / c(zp[j,]))
+                    CS(mm[[j]] * c(sc$obs[j,])) + CS(mmp[[j]] / c(zp[j,]))
                 })
             } else {
                 dz <- .rbind(.mget(m, j = which(m$cont), parm = parm, what = "dtrafo", newdata = newdata))
                 ef <- lapply(which(m$cont), function(j) .mget(m, j = j, parm = parm, what = "estfun", newdata = newdata))
                 scp[1:cJ] <- lapply(1:cJ, function(j) {
-                    colSums(mm[[j]] * c(sc$obs[j,] + z[j,]) / c(dnorm(z[j,])) * c(dz[j,])) - colSums(ef[[j]])
+                    CS(mm[[j]] * c(sc$obs[j,] + z[j,]) / c(dnorm(z[j,])) * c(dz[j,])) - CS(ef[[j]])
                 })
             }
         }
@@ -502,8 +528,8 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
         if (dJ) {
             if (all(m$normal)) {
                 scp[cJ + 1:dJ] <- lapply(1:dJ, function(j) {
-                    colSums(dmm[[j]]$Yleft * c(sc$lower[j,])) +
-                    colSums(dmm[[j]]$Yright * c(sc$upper[j,]))
+                    CS(dmm[[j]]$Yleft * c(sc$lower[j,])) +
+                    CS(dmm[[j]]$Yright * c(sc$upper[j,]))
                 })
             } else {
                 dzl <- .rbind(.mget(m, j = which(!m$cont), parm = parm, what = "dzleft", newdata = newdata))
@@ -515,59 +541,94 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
                     dl[!is.finite(lower[j,])] <- 1
                     dr <- c(dnorm(upper[j,]))
                     dr[!is.finite(upper[j,])] <- 1
-                    colSums(dmm[[j]]$Yleft / dl * c(dzl[j,]) * c(sc$lower[j,])) +
-                    colSums(dmm[[j]]$Yright / dr * c(dzr[j,]) * c(sc$upper[j,]))
+                    return(CS(dmm[[j]]$Yleft / dl * c(dzl[j,]) * c(sc$lower[j,])) +
+                           CS(dmm[[j]]$Yright / dr * c(dzr[j,]) * c(sc$upper[j,])))
                 })
             }
         }
-         
-        ret <- c(do.call("c", scp), scL)
+        
+        if (!scores) {
+            ret <- c(do.call("c", scp), c(scL))
+            names(ret) <- parnames
+            return(ret)
+        }
+        ret <- cbind(do.call("cbind", scp), t(scL))
+        colnames(ret) <- parnames
         return(ret)
+    }
+
+    if (weights) {
+        f <- function(par, ...) {
+            if (!is.null(fixed)) {
+                p <- par
+                p[names(fixed)] <- fixed
+                par <- p[parnames]
+            }
+            return(-sum(weights * ll(par, ...)))
+        }
+    } else {
+        f <- function(par, ...) {
+            if (!is.null(fixed)) {
+                p <- par
+                p[names(fixed)] <- fixed
+                par <- p[parnames]
+            }
+            return(-sum(ll(par, ...)))
+        }
+    }
+    g <- function(par, ...) {
+        if (!is.null(fixed)) {
+            p <- par
+            p[names(fixed)] <- fixed
+            par <- p[parnames]
+        }
+        ret <- -sc(par, ...)
+        if (is.null(fixed)) return(ret)
+        if (is.matrix(ret))
+            return(ret[, !parnames %in% names(fixed)])
+        return(ret[!parnames %in% names(fixed)])
     }
 
     if (is.null(theta) && dofit) {
 
         ### note: this is fine for conditonal = FALSE
         ### but not quite what we want for conditional = TRUE
+        cll <- function(cpar) f(c(start, cpar))
+        csc <- function(cpar) {
+            ret <- g(c(start, cpar))
+            return(ret[names(lambdastart)])
+        }
 
-        start <- do.call("c", lapply(m$models, function(mod) coef(mod)))
-        if (weights) {
-            cll <- function(cpar) -sum(weights * ll(c(start, cpar)))
+        lambdastart <- rep(0, length(parnames))
+        names(lambdastart) <- parnames
+        lambdastart <- lambdastart[!parnames %in% c(names(start), names(fixed))]
+
+        if (length(lambdastart)) {
+            ### note: this is not optimal for conditional = TRUE
+            for (i in 1:length(optim)) {
+                op <- optim[[i]](theta = lambdastart, f = cll, g = csc)
+                if (op$convergence == 0) break()
+            }
+            start <- c(start, op$par)
+        }
+        if (is.null(fixed)) {
+            names(start) <- parnames
         } else {
-            cll <- function(cpar) -sum(ll(c(start, cpar)))
+            names(start) <- parnames[!parnames %in% names(fixed)]
         }
-        csc <- function(cpar) -sc(c(start, cpar))[-(1:length(start))]
-
-        ### note: this is not optimal for conditional = TRUE
-        for (i in 1:length(optim)) {
-            op <- optim[[i]](theta = rep(0, Jp * ncol(lX)), f = cll, g = csc)
-            if (op$convergence == 0) break()
-        }
-        # if (ret$convergence != 0)
-        #     warning("Optimisation did not converge")
-
-        start <- c(start, op$par)
         if (!domargins) {
             dofit <- FALSE
             theta <- start
         }
     } else {
         ### use user-supplied starting values
+        ### EXCLUDING fixed
         start <- theta
     }
 
-    if (weights) {
-        f <- function(par, newdata = NULL) 
-            -sum(weights * ll(par, newdata = newdata))
-    } else {
-        f <- function(par, newdata = NULL) 
-            -sum(ll(par, newdata = newdata))
-    }
-    g <- function(par, newdata = NULL) 
-        -sc(par, newdata = newdata)
-
     ui <- m$ui
-    ui <- cbind(ui, matrix(0, nrow = nrow(ui), ncol = Jp * ncol(lX)))
+    ui <- cbind(ui, matrix(0, nrow = nrow(ui), 
+                              ncol = Jp * ncol(lX) - length(fixed)))
     ci <- m$ci
 
     if (is.null(theta) && !dofit) 
@@ -587,19 +648,14 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
                     optim_hessian = NA)
     }
 
-    nm <- do.call("c", lapply(m$models, function(mod) names(coef(mod))))
-    names(ret$par)[1:length(nm)] <- nm
-    pnm <- m$parm(ret$par)
-    pnm <- do.call("c", lapply(1:J, function(j) paste(m$names[j], names(pnm[[j]]), sep = ".")))
-    tmp <- .Xparm(ret$par)
-    rownames(tmp) <- colnames(lX)
-    tmp <- unclass(ltMatrices(t(tmp), byrow = TRUE, diag = FALSE, names = m$names))
-    tmp <- do.call("paste", expand.grid(rownames(tmp), colnames(tmp), sep = ".", 
-                   stringsAsFactors = FALSE))
-    names(ret$par) <- c(pnm, tmp)
+    if (!is.null(fixed)) {
+        names(ret$par) <- parnames[!parnames %in% names(fixed)]
+    } else {
+        names(ret$par) <- parnames
+    }
   
     ret$ll <- f
-    ret$sc <- g
+    ret$score <- g
     ret$args <- args
     ret$logLik <- -ret$value
     ret$models <- m
@@ -712,6 +768,14 @@ logLik.mmlt <- function (object, parm = coef(object), newdata = NULL, ...)
     attr(ret, "df") <- length(object$par)
     class(ret) <- "logLik"
     ret
+}
+
+estfun.mmlt <- function(x, parm = coef(x, type = "all"), 
+                        newdata = NULL, ...) {
+    args <- list(...)
+    if (length(args) > 0)
+        warning("Arguments ", names(args), " are ignored")
+    return(x$score(parm, newdata = newdata, scores = TRUE))
 }
 
 summary.mmlt <- function(object, ...) {
