@@ -682,7 +682,8 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
         if (ret$convergence != 0)
             warning("Optimisation did not converge")
     } else {
-        ret <- list(par = theta, value = f(theta), convergence = NA,
+
+        ret <- list(par = theta, value = f(theta, scl = 1), convergence = NA,
                     optim_hessian = NA)
     }
 
