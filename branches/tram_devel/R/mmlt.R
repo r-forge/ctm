@@ -656,7 +656,9 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
     } else {
         ### use user-supplied starting values
         ### EXCLUDING fixed
-        start <- theta
+        if (!is.null(theta)) {
+            start <- theta
+        }
     }
 
     ui <- m$ui
@@ -665,7 +667,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
     ci <- m$ci
     
     start <- start / scl[names(start)]
-    ui <- t(t(ui) * scl[names(start)])
+    ui <- t(t(ui) * scl[parnames])
 
     if (is.null(theta) && !dofit) 
         return(list(ll = f, sc = g, ui = ui, ci = ci))
