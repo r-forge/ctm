@@ -465,6 +465,9 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
 
     ll <- function(parm, newdata = NULL) {
 
+        if (!is.null(newdata) && !isTRUE(all.equal(formula, ~ 1))) 
+            lX <- model.matrix(bx, data = newdata)
+
         # Lambda <- ltMatrices(t(lX %*% .Xparm(parm)), byrow = TRUE, diag = FALSE, 
         #                      names = names(m$models))
         # saves time in ltMatrices
@@ -706,7 +709,8 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
 
 
 .coef.mmlt <- function(object, newdata, 
-                      type = c("all", "Lambda", "Lambdainv", "Precision", "Sigma", "Corr", "Spearman", "Kendall"), 
+                      type = c("all", "Lambda", "Lambdainv", "Precision", 
+                               "PartialCorr", "Sigma", "Corr", "Spearman", "Kendall"), 
                       ...)
 {
   
@@ -736,6 +740,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
     ret <- switch(type, "Lambda" = ret,
                         "Lambdainv" = solve(ret),
                         "Precision" = invchol2pre(ret),
+                        "PartialCorr" = invchol2pc(ret),
                         "Sigma" = invchol2cov(ret),
                         "Corr" = invchol2cor(ret))
     return(ret)
@@ -743,7 +748,8 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
 
 coef.cmmlt <- function(object, newdata,
                        type = c("all", "conditional", "Lambda", "Lambdainv", 
-                                "Precision", "Sigma", "Corr", "Spearman", "Kendall"), 
+                                "Precision", "PartialCorr", "Sigma", "Corr", 
+                                "Spearman", "Kendall"), 
                        ...)
 {
 
@@ -757,7 +763,8 @@ coef.cmmlt <- function(object, newdata,
 
 coef.mmmlt <- function(object, newdata,
                        type = c("all", "marginal", "Lambda", "Lambdainv", 
-                                "Precision", "Sigma", "Corr", "Spearman", "Kendall"), 
+                                "Precision", "PartialCorr", "Sigma", "Corr", 
+                                "Spearman", "Kendall"), 
                        ...)
 {
 
