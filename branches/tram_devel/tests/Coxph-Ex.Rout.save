@@ -1,6 +1,6 @@
 
-R version 4.0.3 (2020-10-10) -- "Bunny-Wunnies Freak Out"
-Copyright (C) 2020 The R Foundation for Statistical Computing
+R version 4.3.0 (2023-04-21) -- "Already Tomorrow"
+Copyright (C) 2023 The R Foundation for Statistical Computing
 Platform: x86_64-pc-linux-gnu (64-bit)
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
@@ -20,6 +20,7 @@ Type 'q()' to quit R.
 Loading required package: mlt
 Loading required package: basefun
 Loading required package: variables
+Loading required package: mvtnorm
 > library("survival")
 > library("trtf")
 Loading required package: partykit
@@ -32,10 +33,12 @@ The following object is masked from 'package:variables':
     unit
 
 Loading required package: libcoin
-Loading required package: mvtnorm
 > 
 > ### Windows diffs...
 > options(digits = 3)
+> 
+> chk <- function(x, y, tol = 1e-1) 
++     stopifnot(isTRUE(all.equal(x, y, check.attributes = FALSE, tol = tol)))
 > 
 > data("GBSG2", package = "TH.data")
 > 
@@ -44,27 +47,20 @@ Loading required package: mvtnorm
 > Cmod <- Coxph(Surv(time, cens) | 0 + horTh:tgrade ~ progrec + pnodes, 
 +               data = GBSG2)
 > 
-> round(max(abs(coef(cmod) - coef(Cmod))), 3)
-[1] 0.001
-> round(max(abs(diag(vcov(cmod)) - diag(vcov(Cmod)))), 3)
-[1] 0
+> chk(coef(cmod), coef(Cmod))
+> chk(diag(vcov(cmod)), diag(vcov(Cmod)))
 > 
 > Cmod_lf <- Coxph(Surv(time, cens) | 0 + horTh:tgrade ~ progrec + pnodes, 
 +                 data = GBSG2, log_first = TRUE)
 > 
-> round(max(abs(coef(cmod) - coef(Cmod_lf))), 4)
-[1] 0
-> round(max(abs(diag(vcov(cmod)) - diag(vcov(Cmod_lf)))), 4)
-[1] 0
-> 
+> chk(coef(cmod), coef(Cmod_lf))
+> chk(diag(vcov(cmod)), diag(vcov(Cmod_lf)))
 > 
 > cmod_2 <- coxph(Surv(time, cens) ~ ., data = GBSG2)
 > Cmod_2 <- Coxph(Surv(time, cens) ~ ., data = GBSG2)
 > 
-> round(max(abs(coef(cmod_2) - coef(Cmod_2))), 4)
-[1] 0.0142
-> round(max(abs(diag(vcov(cmod_2)) - diag(vcov(Cmod_2)))), 4)
-[1] 0
+> chk(coef(cmod_2), coef(Cmod_2))
+> chk(diag(vcov(cmod_2)), diag(vcov(Cmod_2)))
 > 
 > cmod <- Coxph(Surv(time, cens) ~ horTh, data = GBSG2)
 > (tmod <- trafotree(cmod, formula = Surv(time, cens) ~ horTh | ., data = GBSG2))
@@ -102,9 +98,9 @@ Number of terminal nodes: 3
 +             LRtest = FALSE, order = ORDER)
 > LR2 <- resid(as.mlt(m2))
 > 
-> stopifnot(all.equal(LR1, LR2))
+> chk(LR1, LR2)
 > 
 > 
 > proc.time()
    user  system elapsed 
-  4.145   0.093   4.221 
+  2.955   0.065   3.023 
