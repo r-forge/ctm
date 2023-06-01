@@ -33,6 +33,7 @@ The following object is masked from 'package:MASS':
 
     geyser
 
+> library("sandwich")
 > 
 > options(digits = 2)
 > 
@@ -62,6 +63,9 @@ The following object is masked from 'package:MASS':
 > chk(as.array(coef(mm, type = "Sigma"))[,,1], tcrossprod(solve(L)))
 [1] TRUE
 > chk(as.array(coef(mm, type = "Cor"))[,,1], cov2cor(tcrossprod(solve(L))))
+[1] TRUE
+> 
+> chk(colSums(estfun(mm)), mm$score(coef(mm, type = "all")))
 [1] TRUE
 > 
 > ### marginal normal
@@ -869,4 +873,4 @@ y.4.x.1   0.072   0.070   0.111   0.122
 > 
 > proc.time()
    user  system elapsed 
-  37.73    0.12   37.89 
+  42.59    0.11   42.70 
