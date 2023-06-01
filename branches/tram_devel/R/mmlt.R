@@ -574,7 +574,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
 
     ### scale
     if (scale) {
-        scl <- rep(apply(abs(lX), 2, max, na.rm = TRUE), Jp)
+        scl <- rep(apply(abs(lX), 2, max, na.rm = TRUE), times = Jp)
         lt1 <- scl < 1.1
         gt1 <- scl >= 1.1
         scl[gt1] <- 1 / scl[gt1]
@@ -588,7 +588,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
     }
 
     if (weights) {
-        f <- function(par, ...) {
+        f <- function(par, scl, ...) {
             if (!is.null(fixed)) {
                 p <- par
                 p[names(fixed)] <- fixed
@@ -597,7 +597,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
             return(-sum(weights * ll(par * scl, ...)))
         }
     } else {
-        f <- function(par, ...) {
+        f <- function(par, scl, ...) {
             if (!is.null(fixed)) {
                 p <- par
                 p[names(fixed)] <- fixed
@@ -606,7 +606,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
             return(-sum(ll(par * scl, ...)))
         }
     }
-    g <- function(par, ...) {
+    g <- function(par, scl, ...) {
         if (!is.null(fixed)) {
             p <- par
             p[names(fixed)] <- fixed
@@ -623,9 +623,9 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
 
         ### note: this is fine for conditonal = FALSE
         ### but not quite what we want for conditional = TRUE
-        cll <- function(cpar) f(c(start / scl[names(start)], cpar))
+        cll <- function(cpar) f(c(start / scl[names(start)], cpar), scl = scl)
         csc <- function(cpar) {
-            ret <- g(c(start / scl[names(start)], cpar))
+            ret <- g(c(start / scl[names(start)], cpar), scl = scl)
             return(ret[names(lambdastart)])
         }
 
@@ -669,8 +669,8 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
   
     if (dofit) {
         for (i in 1:length(optim)) {
-            ret <- optim[[i]](theta = start, f = function(par) f(par, newdata = NULL), 
-                                             g = function(par) g(par, newdata = NULL), 
+            ret <- optim[[i]](theta = start, f = function(par) f(par, scl = scl), 
+                                             g = function(par) g(par, scl = scl), 
                               ui = ui, ci = ci)
             if (ret$convergence == 0) break()
         }
@@ -686,9 +686,10 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
     } else {
         names(ret$par) <- parnames
     }
+    ret$par[parnames] <- ret$par[parnames] * scl[parnames]
   
-    ret$ll <- f
-    ret$score <- g
+    ret$ll <- function(...) f(..., scl = 1)
+    ret$score <- function(...) g(..., scl = 1)
     ret$args <- args
     ret$logLik <- -ret$value
     ret$models <- m
