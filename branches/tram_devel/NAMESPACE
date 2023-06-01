@@ -63,6 +63,7 @@ S3method("confint", "htest")
 S3method("confint", "htests")
 
 S3method("logLik", "mmlt")
+S3method("estfun", "mmlt")
 S3method("coef", "cmmlt")
 S3method("coef", "mmmlt")
 S3method("vcov", "mmlt")
