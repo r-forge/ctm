@@ -427,10 +427,12 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
     tmp <- do.call("paste", expand.grid(rownames(tmp), colnames(tmp), sep = ".", 
                    stringsAsFactors = FALSE))
     names(start) <- pnm
-    parnames <- c(pnm, tmp)
+    eparnames <- parnames <- c(pnm, tmp)
     ### only lambda parameters can be fixed
-    if (!is.null(fixed))
+    if (!is.null(fixed)) {
         stopifnot(all(names(fixed) %in% tmp))
+        eparnames <- parnames[!parnames %in% names(fixed)]
+    }
 
 
     if (cJ) {
@@ -666,8 +668,8 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
                               ncol = Jp * ncol(lX) - length(fixed)))
     ci <- m$ci
     
-    start <- start / scl[names(start)]
-    ui <- t(t(ui) * scl[parnames])
+    start <- start / scl[eparnames]
+    ui <- t(t(ui) * scl[eparnames])
 
     if (is.null(theta) && !dofit) 
         return(list(ll = f, sc = g, ui = ui, ci = ci))
