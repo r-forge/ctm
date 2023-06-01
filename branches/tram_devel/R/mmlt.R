@@ -646,11 +646,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
             }
             start <- c(start, op$par * scl[names(lambdastart)])
         }
-        if (is.null(fixed)) {
-            names(start) <- parnames
-        } else {
-            names(start) <- parnames[!parnames %in% names(fixed)]
-        }
+        names(start) <- eparnames
         if (!domargins) {
             dofit <- FALSE
             theta <- start
@@ -689,12 +685,8 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
                     optim_hessian = NA)
     }
 
-    if (!is.null(fixed)) {
-        names(ret$par) <- parnames[!parnames %in% names(fixed)]
-    } else {
-        names(ret$par) <- parnames
-    }
-    ret$par[parnames] <- ret$par[parnames] * scl[parnames]
+    names(ret$par) <- eparnames
+    ret$par[eparnames] <- ret$par[eparnames] * scl[eparnames]
   
     ret$ll <- function(...) f(..., scl = 1)
     ret$score <- function(...) g(..., scl = 1)
