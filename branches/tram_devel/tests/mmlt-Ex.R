@@ -2,6 +2,7 @@
 library("tram")
 library("mvtnorm")
 library("multcomp")
+library("sandwich")
 
 options(digits = 2)
 
@@ -28,6 +29,8 @@ L <- as.array(coef(mm, type = "Lambda"))[,,1]
 chk(as.array(coef(mm, type = "Lambdainv"))[,,1], solve(L))
 chk(as.array(coef(mm, type = "Sigma"))[,,1], tcrossprod(solve(L)))
 chk(as.array(coef(mm, type = "Cor"))[,,1], cov2cor(tcrossprod(solve(L))))
+
+chk(colSums(estfun(mm)), mm$score(coef(mm, type = "all")))
 
 ### marginal normal
 m$conditional <- FALSE
