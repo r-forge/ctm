@@ -202,28 +202,24 @@ Log-Likelihood:
 >              ### OR = 1 means log-linear, use OR ~ 6
 > M <- 100     ### number of Halton sequences, seem sufficient here
 > 
-> ### speed-up optimisation
-> spiders$EV <- c(scale(spiders$Elevation))
-> spiders$CO <- c(scale(spiders$Canopy_openess))
-> 
 > ## fit conditional marginal count transformation models
 > ## one for each species
-> m_PF <- cotram(Pardosa_ferruginea ~ EV + CO, 
+> m_PF <- cotram(Pardosa_ferruginea ~ Elevation + Canopy_openess, 
 +                data = spiders, method = "probit", order = OR)
-> m_HL <- cotram(Harpactea_lepida ~ EV + CO,
+> m_HL <- cotram(Harpactea_lepida ~ Elevation + Canopy_openess,
 +                data = spiders, method = "probit", order = OR)
-> m_CC <- cotram(Callobius_claustrarius ~ EV + CO,
+> m_CC <- cotram(Callobius_claustrarius ~ Elevation + Canopy_openess,
 +                data = spiders, method = "probit", order = OR)
-> m_CT <- cotram(Coelotes_terrestris ~ EV + CO,
+> m_CT <- cotram(Coelotes_terrestris ~ Elevation + Canopy_openess,
 +                data = spiders, method = "probit", order = OR)
-> m_PL <- cotram(Pardosa_lugubris ~ EV + CO,
+> m_PL <- cotram(Pardosa_lugubris ~ Elevation + Canopy_openess,
 +                data = spiders, method = "probit", order = OR)
-> m_PR <- cotram(Pardosa_riparia ~ EV + CO,
+> m_PR <- cotram(Pardosa_riparia ~ Elevation + Canopy_openess,
 +                data = spiders, method = "probit", order = OR)
 > 
 > ### fit dependence parameters
 > mm <- mcotram(m_PF, m_HL, m_CC, m_CT, m_PL, m_PR, data = spiders,
-+               M = M)
++               M = M, scale = TRUE)
 > logLik(mm)
 'log Lik.' -2476.198 (df=39)
 > 
@@ -233,34 +229,34 @@ Log-Likelihood:
 , , 1
 
            Prds_f        Hrp_        Cll_        Clt_     Prds_l      Prds_r
-Prds_f  1.0000000 -0.25501111  0.14862192  0.42776923 -0.3158469  0.10693084
-Hrp_   -0.2550111  1.00000000 -0.15465742 -0.36501892  0.4360795 -0.08782554
-Cll_    0.1486219 -0.15465742  1.00000000  0.06773958 -0.2009182  0.26842749
-Clt_    0.4277692 -0.36501892  0.06773958  1.00000000 -0.4927643  0.10073933
-Prds_l -0.3158469  0.43607951 -0.20091823 -0.49276427  1.0000000 -0.15913226
-Prds_r  0.1069308 -0.08782554  0.26842749  0.10073933 -0.1591323  1.00000000
+Prds_f  1.0000000 -0.25500654  0.14861978  0.42776881 -0.3158523  0.10692192
+Hrp_   -0.2550065  1.00000000 -0.15465885 -0.36502236  0.4360865 -0.08780907
+Cll_    0.1486198 -0.15465885  1.00000000  0.06773758 -0.2009153  0.26841797
+Clt_    0.4277688 -0.36502236  0.06773758  1.00000000 -0.4927590  0.10070886
+Prds_l -0.3158523  0.43608652 -0.20091535 -0.49275900  1.0000000 -0.15911185
+Prds_r  0.1069219 -0.08780907  0.26841797  0.10070886 -0.1591119  1.00000000
 
 > 
 > ### regress dependencies on elevation and canopy openess
 > mmc <- mcotram(m_PF, m_HL, m_CC, m_CT, m_PL, m_PR, data = spiders, 
-+                formula = ~ EV + CO, M = M)
++                formula = ~ Elevation + Canopy_openess, M = M, scale = TRUE)
 > logLik(mmc)
 'log Lik.' -2452.546 (df=69)
 > 
 > ### weak evidence for such effects
 > pchisq(2 * (logLik(mmc) - logLik(mm)), df = 30, lower.tail = FALSE)
-'log Lik.' 0.02323203 (df=69)
+'log Lik.' 0.02323324 (df=69)
 > 
 > ### plot Kendall's tau for different elevations / openess levels
-> nd <- expand.grid(EV = -15:15 / 10, CO = -15:15 / 10)
+> nd <- expand.grid(Elevation = 80:120 * 10, Canopy_openess = 1:10 * 10)
 > KD <- Lower_tri(coef(mmc, newdata = nd, type = "Kendall"))
 > f <- factor(rownames(KD))
 > nd <- cbind(f = rep(f, nrow(nd)), nd[rep(1:nrow(nd), each = nlevels(f)),])
 > nd$KD <- c(KD)
 > 
 > library("lattice")
-> contourplot(KD ~ EV + CO | f, data = nd, cuts = 18, xlab = "Elevation",
-+             ylab = "Canopy openess")
+> contourplot(KD ~ Elevation + Canopy_openess | f, data = nd, 
++             cuts = 18, xlab = "Elevation", ylab = "Canopy openess")
 > 
 > ### for example:
 > ### => constant negative dependence of Pardosa_lugubris and Coelotes_terrestris
@@ -278,7 +274,7 @@ detaching ‘package:lattice’
 
 > options(digits = 7L)
 > base::cat("Time elapsed: ", proc.time() - base::get("ptime", pos = 'CheckExEnv'),"\n")
-Time elapsed:  38.547 0.06 38.628 0 0 
+Time elapsed:  71.432 0.064 71.528 0 0 
 > grDevices::dev.off()
 null device 
           1 
