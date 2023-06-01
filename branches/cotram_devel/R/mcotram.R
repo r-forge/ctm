@@ -1,6 +1,7 @@
 
 mcotram <- function(..., formula = ~ 1, data, conditional = FALSE, 
-                    theta = NULL, optim = mmltoptim(), M = 1000,
+                    theta = NULL, fixed = NULL, scale = FALSE, 
+                    optim = mmltoptim(), M = 1000,
                     dofit = TRUE, domargins = TRUE) {
 
     m <- list(...)
@@ -14,6 +15,8 @@ mcotram <- function(..., formula = ~ 1, data, conditional = FALSE,
     m$data <- data
     m$conditional <- conditional
     m$theta <- theta
+    m$fixed <- fixed
+    m$scale <- scale
     m$optim <- optim
     m$args <- list(M = M, w = W)
     m$dofit <- dofit

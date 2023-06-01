@@ -9,8 +9,8 @@
 }
 \usage{
 mcotram(..., formula = ~ 1, data, conditional = FALSE, theta = NULL,
-        optim = mmltoptim(), M = 1000, dofit = TRUE,
-        domargins = TRUE)
+        fixed = NULL, scale = FALSE, optim = mmltoptim(), 
+        M = 1000, dofit = TRUE, domargins = TRUE)
 }
 \arguments{
   \item{\dots}{marginal count transformation models, one for each response
@@ -28,6 +28,11 @@ et al. (2022). Using \code{conditional = FALSE} with probit-only models
 gives the same likelihood but different parameter estimates.
 }
   \item{theta}{an optional vector of starting values.
+}
+ \item{fixed}{an optional named numeric vector of predefined parameter values.
+}
+  \item{scale}{a logical indicating if (internal) scaling shall be applied
+          to the model coefficients.
 }
   \item{optim}{a list of optimisers as returned by \code{\link[tram]{mmltoptim}}
 }
@@ -66,28 +71,24 @@ OR <- 1      ### order of transformation function
              ### OR = 1 means log-linear, use OR ~ 6
 M <- 100     ### number of Halton sequences, seem sufficient here
 
-### speed-up optimisation
-spiders$EV <- c(scale(spiders$Elevation))
-spiders$CO <- c(scale(spiders$Canopy_openess))
-
 ## fit conditional marginal count transformation models
 ## one for each species
-m_PF <- cotram(Pardosa_ferruginea ~ EV + CO, 
+m_PF <- cotram(Pardosa_ferruginea ~ Elevation + Canopy_openess, 
                data = spiders, method = "probit", order = OR)
-m_HL <- cotram(Harpactea_lepida ~ EV + CO,
+m_HL <- cotram(Harpactea_lepida ~ Elevation + Canopy_openess,
                data = spiders, method = "probit", order = OR)
-m_CC <- cotram(Callobius_claustrarius ~ EV + CO,
+m_CC <- cotram(Callobius_claustrarius ~ Elevation + Canopy_openess,
                data = spiders, method = "probit", order = OR)
-m_CT <- cotram(Coelotes_terrestris ~ EV + CO,
+m_CT <- cotram(Coelotes_terrestris ~ Elevation + Canopy_openess,
                data = spiders, method = "probit", order = OR)
-m_PL <- cotram(Pardosa_lugubris ~ EV + CO,
+m_PL <- cotram(Pardosa_lugubris ~ Elevation + Canopy_openess,
                data = spiders, method = "probit", order = OR)
-m_PR <- cotram(Pardosa_riparia ~ EV + CO,
+m_PR <- cotram(Pardosa_riparia ~ Elevation + Canopy_openess,
                data = spiders, method = "probit", order = OR)
 
 ### fit dependence parameters
 mm <- mcotram(m_PF, m_HL, m_CC, m_CT, m_PL, m_PR, data = spiders,
-              M = M)
+              M = M, scale = TRUE)
 logLik(mm)
 
 ### Kendall's tau: Dependence of species after accounting
@@ -96,22 +97,22 @@ coef(mm, type = "Kendall")
 
 ### regress dependencies on elevation and canopy openess
 mmc <- mcotram(m_PF, m_HL, m_CC, m_CT, m_PL, m_PR, data = spiders, 
-               formula = ~ EV + CO, M = M)
+               formula = ~ Elevation + Canopy_openess, M = M, scale = TRUE)
 logLik(mmc)
 
 ### weak evidence for such effects
 pchisq(2 * (logLik(mmc) - logLik(mm)), df = 30, lower.tail = FALSE)
 
 ### plot Kendall's tau for different elevations / openess levels
-nd <- expand.grid(EV = -15:15 / 10, CO = -15:15 / 10)
+nd <- expand.grid(Elevation = 80:120 * 10, Canopy_openess = 1:10 * 10)
 KD <- Lower_tri(coef(mmc, newdata = nd, type = "Kendall"))
 f <- factor(rownames(KD))
 nd <- cbind(f = rep(f, nrow(nd)), nd[rep(1:nrow(nd), each = nlevels(f)),])
 nd$KD <- c(KD)
 
 library("lattice")
-contourplot(KD ~ EV + CO | f, data = nd, cuts = 18, xlab = "Elevation",
-            ylab = "Canopy openess")
+contourplot(KD ~ Elevation + Canopy_openess | f, data = nd, 
+            cuts = 18, xlab = "Elevation", ylab = "Canopy openess")
 
 ### for example:
 ### => constant negative dependence of Pardosa_lugubris and Coelotes_terrestris
