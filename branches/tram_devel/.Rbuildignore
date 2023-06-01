@@ -5,3 +5,5 @@ undernutrition.Rout
 undernutrition.Rout.save
 stram.Rout.save
 Rplots_old.pdf
+scores.R
+scores.Rout.save
