@@ -231,7 +231,7 @@
 .mget <- function(models, j = 1, parm, newdata = NULL,
                   what = c("trafo", "dtrafo", "z", "zleft", 
                            "dzleft", "zright", "dzright", "zprime", 
-                           "mm", "mmprime", "estfun"), ...) {
+                           "mm", "mmprime", "estfun", "scale"), ...) {
 
     what <- match.arg(what)
 
@@ -239,6 +239,22 @@
         ret <- lapply(j, .mget, models = models, parm = parm, 
                       newdata = newdata, what = what)
         return(ret)
+    }
+
+    if (what == "scale") {
+        if (models$cont[j]) {
+            Y <- models$mm[[j]]$eY$Y
+        } else {
+            Y <- models$mm[[j]]$iY$Yleft
+        }
+        Ytmp <- Y
+        Ytmp[!is.finite(Ytmp)] <- NA
+        sc <- apply(abs(Ytmp), 2, max, na.rm = TRUE)
+        lt1 <- sc < 1.1
+        gt1 <- sc >= 1.1
+        sc[gt1] <- 1 / sc[gt1]
+        sc[lt1] <- 1
+        return(sc)
     }
 
     prm <- models$parm(parm)[[j]]
@@ -252,7 +268,6 @@
     if (is.null(newdata)) {
         if (models$nn[j]) newdata <- tmp$data
     }
-
     if (models$cont[j]) {
         if (is.null(newdata)) {
             tr <- c(models$mm[[j]]$eY$Y %*% prm)
@@ -356,7 +371,7 @@ mmltoptim <- function(auglag = list(maxtry = 5), ...)
     mltoptim(auglag = auglag, ...)
 
 mmlt <- function(..., formula = ~ 1, data, conditional = FALSE, 
-                 theta = NULL, fixed = NULL,
+                 theta = NULL, fixed = NULL, scale = FALSE,
                  optim = mmltoptim(), args = list(seed = 1, M = 1000), 
                  dofit = TRUE, domargins = TRUE)
 {
@@ -557,6 +572,21 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
         return(ret)
     }
 
+    ### scale
+    if (scale) {
+        scl <- rep(apply(abs(lX), 2, max, na.rm = TRUE), Jp)
+        lt1 <- scl < 1.1
+        gt1 <- scl >= 1.1
+        scl[gt1] <- 1 / scl[gt1]
+        scl[lt1] <- 1
+        scl <- c(do.call("c", .mget(m, j = 1:J, parm = NULL, what = "scale")), scl)
+        names(scl) <- parnames
+    } else {
+        scl <- numeric(length(parnames))
+        scl[] <- 1
+        names(scl) <- parnames
+    }
+
     if (weights) {
         f <- function(par, ...) {
             if (!is.null(fixed)) {
@@ -564,7 +594,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
                 p[names(fixed)] <- fixed
                 par <- p[parnames]
             }
-            return(-sum(weights * ll(par, ...)))
+            return(-sum(weights * ll(par * scl, ...)))
         }
     } else {
         f <- function(par, ...) {
@@ -573,7 +603,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
                 p[names(fixed)] <- fixed
                 par <- p[parnames]
             }
-            return(-sum(ll(par, ...)))
+            return(-sum(ll(par * scl, ...)))
         }
     }
     g <- function(par, ...) {
@@ -582,7 +612,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
             p[names(fixed)] <- fixed
             par <- p[parnames]
         }
-        ret <- -sc(par, ...)
+        ret <- -sc(par * scl, ...) * scl
         if (is.null(fixed)) return(ret)
         if (is.matrix(ret))
             return(ret[, !parnames %in% names(fixed)])
@@ -593,9 +623,9 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
 
         ### note: this is fine for conditonal = FALSE
         ### but not quite what we want for conditional = TRUE
-        cll <- function(cpar) f(c(start, cpar))
+        cll <- function(cpar) f(c(start / scl[names(start)], cpar))
         csc <- function(cpar) {
-            ret <- g(c(start, cpar))
+            ret <- g(c(start / scl[names(start)], cpar))
             return(ret[names(lambdastart)])
         }
 
@@ -609,7 +639,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
                 op <- optim[[i]](theta = lambdastart, f = cll, g = csc)
                 if (op$convergence == 0) break()
             }
-            start <- c(start, op$par)
+            start <- c(start, op$par * scl[names(lambdastart)])
         }
         if (is.null(fixed)) {
             names(start) <- parnames
@@ -630,6 +660,9 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
     ui <- cbind(ui, matrix(0, nrow = nrow(ui), 
                               ncol = Jp * ncol(lX) - length(fixed)))
     ci <- m$ci
+    
+    start <- start / scl[names(start)]
+    ui <- t(t(ui) * scl[names(start)])
 
     if (is.null(theta) && !dofit) 
         return(list(ll = f, sc = g, ui = ui, ci = ci))

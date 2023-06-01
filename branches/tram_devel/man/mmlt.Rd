@@ -14,8 +14,8 @@ transformation models
 }
 \usage{
 mmlt(..., formula = ~ 1, data, conditional = FALSE, theta = NULL, fixed = NULL,
-     optim = mmltoptim(), args = list(seed = 1, M = 1000), dofit = TRUE,
-     domargins = TRUE)
+     scale = FALSE, optim = mmltoptim(), args = list(seed = 1, M = 1000), 
+     dofit = TRUE, domargins = TRUE)
 mmltoptim(auglag = list(maxtry = 5), ...)
 \method{coef}{cmmlt}(object, newdata, 
                     type = c("all", "conditional", "Lambda", "Lambdainv", 
@@ -49,6 +49,9 @@ gives the same likelihood but different parameter estimates.
   \item{theta}{an optional vector of starting values.
 }
   \item{fixed}{an optional named numeric vector of predefined parameter values.
+}
+  \item{scale}{a logical indicating if (internal) scaling shall be applied
+          to the model coefficients.
 }
   \item{optim}{a list of optimisers as returned by \code{\link{mmltoptim}}
 }
