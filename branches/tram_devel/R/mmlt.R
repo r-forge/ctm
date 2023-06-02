@@ -391,12 +391,17 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
         cl <- match.call()
         cl$conditional <- FALSE
         cl$domargins <- FALSE
-        theta <- coef(sm <- eval(cl, parent.frame()), type = "all")
-        if (conditional) {
-            ### theta are conditional parameters, scale with sigma
-            class(sm)[1] <- "cmmlt" ### do NOT standardize Lambda
-            d <- diagonals(coef(sm, newdata = data, type = "Sigma")[,,1])
-            theta[1:sum(m$nparm)] <- theta[1:sum(m$nparm)] * rep(sqrt(d), times = m$nparm)
+        sm <- eval(cl, parent.frame())
+        if (!is.null(sm)) {
+            theta <- coef(sm, type = "all")
+            if (conditional) {
+                ### theta are conditional parameters, scale with sigma
+                class(sm)[1] <- "cmmlt" ### do NOT standardize Lambda
+                d <- diagonals(coef(sm, newdata = data, type = "Sigma")[,,1])
+                theta[1:sum(m$nparm)] <- theta[1:sum(m$nparm)] * rep(sqrt(d), times = m$nparm)
+            }
+        } else {
+            theta <- do.call("c", lapply(m$models, function(mod) coef(mod)))
         }
     } 
 
@@ -671,6 +676,9 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
             ret <- c(start, op$par * scl[names(lambdastart)])
             names(ret) <- eparnames
             ret <- list(par = ret, value = -op$value)
+        } else {
+            ### no parameters to optimise over
+            return(NULL)
         }
     } else {
 
