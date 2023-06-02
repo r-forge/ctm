@@ -383,7 +383,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
     if (conditional && !all(m$normal))
         stop("Conditional models only available for marginal probit-type models.")
 
-    if (conditional & !domargins)
+    if (conditional && !domargins)
         stop("Conditional models must fit marginal and joint parameters.")
 
     ### compute starting values for lambda
@@ -394,8 +394,9 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
         theta <- coef(sm <- eval(cl, parent.frame()), type = "all")
         if (conditional) {
             ### theta are conditional parameters, scale with sigma
+            class(sm)[1] <- "cmmlt" ### do NOT standardize Lambda
             d <- diagonals(coef(sm, newdata = data, type = "Sigma")[,,1])
-            theta[1:sum(m$nparm)] <- theta[1:sum(m$nparm)] * rep(sqrt(d), each = m$nparm)
+            theta[1:sum(m$nparm)] <- theta[1:sum(m$nparm)] * rep(sqrt(d), times = m$nparm)
         }
     } 
 
@@ -623,6 +624,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
     f <- function(par, scl, ...) {
         if (!is.null(fixed)) {
             p <- par
+            names(p) <- eparnames
             p[names(fixed)] <- fixed
             par <- p[parnames]
         }
@@ -633,6 +635,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
     g <- function(par, scl, ...) {
         if (!is.null(fixed)) {
             p <- par
+            names(p) <- eparnames
             p[names(fixed)] <- fixed
             par <- p[parnames]
         }
