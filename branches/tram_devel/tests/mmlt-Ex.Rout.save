@@ -871,6 +871,251 @@ y.4.x.1   0.072   0.070   0.111   0.122
 > chk(logLik(mc01), logLik(mc01, newdata = d))
 [1] TRUE
 > 
+> ### check user interface
+> dgp <- function(N = 100, J = 5, lambda = 0.5773503) {
++ 
++     Jp <- J * (J - 1) / 2
++     X <- c(lambda, rep(0, Jp - 1))
++     L <- ltMatrices(X)
++     L <- standardize(invchol = L)
++     Z <- matrix(rnorm(N * J), ncol = N)
++     ret <- solve(L, Z)
++     ret <- as.data.frame(t(ret))
++     colnames(ret) <- paste0("Y", 1:J)
++     ret
++ }
+> 
+> N <- 100
+> J <- 5
+> 
+> Y <- dgp(N = N, J = J)
+> 
+> m0 <- lapply(colnames(Y)[1:J], function(v) {
++     fm <- as.formula(paste(v, " ~ 1"))
++     BoxCox(fm, data = Y, order = 1)
++ })
+> 
+> TF <- c(TRUE, FALSE)
+> args <- expand.grid(scale  = TF, domargins = TF, dofit = TF, theta = TF, fixed = TF, conditional = TF)
+> args <- subset(args, !(conditional & !domargins))
+> 
+> m0$data <- Y
+> m0$conditional <- TRUE
+> m1 <- do.call("mmlt", m0)
+> theta <- do.call("c", coef(m1, type = "conditional"))
+> lambda <- c(Lower_tri(coef(m1, type = "Lambda")))
+> CR <- coef(m1, type = "Cor")
+> 
+> fx <- c("Y5.Y3.(Intercept)" = 0, "Y5.Y4.(Intercept)" = 0)
+> 
+> for (i in 1:nrow(args)) {
++     print(i)
++     m0$scale <- args$scale[i]
++     m0$dofit <- args$dofit[i]
++     m0$domargins <- args$domargins[i]
++     m0$conditional <- args$conditional[i]
++     m0$theta <- NULL
++     if (args$theta[i] && args$domargins[i])
++         m0$theta <- c(theta, lambda[1:(length(theta) - length(fx) * args$fixed[i])])
++     if (args$theta[i] && !args$domargins[i])
++         m0$theta <- lambda[1:(length(theta) - length(fx) * args$fixed[i])]
++     m0$fixed <- NULL
++     if (args$fixed[i])
++         m0$fixed <- fx
++     m1 <- try(do.call("mmlt", m0))
++     print(warnings())
++     if (inherits(m1, "mmlt")) {
++         print(logLik(m1))
++         print(max(abs(coef(m1, type = "Cor") - CR)))
++     } else {
++         print(m1$ll(c(theta, lambda)))
++     }
++ }
+[1] 1
+NULL
+'log Lik.' -678 (df=18)
+[1] 0.045
+[1] 2
+NULL
+'log Lik.' -678 (df=18)
+[1] 0.045
+[1] 3
+NULL
+'log Lik.' -757 (df=18)
+[1] 0.046
+[1] 4
+NULL
+'log Lik.' -678 (df=18)
+[1] 0.046
+[1] 5
+NULL
+'log Lik.' -678 (df=18)
+[1] 0.045
+[1] 6
+NULL
+'log Lik.' -678 (df=18)
+[1] 0.045
+[1] 7
+NULL
+[1] 678
+[1] 8
+NULL
+[1] 678
+[1] 9
+NULL
+'log Lik.' -678 (df=20)
+[1] 4e-08
+[1] 10
+NULL
+'log Lik.' -678 (df=20)
+[1] 3.3e-08
+[1] 11
+NULL
+'log Lik.' -757 (df=20)
+[1] 0
+[1] 12
+NULL
+'log Lik.' -678 (df=20)
+[1] 0
+[1] 13
+NULL
+'log Lik.' -678 (df=20)
+[1] 5e-08
+[1] 14
+NULL
+'log Lik.' -678 (df=20)
+[1] 0
+[1] 15
+NULL
+[1] 678
+[1] 16
+NULL
+[1] 678
+[1] 17
+NULL
+'log Lik.' -678 (df=18)
+[1] 0.045
+[1] 18
+NULL
+'log Lik.' -678 (df=18)
+[1] 0.045
+[1] 19
+NULL
+'log Lik.' -757 (df=18)
+[1] 0.045
+[1] 20
+NULL
+'log Lik.' -678 (df=18)
+[1] 0.045
+[1] 21
+NULL
+'log Lik.' -746 (df=18)
+[1] 0.046
+[1] 22
+NULL
+'log Lik.' -681 (df=18)
+[1] 0.046
+[1] 23
+NULL
+'log Lik.' -757 (df=18)
+[1] 0.045
+[1] 24
+NULL
+'log Lik.' -678 (df=18)
+[1] 0.045
+[1] 25
+NULL
+'log Lik.' -678 (df=18)
+[1] 0.045
+[1] 26
+NULL
+'log Lik.' -678 (df=18)
+[1] 0.045
+[1] 27
+NULL
+'log Lik.' -757 (df=18)
+[1] 0.045
+[1] 28
+NULL
+'log Lik.' -678 (df=18)
+[1] 0.045
+[1] 29
+NULL
+[1] 681
+[1] 30
+NULL
+[1] 681
+[1] 31
+NULL
+'log Lik.' -757 (df=18)
+[1] 0.045
+[1] 32
+NULL
+'log Lik.' -678 (df=18)
+[1] 0.045
+[1] 33
+NULL
+'log Lik.' -678 (df=20)
+[1] 3.7e-08
+[1] 34
+NULL
+'log Lik.' -678 (df=20)
+[1] 7.6e-06
+[1] 35
+NULL
+'log Lik.' -757 (df=20)
+[1] 1.1e-16
+[1] 36
+NULL
+'log Lik.' -678 (df=20)
+[1] 1.1e-16
+[1] 37
+NULL
+'log Lik.' -746 (df=20)
+[1] 1.1e-16
+[1] 38
+NULL
+'log Lik.' -681 (df=20)
+[1] 1.1e-16
+[1] 39
+NULL
+'log Lik.' -757 (df=20)
+[1] 1.1e-16
+[1] 40
+NULL
+'log Lik.' -678 (df=20)
+[1] 1.1e-16
+[1] 41
+NULL
+'log Lik.' -678 (df=20)
+[1] 4.1e-05
+[1] 42
+NULL
+'log Lik.' -678 (df=20)
+[1] 3.6e-08
+[1] 43
+NULL
+'log Lik.' -757 (df=20)
+[1] 8.9e-08
+[1] 44
+NULL
+'log Lik.' -678 (df=20)
+[1] 8.9e-08
+[1] 45
+NULL
+[1] 681
+[1] 46
+NULL
+[1] 681
+[1] 47
+NULL
+'log Lik.' -757 (df=20)
+[1] 8.9e-08
+[1] 48
+NULL
+'log Lik.' -678 (df=20)
+[1] 8.9e-08
+> 
 > proc.time()
    user  system elapsed 
-  42.59    0.11   42.70 
+  62.21    0.15   62.41 

@@ -476,3 +476,64 @@ chk(c(logLik(mc01)),
 
 ### check if newdata works in logLik
 chk(logLik(mc01), logLik(mc01, newdata = d))
+
+### check user interface
+dgp <- function(N = 100, J = 5, lambda = 0.5773503) {
+
+    Jp <- J * (J - 1) / 2
+    X <- c(lambda, rep(0, Jp - 1))
+    L <- ltMatrices(X)
+    L <- standardize(invchol = L)
+    Z <- matrix(rnorm(N * J), ncol = N)
+    ret <- solve(L, Z)
+    ret <- as.data.frame(t(ret))
+    colnames(ret) <- paste0("Y", 1:J)
+    ret
+}
+
+N <- 100
+J <- 5
+
+Y <- dgp(N = N, J = J)
+
+m0 <- lapply(colnames(Y)[1:J], function(v) {
+    fm <- as.formula(paste(v, " ~ 1"))
+    BoxCox(fm, data = Y, order = 1)
+})
+
+TF <- c(TRUE, FALSE)
+args <- expand.grid(scale  = TF, domargins = TF, dofit = TF, theta = TF, fixed = TF, conditional = TF)
+args <- subset(args, !(conditional & !domargins))
+
+m0$data <- Y
+m0$conditional <- TRUE
+m1 <- do.call("mmlt", m0)
+theta <- do.call("c", coef(m1, type = "conditional"))
+lambda <- c(Lower_tri(coef(m1, type = "Lambda")))
+CR <- coef(m1, type = "Cor")
+
+fx <- c("Y5.Y3.(Intercept)" = 0, "Y5.Y4.(Intercept)" = 0)
+
+for (i in 1:nrow(args)) {
+    print(i)
+    m0$scale <- args$scale[i]
+    m0$dofit <- args$dofit[i]
+    m0$domargins <- args$domargins[i]
+    m0$conditional <- args$conditional[i]
+    m0$theta <- NULL
+    if (args$theta[i] && args$domargins[i])
+        m0$theta <- c(theta, lambda[1:(length(theta) - length(fx) * args$fixed[i])])
+    if (args$theta[i] && !args$domargins[i])
+        m0$theta <- lambda[1:(length(theta) - length(fx) * args$fixed[i])]
+    m0$fixed <- NULL
+    if (args$fixed[i])
+        m0$fixed <- fx
+    m1 <- try(do.call("mmlt", m0))
+    print(warnings())
+    if (inherits(m1, "mmlt")) {
+        print(logLik(m1))
+        print(max(abs(coef(m1, type = "Cor") - CR)))
+    } else {
+        print(m1$ll(c(theta, lambda)))
+    }
+}
