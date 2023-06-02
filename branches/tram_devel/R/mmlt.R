@@ -397,7 +397,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
             if (conditional) {
                 ### theta are conditional parameters, scale with sigma
                 class(sm)[1] <- "cmmlt" ### do NOT standardize Lambda
-                d <- diagonals(coef(sm, newdata = data, type = "Sigma")[,,1])
+                d <- rowMeans(diagonals(coef(sm, newdata = data, type = "Sigma")))
                 theta[1:sum(m$nparm)] <- theta[1:sum(m$nparm)] * rep(sqrt(d), times = m$nparm)
             }
         } else {
