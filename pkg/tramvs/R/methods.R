@@ -47,6 +47,21 @@ coef.tramvs <- function(object, best_only = FALSE, ...) {
   coefs
 }
 
+#' Coef "mmltvs"
+#' @param object Object of class \code{"tramvs"}
+#' @param best_only Wether to return the coefficients of the best model only
+#'     (default: FALSE)
+#' @param ... additional arguments to \code{coef()}
+#' @return Vector (\code{best_only = TRUE}) or matrix (\code{best_only = FALSE})
+#'     of coefficients
+#' @method coef mmltvs
+#' @exportS3Method
+coef.mmltvs <- function(object, best_only = FALSE, ...) {
+  if (best_only)
+    return(coef_mmlt(object$best_fit$mod, ... = ...))
+  object$coefs
+}
+
 #' Predict "tramvs"
 #' @param object object of class \code{"tramvs"}
 #' @param ... additional arguments to \code{predict.tram()}
