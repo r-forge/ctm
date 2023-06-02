@@ -522,10 +522,10 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
     sc <- function(parm, newdata = NULL, scores = FALSE) {
 
         if (scores) {
-            RS <- CS <- function(x, ...) x
+            RS <- CS <- function(x) x
         } else {
-            RS <- rowSums
-            CS <- colSums
+            RS <- function(x) rowSums(x, na.rm = TRUE)
+            CS <- function(x) colSums(x, na.rm = TRUE)
         }
 
         if (!is.null(newdata) && !isTRUE(all.equal(formula, ~ 1))) 
@@ -553,10 +553,9 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
 
         Lmat <- Lower_tri(sc$Lambda)[rep(1:Jp, each = ncol(lX)), , drop = FALSE]
         if (identical(c(lX), 1)) {
-            scL <- RS(Lmat, na.rm = TRUE) ### NaN might appear in scores
+            scL <- RS(Lmat) ### NaN might appear in scores
         } else {
-            scL <- RS(Lmat * t(lX[,rep(1:ncol(lX), Jp), drop = FALSE]), 
-                      na.rm = TRUE)
+            scL <- RS(Lmat * t(lX[,rep(1:ncol(lX), Jp), drop = FALSE]))
         }
       
         scp <- vector(mode = "list", length = cJ + dJ)
@@ -705,13 +704,12 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
             if (ret$convergence != 0)
                 warning("Optimisation did not converge")
         } else {
-            ret <- list(par = theta, value = f(theta, scl = 1), convergence = NA,
+            ret <- list(par = start, value = f(theta, scl = 1), convergence = NA,
                         optim_hessian = NA)
         }
+        names(ret$par) <- eparnames
+        ret$par[eparnames] <- ret$par[eparnames] * scl[eparnames]
     }
-
-    names(ret$par) <- eparnames
-    ret$par[eparnames] <- ret$par[eparnames] * scl[eparnames]
   
     ret$ll <- function(...) f(..., scl = 1)
     ret$score <- function(...) g(..., scl = 1)
