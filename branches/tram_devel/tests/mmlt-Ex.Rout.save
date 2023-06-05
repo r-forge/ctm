@@ -902,8 +902,7 @@ y.4.x.1   0.072   0.070   0.111   0.122
 > m0$data <- Y
 > m0$conditional <- TRUE
 > m1 <- do.call("mmlt", m0)
-> theta <- do.call("c", coef(m1, type = "conditional"))
-> lambda <- c(Lower_tri(coef(m1, type = "Lambda")))
+> theta <- coef(m1)
 > CR <- coef(m1, type = "Cor")
 > 
 > fx <- c("Y5.Y3.(Intercept)" = 0, "Y5.Y4.(Intercept)" = 0)
@@ -915,10 +914,8 @@ y.4.x.1   0.072   0.070   0.111   0.122
 +     m0$domargins <- args$domargins[i]
 +     m0$conditional <- args$conditional[i]
 +     m0$theta <- NULL
-+     if (args$theta[i] && args$domargins[i])
-+         m0$theta <- c(theta, lambda[1:(length(theta) - length(fx) * args$fixed[i])])
-+     if (args$theta[i] && !args$domargins[i])
-+         m0$theta <- lambda[1:(length(theta) - length(fx) * args$fixed[i])]
++     if (args$theta[i])
++         m0$theta <- theta
 +     m0$fixed <- NULL
 +     if (args$fixed[i])
 +         m0$fixed <- fx
@@ -928,7 +925,7 @@ y.4.x.1   0.072   0.070   0.111   0.122
 +         print(logLik(m1))
 +         print(max(abs(coef(m1, type = "Cor") - CR)))
 +     } else {
-+         print(m1$ll(c(theta, lambda)))
++         print(m1$ll(theta))
 +     }
 + }
 [1] 1
@@ -1118,4 +1115,4 @@ NULL
 > 
 > proc.time()
    user  system elapsed 
-  44.71    0.16   44.92 
+  50.42    0.14   50.56 

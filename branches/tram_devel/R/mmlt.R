@@ -367,6 +367,28 @@
     return(matrix(runif((J - 1) * M), ncol = M))
 }
 
+.start <- function(m, xnames, fixed = NULL) {
+
+    J <- length(m$models)
+    Jp <- J * (J - 1) / 2
+    Jnames <- m$names
+    margin_par <- do.call("c", lapply(m$models, function(mod) coef(as.mlt(mod))))
+    names(margin_par) <- paste(rep(Jnames, time = m$nparm), names(margin_par), sep = ".")
+
+    rn <- rownames(unclass(ltMatrices(1:Jp, names = Jnames)))
+    lnames <- do.call("paste", 
+        expand.grid(rn, xnames, sep = ".", stringsAsFactors = FALSE))
+    lambda_par <- rep(0, length(lnames))
+    names(lambda_par) <- lnames
+
+    start <- c(margin_par, lambda_par)
+
+    if (!is.null(fixed))
+        stopifnot(all(fixed %in% names(start)))
+
+    return(start)
+}
+
 mmltoptim <- function(auglag = list(maxtry = 5), ...)
     mltoptim(auglag = auglag, ...)
 
@@ -432,34 +454,16 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
         return(matrix(parm, nrow = ncol(lX)))
     }
 
-    start <- do.call("c", lapply(m$models, function(mod) coef(mod)))
-    mpar <- length(start) 
-    tmp <- c(start, rep(0, Jp * ncol(lX)))
-    nm <- names(start)
-    names(tmp)[1:length(nm)] <- nm
-    pnm <- m$parm(tmp)
-    pnm <- do.call("c", lapply(1:J, function(j) paste(m$names[j], names(pnm[[j]]), sep = ".")))
-    tmp <- .Xparm(tmp)
-    rownames(tmp) <- colnames(lX)
-    tmp <- unclass(ltMatrices(t(tmp), byrow = TRUE, diag = FALSE, names = m$names))
-    lnames <- do.call("paste", expand.grid(rownames(tmp), colnames(tmp), sep = ".", 
-                   stringsAsFactors = FALSE))
-    names(start) <- pnm
-    eparnames <- parnames <- c(pnm, lnames)
-    ### only lambda parameters can be fixed
-    if (!is.null(fixed)) {
-        stopifnot(all(names(fixed) %in% lnames))
-        eparnames <- parnames[!parnames %in% names(fixed)]
-        lnames <- lnames[!lnames %in% names(fixed)]
-    }
+    start <- .start(m, colnames(lX), names(fixed))
+    parnames <- eparnames <- names(start)
+    lparnames <- names(start)[-(1:sum(m$nparm))]
+    if (!is.null(fixed)) eparnames <- eparnames[!eparnames %in% names(fixed)]
+    if (!is.null(fixed)) lparnames <- lparnames[!lparnames %in% names(fixed)]
+
     if (!is.null(theta)) {
-        if (domargins) {
-            stopifnot(length(theta) == length(eparnames))
-            names(theta) <- eparnames
-        } else {
-            stopifnot(length(theta) == length(lnames))
-            names(theta) <- lnames
-        }
+        if (!is.null(fixed)) theta <- theta[!names(theta) %in% names(fixed)]
+        stopifnot(length(theta) == length(eparnames))
+        names(theta) <- eparnames
     }
 
 
@@ -654,6 +658,8 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
 
         stopifnot(!conditional)
 
+        start <- start[1:sum(m$nparm)]
+
         cll <- function(cpar) f(c(start / scl[names(start)], cpar), scl = scl)
         csc <- function(cpar) {
             ret <- g(c(start / scl[names(start)], cpar), scl = scl)
@@ -661,10 +667,10 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
         }
 
         if (is.null(theta)) {
-            lambdastart <- rep(0, length(lnames))
-            names(lambdastart) <- lnames
+            lambdastart <- rep(0, length(lparnames))
+            names(lambdastart) <- lparnames
         } else {
-            lambdastart <- theta
+            lambdastart <- theta[lparnames]
         }
 
         if (length(lambdastart)) {
@@ -672,8 +678,8 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
                 op <- optim[[i]](theta = lambdastart, f = cll, g = csc)
                 if (op$convergence == 0) break()
             }
+            names(op$par) <- names(lambdastart)
             ret <- c(start, op$par * scl[names(lambdastart)])
-            names(ret) <- eparnames
             ret <- list(par = ret, value = -op$value)
         } else {
             ### no parameters to optimise over
@@ -683,7 +689,9 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
 
         ui <- m$ui
         ui <- cbind(ui, matrix(0, nrow = nrow(ui), 
-                               ncol = Jp * ncol(lX) - length(fixed)))
+                               ncol = length(parnames) - ncol(ui)))
+        if (!is.null(fixed)) 
+            ui <- ui[, !parnames %in% names(fixed), drop = FALSE]
         ci <- m$ci
 
         if (is.null(theta) && !dofit) 
