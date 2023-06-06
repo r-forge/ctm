@@ -138,8 +138,11 @@ abess_mmlt <- function(mltargs, supp, k_max = supp, thresh = NULL, init = TRUE,
 #' @return Vector of correlation for initializing the active set
 #' @exportS3Method cor_init mmlt
 cor_init.mmlt <- function(m0, mb) {
-  cors <- abs(cor(do.call("cbind", lapply(m0$models$models, residuals))))
-  structure(cors[upper.tri(cors)], names = mb)
+  cors <- cor(do.call("cbind", lapply(m0$models$models, residuals)))
+  L <- solve(t(chol(cors)))
+  LL <- ltMatrices(L[lower.tri(L, diag = TRUE)], diag = TRUE)
+  LLL <- invcholD(LL, D = 1 / diagonals(LL))
+  structure(c(abs(Lower_tri(LLL))), names = mb)
 }
 
 # Helper ------------------------------------------------------------------
