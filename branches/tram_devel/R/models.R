@@ -11,6 +11,20 @@ Coxph <- function(formula, data, subset, weights, offset, cluster, na.action = n
               inherits(td$response, "response") ||
               is.numeric(td$response))
 
+    if (inherits(td$response, "Surv")) {
+        y <- td$response
+        if (length(unique(y[,ncol(y)])) > 2) {
+            if (!missing(cluster))
+                warning("Argument cluster ignored")
+            ocall <- call <- match.call(expand.dots = TRUE)
+            call$primary <- "Colr"
+            call[[1L]] <- quote(tram:::Compris)
+            ret <- eval(call, parent.frame())
+            ret$call <- ocall
+            return(ret)
+        }
+    }
+
     ret <- tram(td, transformation = "smooth", distribution = "MinExtrVal", 
                 negative = FALSE, ...)
     if (!inherits(ret, "mlt")) return(ret)
@@ -202,6 +216,20 @@ Colr <- function(formula, data, subset, weights, offset, cluster, na.action = na
               inherits(td$response, "response") ||
               is.numeric(td$response))
 
+    if (inherits(td$response, "Surv")) {
+        y <- td$response
+        if (length(unique(y[,ncol(y)])) > 2) {
+            if (!missing(cluster))
+                warning("Argument cluster ignored")
+            ocall <- match.call(expand.dots = TRUE)
+            call$primary <- "Colr"
+            call[[1L]] <- quote(tram:::Compris)
+            ret <- eval(call, parent.frame())
+            ret$call <- ocall
+            return(ret)
+        }
+    }
+
     ret <- tram(td, transformation = "smooth", 
                 distribution = "Logistic", negative = FALSE, ...)
     if (!inherits(ret, "mlt")) return(ret)
@@ -295,6 +323,20 @@ BoxCox <- function(formula, data, subset, weights, offset, cluster, na.action = 
     stopifnot(inherits(td$response, "Surv") ||
               inherits(td$response, "response") ||
               is.numeric(td$response))
+
+    if (inherits(td$response, "Surv")) {
+        y <- td$response
+        if (length(unique(y[,ncol(y)])) > 2) {
+            if (!missing(cluster))
+                warning("Argument cluster ignored")
+            ocall <- match.call(expand.dots = TRUE)
+            call$primary <- "Colr"
+            call[[1L]] <- quote(tram:::Compris)
+            ret <- eval(call, parent.frame())
+            ret$call <- ocall
+            return(ret)
+        }
+    }
 
     ret <- tram(td, transformation = "smooth", distribution = "Normal", 
                 negative = TRUE, ...)

@@ -297,6 +297,9 @@ Hessian.mtram <- function(object, ...) {
     return(H)
 }
 
+### FIXME: one would want sd for _marginal_ parameters,
+### that is, coef(object) / sqrt(1 + coef(object)["gamma"]^2) in the
+### simplest case of repeated measurements
 vcov.mtram <- function(object, ...) {
     class(object) <- c("mtram", "mlt")
     return(mlt:::vcov.mlt(object))

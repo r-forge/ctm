@@ -18,6 +18,7 @@ importFrom("stats", "model.matrix", "coef", "vcov", "nobs", "predict", "quantile
 importFrom("Matrix", "Matrix", "bdiag", "Diagonal", "Cholesky", "crossprod")
 importFrom("survival", "survfit", "Surv", "coxph.control")
 importFrom("graphics", "plot", "lines", "polygon", "abline")
+importFrom("qrng", "ghalton")
 
 
 export(tram, tram_data, Coxph, Aareg, Colr, Polr, Lm, BoxCox, Survreg, Lehmann, 

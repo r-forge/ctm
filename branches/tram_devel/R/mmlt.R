@@ -736,6 +736,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
     ret$names <- m$names
     ret$call <- match.call()
     class(ret) <- c(ifelse(conditional, "cmmlt", "mmmlt"), "mmlt")
+    ret$mmlt <- "Multivariate Conditional Transformation Model"
     ret
 }
 
@@ -861,7 +862,7 @@ summary.mmlt <- function(object, ...) {
 }
 
 print.summary.mmlt <- function(x, digits = max(3L, getOption("digits") - 3L), ...) {
-    cat("\n", "Multivariate conditional transformation model", "\n")
+    cat("\n", x$mmlt, "\n")
     cat("\nCall:\n")
     print(x$call)
     cat("\nCoefficients:\n")
