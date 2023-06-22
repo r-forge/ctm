@@ -5,6 +5,10 @@
 \section{Changes in Version 1.0-0 (2023-04-03)}{
   \itemize{
     \item{Improved, simplified, and generalised implementation of \code{mmlt}.}
+    \item{\code{Coxph}, \code{Colr}, and \code{BoxCox} allow unbiased
+          estimation of time-to-event distributions under dependent
+          censoring.}
+    \item{All \code{tram} models can be equipped with frailty terms.}
   }
 }
 
