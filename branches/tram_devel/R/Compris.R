@@ -235,6 +235,7 @@ Compris <- function(formula, data, subset, weights, na.action, offset,
         ret$optim_hessian <- op$optim_hessian
     ret$call <- call
     ret$mmlt <- "Competing Risk Regression"
+    ret$args <- list(M = M, w = t(ghalton(M, d = 1L)))
     class(ret) <- c("Compris", class(ret))
     ret
 }
