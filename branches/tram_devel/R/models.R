@@ -11,18 +11,15 @@ Coxph <- function(formula, data, subset, weights, offset, cluster, na.action = n
               inherits(td$response, "response") ||
               is.numeric(td$response))
 
-    if (inherits(td$response, "Surv")) {
-        y <- td$response
-        if (length(unique(y[,ncol(y)])) > 2) {
-            if (!missing(cluster))
-                warning("Argument cluster ignored")
-            ocall <- call <- match.call(expand.dots = TRUE)
-            call$primary <- "Colr"
-            call[[1L]] <- quote(tram:::Compris)
-            ret <- eval(call, parent.frame())
-            ret$call <- ocall
-            return(ret)
-        }
+    if (.mrightORmcounting(td$response)) {
+        if (!missing(cluster))
+            warning("Argument cluster ignored")
+        ocall <- call <- match.call(expand.dots = TRUE)
+        call$primary <- "Coxph"
+        call[[1L]] <- quote(tram:::Compris)
+        ret <- eval(call, parent.frame())
+        ret$call <- ocall
+        return(ret)
     }
 
     ret <- tram(td, transformation = "smooth", distribution = "MinExtrVal", 
@@ -219,18 +216,15 @@ Colr <- function(formula, data, subset, weights, offset, cluster, na.action = na
               inherits(td$response, "response") ||
               is.numeric(td$response))
 
-    if (inherits(td$response, "Surv")) {
-        y <- td$response
-        if (length(unique(y[,ncol(y)])) > 2) {
-            if (!missing(cluster))
-                warning("Argument cluster ignored")
-            ocall <- match.call(expand.dots = TRUE)
-            call$primary <- "Colr"
-            call[[1L]] <- quote(tram:::Compris)
-            ret <- eval(call, parent.frame())
-            ret$call <- ocall
-            return(ret)
-        }
+    if (.mrightORmcounting(td$response)) {
+        if (!missing(cluster))
+            warning("Argument cluster ignored")
+        ocall <- call <- match.call(expand.dots = TRUE)
+        call$primary <- "Colr"
+        call[[1L]] <- quote(tram:::Compris)
+        ret <- eval(call, parent.frame())
+        ret$call <- ocall
+        return(ret)
     }
 
     ret <- tram(td, transformation = "smooth", 
@@ -330,18 +324,15 @@ BoxCox <- function(formula, data, subset, weights, offset, cluster, na.action = 
               inherits(td$response, "response") ||
               is.numeric(td$response))
 
-    if (inherits(td$response, "Surv")) {
-        y <- td$response
-        if (length(unique(y[,ncol(y)])) > 2) {
-            if (!missing(cluster))
-                warning("Argument cluster ignored")
-            ocall <- match.call(expand.dots = TRUE)
-            call$primary <- "Colr"
-            call[[1L]] <- quote(tram:::Compris)
-            ret <- eval(call, parent.frame())
-            ret$call <- ocall
-            return(ret)
-        }
+    if (.mrightORmcounting(td$response)) {
+        if (!missing(cluster))
+            warning("Argument cluster ignored")
+        ocall <- call <- match.call(expand.dots = TRUE)
+        call$primary <- "BoxCox"
+        call[[1L]] <- quote(tram:::Compris)
+        ret <- eval(call, parent.frame())
+        ret$call <- ocall
+        return(ret)
     }
 
     ret <- tram(td, transformation = "smooth", distribution = "Normal", 
