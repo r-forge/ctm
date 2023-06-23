@@ -28,7 +28,7 @@ mmltoptim(auglag = list(maxtry = 5), ...)
                              "Spearman", "Kendall"), 
                      ...)
 \method{predict}{mmlt}(object, newdata, margins = 1:J, 
-                       type = c("trafo", "distribution", "density"), 
+                       type = c("trafo", "distribution", "survivor", "density", "hazard"), 
                        log = FALSE, args = object$args, ...)
 \method{simulate}{mmlt}(object, nsim = 1L, seed = NULL, newdata, K = 50, ...)
 }

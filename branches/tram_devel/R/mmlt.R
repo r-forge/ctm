@@ -211,7 +211,9 @@
         return(list(Yleft = Yleft, Yright = Yright))
     }
 
-    if (models$cont[j]) {
+    resp <- models$models[[j]]$model$response
+    y <- R(newdata[[resp]])
+    if (models$cont[j] || mlt:::.type_of_response(y) == "double") {
         if (prime) {
             drv <- 1L
             names(drv) <- models$models[[j]]$model$response
@@ -220,8 +222,6 @@
             return(model.matrix(models$models[[j]]$model, data = newdata))
         }
     }
-    resp <- models$models[[j]]$model$response
-    y <- R(newdata[[resp]])
     iY <- mlt:::.mm_interval(model = models$models[[j]]$model, data = newdata, resp, y)
     Yleft <- iY$Yleft
     Yright <- iY$Yright
@@ -291,6 +291,8 @@
             trr[!is.finite(trr)] <- Inf
         } else {
             mmj <- .model_matrix(models, j = j, newdata = newdata)
+            ### continuous response for model with censoring
+            if (is.matrix(mmj)) return(c(mmj %*% prm))
             trl <- c(mmj$Yleft %*% prm)
             trl[!is.finite(trl)] <- -Inf
             trr <- c(mmj$Yright %*% prm)
@@ -889,7 +891,7 @@ print.mmlt <- function(x, ...) {
 
 
 predict.mmlt <- function (object, newdata, margins = 1:J, 
-    type = c("trafo", "distribution", "density"), log = FALSE, 
+    type = c("trafo", "distribution", "survivor", "density", "hazard"), log = FALSE, 
     args = object$args, ...) 
 {
     J <- length(object$models$models)
@@ -919,15 +921,17 @@ predict.mmlt <- function (object, newdata, margins = 1:J,
         }
         type <- match.arg(type)
         tr <- predict(tmp, newdata = newdata, type = "trafo", ...) / msd
-        if (type == "trafo")
-            return(tr)
-        if (type == "distribution")
-            return(pnorm(tr, log.p = log))
-        dx <- 1
-        names(dx) <- tmp$response
-        dtr <- predict(tmp, newdata = newdata, type = "trafo", deriv = dx, ...)
-        ret <- dnorm(tr, log = TRUE) - .log(msd) + .log(dtr)
-        return(ret)
+        switch(type, "trafo" = return(tr),
+                     "distribution" = return(pnorm(tr, log.p = log)),
+                     "survivor" = return(pnorm(tr, log.p = log, lower.tail = FALSE)),
+                     "density" = {
+                         dx <- 1
+                         names(dx) <- tmp$response
+                         dtr <- predict(tmp, newdata = newdata, type = "trafo", deriv = dx, ...)
+                         ret <- dnorm(tr, log = TRUE) - .log(msd) + .log(dtr)
+                         return(ret)
+                     },
+                     stop("not yet implemented"))
     }
 
     type <- match.arg(type)
@@ -944,8 +948,8 @@ predict.mmlt <- function (object, newdata, margins = 1:J,
         return(Mult(L, z))
     }
     if (type == "distribution") {
-        upper <- z
         lower <- matrix(-Inf, ncol = ncol(z), nrow = nrow(z))
+        upper <- z
         Linv <- coef(object, newdata = newdata, type = "Lambdainv")
         if (length(margins) != J) 
             Linv <- marg_mvnorm(chol = Linv, which = margins)$chol
@@ -958,6 +962,22 @@ predict.mmlt <- function (object, newdata, margins = 1:J,
         if (log) return(ret)
         return(exp(ret))
     }
+    if (type == "survivor") {
+        lower <- z 
+        upper <- matrix(Inf, ncol = ncol(z), nrow = nrow(z))
+        Linv <- coef(object, newdata = newdata, type = "Lambdainv")
+        if (length(margins) != J) 
+            Linv <- marg_mvnorm(chol = Linv, which = margins)$chol
+        a <- args
+        a$lower <- lower
+        a$upper <- upper
+        a$logLik <- FALSE
+        a$chol <- Linv
+        ret <- do.call("lpmvnorm", a)
+        if (log) return(ret)
+        return(exp(ret))
+    }
+    stopifnot(type == "density")
     stopifnot(all(object$models$cont))
     zprime <- .mget(object$models, margins, parm = coef(object, type = "all"),
                     newdata = newdata, what = "zprime")
