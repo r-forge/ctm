@@ -12,11 +12,9 @@ Coxph <- function(formula, data, subset, weights, offset, cluster, na.action = n
               is.numeric(td$response))
 
     if (.mrightORmcounting(td$response)) {
-        if (!missing(cluster))
-            warning("Argument cluster ignored")
         ocall <- call <- match.call(expand.dots = TRUE)
         call$primary <- "Coxph"
-        call[[1L]] <- quote(tram:::Compris)
+        call[[1L]] <- quote(Compris)
         ret <- eval(call, parent.frame())
         ret$call <- ocall
         return(ret)
@@ -217,11 +215,9 @@ Colr <- function(formula, data, subset, weights, offset, cluster, na.action = na
               is.numeric(td$response))
 
     if (.mrightORmcounting(td$response)) {
-        if (!missing(cluster))
-            warning("Argument cluster ignored")
         ocall <- call <- match.call(expand.dots = TRUE)
         call$primary <- "Colr"
-        call[[1L]] <- quote(tram:::Compris)
+        call[[1L]] <- quote(Compris)
         ret <- eval(call, parent.frame())
         ret$call <- ocall
         return(ret)
@@ -325,11 +321,9 @@ BoxCox <- function(formula, data, subset, weights, offset, cluster, na.action = 
               is.numeric(td$response))
 
     if (.mrightORmcounting(td$response)) {
-        if (!missing(cluster))
-            warning("Argument cluster ignored")
         ocall <- call <- match.call(expand.dots = TRUE)
         call$primary <- "BoxCox"
-        call[[1L]] <- quote(tram:::Compris)
+        call[[1L]] <- quote(Compris)
         ret <- eval(call, parent.frame())
         ret$call <- ocall
         return(ret)
