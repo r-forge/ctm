@@ -1,4 +1,14 @@
 
+.mrightORmcounting <- function(object) {
+    if (!inherits(object, "Surv")) return(FALSE)
+    type <- attr(object, "type")
+    if (!(type %in% c("mright", "mcounting")))
+        return(FALSE)
+    st <- unclass(object)[, "status"]
+    if (length(unique(st)) <= 2) return(FALSE)
+    return(TRUE)
+}
+
 .mright2mcounting <- function(object, tol = .001) {
 
     stopifnot(attr(object, "type") == "mcounting")
