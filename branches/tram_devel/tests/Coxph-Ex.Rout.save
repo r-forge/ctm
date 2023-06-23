@@ -1,5 +1,5 @@
 
-R version 4.3.0 (2023-04-21) -- "Already Tomorrow"
+R version 4.3.1 (2023-06-16) -- "Beagle Scouts"
 Copyright (C) 2023 The R Foundation for Statistical Computing
 Platform: x86_64-pc-linux-gnu (64-bit)
 
@@ -100,7 +100,14 @@ Number of terminal nodes: 3
 > 
 > chk(LR1, LR2)
 > 
+> ## interval-censoring
+> load(system.file("rda", "Primary_endpoint_data.rda", package = "TH.data"))
+> 
+> ## [tram] Parametric distribution-free PH model (interval censoring)
+> mci <- Coxph(iDFS ~ randarm, data = CAOsurv, log_first = TRUE)
+> logLik(mci)
+'log Lik.' -2256 (df=8)
 > 
 > proc.time()
    user  system elapsed 
-  2.955   0.065   3.023 
+  4.567   0.072   4.634 

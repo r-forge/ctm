@@ -54,3 +54,9 @@ LR2 <- resid(as.mlt(m2))
 
 chk(LR1, LR2)
 
+## interval-censoring
+load(system.file("rda", "Primary_endpoint_data.rda", package = "TH.data"))
+
+## [tram] Parametric distribution-free PH model (interval censoring)
+mci <- Coxph(iDFS ~ randarm, data = CAOsurv, log_first = TRUE)
+logLik(mci)
