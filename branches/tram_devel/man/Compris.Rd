@@ -47,7 +47,7 @@ remaining competing events.
 }
   \item{optim}{see \code{mmlt}.
 }
-  \item{M}{see \code{\link[mvtnorm]{lpmvnorm}}.
+ \item{args}{a list of arguments for \code{\link[mvtnorm]{lpmvnorm}}.
 }
  \item{scale}{logical defining if variables in the linear predictor shall
                be scaled. Scaling is internally used for model estimation,
