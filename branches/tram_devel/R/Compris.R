@@ -5,7 +5,7 @@
     if (!(type %in% c("mright", "mcounting")))
         return(FALSE)
     st <- unclass(object)[, "status"]
-    if (length(unique(st)) <= 2) return(FALSE)
+    if (all(unique(st) %in% c(0, 1))) return(FALSE)
     return(TRUE)
 }
 
@@ -61,8 +61,8 @@ Compris <- function(formula, data, subset, weights, na.action, offset,
                     competing = switch(primary, "Coxph" = "weibull", 
                                                 "Colr" = "loglogistic", 
                                                 "BoxCox" = "lognormal"),
-                    optim = mmltoptim(), M = 1000, scale = FALSE, tol = .001, 
-                    ...)
+                    optim = mmltoptim(), args = list(seed = 1, M = 1000), 
+                    scale = FALSE, tol = .001, ...)
 {
 
     call <- match.call()
@@ -112,7 +112,7 @@ Compris <- function(formula, data, subset, weights, na.action, offset,
 
         m$optim <- optim
         m$scale <- scale
-        m$args <- list(M = M, w = t(ghalton(M, d = length(y) - 1L)))
+        m$args <- args
         ret <- do.call("mmlt", m)
         ret$call <- call
         class(ret) <- c("Compris", class(ret))
@@ -170,7 +170,6 @@ Compris <- function(formula, data, subset, weights, na.action, offset,
     ### set-up likelihood terms
     # A)
     if (length(rc) > 0) {
-        args <- list(M = M, w = t(ghalton(M, d = 1)))
         mm_rc <- mmlt(me_rc, mc_rc, dofit = FALSE, args = args)
     }
     # B)
@@ -235,7 +234,7 @@ Compris <- function(formula, data, subset, weights, na.action, offset,
         ret$optim_hessian <- op$optim_hessian
     ret$call <- call
     ret$mmlt <- "Competing Risk Regression"
-    ret$args <- list(M = M, w = t(ghalton(M, d = 1L)))
+    ret$args <- args
     class(ret) <- c("Compris", class(ret))
     ret
 }

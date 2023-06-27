@@ -23,7 +23,7 @@ Description: Formula-based user-interfaces to specific transformation models
   can be fitted as well.
 Depends: R (>= 3.5.0), mlt (>= 1.4-7), mvtnorm (>= 1.2-0)
 Imports: Formula, multcomp, variables (>= 1.0-4), basefun (>= 1.1-2),
-        sandwich, stats, survival, graphics, Matrix, methods, qrng
+        sandwich, stats, survival, graphics, Matrix, methods
 Suggests: MASS, TH.data, trtf (>= 0.3-3), mlbench, knitr, quantreg,
         colorspace, ATR, lme4, merDeriv, SparseGrid, alabama, numDeriv,
         gridExtra, lattice, latticeExtra, HSAUR3, ordinalCont,
