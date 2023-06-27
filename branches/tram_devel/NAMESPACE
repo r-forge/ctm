@@ -15,7 +15,8 @@ importFrom("stats", "model.matrix", "coef", "vcov", "nobs", "predict", "quantile
            "model.frame", "pnorm", "qnorm", "sigma", "residuals", "qchisq", "approx", "spline",
            "confint", "relevel", "resid", "ecdf", "dnorm", "weights", "lm", "simulate", 
            "plogis", "qlogis", "dist", "uniroot", "optim", "runif", "rnorm", "update")
-importFrom("Matrix", "Matrix", "bdiag", "Diagonal", "Cholesky", "crossprod")
+importFrom("Matrix", "Matrix", "bdiag", "Diagonal", "Cholesky", "crossprod", 
+           "update", "t", "determinant", "rowSums", "diag")
 importFrom("survival", "survfit", "Surv", "coxph.control")
 importFrom("graphics", "plot", "lines", "polygon", "abline")
 
