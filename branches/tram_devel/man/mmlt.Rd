@@ -10,7 +10,7 @@
 }
 \description{
   A proof-of-concept implementation of multivariate conditional
-transformation models
+  transformation models
 }
 \usage{
 mmlt(..., formula = ~ 1, data, conditional = FALSE, theta = NULL, fixed = NULL,
@@ -86,9 +86,7 @@ variable, or multiple integers (currently only \code{1:j} implemented).
 }
 \details{
   The function implements multivariate conditional transformation models
-  as described by Klein et al (2020). The response is assumed absolutely
-  continuous at the moment, discrete versions will be added later.
-
+  as described by Klein et al (2020). 
   Below is a simple example for an unconditional bivariate distribution.
   See \code{demo("undernutrition", package = "tram")} for a conditional
   three-variate example.
