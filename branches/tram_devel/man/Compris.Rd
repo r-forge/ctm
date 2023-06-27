@@ -11,7 +11,7 @@
 Compris(formula, data, subset, weights, na.action, offset, 
         primary = c("Coxph", "Colr", "BoxCox"), 
         competing = switch(primary, Coxph = "weibull", Colr = "loglogistic", BoxCox = "lognormal"), 
-        optim = mmltoptim(), M = 1000, scale = FALSE, tol = 0.001, ...)
+        optim = mmltoptim(), args = list(seed = 1, M = 1000), scale = FALSE, tol = 0.001, ...)
 }
 \arguments{
   \item{formula}{an object of class \code{"formula"}: a symbolic description 
