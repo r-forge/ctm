@@ -37,9 +37,15 @@ m_underweight <- as.mlt(BoxCox(underweight2 | cage ~ 1, data = dat,
 Bxlambda <- Bernstein_basis(numeric_var("cage", support = quantile(dat$cage, prob = c(.1, .9)),
                                         bounds = c(0, 100)), order = 6, extrapolate = TRUE)
 
+op <- mmltoptim(trace = TRUE)
+
+theta <- c(coef(m_stunting), coef(m_wasting), coef(m_underweight), rep(0, 7 * 3 * 2 / 2))
+
 ### fitting joint model
-m_full <- mmlt(m_stunting, m_wasting, m_underweight,
-               formula = Bxlambda, data = dat)
+m_full <- mmlt(m_stunting, m_wasting, m_underweight, 
+               conditional = FALSE, ### as in SJS paper
+               theta = theta,      ### use simple starting values
+               formula = Bxlambda, data = dat, optim = op)
 
 logLik(m_full)
 coef(m_full)
@@ -57,11 +63,7 @@ nd <- data.frame(cage = cageseq)
 ptm_npb <- system.time(
   for (i in 1:nsamp) {
     cf <- P[i, ]
-    mi <- 1:length(m_full$pars$mpar)
-    mcf <- cf[mi]
-    vcf <- matrix(cf[-mi], nrow = nrow(m_full$pars$cpar))
     m_tmp$par <- cf
-    m_tmp$pars <- list(mpar = mcf, cpar = vcf)
     CR[[i]] <- coef(m_tmp, newdata = nd, type = "Corr")
   }
 )
@@ -70,19 +72,19 @@ ptm_npb <- system.time(
 ### save estimated corr coef here
 r12s <- r13s <- r23s <- matrix(NA, nrow = length(cageseq), ncol = nsamp) 
 for(l in 1:nsamp) {
-  r12s[, l] <- CR[[l]][, 1]
-  r13s[, l] <- CR[[l]][, 2]
-  r23s[, l] <- CR[[l]][, 3]
+  r12s[, l] <- Lower_tri(CR[[l]])[1,]
+  r13s[, l] <- Lower_tri(CR[[l]])[2,]
+  r23s[, l] <- Lower_tri(CR[[l]])[3,]
 }
 ### save Spearman rhos here
 (rs12s <- 6*(asin(0.5*r12s))/pi)
 (rs13s <- 6*(asin(0.5*r13s))/pi)
 (rs23s <- 6*(asin(0.5*r23s))/pi)
 ### estimated Spearman rhos
-Cor_m_full <- coef(m_full, newdata = nd, type = "Corr")
-(rs12est <- 6*asin(0.5*Cor_m_full[, 1])/pi)
-(rs13est <- 6*asin(0.5*Cor_m_full[, 2])/pi)
-(rs23est <- 6*asin(0.5*Cor_m_full[, 3])/pi)
+Cor_m_full <- coef(m_full, newdata = nd, type = "Spear")
+(rs12est <- Lower_tri(Cor_m_full)[1,])
+(rs13est <- Lower_tri(Cor_m_full)[2,])
+(rs23est <- Lower_tri(Cor_m_full)[3,])
 
 ################## PLOTS ##################
 ### only choose 1, 3, 6, 9, 12, 24 months
