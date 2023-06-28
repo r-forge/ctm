@@ -903,9 +903,9 @@ predict.mmlt <- function (object, newdata, margins = 1:J,
         tmp <- object$models$models[[margins]]
         cf <- coef(tmp)
         cf[] <- object$models$parm(coef(object))[[margins]]
+        coef(tmp) <- cf
         ### marginal models
         if (!inherits(object, "cmmlt")) {
-            coef(tmp) <- cf
             ret <- predict(tmp, newdata = newdata, type = type, log = log, ...)
             return(ret)
         }
@@ -914,22 +914,25 @@ predict.mmlt <- function (object, newdata, margins = 1:J,
         msd <- sqrt(diagonals(mcov)[margins,])
         if (length(unique(msd)) == 1L && 
             !"bscaling" %in% names(tmp$model$model)) { ### no stram model
-            cf <- cf / msd
+            cf <- cf / unique(msd)
             coef(tmp) <- cf
             ret <- predict(tmp, newdata = newdata, type = type, log = log, ...)
             return(ret)
         }
         type <- match.arg(type)
-        tr <- predict(tmp, newdata = newdata, type = "trafo", ...) / msd
+        tr <- predict(tmp, newdata = newdata, type = "trafo", ...) 
+        msd <- matrix(msd, nrow = nrow(tr), ncol = ncol(tr), byrow = TRUE)
+        tr <- tr / msd
         switch(type, "trafo" = return(tr),
                      "distribution" = return(pnorm(tr, log.p = log)),
                      "survivor" = return(pnorm(tr, log.p = log, lower.tail = FALSE)),
                      "density" = {
                          dx <- 1
-                         names(dx) <- tmp$response
+                         names(dx) <- variable.names(tmp)[1L]
                          dtr <- predict(tmp, newdata = newdata, type = "trafo", deriv = dx, ...)
                          ret <- dnorm(tr, log = TRUE) - .log(msd) + .log(dtr)
-                         return(ret)
+                         if (log) return(ret)
+                         return(exp(ret))
                      },
                      stop("not yet implemented"))
     }
