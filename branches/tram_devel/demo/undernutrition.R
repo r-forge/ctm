@@ -37,14 +37,20 @@ m_underweight <- as.mlt(BoxCox(underweight2 | cage ~ 1, data = dat,
 Bxlambda <- Bernstein_basis(numeric_var("cage", support = quantile(dat$cage, prob = c(.1, .9)),
                                         bounds = c(0, 100)), order = 6, extrapolate = TRUE)
 
-op <- mmltoptim(trace = TRUE)
+op <- mmltoptim(trace = FALSE)
 
 theta <- c(coef(m_stunting), coef(m_wasting), coef(m_underweight), rep(0, 7 * 3 * 2 / 2))
 
 ### fitting joint model
 m_full <- mmlt(m_stunting, m_wasting, m_underweight, 
-               conditional = FALSE, ### as in SJS paper
+               conditional = TRUE, ### as in SJS paper
                theta = theta,      ### use simple starting values
+               formula = Bxlambda, data = dat, optim = op["nloptr"])
+
+### refit model to obtain Hessian
+m_full <- mmlt(m_stunting, m_wasting, m_underweight, 
+               conditional = TRUE,        ### as in SJS paper
+               theta = coef(m_full),      ### use nice starting values
                formula = Bxlambda, data = dat, optim = op)
 
 logLik(m_full)
@@ -77,14 +83,14 @@ for(l in 1:nsamp) {
   r23s[, l] <- Lower_tri(CR[[l]])[3,]
 }
 ### save Spearman rhos here
-(rs12s <- 6*(asin(0.5*r12s))/pi)
-(rs13s <- 6*(asin(0.5*r13s))/pi)
-(rs23s <- 6*(asin(0.5*r23s))/pi)
+rs12s <- 6*(asin(0.5*r12s))/pi
+rs13s <- 6*(asin(0.5*r13s))/pi
+rs23s <- 6*(asin(0.5*r23s))/pi
 ### estimated Spearman rhos
 Cor_m_full <- coef(m_full, newdata = nd, type = "Spear")
-(rs12est <- Lower_tri(Cor_m_full)[1,])
-(rs13est <- Lower_tri(Cor_m_full)[2,])
-(rs23est <- Lower_tri(Cor_m_full)[3,])
+rs12est <- Lower_tri(Cor_m_full)[1,]
+rs13est <- Lower_tri(Cor_m_full)[2,]
+rs23est <- Lower_tri(Cor_m_full)[3,]
 
 ################## PLOTS ##################
 ### only choose 1, 3, 6, 9, 12, 24 months
@@ -97,8 +103,8 @@ q_underweight <- mkgrid(m_underweight, n = 100)[[1]]
 
 ### MARGINAL DISTRIBUTIONS
 par(mfrow = c(1, 3), mar = c(5.5, 6.5, 3.5, 1.5) - 1)
-(d_stunting <- predict(m_full, newdata = nd, margin = 1, 
-                      type = "distribution", q = q_stunting))
+d_stunting <- predict(m_full, newdata = nd, margin = 1, 
+                      type = "distribution", q = q_stunting)
 col <- diverging_hcl(7, "Berlin")[-4]
 plot(q_stunting, d_stunting[, 1], type = "n", ylim = c(0, 1), xlim = c(-5, 5),
      cex.lab = 2.5, cex.axis = 2,  panel.first = grid(),
@@ -108,8 +114,8 @@ for(i in 1:nrow(nd)) {
   lines(q_stunting, d_stunting[, i], col = col[i], lwd = 2)
 }
 
-(d_wasting <- predict(m_full, newdata = nd, margin = 2, 
-                     type = "distribution", q = q_wasting))
+d_wasting <- predict(m_full, newdata = nd, margin = 2, 
+                     type = "distribution", q = q_wasting)
 plot(q_wasting, d_wasting[, 1], type = "n", ylim = c(0, 1), xlim = c(-5, 5),
      cex.lab = 2.5, cex.axis = 2,  panel.first = grid(),
      xlab = expression(paste(y[wasting], sep = "")),
@@ -118,8 +124,8 @@ for(i in 1:nrow(nd)) {
   lines(q_wasting, d_wasting[, i], col = col[i], lwd = 2)
 }
 
-(d_underweight <- predict(m_full, newdata = nd, margin = 3, 
-                         type = "distribution", q = q_underweight))
+d_underweight <- predict(m_full, newdata = nd, margin = 3, 
+                         type = "distribution", q = q_underweight)
 plot(q_underweight, d_underweight[, 1], type = "n", ylim = c(0, 1), xlim = c(-5, 5),
      cex.lab = 2.5, cex.axis = 2,  panel.first = grid(),
      xlab = expression(paste(y[underweight], sep = "")),
@@ -133,8 +139,8 @@ legend("bottomright", legend = c(1, 3, 6, 9, 12, 24), title = "cage month",
 
 ### MARGINAL DENSITIES
 par(mfrow = c(1, 3), mar = c(5.5, 6.5, 3.5, 1.5) - 1)
-(de_stunting <- predict(m_full, newdata = nd, margin = 1, 
-                       type = "density", q = q_stunting))
+de_stunting <- predict(m_full, newdata = nd, margin = 1, 
+                       type = "density", q = q_stunting)
 plot(q_stunting, de_stunting[, 1], type = "n", ylim = c(0, .4), xlim = c(-5, 5),
      cex.lab = 2.5, cex.axis = 2,  panel.first = grid(),
      xlab = expression(paste(y[stunting], sep = "")),
@@ -143,8 +149,8 @@ for(i in 1:nrow(nd)) {
   lines(q_stunting, de_stunting[, i], col = col[i], lwd = 2)
 }
 
-(de_wasting <- predict(m_full, newdata = nd, margin = 2, 
-                      type = "density", q = q_wasting))
+de_wasting <- predict(m_full, newdata = nd, margin = 2, 
+                      type = "density", q = q_wasting)
 plot(q_wasting, de_wasting[, 1], type = "n", ylim = c(0, .4), xlim = c(-5, 5),
      cex.lab = 2.5, cex.axis = 2,  panel.first = grid(),
      xlab = expression(paste(y[wasting], sep = "")),
@@ -153,8 +159,8 @@ for(i in 1:nrow(nd)) {
   lines(q_wasting, de_wasting[, i], col = col[i], lwd = 2)
 }
 
-(de_underweight <- predict(m_full, newdata = nd, margin = 3, 
-                          type = "density", q = q_underweight))
+de_underweight <- predict(m_full, newdata = nd, margin = 3, 
+                          type = "density", q = q_underweight)
 plot(q_underweight, de_underweight[, 1], type = "n", ylim = c(0, 0.4), xlim = c(-5, 5),
      cex.lab = 2.5, cex.axis = 2,  panel.first = grid(),
      xlab = expression(paste(y[underweight], sep = "")),
