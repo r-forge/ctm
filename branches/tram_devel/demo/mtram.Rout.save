@@ -1,0 +1,1485 @@
+
+R version 4.3.1 (2023-06-16) -- "Beagle Scouts"
+Copyright (C) 2023 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> ## ----mtram-pkgs, echo = FALSE, results = "hide", message = FALSE, warning = FALSE----
+> set.seed(290875)
+> 
+> pkgs <- c("colorspace", "survival", "lme4", "tram", "gridExtra",
++           "lattice", "latticeExtra", "mvtnorm", "ordinalCont", "tramME")
+> pkgs <- pkgs %in% installed.packages()
+> 
+> 
+> ## ----mtram-citation, echo = FALSE---------------------------------------------
+> year <- substr(packageDescription("tram")$Date, 1, 4)
+> version <- packageDescription("tram")$Version
+> 
+> 
+> ## ----fail, results = "asis", echo = FALSE-------------------------------------
+> if (any(!pkgs))
++ {
++     cat(paste("Package(s)", paste(names(pkgs)[!pkgs], collapse = ", "), 
++         "not available, stop processing.",
++         "\\end{document}\n"))
++     knitr::knit_exit()
++ }
+> 
+> 
+> ## ----mtram-setup, echo = FALSE, results = "hide", message = FALSE, warning = FALSE----
+> library("lattice")
+> library("latticeExtra")
+> library("gridExtra")
+> trellis.par.set(list(plot.symbol = list(col=1,pch=20, cex=0.7),
++                      box.rectangle = list(col=1),
++                      box.umbrella = list(lty=1, col=1),
++                      strip.background = list(col = "white")))
+Warning message:
+In trellis.par.set(list(plot.symbol = list(col = 1, pch = 20, cex = 0.7),  :
+  Note: The default device has been opened to honour attempt to modify trellis settings
+> ltheme <- canonical.theme(color = FALSE)     ## in-built B&W theme
+> ltheme$strip.background$col <- "transparent" ## change strip bg
+> lattice.options(default.theme = ltheme)
+> 
+> knitr::opts_chunk$set(echo = TRUE, results = 'markup', error = FALSE,
++                       warning = FALSE, message = FALSE,
++                       tidy = FALSE, cache = FALSE, size = "small",
++                       fig.width = 6, fig.height = 4, fig.align = "center",
++                       out.width = NULL, ###'.6\\linewidth', 
++                       out.height = NULL,
++                       fig.scap = NA)
+> knitr::render_sweave()  # use Sweave environments
+> knitr::set_header(highlight = '')  # do not \usepackage{Sweave}
+> ## R settings
+> options(prompt = "R> ", continue = "+  ", useFancyQuotes = FALSE)  # JSS style
+R> options(width = 75)
+R> 
+R> ### ecdf plots
+R> myprepanel <- function (x, y, f.value = NULL, ...) 
++  {
++      ans <- prepanel.default.qqmath(x, f.value = f.value, distribution = qunif)
++      with(ans, list(xlim = ylim, ylim = c(0, 1), dx = dy, dy = dx))
++  }
+R> 
+R> 
+R> mypanel <- function (x, y, f.value = NULL, type = "s", groups = NULL, qtype = 7, 
++      ref = TRUE, ...) 
++  {
++      if (ref) {
++          reference.line <- trellis.par.get("reference.line")
++          do.call(panel.abline, c(list(h = c(0, 1)), reference.line))
++      }
++      x <- as.numeric(x)
++      distribution <- qunif
++      nobs <- sum(!is.na(x))
++      if (!is.null(groups)) {
++          panel.superpose(x, y = NULL, f.value = f.value, type = type, 
++              distribution = distribution, qtype = qtype, groups = groups, 
++              panel.groups = panel.ecdfplot, ...)
++      }
++      else if (nobs) {
++          if (is.null(f.value)) {
++              panel.xyplot(x = sort(x), y = cumsum(y[order(x)]) / sum(y),
++                  type = type, ...)
++          }
++          else {
++              p <- if (is.numeric(f.value)) 
++                  f.value
++              else f.value(nobs)
++              panel.xyplot(x = quantile(x, p, names = FALSE, type = qtype, 
++                  na.rm = TRUE), y = distribution(p), type = type, 
++                  ...)
++          }
++      }
++  }
+R> library("colorspace")
+R> col <- diverge_hcl(2, h = c(246, 40), c = 120, l = c(65, 90), alpha = .75)
+R> 
+R> 
+R> ## ----mtram-vignette, eval = FALSE---------------------------------------------
+R> ## install.packages("tram")
+R> ## demo("mtram", package = "tram")
+R> 
+R> 
+R> ## ----mtram-sleep-plot, echo = FALSE-------------------------------------------
+R> library("lme4")
+Loading required package: Matrix
+R> xyplot(Reaction ~ Days | Subject, data = sleepstudy, 
++         xlab = "Days of sleep deprivation", ylab = "Average reaction time (in ms)")
+R> 
+R> 
+R> ## ----mtram-sleep_lmer, cache = FALSE------------------------------------------
+R> sleep_lmer <- lmer(Reaction ~ Days + (Days | Subject), 
++                     data = sleepstudy, REML = FALSE)
+R> 
+R> 
+R> ## ----mtram-tram---------------------------------------------------------------
+R> library("tram")
+Loading required package: mlt
+Loading required package: basefun
+Loading required package: variables
+Loading required package: mvtnorm
+R> 
+R> ## ----mtram-sleep_mtram, cache = FALSE-----------------------------------------
+R> sleep_LM <- Lm(Reaction ~ Days, data = sleepstudy)
+R> sleep_LMmer <- mtram(sleep_LM, ~ (Days | Subject), data = sleepstudy)
+R> 
+R> 
+R> ## ----mtram-sleep_cmp----------------------------------------------------------
+R> logLik(sleep_lmer)
+'log Lik.' -875.9697 (df=6)
+R> logLik(sleep_LMmer)
+'log Lik.' -875.9697 (df=6)
+R> 
+R> 
+R> ## ----mtram-sleep_sd-----------------------------------------------------------
+R> (sdinv <- 1 / summary(sleep_lmer)$sigma)
+[1] 0.03907485
+R> coef(sleep_LMmer)["Reaction"]
+  Reaction 
+0.03907741 
+R> 
+R> 
+R> ## ----mtram-sleep_beta---------------------------------------------------------
+R> fixef(sleep_lmer) * c(-1, 1) * sdinv
+(Intercept)        Days 
+ -9.8236175   0.4090077 
+R> coef(sleep_LMmer)[c("(Intercept)", "Days")]
+(Intercept)        Days 
+ -9.8243917   0.4089265 
+R> 
+R> 
+R> ## ----mtram-sleep_varparm------------------------------------------------------
+R> sleep_lmer@theta
+[1] 0.92919061 0.01816575 0.22264321
+R> coef(sleep_LMmer)[-(1:3)]
+    gamma1     gamma2     gamma3 
+0.92901066 0.01843056 0.22280431 
+R> 
+R> 
+R> ## ----mtram-sleep_varcorr------------------------------------------------------
+R> sleep_LMmer$G * (1 / sdinv)^2
+2 x 2 sparse Matrix of class "dsCMatrix"
+                      
+[1,] 565.2580 11.21410
+[2,]  11.2141 32.73513
+R> cov2cor(sleep_LMmer$G * (1 / sdinv)^2)
+2 x 2 sparse Matrix of class "dsCMatrix"
+                          
+[1,] 1.00000000 0.08243925
+[2,] 0.08243925 1.00000000
+R> unclass(VarCorr(sleep_lmer))$Subject
+            (Intercept)     Days
+(Intercept)   565.47697 11.05512
+Days           11.05512 32.68179
+attr(,"stddev")
+(Intercept)        Days 
+  23.779760    5.716799 
+attr(,"correlation")
+            (Intercept)       Days
+(Intercept)  1.00000000 0.08132109
+Days         0.08132109 1.00000000
+R> 
+R> 
+R> ## ----mtram-sleep-Surv---------------------------------------------------------
+R> library("survival")
+R> sleepstudy$Reaction_I <- with(sleepstudy, Surv(Reaction - 20, Reaction + 20, 
++                                                 type = "interval2"))
+R> sleepstudy$Reaction_I[1:5]
+[1] [229.5600, 269.5600] [238.7047, 278.7047] [230.8006, 270.8006]
+[4] [301.4398, 341.4398] [336.8519, 376.8519]
+R> 
+R> 
+R> ## ----mtram-sleep-interval, cache = FALSE--------------------------------------
+R> sleep_LM_I <- Lm(Reaction_I ~ Days, data = sleepstudy)
+R> sleep_LMmer_I <- mtram(sleep_LM_I, ~ (Days | Subject), data = sleepstudy)
+R> 
+R> 
+R> ## ----mtram-sleep-interval-results---------------------------------------------
+R> logLik(sleep_LMmer_I)
+'log Lik.' -214.9675 (df=6)
+R> coef(sleep_LMmer_I)
+(Intercept)  Reaction_I        Days      gamma1      gamma2      gamma3 
+-9.78770607  0.03900116  0.41633415  0.83398952  0.07584130  0.19038611 
+R> coef(sleep_LMmer)
+(Intercept)    Reaction        Days      gamma1      gamma2      gamma3 
+-9.82439168  0.03907741  0.40892652  0.92901066  0.01843056  0.22280431 
+R> 
+R> 
+R> ## ----mtram-sleep_BoxCox, cache = FALSE----------------------------------------
+R> sleep_BC <- BoxCox(Reaction ~ Days, data = sleepstudy)
+R> sleep_BCmer <- mtram(sleep_BC, ~ (Days | Subject), data = sleepstudy, 
++                       Hessian = TRUE)
+R> logLik(sleep_BCmer)
+'log Lik.' -859.5455 (df=11)
+R> 
+R> 
+R> ## ----mtram-sleep_BoxCoxPlot, echo = FALSE, fig.height = 5---------------------
+R> tmp <- as.mlt(sleep_BC)
+R> cf <- coef(tmp)
+R> coef(tmp) <- coef(sleep_BCmer)[names(cf)]
+R> plot(tmp, newdata = data.frame(Days = 0), type = "trafo", col = "black",
++       xlab = "Average reaction time (in ms)", ylab = expression(h(y)))
+R> rug(sleepstudy$Reaction, col = rgb(.1, .1, .1, .1))
+R> 
+R> 
+R> ## ----mtram-sleep_marginal, fig.height = 5, fig.width = 7, echo = FALSE--------
+R> days <- 0:9
+R> q <- seq(from = min(sleepstudy$Reaction), to = max(sleepstudy$Reaction), 
++           length.out = 100)
+R> meth <- c("Normal linear mixed-effects model", "Non-normal linear transformation model")
+R> ex <- expand.grid(Reaction = q, Days = days,
++                    Method = factor(meth, levels = meth, labels = meth))
+R> U <- cbind(1, days)
+R> ### Linear
+R> tmp <- as.mlt(sleep_LM)
+R> cf <- coef(tmp)
+R> coef(tmp) <- coef(sleep_LMmer)[names(cf)]
+R> SLM <- tcrossprod(U %*% as(sleep_BCmer$G, "matrix"), U) + diag(nrow(U))
+R> sd <- sqrt(diag(SLM))
+R> h <- predict(tmp, newdata = data.frame(Days = days), q = q, type = "trafo")
+R> prob_LM <- pnorm(t(t(h) / sd ))
+R> ### BoxCox
+R> tmp <- as.mlt(sleep_BC)
+R> cf <- coef(tmp)
+R> coef(tmp) <- coef(sleep_BCmer)[names(cf)]
+R> SBC <- tcrossprod(U %*% as(sleep_BCmer$G, "matrix"), U) + diag(nrow(U))
+R> sd <- sqrt(diag(SBC))
+R> h <- predict(tmp, newdata = data.frame(Days = days), q = q, type = "trafo")
+R> prob_BC <- pnorm(t(t(h) / sd ))
+R> ex$prob <- c(prob_LM, prob_BC)
+R> plotfun <- function(prob, data, ...) {
++      fm <- as.formula(paste(prob, "~ Reaction | Days"))
++      xyplot(fm, data = data, type = "l", 
++          panel = function(x, y, subscripts, ...) {
++              tmp <- subset(sleepstudy, Days == unique(nd[subscripts, "Days"]))
++              mypanel(tmp$Reaction, rep(1, nrow(tmp)), lwd = 3, col = grey)
++              panel.xyplot(x, y, subscripts = subscripts, ...)
++      }, col = col,  xlab = "Average reaction time (in ms)", 
++      ylab = "Marginal distribution function", lwd = 2, groups = Method, ...)
++  }
+R> grey <- rgb(.75, .75, .75)
+R> nd <- ex
+R> plotfun("prob", ex, layout = c(5, 2), par.settings = simpleTheme(col=c(grey, col), lwd = 3),
++    auto.key = list(text = c("Empirical cumulative distribution function", levels(nd$Method)), 
++                    points = FALSE, lines = TRUE))
+R> 
+R> 
+R> ## ----mtram-sleep_corr---------------------------------------------------------
+R> cov2cor(sleep_BCmer$G)
+2 x 2 sparse Matrix of class "dsCMatrix"
+                          
+[1,]  1.0000000 -0.1946629
+[2,] -0.1946629  1.0000000
+R> 
+R> 
+R> ## ----mtram-sleep_vcov---------------------------------------------------------
+R> library("mvtnorm")
+R> VC <- solve(sleep_BCmer$Hessian)
+R> idx <- (nrow(VC) - 2):nrow(VC)
+R> Rcoef <- rmvnorm(1000, mean = coef(sleep_BCmer), sigma = VC)[,idx]
+R> ret <- apply(Rcoef, 1, function(gamma) {
++      L <- matrix(c(gamma[1:2], 0, gamma[3]), nrow = 2)
++      V <- tcrossprod(L)
++      c(diag(V), cov2cor(V)[1,2])
++  })
+R> 
+R> 
+R> ## ----mtram-sleep_ci-----------------------------------------------------------
+R> ### variance random intercept
+R> quantile(ret[1,], c(.025, .5, .975))
+     2.5%       50%     97.5% 
+0.9127821 2.5713595 5.2493469 
+R> ### variance random slope
+R> quantile(ret[2,], c(.025, .5, .975))
+      2.5%        50%      97.5% 
+0.01890987 0.05348231 0.10594879 
+R> ### correlation random intercept / random slope
+R> quantile(ret[3,], c(.025, .5, .975))
+      2.5%        50%      97.5% 
+-0.6193527 -0.1883314  0.4689778 
+R> 
+R> 
+R> ## ----mtram-sleep_Colr, cache = FALSE------------------------------------------
+R> sleep_C <- Colr(Reaction ~ Days, data = sleepstudy)
+R> sleep_Cmer <- mtram(sleep_C, ~ (Days | Subject), data = sleepstudy)
+R> logLik(sleep_Cmer)
+'log Lik.' -860.6377 (df=11)
+R> 
+R> 
+R> ## ----mtram-sleep_marginal-2, fig.height = 5, fig.width = 7, echo = FALSE------
+R> days <- 0:9
+R> q <- seq(from = min(sleepstudy$Reaction), to = max(sleepstudy$Reaction), 
++           length.out = 100)
+R> meth <- c("Normal linear mixed-effects model", "Probit transformation model", 
++            "Marginal logit transformation model")
+R> ex <- expand.grid(Reaction = q, Days = days,
++                    Method = factor(meth, levels = meth, labels = meth))
+R> U <- cbind(1, days)
+R> ### Linear
+R> tmp <- as.mlt(sleep_LM)
+R> cf <- coef(tmp)
+R> coef(tmp) <- coef(sleep_LMmer)[names(cf)]
+R> SLM <- tcrossprod(U %*% as(sleep_BCmer$G, "matrix"), U) + diag(nrow(U))
+R> sd <- sqrt(diag(SLM))
+R> h <- predict(tmp, newdata = data.frame(Days = days), q = q, type = "trafo")
+R> prob_LM <- pnorm(t(t(h) / sd ))
+R> ### BoxCox
+R> tmp <- as.mlt(sleep_BC)
+R> cf <- coef(tmp)
+R> coef(tmp) <- coef(sleep_BCmer)[names(cf)]
+R> SBC <- tcrossprod(U %*% as(sleep_BCmer$G, "matrix"), U) + diag(nrow(U))
+R> sd <- sqrt(diag(SBC))
+R> h <- predict(tmp, newdata = data.frame(Days = days), q = q, type = "trafo")
+R> prob_BC <- pnorm(t(t(h) / sd ))
+R> ### Colr
+R> tmp <- as.mlt(sleep_C)
+R> cf <- coef(tmp)
+R> coef(tmp) <- coef(sleep_Cmer)[names(cf)]
+R> SBC <- tcrossprod(U %*% as(sleep_Cmer$G, "matrix"), U) + diag(nrow(U))
+R> sd <- sqrt(diag(SBC))
+R> h <- predict(tmp, newdata = data.frame(Days = days), q = q, type = "trafo")
+R> prob_C <- plogis(t(t(h) / sd ))
+R> ex$prob <- c(prob_LM, prob_BC, prob_C)
+R> plotfun <- function(prob, data, ...) {
++      fm <- as.formula(paste(prob, "~ Reaction | Days"))
++      xyplot(fm, data = data, type = "l", 
++          panel = function(x, y, subscripts, ...) {
++              tmp <- subset(sleepstudy, Days == unique(nd[subscripts, "Days"]))
++              mypanel(tmp$Reaction, rep(1, nrow(tmp)), lwd = 3, col = grey)
++              panel.xyplot(x, y, subscripts = subscripts, ...)
++      }, col = c(col, col[2]),  xlab = "Average reaction time (in ms)", 
++      ylab = "Marginal distribution function", lwd = 2, groups = Method, lty =
++      c(1, 1, 3), ...)
++  }
+R> grey <- rgb(.75, .75, .75)
+R> nd <- ex
+R> plotfun("prob", ex, layout = c(5, 2), par.settings = simpleTheme(col=c(grey, col, col[2]), lwd =
++  3, lty = c(1, 1, 1, 3)),
++    auto.key = list(text = c("Empirical cumulative distribution function", levels(nd$Method)), 
++                    points = FALSE, lines = TRUE))
+R> 
+R> 
+R> ## ----mtram-toenail-plot, echo = FALSE, cache = FALSE--------------------------
+R> data("toenail", package = "HSAUR3")
+R> layout(matrix(1:2, ncol = 2))
+R> trt <- levels(toenail$treatment)
+R> cdplot(outcome ~ time, data = subset(toenail, treatment == trt[1]),
++         main = trt[1], xlab = "Time", ylab = "Toe nail infection")
+R> cdplot(outcome ~ time, data = subset(toenail, treatment == trt[2]),
++         main = trt[2], xlab = "Time", ylab = "")
+R> 
+R> 
+R> ## ----mtram-toenail_glmer_RI, cache = FALSE------------------------------------
+R> ### Laplace
+R> toenail_glmer_RI_1 <- 
++      glmer(outcome ~ treatment * time + (1 | patientID),
++            data = toenail, family = binomial(link = "probit"), 
++            nAGQ = 1)
+R> summary(toenail_glmer_RI_1)
+Generalized linear mixed model fit by maximum likelihood (Laplace
+  Approximation) [glmerMod]
+ Family: binomial  ( probit )
+Formula: outcome ~ treatment * time + (1 | patientID)
+   Data: toenail
+
+     AIC      BIC   logLik deviance df.resid 
+  1286.1   1313.9   -638.1   1276.1     1903 
+
+Scaled residuals: 
+   Min     1Q Median     3Q    Max 
+-3.519 -0.017 -0.004  0.000 54.237 
+
+Random effects:
+ Groups    Name        Variance Std.Dev.
+ patientID (Intercept) 20.93    4.575   
+Number of obs: 1908, groups:  patientID, 294
+
+Fixed effects:
+                          Estimate Std. Error z value Pr(>|z|)    
+(Intercept)               -3.39483    0.21921 -15.487   <2e-16 ***
+treatmentterbinafine      -0.02875    0.25202  -0.114   0.9092    
+time                      -0.21797    0.02257  -9.657   <2e-16 ***
+treatmentterbinafine:time -0.07135    0.03425  -2.083   0.0372 *  
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Correlation of Fixed Effects:
+            (Intr) trtmnt time  
+trtmnttrbnf -0.591              
+time        -0.008  0.099       
+trtmnttrbn:  0.093 -0.141 -0.630
+R> toenail_glmer_RI_1@theta
+[1] 4.574859
+R> 
+R> ### Adaptive Gaussian Quadrature
+R> toenail_glmer_RI_2 <- 
++      glmer(outcome ~ treatment * time + (1 | patientID),
++            data = toenail, family = binomial(link = "probit"), 
++            nAGQ = 20)
+R> summary(toenail_glmer_RI_2)
+Generalized linear mixed model fit by maximum likelihood (Adaptive
+  Gauss-Hermite Quadrature, nAGQ = 20) [glmerMod]
+ Family: binomial  ( probit )
+Formula: outcome ~ treatment * time + (1 | patientID)
+   Data: toenail
+
+     AIC      BIC   logLik deviance df.resid 
+  1284.6   1312.3   -637.3   1274.6     1903 
+
+Scaled residuals: 
+   Min     1Q Median     3Q    Max 
+-2.857 -0.191 -0.078 -0.001 33.862 
+
+Random effects:
+ Groups    Name        Variance Std.Dev.
+ patientID (Intercept) 4.486    2.118   
+Number of obs: 1908, groups:  patientID, 294
+
+Fixed effects:
+                          Estimate Std. Error z value Pr(>|z|)    
+(Intercept)               -0.91050    0.22880  -3.980  6.9e-05 ***
+treatmentterbinafine      -0.10726    0.30730  -0.349    0.727    
+time                      -0.19128    0.02058  -9.293  < 2e-16 ***
+treatmentterbinafine:time -0.06331    0.03098  -2.044    0.041 *  
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Correlation of Fixed Effects:
+            (Intr) trtmnt time  
+trtmnttrbnf -0.650              
+time        -0.185  0.212       
+trtmnttrbn:  0.192 -0.285 -0.611
+R> toenail_glmer_RI_2@theta
+[1] 2.117954
+R> 
+R> 
+R> ## ----mtram-toenail_glmmTMB_RI, cache = FALSE----------------------------------
+R> library("glmmTMB")
+R> toenail_glmmTMB_RI_3 <- 
++      glmmTMB(outcome ~ treatment * time + (1 | patientID),
++           data = toenail, family = binomial(link = "probit"))
+R> summary(toenail_glmmTMB_RI_3)
+ Family: binomial  ( probit )
+Formula:          outcome ~ treatment * time + (1 | patientID)
+Data: toenail
+
+     AIC      BIC   logLik deviance df.resid 
+  1298.1   1325.9   -644.0   1288.1     1903 
+
+Random effects:
+
+Conditional model:
+ Groups    Name        Variance Std.Dev.
+ patientID (Intercept) 4.417    2.102   
+Number of obs: 1908, groups:  patientID, 294
+
+Conditional model:
+                          Estimate Std. Error z value Pr(>|z|)    
+(Intercept)               -1.10073    0.32274  -3.411 0.000648 ***
+treatmentterbinafine      -0.17391    0.35387  -0.491 0.623101    
+time                      -0.18933    0.02073  -9.134  < 2e-16 ***
+treatmentterbinafine:time -0.06106    0.03093  -1.974 0.048340 *  
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+R> 
+R> 
+R> ## ----mtram-toenail_mtram_RI, cache = FALSE------------------------------------
+R> m <- ctm(as.basis(~ outcome, data = toenail), 
++           shifting = ~ treatment * time, 
++           data = toenail, todistr = "Normal", negative = TRUE)
+R> toenail_probit <- mlt(m, data = toenail, 
++                        fixed = c("outcomemoderate or severe" = 0))
+Warning message:
+In R.factor(object = data[[response]]) : response is unordered factor;
+             results may depend on order of levels
+R> toenail_mtram_RI <- 
++      mtram(toenail_probit, ~ (1 | patientID), 
++            data = toenail, Hessian = TRUE)
+R> coef(toenail_mtram_RI)
+              (Intercept)      treatmentterbinafine 
+               0.90894173               -0.10839000 
+                     time treatmentterbinafine:time 
+              -0.19113766               -0.06267262 
+                   gamma1 
+               2.11482023 
+R> 
+R> 
+R> ## ----mtram-toenail-hessian----------------------------------------------------
+R> vcov(toenail_glmer_RI_2)
+4 x 4 Matrix of class "dpoMatrix"
+                           (Intercept) treatmentterbinafine          time
+(Intercept)                0.052347885         -0.045691072 -0.0008721340
+treatmentterbinafine      -0.045691072          0.094431279  0.0013398065
+time                      -0.000872134          0.001339806  0.0004236656
+treatmentterbinafine:time  0.001360056         -0.002716156 -0.0003893870
+                          treatmentterbinafine:time
+(Intercept)                            0.0013600559
+treatmentterbinafine                  -0.0027161555
+time                                  -0.0003893870
+treatmentterbinafine:time              0.0009595159
+R> solve(toenail_mtram_RI$Hessian)[1:4, 1:4]
+              [,1]         [,2]          [,3]          [,4]
+[1,]  0.0521524640  0.045580016  0.0008711728 -0.0013461178
+[2,]  0.0455800158  0.094251840  0.0013333648 -0.0026823090
+[3,]  0.0008711728  0.001333365  0.0004220717 -0.0003886723
+[4,] -0.0013461178 -0.002682309 -0.0003886723  0.0009473105
+R> 
+R> 
+R> ## ----mtram-toenail-coef-------------------------------------------------------
+R> cf <- coef(toenail_mtram_RI)
+R> cf[2:4] / sqrt(1 + cf["gamma1"]^2)
+     treatmentterbinafine                      time 
+              -0.04633378               -0.08170616 
+treatmentterbinafine:time 
+              -0.02679084 
+R> 
+R> 
+R> ## ----mtram-toenail-gee-probit-------------------------------------------------
+R> library("geepack")
+R> gin <- geeglm(I((0:1)[outcome]) ~ treatment * time, 
++                id = patientID, data = toenail, corstr = "independence", 
++                family = binomial(link = "probit"))
+R> gex <- geeglm(I((0:1)[outcome]) ~ treatment * time, 
++                id = patientID, data = toenail, cor = "exchangeable", 
++                family = binomial(link = "probit"))
+R> gun <- geeglm(I((0:1)[outcome]) ~ treatment * time, 
++                id = patientID, data = toenail, cor = "unstructured", 
++                family = binomial(link = "probit"))
+R> 
+R> 
+R> ## ----mtram-toenail-gee-probit-coef--------------------------------------------
+R> cbind(mtram = cf[2:4] / sqrt(1 + cf["gamma1"]^2),
++        indep = coef(gin)[-1],
++        excha = coef(gex)[-1],
++        unstr = coef(gun)[-1])
+                                mtram       indep       excha       unstr
+treatmentterbinafine      -0.04633378 -0.01100164 -0.01476371  0.01635082
+time                      -0.08170616 -0.09278168 -0.09289552 -0.06893793
+treatmentterbinafine:time -0.02679084 -0.03198835 -0.03717801 -0.04468491
+R> 
+R> 
+R> ## ----mtram-toenail-gee-logit--------------------------------------------------
+R> gin <- geeglm(I((0:1)[outcome]) ~ treatment * time, 
++                id = patientID, data = toenail, corstr = "independence", 
++                family = binomial())
+R> gex <- geeglm(I((0:1)[outcome]) ~ treatment * time, 
++                id = patientID, data = toenail, cor = "exchangeable", 
++                family = binomial())
+R> gun <- geeglm(I((0:1)[outcome]) ~ treatment * time, 
++                id = patientID, data = toenail, cor = "unstructured", 
++                family = binomial())
+R> 
+R> 
+R> ## ----mtram-toenail-gee-logit-coef---------------------------------------------
+R> coef(gin)
+              (Intercept)      treatmentterbinafine 
+            -0.5566272539             -0.0005816551 
+                     time treatmentterbinafine:time 
+            -0.1703077912             -0.0672216238 
+R> coef(gex)
+              (Intercept)      treatmentterbinafine 
+             -0.581922602               0.007180366 
+                     time treatmentterbinafine:time 
+             -0.171280029              -0.077733152 
+R> coef(gun)
+              (Intercept)      treatmentterbinafine 
+              -0.73961933                0.03730057 
+                     time treatmentterbinafine:time 
+              -0.13189562               -0.08960660 
+R> 
+R> 
+R> ## ----mtram-toenail_logit, cache = FALSE---------------------------------------
+R> m <- ctm(as.basis(~ outcome, data = toenail), 
++           shifting = ~ treatment * time, 
++           data = toenail, todistr = "Logistic", negative = TRUE)
+R> toenail_logit <- mlt(m, data = toenail, 
++                       fixed = c("outcomemoderate or severe" = 0))
+Warning message:
+In R.factor(object = data[[response]]) : response is unordered factor;
+             results may depend on order of levels
+R> toenail_mtram_logit <- mtram(toenail_logit, ~ (1 | patientID), 
++                               data = toenail, Hessian = TRUE)
+R> 
+R> 
+R> ## ----mtram-toenail_logit-coef-------------------------------------------------
+R> cf <- coef(toenail_mtram_logit)
+R> cf[2:4] / sqrt(1 + cf["gamma1"]^2)
+     treatmentterbinafine                      time 
+              -0.06026026               -0.14915910 
+treatmentterbinafine:time 
+              -0.05870216 
+R> 
+R> 
+R> ## ----mtram-toenail-trt--------------------------------------------------------
+R> S <- rmvnorm(10000, mean = coef(toenail_mtram_logit), 
++               sigma = solve(toenail_mtram_logit$Hessian))
+R> (ci <- quantile(S[,"treatmentterbinafine:time"] / sqrt(1 + S[, "gamma1"]^2), 
++                  prob = c(.025, .975)))
+        2.5%        97.5% 
+-0.114030986 -0.007916931 
+R> 
+R> 
+R> ## ----mtram-toenail-gee-logit-mcoef--------------------------------------------
+R> cbind(mtram = cf[2:4] / sqrt(1 + cf["gamma1"]^2),
++        indep = coef(gin)[-1],
++        excha = coef(gex)[-1],
++        unstr = coef(gun)[-1])
+                                mtram         indep        excha
+treatmentterbinafine      -0.06026026 -0.0005816551  0.007180366
+time                      -0.14915910 -0.1703077912 -0.171280029
+treatmentterbinafine:time -0.05870216 -0.0672216238 -0.077733152
+                                unstr
+treatmentterbinafine       0.03730057
+time                      -0.13189562
+treatmentterbinafine:time -0.08960660
+R> 
+R> 
+R> ## ----mtram-GEE-CI-------------------------------------------------------------
+R> exp(coef(gun)["treatmentterbinafine:time"] +
++      c(-1, 1) * qnorm(.975) * sqrt(diag(vcov(gun)))["treatmentterbinafine:time"])
+[1] 0.8318745 1.0048723
+R> 
+R> 
+R> ## ----mtram-toenail_marginal_logit_s-------------------------------------------
+R> tmp <- toenail_logit
+R> cf <- coef(tmp)
+R> cf <- cf[names(cf) != "outcomemoderate or severe"]
+R> sdrf <- rev(coef(toenail_mtram_logit))[1]
+R> cf <- coef(toenail_mtram_logit)[names(cf)] / sqrt(sdrf^2 + 1)
+R> cf <- c(cf[1], "outcomemoderate or severe" = 0, cf[-1])
+R> coef(tmp) <- cf
+R> time <- 0:180/10
+R> treatment <- sort(unique(toenail$treatment))
+R> nd <- expand.grid(time = time, treatment = treatment)
+R> nd$prob_logit <- predict(tmp, newdata = nd, type = "distribution")[1,]
+R> nd$odds <- exp(predict(tmp, newdata = nd, type = "trafo")[1,])
+R> 
+R> 
+R> ## ----mtram-toenail_OR_2, dev = "png", cache = FALSE, echo = FALSE, dpi = 300----
+R> X <- model.matrix(~ treatment * time, data = nd)
+R> rbeta <- rmvnorm(10000, mean = coef(toenail_mtram_logit), 
++                   sigma = solve(toenail_mtram_logit$Hessian))
+R> s <- rbeta[,ncol(rbeta)]
+R> rbeta <- rbeta[,-ncol(rbeta)] / sqrt(s^2 + 1)
+R> odds <- exp(-X %*% t(rbeta))
+R> OR <- odds[1:length(time),] / odds[-(1:length(time)),]
+R> plot(time, rep(0, length(time)), ylim = range(OR), type = "n", 
++       xlab = "Time", ylab = "Odds ratio")
+R> colgrey <- rgb(.1, .1, .1, .01)
+R> out <- apply(OR, 2, function(x) lines(time, x, col = colgrey))
+R> ORest <- nd$odds[1:length(time)] / nd$odds[-(1:length(time))]
+R> lines(time, ORest, col = col[1], lwd = 2)
+R> 
+R> 
+R> ## ----mtram-toenail_marginal_logit---------------------------------------------
+R> tmp <- toenail_logit
+R> cf <- coef(tmp)
+R> cf <- cf[names(cf) != "outcomemoderate or severe"]
+R> sdrf <- rev(coef(toenail_mtram_logit))[1]
+R> cf <- coef(toenail_mtram_logit)[names(cf)] 
+R> cf <- c(cf[1], "outcomemoderate or severe" = 0, cf[-1])
+R> coef(tmp) <- cf
+R> pr <- predict(tmp, newdata = nd, type = "distribution")[1,]
+R> nd$prob_logit <- pnorm(qnorm(pr) / sdrf)
+R> 
+R> 
+R> ## ----mtram-toenail_marginal_probit--------------------------------------------
+R> tmp <- toenail_probit
+R> cf <- coef(tmp)
+R> cf <- cf[names(cf) != "outcomemoderate or severe"]
+R> sdrf <- rev(coef(toenail_mtram_RI))[1]
+R> cf <- coef(toenail_mtram_RI)[names(cf)] / sqrt(sdrf^2 + 1)
+R> cf <- c(cf[1], "outcomemoderate or severe" = 0, cf[-1])
+R> coef(tmp) <- cf
+R> nd$prob_probit <- predict(tmp, newdata = nd, type = "distribution")[1,]
+R> 
+R> 
+R> ## ----mtram-toenail_probplot, echo = FALSE-------------------------------------
+R> nd2 <- nd[rep(1:nrow(nd), 2),]
+R> nd2$prob <- c(nd$prob_probit, nd$prob_logit)
+R> lev <- c("Probit", "Logit")
+R> nd2$model <- rep(factor(lev, labels = lev, levels = lev), each = nrow(nd))
+R> 
+R> xyplot(prob ~ time | model, data = nd2, group = treatment, ylim = c(0, 1), 
++         xlab = "Time", 
++         par.settings = simpleTheme(col = col),
++         auto.key = list(text = levels(nd2$treatment), 
++                         points = FALSE, lines = TRUE), 
++         col = col, type = "l", ylab = "Probability (none or mild)")
+R> 
+R> 
+R> ## ----mtram-toenail-subset-----------------------------------------------------
+R> (rlev <- levels(toenail$patientID)[xtabs(~ patientID, 
++                                          data = toenail) == 1])
+[1] "45"  "48"  "63"  "99"  "377"
+R> toenail_gr1 <- subset(toenail, !patientID %in% rlev)
+R> toenail_gr1$patientID <- toenail_gr1$patientID[, drop = TRUE]
+R> 
+R> 
+R> ## ----mtram-toenail_glmer_RS, cache = FALSE------------------------------------
+R> toenail_glmer_RS <- 
++      glmer(outcome ~ treatment * time + (1 + time | patientID),
++            data = toenail_gr1, family = binomial(link = "probit"))
+R> summary(toenail_glmer_RS)
+Generalized linear mixed model fit by maximum likelihood (Laplace
+  Approximation) [glmerMod]
+ Family: binomial  ( probit )
+Formula: outcome ~ treatment * time + (1 + time | patientID)
+   Data: toenail_gr1
+
+     AIC      BIC   logLik deviance df.resid 
+   985.8   1024.7   -485.9    971.8     1896 
+
+Scaled residuals: 
+     Min       1Q   Median       3Q      Max 
+-1.85421 -0.00210 -0.00037  0.00000  2.35828 
+
+Random effects:
+ Groups    Name        Variance Std.Dev. Corr 
+ patientID (Intercept) 118.433  10.883        
+           time          3.305   1.818   -0.90
+Number of obs: 1903, groups:  patientID, 289
+
+Fixed effects:
+                          Estimate Std. Error z value Pr(>|z|)    
+(Intercept)               -4.30120    0.26361 -16.316   <2e-16 ***
+treatmentterbinafine       0.05419    0.34652   0.156   0.8757    
+time                      -0.06792    0.07847  -0.866   0.3867    
+treatmentterbinafine:time -0.23478    0.13885  -1.691   0.0909 .  
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Correlation of Fixed Effects:
+            (Intr) trtmnt time  
+trtmnttrbnf -0.662              
+time        -0.453  0.342       
+trtmnttrbn:  0.270 -0.438 -0.335
+R> toenail_glmer_RS@theta
+[1] 10.8826790 -1.6359589  0.7930842
+R> 
+R> 
+R> ## ----mtram-toenail_glmmTMB_RS, cache = FALSE----------------------------------
+R> toenail_glmmTMB_RS_1 <- 
++      glmmTMB(outcome ~ treatment * time + (1 + time | patientID),
++           data = toenail_gr1, family = binomial(link = "probit"))
+R> summary(toenail_glmmTMB_RS_1)
+ Family: binomial  ( probit )
+Formula:          outcome ~ treatment * time + (1 + time | patientID)
+Data: toenail_gr1
+
+     AIC      BIC   logLik deviance df.resid 
+   962.0   1000.8   -474.0    948.0     1896 
+
+Random effects:
+
+Conditional model:
+ Groups    Name        Variance Std.Dev. Corr  
+ patientID (Intercept) 121.185  11.008         
+           time          3.512   1.874   -0.90 
+Number of obs: 1903, groups:  patientID, 289
+
+Conditional model:
+                          Estimate Std. Error z value Pr(>|z|)    
+(Intercept)               -4.29367    0.26699 -16.082   <2e-16 ***
+treatmentterbinafine       0.05612    0.35074   0.160   0.8729    
+time                      -0.07152    0.08140  -0.879   0.3796    
+treatmentterbinafine:time -0.24147    0.14454  -1.671   0.0948 .  
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+R> 
+R> 
+R> ## ----mtram-toenail_mtram_RS, cache = FALSE------------------------------------
+R> m <- ctm(as.basis(~ outcome, data = toenail_gr1), 
++           shifting = ~ treatment * time, 
++           data = toenail, todistr = "Normal", negative = TRUE)
+R> toenail_probit <- mlt(m, data = toenail_gr1, 
++                        fixed = c("outcomemoderate or severe" = 0))
+Warning message:
+In R.factor(object = data[[response]]) : response is unordered factor;
+             results may depend on order of levels
+R> toenail_mtram_RS <- 
++      mtram(toenail_probit, ~ (1 + time | patientID), 
++            data = toenail_gr1)
+R> logLik(toenail_mtram_RS)
+'log Lik.' -545.1163 (df=7)
+R> coef(toenail_mtram_RS)
+              (Intercept)      treatmentterbinafine 
+                1.5773582                 0.2680624 
+                     time treatmentterbinafine:time 
+               -0.5336223                -0.1845193 
+                   gamma1                    gamma2 
+                5.2226345                -0.3726494 
+                   gamma3 
+                0.5295844 
+R> 
+R> 
+R> ## ----toenail-comparisons, cache = FALSE, echo = FALSE, results = "hide"-------
+R> t1 <- system.time(toenail_glmer_RI_1 <- 
++      glmer(outcome ~ treatment * time + (1 | patientID),
++            data = toenail, family = binomial(link = "probit"), 
++            nAGQ = 1))
+R> 
+R> t2 <- system.time(toenail_glmer_RI_2 <- 
++      glmer(outcome ~ treatment * time + (1 | patientID),
++            data = toenail, family = binomial(link = "probit"), 
++            nAGQ = 20))
+R> 
+R> t3 <- system.time(toenail_glmmTMB_RI_3 <- 
++      glmmTMB(outcome ~ treatment * time + (1 | patientID),
++           data = toenail, family = binomial(link = "probit")))
+R> 
+R> m <- ctm(as.basis(~ outcome, data = toenail), 
++           shifting = ~ treatment * time, 
++           data = toenail, todistr = "Normal", negative = TRUE)
+R> toenail_probit <- mlt(m, data = toenail, 
++                        fixed = c("outcomemoderate or severe" = 0))
+Warning message:
+In R.factor(object = data[[response]]) : response is unordered factor;
+             results may depend on order of levels
+R> t4 <- system.time(toenail_mtram_RI <- 
++      mtram(toenail_probit, ~ (1 | patientID), 
++             data = toenail, Hessian = TRUE))
+R> 
+R> t5 <- system.time(toenail_glmer_RS <- 
++      glmer(outcome ~ treatment * time + (1 + time | patientID),
++            data = toenail_gr1, family = binomial(link = "probit")))
+R> 
+R> t6 <- system.time(toenail_glmmTMB_RS_1 <- 
++      glmmTMB(outcome ~ treatment * time + (1 + time | patientID),
++           data = toenail_gr1, family = binomial(link = "probit")))
+R> 
+R> m <- ctm(as.basis(~ outcome, data = toenail_gr1), 
++           shifting = ~ treatment * time, 
++           data = toenail, todistr = "Normal", negative = TRUE)
+R> toenail_probit <- mlt(m, data = toenail_gr1, 
++                        fixed = c("outcomemoderate or severe" = 0))
+Warning message:
+In R.factor(object = data[[response]]) : response is unordered factor;
+             results may depend on order of levels
+R> t7 <- system.time(toenail_mtram_RS <- 
++      mtram(toenail_probit, ~ (1 + time | patientID), 
++             data = toenail_gr1))
+R> 
+R> ## ----output, echo = FALSE------------------------------------------------
+R> tn_RI_glmer_L <- c(fixef(toenail_glmer_RI_1), toenail_glmer_RI_1@theta, 0, 0)
+R> tn_RI_glmer_A <- c(fixef(toenail_glmer_RI_2), toenail_glmer_RI_2@theta, 0, 0)
+R> tn_RI_glmmTMB <- c(fixef(toenail_glmmTMB_RI_3)$cond, sqrt(VarCorr(toenail_glmmTMB_RI_3)$cond$patientID), 0, 0)
+R> tn_RI_mlt <- c(coef(toenail_mtram_RI), 0, 0)
+R> tn_RS_glmer <- c(fixef(toenail_glmer_RS), toenail_glmer_RS@theta)
+R> tn_RS_glmmTMB <- c(fixef(toenail_glmer_RS), chol(VarCorr(toenail_glmmTMB_RS_1)$cond$patientID)[c(1,3, 4)])
+R> tn_RS_mlt <- coef(toenail_mtram_RS)
+R> tn <- cbind(tn_RI_glmer_L, tn_RI_glmer_A , tn_RI_glmmTMB, tn_RI_mlt ,
++              tn_RS_glmer, tn_RS_glmmTMB, tn_RS_mlt)
+R> 
+R> logLik(toenail_glmer_RI_1)
+'log Lik.' -638.0695 (df=5)
+R> logLik(toenail_glmer_RI_2)
+'log Lik.' -637.2814 (df=5)
+R> logLik(toenail_glmmTMB_RI_3)
+'log Lik.' -644.0454 (df=5)
+R> logLik(toenail_mtram_RI)
+'log Lik.' -637.337 (df=5)
+R> 
+R> logLik(toenail_glmer_RS)
+'log Lik.' -485.8981 (df=7)
+R> logLik(toenail_glmmTMB_RS_1)
+'log Lik.' -473.9881 (df=7)
+R> logLik(toenail_mtram_RS)
+'log Lik.' -545.1163 (df=7)
+R> 
+R> ll <- c(
++  ### logLik of transformation model for glmer (Laplace) parameters
++  logLik(toenail_mtram_RI, tn_RI_glmer_L[1:5] * c(-1, 1, 1, 1, 1)),
++  ### logLik of transformation model for glmer (AGQ) parameters
++  logLik(toenail_mtram_RI, tn_RI_glmer_A[1:5] * c(-1, 1, 1, 1, 1)),
++  ### logLik of transformation model for glmmTMB (Laplace) parameters
++  logLik(toenail_mtram_RI, tn_RI_glmmTMB[1:5] * c(-1, 1, 1, 1, 1)),
++  ### logLik of transformation model
++  logLik(toenail_mtram_RI),
++  ### logLik of transformation model for glmer (Laplace) parameters
++  logLik(toenail_mtram_RS, tn_RS_glmer * c(-1, rep(1, 6))),
++  ### logLik of transformation model for glmmTMB (Laplace) parameters
++  logLik(toenail_mtram_RS, tn_RS_glmmTMB * c(-1, rep(1, 6))),
++  ### logLik of transformation model
++  logLik(toenail_mtram_RS))
+R> 
+R> tm <- c(t1["user.self"],
++          t2["user.self"],
++          t3["user.self"],
++          t4["user.self"],
++          t5["user.self"],
++          t6["user.self"],
++          t7["user.self"])
+R> tm <- formatC(tm, format = "f", digits = 2, width = 5)
+R> 
+R> tn <- formatC(tn, format = "f", digits = 2, width = 5)
+R> ll <- formatC(ll, format = "f", digits = 2, width = 6)
+R> tn <- cbind(c("$\\alpha$", "$\\eshiftparm_1$", "$\\eshiftparm_2$", "$\\eshiftparm_3$", "$\\gamma_1$", "$\\gamma_2$", "$\\gamma_3$"), tn)
+R> ret <- c("
++  \\begin{tabular}{lrrrr|rrr} \\\\ \\hline
++  & \\multicolumn{4}{c|}{RI} & \\multicolumn{3}{c}{RI + RS} \\\\
++  & \\texttt{glmer} & \\texttt{glmer} & \\texttt{glmmTMB} &  & \\texttt{glmer} & \\texttt{glmmTMB} & \\\\
++  & L               & AGQ             & L & (7) & L & L & (7) \\\\ \\hline")
+R> ret <- c(ret, apply(tn, 1, function(x) c(paste(x, collapse = " & "), "\\\\")))
+R> ret <- c(ret, "\\hline")
+R> ret <- c(ret, 
++           paste("LogLik &", paste(ll, collapse = "&"), "\\\\ "), 
++           paste("Time (sec)   &", paste(tm, collapse = "&"), "\\\\ \\hline"), 
++           "\\end{tabular}")
+R> 
+R> ## ----table, echo = FALSE, results = "asis"------------------------------------
+R> cat(ret, sep = "\n")
+
+\begin{tabular}{lrrrr|rrr} \\ \hline
+& \multicolumn{4}{c|}{RI} & \multicolumn{3}{c}{RI + RS} \\
+& \texttt{glmer} & \texttt{glmer} & \texttt{glmmTMB} &  & \texttt{glmer} & \texttt{glmmTMB} & \\
+& L               & AGQ             & L & (7) & L & L & (7) \\ \hline
+$\alpha$ & -3.39 & -0.91 & -1.10 &  0.91 & -4.30 & -4.30 &  1.58
+\\
+$\eshiftparm_1$ & -0.03 & -0.11 & -0.17 & -0.11 &  0.05 &  0.05 &  0.27
+\\
+$\eshiftparm_2$ & -0.22 & -0.19 & -0.19 & -0.19 & -0.07 & -0.07 & -0.53
+\\
+$\eshiftparm_3$ & -0.07 & -0.06 & -0.06 & -0.06 & -0.23 & -0.23 & -0.18
+\\
+$\gamma_1$ &  4.57 &  2.12 &  2.10 &  2.11 & 10.88 & 11.01 &  5.22
+\\
+$\gamma_2$ &  0.00 &  0.00 &  0.00 &  0.00 & -1.64 & -1.68 & -0.37
+\\
+$\gamma_3$ &  0.00 &  0.00 &  0.00 &  0.00 &  0.79 &  0.83 &  0.53
+\\
+\hline
+LogLik & -675.22&-637.34&-638.54&-637.34&-628.12&-630.65&-545.12 \\ 
+Time (sec)   &  5.80& 3.70& 1.50& 3.03&11.63& 2.62&13.88 \\ \hline
+\end{tabular}
+R> 
+R> 
+R> ## ----mtram-neck_plot, echo = FALSE, fig.height = 4, fig.width = 7-------------
+R> data("neck_pain", package = "ordinalCont")
+R> pain_df <- neck_pain
+R> idt <- xtabs(~ id, data = pain_df)
+R> miss <- names(idt)[idt < 3]
+R> pain_df <- subset(pain_df, !id %in% miss)
+R> pain_df$id <- factor(pain_df$id)
+R> levels(pain_df$laser) <- c("Placebo", "Active")
+R> levels(pain_df$time) <- c("Baseline", "7 weeks", "12 weeks")
+R> pain <- rbind(subset(pain_df, laser == levels(pain_df$laser)[1]),
++                subset(pain_df, laser == levels(pain_df$laser)[2]))
+R> p1 <- xyplot(vas ~ time | laser, data = pain, 
++         groups = id, type = "l", col = rgb(.1, .1, .1, .1),
++         lwd = 2, layout = c(2, 1),
++         ylab = "Neck pain (on visual analog scale)", xlab = "Examinations")
+R> plot(p1)
+R> 
+R> 
+R> ## ----mtram-ordinalCont--------------------------------------------------------
+R> library("ordinalCont")
+Loading required package: boot
+
+Attaching package: 'boot'
+
+The following object is masked from 'package:survival':
+
+    aml
+
+The following object is masked from 'package:lattice':
+
+    melanoma
+
+Loading required package: splines
+Loading required package: Deriv
+R> 
+R> ## ----mtram-neck_ocm, cache = FALSE, results = "hide"--------------------------
+R> neck_ocm <- ocm(vas ~ laser * time + (1 | id), data = pain_df, 
++                  scale = c(0, 1))
+Ext.iters	Int.iters	lambda				Convergence (<0.01)
+1 		 19 		 0.0001049346 0.4680693 		 1.0001 1.4681 		 
+2 		 9 		 0.0001578678 0.2517747 		 0.5044 0.4621 		 
+3 		 12 		 0.0001750753 0.1606074 		 0.109 0.3621 		 
+4 		 26 		 0.0001880323 0.1194356 		 0.074 0.2564 		 
+5 		 13 		 0.000186145 0.1010497 		 0.01 0.1539 		 
+6 		 8 		 0.0001814009 0.09335728 		 0.0255 0.0761 		 
+7 		 6 		 0.000178035 0.08972454 		 0.0186 0.0389 		 
+8 		 5 		 0.0001756494 0.0877903 		 0.0134 0.0216 		 
+9 		 3 		 0.0001743548 0.0868759 		 0.0074 0.0104 		 
+10 		 2 		 0.0001735541 0.08638227 		 0.0046 0.0057 		 
+R> 
+R> 
+R> ## ----mtram-neck_ocm_summary---------------------------------------------------
+R> summary(neck_ocm)
+Call:
+ocm(formula = vas ~ laser * time + (1 | id), data = pain_df, 
+    scale = c(0, 1))
+
+Random effects:
+         Name Variance Std.Dev.
+ Intercept|id    5.755    2.399
+
+Coefficients:
+                         Estimate   StdErr t.value   p.value    
+laserActive              -2.07922  0.65055 -3.1961  0.001918 ** 
+time7 weeks              -0.60366  0.35744 -1.6889  0.094689 .  
+time12 weeks             -0.23804  0.36365 -0.6546  0.514395    
+laserActive:time7 weeks   4.40817  0.56073  7.8615 7.604e-12 ***
+laserActive:time12 weeks  3.38593  0.53925  6.2790 1.159e-08 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+R> 
+R> 
+R> ## ----mtram-neck_ocm_ci--------------------------------------------------------
+R> exp(cbind(coef(neck_ocm)[2:6], confint(neck_ocm)[2:6,]))
+                                          2.5 %      97.5 %
+laserActive               0.1250278  0.03493482   0.4474608
+time7 weeks               0.5468040  0.27137954   1.1017581
+time12 weeks              0.7881704  0.38643700   1.6075391
+laserActive:time7 weeks  82.1194073 27.36208405 246.4577275
+laserActive:time12 weeks 29.5454666 10.26785879  85.0162253
+R> 
+R> 
+R> ## ----tramME-neck--------------------------------------------------------------
+R> library("tramME")
+R> neck_ColrME <- ColrME(vas ~ laser * time + (1 | id), data = pain_df, 
++                        bounds = c(0, 1), support = c(0, 1))
+R> 
+R> 
+R> ## ----tramME-neck_ci-----------------------------------------------------------
+R> exp(coef(neck_ColrME))
+             laserActive              time7 weeks             time12 weeks 
+               0.1040042                0.5184702                0.7806350 
+ laserActive:time7 weeks laserActive:time12 weeks 
+             130.6994904               41.9850828 
+R> 
+R> 
+R> ## ----mtram-neck_Colr, cache = FALSE-------------------------------------------
+R> neck_Colr <- Colr(vas ~ laser * time, data = pain_df, 
++                    bounds = c(0, 1), support = c(0, 1),
++                    extrapolate = TRUE)
+R> neck_Colrmer <- mtram(neck_Colr, ~ (1 | id), data = pain_df, 
++                        Hessian = TRUE)
+R> 
+R> 
+R> ## ----mtram-neck_Colr_distr, echo = FALSE, fig.height = 4, fig.width = 7-------
+R> nd <- expand.grid(laser = unique(pain_df$laser),
++                    time = unique(pain_df$time))
+R> tmp <- as.mlt(neck_Colr)
+R> coef(tmp)[] <- coef(neck_Colrmer)[1:12]
+R> q <- 1:99/100
+R> nd2 <- expand.grid(vas = q, laser = unique(pain_df$laser),
++                     time = unique(pain_df$time))
+R> # tmp <- as.mlt(neck_Colr) 
+R> sd <- sqrt(coef(neck_Colrmer)[13]^2 + 1)
+R> prb <- predict(tmp, newdata = nd, type = "distribution", q = q)
+R> nd2$prob <- c(pnorm(qnorm(prb) / sd))
+R> p2 <- xyplot(prob ~ vas | time, data = nd2, groups = laser, type = "l", 
++               col = col, 
++               layout = c(3, 1),
++               xlab = "Neck pain (on visual analog scale)", 
++               ylab = "Marginal distribution", 
++               par.settings = simpleTheme(col=col),
++               auto.key = list(text = levels(nd2$laser), 
++                               points = FALSE, lines = TRUE))
+R> plot(p2)
+R> 
+R> ## M1
+R> # neck_Colrmer <- mtram(neck_Colr, ~ (1 | id), data = pain_df, 
+R> #                       Hessian = TRUE, standardise = FALSE)
+R> # logLik(neck_Colrmer)
+R> # 
+R> # nd <- expand.grid(laser = unique(pain_df$laser),
+R> #                   time = unique(pain_df$time))
+R> # q <- 1:99/100
+R> # nd2 <- expand.grid(vas = q, laser = unique(pain_df$laser),
+R> #                    time = unique(pain_df$time))
+R> # tmp <- as.mlt(neck_Colr)
+R> # coef(tmp)[] <- coef(neck_Colrmer)[1:12]
+R> # sd <- sqrt(coef(neck_Colrmer)[13]^2 + 1)
+R> # prb <- predict(tmp, newdata = nd, type = "distribution", q = q)
+R> # nd2$prob <- c(pnorm(qnorm(prb) / sd))
+R> # p2 <- xyplot(prob ~ vas | time, data = nd2, groups = laser, type = "l", 
+R> #              col = col, ylim = c(-0.05, 1.05),
+R> #              layout = c(3, 1),
+R> #              xlab = "Neck pain (on visual analog scale)", 
+R> #              ylab = "Marginal distribution", 
+R> #              par.settings = simpleTheme(col=col),
+R> #              auto.key = list(text = levels(nd2$laser), 
+R> #                              points = FALSE, lines = TRUE))
+R> # plot(p2)
+R> 
+R> 
+R> ## ----mtram-neck_Colr-CI, echo = TRUE, eval=TRUE-------------------------------
+R> S <- solve(neck_Colrmer$Hessian)
+R> rbeta <- rmvnorm(10000, mean = coef(neck_Colrmer), sigma = S)
+R> s <- rbeta[, ncol(rbeta)]
+R> rbeta <- rbeta[,-ncol(rbeta)] / sqrt(s^2 + 1)
+R> t(apply(rbeta[, 8:12], 2, function(x) {
++    quantile(exp(x),prob = c(.025, .5, .975))}))
+                              2.5%        50%      97.5%
+laserActive              0.1126589  0.2468169  0.5037629
+time7 weeks              0.4490773  0.6895826  1.0542314
+time12 weeks             0.5545526  0.8495724  1.2969043
+laserActive:time7 weeks  7.9513592 15.7011167 33.5790835
+laserActive:time12 weeks 4.4653904  8.4837448 17.0816646
+R> 
+R> 
+R> ## ----mtram-neck_Colr-std_beta-------------------------------------------------
+R> beta <- coef(neck_Colrmer)[8:12]
+R> alpha <- coef(neck_Colrmer)[13]
+R> (std_beta <- cbind(beta / sqrt(1 + alpha^2)))
+                               [,1]
+laserActive              -1.4103130
+time7 weeks              -0.3700945
+time12 weeks             -0.1603065
+laserActive:time7 weeks   2.7556704
+laserActive:time12 weeks  2.1411043
+R> 
+R> 
+R> ## ----mtram-neck_Colr-ctr_mat--------------------------------------------------
+R> ctr_mat <- matrix(c(1, 0, 0, 0, 0,
++                      1, 0, 0, 1, 0,
++                      1, 0, 0, 0, 1), nrow = 3, byrow = TRUE)
+R> ctr_mat %*% std_beta
+           [,1]
+[1,] -1.4103130
+[2,]  1.3453573
+[3,]  0.7307912
+R> 
+R> 
+R> ## ----mtram-neck_PImanual, eval=TRUE-------------------------------------------
+R> (ci_emp <- t(apply(ctr_mat %*% t(rbeta[, 8:12]), 1, function(x) {
++    quantile(x, prob = c(.025, .5, .975))})))
+            2.5%        50%      97.5%
+[1,] -2.18339022 -1.3991085 -0.6856496
+[2,]  0.59251888  1.3474191  2.1561143
+[3,] -0.01605276  0.7350224  1.5193881
+R> 
+R> PI(-ci_emp, link = "logistic")
+          2.5%       50%     97.5%
+[1,] 0.8145589 0.7189678 0.6125138
+[2,] 0.4023882 0.2881899 0.1883363
+[3,] 0.5026754 0.3796606 0.2647637
+R> 
+R> 
+R> ## ----neck_Colr-PI, echo = TRUE------------------------------------------------
+R> nd <- expand.grid(time = unique(pain_df$time),
++                    laser = unique(pain_df$laser))
+R> neck_Colr_marg <- neck_Colr
+R> neck_Colr_marg$coef <- coef(neck_Colrmer)[1:12] / 
++                         sqrt(coef(neck_Colrmer)[13]^2 + 1)
+R> (neck_Colr_PI <- PI(neck_Colr_marg, newdata = nd[1:3, ], 
++                      reference = nd[4:6, ],
++                      one2one = TRUE, conf.level = .95))[1:3, 1:3]
+     Estimate       lwr       upr
+4-1 0.7205063 0.5840622 0.8277764
+5-2 0.2884774 0.1749461 0.4327285
+6-3 0.3803291 0.2446177 0.5354269
+R> 
+R> 
+R> ## ----mtram-CAO, echo = FALSE--------------------------------------------------
+R> dir <- system.file("rda", package = "TH.data")
+R> load(file.path(dir, "Primary_endpoint_data.rda"))
+R> 
+R> 
+R> ## ----mtram-CAO-plot, cache = FALSE, echo = FALSE------------------------------
+R> ra <- sort(unique(CAOsurv$randarm))
+R> st <- sort(unique(CAOsurv$strat_t))
+R> sn <- sort(unique(CAOsurv$strat_n))
+R> su <- c(1, 1700)
+R> add <- c(0,  max(CAOsurv$iDFS[, "time2"]) - su[2])
+R> ylim <- c(-.05, 1.05)
+R> tmp <- as.mlt(Coxph(iDFS | 0 + strat_n:strat_t:randarm ~ 1, data = CAOsurv, 
++                      support = su, add = add, log_first = TRUE))
+R> nd <- expand.grid(strat_n = sn, strat_t = st, randarm = ra)
+R> q <- mkgrid(tmp, 100)[[1]]
+R> surv <- predict(tmp, newdata = nd, type = "survivor", q = q)
+R> nd <- nd[rep(1:nrow(nd), each = nrow(surv)),]
+R> nd$time <- q
+R> nd$surv <- c(surv)
+R> xyplot(surv ~ time | strat_t + strat_n, data = nd, groups = randarm, 
++         type = "l", ylim = c(0, 1), col = col, ylab = "Probability",
++         xlab = "Time (in days)",
++         par.settings = simpleTheme(col=col),
++         auto.key = list(text = levels(nd$randarm), 
++                         points = FALSE, lines = TRUE))
+R> 
+R> 
+R> ## ----mtram-CAO_DFS------------------------------------------------------------
+R> ### convert "exact" event dates to interval-censoring (+/- one day)
+R> tmp <- CAOsurv$iDFS
+R> exact <- tmp[,3] == 1 
+R> tmp[exact,2] <- tmp[exact,1] + 2
+R> tmp[exact,1] <- pmax(tmp[exact,1] - 2, 0)
+R> tmp[exact,3] <- 3
+R> CAOsurv$iDFS2 <- tmp
+R> 
+R> 
+R> ## ----mtram-CAO_SR, cache = TRUE-----------------------------------------------
+R> CAO_SR <- Survreg(iDFS2 ~ randarm, data = CAOsurv)
+R> CAO_SR_mtram <- mtram(CAO_SR, ~ (1 | Block), data = CAOsurv,
++                        Hessian = TRUE)
+R> logLik(CAO_SR_mtram)
+'log Lik.' -2081.542 (df=4)
+R> (cf <- coef(CAO_SR_mtram))
+              (Intercept)                log(iDFS2) 
+               -6.2990054                 0.7412855 
+randarm5-FU + Oxaliplatin                    gamma1 
+                0.2328600                 0.1683613 
+R> (OR <- exp(-cf["randarm5-FU + Oxaliplatin"] / sqrt(cf["gamma1"]^2 + 1)))
+randarm5-FU + Oxaliplatin 
+                 0.794829 
+R> 
+R> 
+R> ## ----mtram-CAO-CI-------------------------------------------------------------
+R> S <- solve(CAO_SR_mtram$Hessian)
+R> # sqrt(diag(S))
+R> rbeta <- rmvnorm(10000, mean = coef(CAO_SR_mtram), 
++                   sigma = S)
+R> s <- rbeta[, ncol(rbeta)]
+R> rbeta <- rbeta[, -ncol(rbeta)] / sqrt(s^2 + 1)
+R> quantile(exp(-rbeta[, ncol(rbeta)]), prob = c(.025, .5, .975))
+     2.5%       50%     97.5% 
+0.6517265 0.7957980 0.9830835 
+R> 
+R> 
+R> ## ----mtram-CAO_SR_2, cache = TRUE---------------------------------------------
+R> CAO_SR_2 <- Survreg(iDFS2 | 0 + strat_n:strat_t ~ randarm, data = CAOsurv)
+R> CAO_SR_2_mtram <- mtram(CAO_SR_2, ~ (1 | Block), data = CAOsurv,
++                          Hessian  = TRUE)
+R> logLik(CAO_SR_2_mtram)
+'log Lik.' -2067.797 (df=10)
+R> (cf <- coef(CAO_SR_2_mtram))
+(Intercept):strat_ncN0:strat_tcT1-3  log(iDFS2):strat_ncN0:strat_tcT1-3 
+                         -7.8833653                           0.9584499 
+(Intercept):strat_ncN+:strat_tcT1-3  log(iDFS2):strat_ncN+:strat_tcT1-3 
+                         -6.2225174                           0.7198965 
+  (Intercept):strat_ncN0:strat_tcT4    log(iDFS2):strat_ncN0:strat_tcT4 
+                         -3.0467542                           0.3711277 
+  (Intercept):strat_ncN+:strat_tcT4    log(iDFS2):strat_ncN+:strat_tcT4 
+                         -4.8207089                           0.6214653 
+          randarm5-FU + Oxaliplatin                              gamma1 
+                          0.2240023                           0.1474685 
+R> (OR_2 <- exp(-cf["randarm5-FU + Oxaliplatin"] / sqrt(cf["gamma1"]^2 + 1)))
+randarm5-FU + Oxaliplatin 
+                0.8012313 
+R> 
+R> 
+R> ## ----mtram-CAO-CI-2, echo = FALSE---------------------------------------------
+R> H <- CAO_SR_2_mtram$Hessian
+R> S <- solve(H + .01 * diag(nrow(H)))
+R> rbeta <- rmvnorm(10000, mean = coef(CAO_SR_2_mtram), 
++                   sigma = S)
+R> s <- rbeta[, ncol(rbeta)]
+R> rbeta <- rbeta[, -ncol(rbeta)] / sqrt(s^2 + 1)
+R> quantile(exp(-rbeta[, ncol(rbeta)]), prob = c(.025, .5, .975))
+     2.5%       50%     97.5% 
+0.6539043 0.8040660 0.9921574 
+R> 
+R> 
+R> ## ----mtram-CAO_Cox_2, cache = TRUE--------------------------------------------
+R> CAO_Cox_2 <- Coxph(iDFS2 | 0 + strat_n:strat_t ~ randarm, data = CAOsurv, 
++                     support = c(1, 1700), log_first = TRUE, order = 4)
+R> logLik(CAO_Cox_2)
+'log Lik.' -2021.878 (df=21)
+R> CAO_Cox_2_mtram <- mtram(CAO_Cox_2, ~ (1 | Block), data = CAOsurv, 
++                           Hessian = TRUE)
+R> logLik(CAO_Cox_2_mtram)
+'log Lik.' -2021.627 (df=22)
+R> coef(CAO_Cox_2_mtram)
+Bs1(iDFS2):strat_ncN0:strat_tcT1-3 Bs2(iDFS2):strat_ncN0:strat_tcT1-3 
+                       -68.0278325                         -3.4294338 
+Bs3(iDFS2):strat_ncN0:strat_tcT1-3 Bs4(iDFS2):strat_ncN0:strat_tcT1-3 
+                        -3.4293516                         -2.3236197 
+Bs5(iDFS2):strat_ncN0:strat_tcT1-3 Bs1(iDFS2):strat_ncN+:strat_tcT1-3 
+                        -0.7867767                        -31.1740373 
+Bs2(iDFS2):strat_ncN+:strat_tcT1-3 Bs3(iDFS2):strat_ncN+:strat_tcT1-3 
+                        -3.8737921                         -3.8737908 
+Bs4(iDFS2):strat_ncN+:strat_tcT1-3 Bs5(iDFS2):strat_ncN+:strat_tcT1-3 
+                        -1.4402844                         -0.9325542 
+  Bs1(iDFS2):strat_ncN0:strat_tcT4   Bs2(iDFS2):strat_ncN0:strat_tcT4 
+                        -2.7904478                         -2.7904478 
+  Bs3(iDFS2):strat_ncN0:strat_tcT4   Bs4(iDFS2):strat_ncN0:strat_tcT4 
+                        -1.8168638                         -0.6365398 
+  Bs5(iDFS2):strat_ncN0:strat_tcT4   Bs1(iDFS2):strat_ncN+:strat_tcT4 
+                        -0.3163183                        -40.5748285 
+  Bs2(iDFS2):strat_ncN+:strat_tcT4   Bs3(iDFS2):strat_ncN+:strat_tcT4 
+                        -2.2374406                         -2.2374406 
+  Bs4(iDFS2):strat_ncN+:strat_tcT4   Bs5(iDFS2):strat_ncN+:strat_tcT4 
+                        -0.3387072                         -0.3345039 
+         randarm5-FU + Oxaliplatin                             gamma1 
+                        -0.2367282                          0.1609927 
+R> 
+R> 
+R> ## ----mtram-CAO-CI-3, echo = FALSE---------------------------------------------
+R> H <- CAO_Cox_2_mtram$Hessian
+R> S <- solve(H + .1 * diag(nrow(H)))
+R> rbeta <- rmvnorm(10000, mean = coef(CAO_Cox_2_mtram), 
++                   sigma = S)
+R> s <- rbeta[,ncol(rbeta)]
+R> rbeta <- rbeta[,-ncol(rbeta)] / sqrt(s^2 + 1)
+R> quantile(exp(rbeta[, ncol(rbeta)]), prob = c(.025, .5, .975))
+     2.5%       50%     97.5% 
+0.6458568 0.7913500 0.9771021 
+R> 
+R> 
+R> ## ----mtram-CAO_PI-------------------------------------------------------------
+R> nd <- CAOsurv[1:2, ]
+R> tmp <- CAO_Cox_2
+R> tmp$coef <- coef(CAO_Cox_2_mtram)[-22] / sqrt(coef(CAO_Cox_2_mtram)[22]^2 + 1)
+R> (CAO_Cox_PI <- PI(tmp, newdata = nd[2, ], reference = nd[1, ],
++                    one2one = TRUE, conf.level = .95))[1, ]
+ Estimate       lwr       upr 
+0.5581652 0.5061678 0.6089178 
+R> 
+R> 
+R> ## ----mtram-CAO_PI_man---------------------------------------------------------
+R> ci_man <- quantile(-rbeta[, ncol(rbeta)], prob = c(.025, .5, .975))
+R> (CAO_Cox_PIm <- PI(ci_man, link = "minimum extreme value"))
+     2.5%       50%     97.5% 
+0.5057908 0.5582382 0.6075863 
+R> 
+R> 
+R> ## ----tramME-CAO_SR, cache = TRUE----------------------------------------------
+R> CAO_Cox_2_tramME <- CoxphME(iDFS2 | 0 + strat_n:strat_t ~ randarm + (1 | Block), 
++                              data = CAOsurv, log_first = TRUE)
+R> 
+R> 
+R> ## ----tramME-CAO_SR-hr, cache = TRUE-------------------------------------------
+R> exp(coef(CAO_Cox_2_tramME))
+randarm5-FU + Oxaliplatin 
+                 0.790608 
+R> exp(confint(CAO_Cox_2_tramME, parm = "randarm5-FU + Oxaliplatin", 
++              estimate = TRUE))
+                                lwr       upr      est
+randarm5-FU + Oxaliplatin 0.6406387 0.9756841 0.790608
+R> 
+R> 
+R> ## ----echo=FALSE, eval=FALSE---------------------------------------------------
+R> ## sqrt(VarCorr(CAO_Cox_2_tramME)$Block$var)
+R> ## coef(CAO_Cox_2_mtram)["gamma1"]
+R> 
+R> 
+R> ## ----mtram-CAO-coxme, echo = FALSE, eval = FALSE------------------------------
+R> ## library("coxme")
+R> ## m <- coxme(DFS ~ randarm + (1 | Block), data = CAOsurv)
+R> ## summary(m)
+R> ## sd <- sqrt(diag(vcov(m)))
+R> ## exp(coef(m) + c(-1, 0, 1) * qnorm(.975) * sd)
+R> 
+R> 
+R> ## ----sim, eval = FALSE--------------------------------------------------------
+R> ## source(system.file("simulations", "mtram_sim.R", package = "tram"), echo = TRUE)
+R> 
+R> 
+R> ## ----mtram-sessionInfo, echo = FALSE, results = "hide"------------------------
+R> sessionInfo()
+R version 4.3.1 (2023-06-16)
+Platform: x86_64-pc-linux-gnu (64-bit)
+Running under: Ubuntu 22.04.2 LTS
+
+Matrix products: default
+BLAS:   /usr/local/lib/R/lib/libRblas.so 
+LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.10.0
+
+locale:
+ [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
+ [3] LC_TIME=de_CH.UTF-8        LC_COLLATE=en_US.UTF-8    
+ [5] LC_MONETARY=de_CH.UTF-8    LC_MESSAGES=en_US.UTF-8   
+ [7] LC_PAPER=de_CH.UTF-8       LC_NAME=C                 
+ [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+[11] LC_MEASUREMENT=de_CH.UTF-8 LC_IDENTIFICATION=C       
+
+time zone: Europe/Zurich
+tzcode source: system (glibc)
+
+attached base packages:
+[1] splines   stats     graphics  grDevices utils     datasets  methods  
+[8] base     
+
+other attached packages:
+ [1] tramME_1.0.4        ordinalCont_2.0.2   Deriv_4.1.3        
+ [4] boot_1.3-28.1       geepack_1.3.9       glmmTMB_1.1.7      
+ [7] survival_3.5-5      tram_1.0-0          mvtnorm_1.2-2      
+[10] mlt_1.4-8           basefun_1.1-4       variables_1.1-1    
+[13] lme4_1.1-33         Matrix_1.5-4        colorspace_2.1-0   
+[16] gridExtra_2.3       latticeExtra_0.6-30 lattice_0.21-8     
+
+loaded via a namespace (and not attached):
+ [1] gtable_0.3.3         TMB_1.9.4            xfun_0.39           
+ [4] numDeriv_2016.8-1.1  quadprog_1.5-8       vctrs_0.6.2         
+ [7] tools_4.3.1          generics_0.1.3       SparseGrid_0.8.2    
+[10] sandwich_3.0-2       tibble_3.2.1         fansi_1.0.4         
+[13] coneproj_1.16        pkgconfig_2.0.3      RColorBrewer_1.1-3  
+[16] alabama_2022.4-1     lifecycle_1.0.3      compiler_4.3.1      
+[19] deldir_1.0-6         codetools_0.2-19     Formula_1.2-5       
+[22] tidyr_1.3.0          pillar_1.9.0         nloptr_2.0.3        
+[25] MASS_7.3-60          multcomp_1.4-25      nlme_3.1-162        
+[28] tidyselect_1.2.0     dplyr_1.1.2          purrr_1.0.1         
+[31] grid_4.3.1           cli_3.4.1            magrittr_2.0.3      
+[34] utf8_1.2.3           broom_1.0.4          orthopolynom_1.0-6.1
+[37] TH.data_1.1-2        backports_1.4.1      estimability_1.4.1  
+[40] emmeans_1.8.6        jpeg_0.1-10          interp_1.1-4        
+[43] BB_2019.10-1         zoo_1.8-12           png_0.1-8           
+[46] coda_0.19-4          knitr_1.42           mgcv_1.8-42         
+[49] rlang_1.1.1          Rcpp_1.0.10          xtable_1.8-4        
+[52] glue_1.6.2           polynom_1.4-1        minqa_1.2.5         
+[55] R6_2.5.1            
+R> 
+R> 
+R> ## ----mtram-funs, echo = FALSE, results = "hide"-------------------------------
+R> if (file.exists("packages.bib")) file.remove("packages.bib")
+R> pkgversion <- function(pkg) {
++      pkgbib(pkg)
++      packageDescription(pkg)$Version
++  }
+R> pkgbib <- function(pkg) {
++      x <- citation(package = pkg, auto = TRUE)[[1]]
++      b <- toBibtex(x)
++      b <- gsub("Buehlmann", "B{\\\\\"u}hlmann", b)
++      b[1] <- paste("@Manual{pkg:", pkg, ",", sep = "")
++      if (is.na(b["url"])) {
++          b[length(b)] <- paste("   URL = {http://CRAN.R-project.org/package=",
++                                pkg, "}", sep = "")
++          b <- c(b, "}")
++      }
++      cat(b, sep = "\n", file = "packages.bib", append = TRUE)
++  }
+R> 
+R> pkg <- function(pkg) {
++      vrs <- try(pkgversion(pkg))
++      if (inherits(vrs, "try-error")) return(NA)
++      paste("\\\\pkg{", pkg, "} \\\\citep[version~",
++            vrs, ",][]{pkg:", pkg, "}", sep = "")
++  }
+R> 
+R> pkg("mlt")
+[1] "\\\\pkg{mlt} \\\\citep[version~1.4-8,][]{pkg:mlt}"
+R> pkg("tram")
+[1] "\\\\pkg{tram} \\\\citep[version~1.0-0,][]{pkg:tram}"
+R> pkg("SparseGrid")
+[1] "\\\\pkg{SparseGrid} \\\\citep[version~0.8.2,][]{pkg:SparseGrid}"
+R> cat(c("@Manual{vign:mlt.docreg,",
++               "    title = {Most Likely Transformations: The mlt Package},",
++               "    author = {Torsten Hothorn},",
++               paste("    year = ", substr(packageDescription("mlt.docreg")$Date, 1, 4), ",", sep = ""),
++               paste("    note = {R package vignette version ", packageDescription("mlt.docreg")$Version, "},", sep = ""),
++               "    url = {https://CRAN.R-project.org/package=mlt.docreg},",
++               "}"), file = "packages.bib", append = TRUE, sep = "\n")
+R> 
+R> 
+> proc.time()
+   user  system elapsed 
+254.496   0.496 255.067 
