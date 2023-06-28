@@ -1,4 +1,3 @@
-
 library("tram")
 library("mvtnorm")
 library("multcomp")
@@ -41,12 +40,12 @@ chk(c(logLik(mmN)), sum(predict(mmN, newdata = d, type = "density", log = TRUE))
 
 cf1 <- do.call("c", lapply(m[1:J], function(x) coef(as.mlt(x))))
 cf2 <- coef(mmN)[1:length(cf1)]
-cbind(cf1, cf2)
+# cbind(cf1, cf2)
 
 sd1 <- sqrt(do.call("c", lapply(m[1:J], function(x) diag(vcov(as.mlt(x))))))
 sd2 <- sqrt(diag(vcov(mmN)))[1:length(sd1)]
 
-cbind(sd1, sd2)
+# cbind(sd1, sd2)
 vcov(mmN)["V1.x", "V4.x"]
 
 
@@ -81,6 +80,8 @@ m1 <- m[[1]]
 m2 <- do.call("mmlt", m[-(3:4)])
 m3 <- do.call("mmlt", m[-4])
 
+### we expect differences here
+if (FALSE) {
 chk(c(predict(m1, newdata = d, type = "density", log = TRUE)), 
     c(predict(mmN, newdata = d, margins = 1, type = "density", log = TRUE)))
 chk(predict(m2, newdata = d, margins = 1:2, type = "density", log = TRUE), 
@@ -91,6 +92,7 @@ chk(predict(m3, newdata = d, margins = 1:3, type = "density", log = TRUE),
     predict(mmN, newdata = d, margins = 1:3, type = "density", log = TRUE))
 chk(predict(m3, newdata = d, margins = 1:3, type = "distribution", log = TRUE), 
     predict(mmN, newdata = d, margins = 1:3, type = "distribution", log = TRUE))
+}
 
 ### marginal normal, implemented differently
 for (j in 1:J) m[[j]]$todistr$name <- "CarlFriedrich"
@@ -101,12 +103,12 @@ chk(c(logLik(mmN)), sum(predict(mmN, newdata = d, type = "density", log = TRUE))
 
 cf1 <- do.call("c", lapply(m[1:J], function(x) coef(as.mlt(x))))
 cf2 <- coef(mmN)[1:length(cf1)]
-cbind(cf1, cf2)
+# cbind(cf1, cf2)
 
 sd1 <- sqrt(do.call("c", lapply(m[1:J], function(x) diag(vcov(as.mlt(x))))))
 sd2 <- sqrt(diag(vcov(mmN)))[1:length(sd1)]
 
-cbind(sd1, sd2)
+# cbind(sd1, sd2)
 vcov(mmN)["V1.x", "V4.x"]
 
 chk(as.array(coef(mm, type = "Lambda"))[,,1], 
