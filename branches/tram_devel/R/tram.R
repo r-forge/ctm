@@ -126,6 +126,9 @@ tram <- function(formula, data, subset, weights, offset, cluster, na.action = na
     }
 
     frailty <- match.arg(frailty)
+    distribution <- match.arg(distribution)
+    if (frailty != "None" && distribution != "MinExtrVal")
+        stop("Frailties only implemented for distribution = MinExtrVal")
 
     if (!inherits(td <- formula, "tram_data")) {
         mf <- match.call(expand.dots = FALSE)
