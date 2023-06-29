@@ -377,9 +377,9 @@
     margin_par <- do.call("c", lapply(m$models, function(mod) coef(as.mlt(mod))))
     names(margin_par) <- paste(rep(Jnames, time = m$nparm), names(margin_par), sep = ".")
 
-    rn <- rownames(unclass(ltMatrices(1:Jp, names = Jnames)))
-    lnames <- do.call("paste", 
-        expand.grid(rn, xnames, sep = ".", stringsAsFactors = FALSE))
+    rn <- rownames(unclass(ltMatrices(1:Jp, names = Jnames, byrow = TRUE)))
+    lnames <- paste(rep(rn, each = length(xnames)),
+                    rep(xnames, length(rn)), sep = ".")
     lambda_par <- rep(0, length(lnames))
     names(lambda_par) <- lnames
 

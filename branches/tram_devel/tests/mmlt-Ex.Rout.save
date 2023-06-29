@@ -39,6 +39,8 @@ The following object is masked from 'package:MASS':
 > set.seed(25)
 > chk <- function(...) all.equal(..., tol = 1e-3, check.attributes = FALSE)
 > 
+> OR <- 1
+> 
 > J <- 4
 > N <- 100
 > S <- cov2cor(tcrossprod(matrix(runif(J * J), ncol = J)))
@@ -49,7 +51,7 @@ The following object is masked from 'package:MASS':
 > un <- colnames(d)[1:J]
 > 
 > m <- lapply(un, function(i)
-+     BoxCox(as.formula(paste(i, "~ x")), data = d, bounds = c(0, 1), support = c(0, 1)))
++     BoxCox(as.formula(paste(i, "~ x")), data = d, bounds = c(0, 1), support = c(0, 1), order = OR))
 > m$data <- d
 > m$formula <- ~ 1
 > mm <- do.call("mmlt", m)
@@ -85,7 +87,7 @@ The following object is masked from 'package:MASS':
 > 
 > # cbind(sd1, sd2)
 > vcov(mmN)["V1.x", "V4.x"]
-[1] 0.059
+[1] 0.054
 > 
 > 
 > chk(as.array(coef(mm, type = "Lambda"))[,,1], 
@@ -162,7 +164,7 @@ The following object is masked from 'package:MASS':
 > 
 > # cbind(sd1, sd2)
 > vcov(mmN)["V1.x", "V4.x"]
-[1] 0.059
+[1] 0.054
 > 
 > chk(as.array(coef(mm, type = "Lambda"))[,,1], 
 +     as.array(coef(mmN, type = "Lambda"))[,,1])
@@ -203,7 +205,7 @@ The following object is masked from 'package:MASS':
 > 
 > ### marginal Colr models
 > m <- lapply(un, function(i)
-+     Colr(as.formula(paste(i, "~ x")), data = d, bounds = c(0, 1), support = c(0, 1)))
++     Colr(as.formula(paste(i, "~ x")), data = d, bounds = c(0, 1), support = c(0, 1), order = OR))
 > m$data <- d
 > m$formula <- ~ 1
 > mmC <- do.call("mmlt", m)
@@ -211,11 +213,11 @@ The following object is masked from 'package:MASS':
 > chk(c(logLik(mmC)), sum(predict(mmC, newdata = d, type = "density", log = TRUE)))
 [1] TRUE
 > logLik(mmC)
-'log Lik.' 310 (df=38)
+'log Lik.' 261 (df=18)
 > 
 > ### conditional models
 > m <- lapply(un, function(i)
-+     BoxCox(as.formula(paste(i, "~ x")), data = d, bounds = c(0, 1), support = c(0, 1)))
++     BoxCox(as.formula(paste(i, "~ x")), data = d, bounds = c(0, 1), support = c(0, 1), order = OR))
 > m$data <- d
 > m$formula <- ~ x
 > mm <- do.call("mmlt", m)
@@ -324,7 +326,7 @@ The following object is masked from 'package:MASS':
 > 
 > ### conditional Colr
 > m <- lapply(un, function(i)
-+     Colr(as.formula(paste(i, "~ x")), data = d, bounds = c(0, 1), support = c(0, 1)))
++     Colr(as.formula(paste(i, "~ x")), data = d, bounds = c(0, 1), support = c(0, 1), order = OR))
 > m$data <- d
 > m$formula <- ~ x
 > mmC <- do.call("mmlt", m)
@@ -332,7 +334,7 @@ The following object is masked from 'package:MASS':
 > chk(c(logLik(mmC)), sum(predict(mmC, newdata = d, type = "density", log = TRUE)))
 [1] TRUE
 > logLik(mmC)
-'log Lik.' 313 (df=44)
+'log Lik.' 265 (df=24)
 > 
 > ##### FIRST SCENARIO: CONSTANT LAMBDA #####
 > set.seed(290875)
@@ -406,7 +408,7 @@ Y1         [,1]    [,2]    [,3]    [,4]    [,5]
 > ##### mix of BoxCox and Colr margins: ##### 
 > d$Y1 <- (d$Y1 - min(d$Y1))/(max(d$Y1) - min(d$Y1))
 > 
-> b1 <- as.mlt(Colr(Y1 ~ X1 + X2 + X3, data = d, order = 1))
+> b1 <- as.mlt(Colr(Y1 ~ X1 + X2 + X3, data = d, order = OR))
 > b2 <- as.mlt(Lm(Y2 ~ X1 + X2 + X3, data = d))
 > 
 > mm01 <- mmlt(b1, b2, formula = ~ 1, data = d)
@@ -543,7 +545,7 @@ Y1         [,1]    [,2]    [,3]    [,4]    [,5]
 > ##### mix of BoxCox and Colr margins: ##### 
 > d$Y1 <- (d$Y1 - min(d$Y1))/(max(d$Y1) - min(d$Y1))
 > 
-> b1 <- as.mlt(Colr(Y1 ~ X1 + X2 + X3, data = d, order = 1))
+> b1 <- as.mlt(Colr(Y1 ~ X1 + X2 + X3, data = d, order = OR))
 > b2 <- as.mlt(Lm(Y2 ~ X1 + X2 + X3, data = d))
 > 
 > mm01 <- mmlt(b1, b2, formula = ~ 1, data = d)
@@ -757,7 +759,7 @@ y.4.x.1   0.072   0.070   0.111   0.122
 > 
 > m0 <- lapply(colnames(Y)[1:J], function(v) {
 +     fm <- as.formula(paste(v, " ~ 1"))
-+     BoxCox(fm, data = Y, order = 1)
++     BoxCox(fm, data = Y, order = OR)
 + })
 > 
 > TF <- c(TRUE, FALSE)
@@ -978,6 +980,32 @@ NULL
 'log Lik.' -678 (df=20)
 [1] 8.9e-08
 > 
+> ### names
+> J <- 5
+> N <- 50
+> df <- as.data.frame(matrix(rnorm(J * N), ncol = J))
+> colnames(df) <- paste0("X", 1:J)
+> 
+> mltargs <- lapply(1:ncol(df), function(j) {
++   fm <- as.formula(paste0("X", j, "~1"))
++   BoxCox(fm, data = df, order = OR)
++ })
+> mltargs$data <- df
+> 
+> fx <- c("X3.X1.(Intercept)" = 0, "X4.X1.(Intercept)" = 0, "X5.X1.(Intercept)" = 0,
++         "X3.X2.(Intercept)" = 0, "X4.X2.(Intercept)" = 0, "X5.X2.(Intercept)" = 0,
++         "X5.X4.(Intercept)" = 0)
+> tmp <- do.call("mmlt", c(mltargs, list(fixed = fx)))
+> 
+> mltargs$conditional <- TRUE
+> tmp <- do.call("mmlt", c(mltargs, list(fixed = fx)))
+> 
+> cf <- coef(tmp)
+> cf <- cf[grep("Intercept", names(cf))]
+> names(cf) <- substr(names(cf), 1, 5)
+> chk(unclass(coef(tmp, type = "Lambda"))[names(cf),], cf)
+[1] TRUE
+> 
 > proc.time()
    user  system elapsed 
- 48.840   0.079  48.950 
+  33.90    0.12   34.10 
