@@ -151,8 +151,6 @@ cor_init.mmlt <- function(m0, mb) {
 # Helper ------------------------------------------------------------------
 
 .splice_mmlt <- function(args, m, A, I, k_max, thresh, ncfs, ...) {
-  if (k_max >= 2)
-    browser()
   m0 <- m
   A0 <- A
   I0 <- I
