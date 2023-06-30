@@ -46,7 +46,7 @@ mmltVS <- function(mltargs, supp_max = NULL, k_max = NULL, thresh = NULL,
                       init = init, m_max = m_max, m0 = m0)
     list(
       fit = fit,
-      SIC = -logLik(fit$m) + length(fit$A) * log(length(coef(fit$m))) *
+      SIC = -logLik(fit$m) + length(fit$A) * log(length(coef(m0))) *
         log(log(nrow(fit$m$data)))
     )
   })
@@ -56,7 +56,7 @@ mmltVS <- function(mltargs, supp_max = NULL, k_max = NULL, thresh = NULL,
 
   allcf <- structure(rep(0, length(ncfs)), names = names(ncfs))
   traj <- as(do.call("cbind", lapply(fits, \(fit) {
-    tnms <- names(tcfx <- coef_mmlt(fit))
+    tnms <- names(tcfx <- coef_mmlt(fit[["mod"]]))
     allcf[tnms] <- tcfx
     allcf
   })), "sparseMatrix")
@@ -69,8 +69,11 @@ mmltVS <- function(mltargs, supp_max = NULL, k_max = NULL, thresh = NULL,
 }
 
 coef_mmlt <- function(obj) {
+  type <- "marginal"
+  if (!is.null(obj$call$conditional) && obj$call$conditional)
+    type <- "conditional"
   all <- coef(obj, type = "all")
-  mar <- unlist(unname(coef(obj, type = "marginal")))
+  mar <- unlist(unname(coef(obj, type = type)))
   all[setdiff(names(all), names(mar))]
 }
 
@@ -117,7 +120,7 @@ abess_mmlt <- function(mltargs, supp, k_max = supp, thresh = NULL, init = TRUE,
   mltargs$fixed <- fix0
   m0 <- do.call("mmlt", mltargs)
 
-  sm <- s0 <- .splice_mmlt(mltargs, m0, A0, I0, k_max, thresh)
+  sm <- s0 <- .splice_mmlt(mltargs, m0, A0, I0, k_max, thresh, ncfs)
 
   if (length(s0$A) == length(A0) && all(s0$A == A0)) {
     return(structure(s0, class = c("abess_mmlt", "abess_tram")))
@@ -125,7 +128,7 @@ abess_mmlt <- function(mltargs, supp, k_max = supp, thresh = NULL, init = TRUE,
 
   for (m in seq_len(m_max)) {
     Am <- sm$A
-    sm <- .splice_mmlt(mltargs, sm$mod, sm$A, sm$I, k_max, thresh)
+    sm <- .splice_mmlt(mltargs, sm$mod, sm$A, sm$I, k_max, thresh, ncfs)
     if (length(sm$A) == length(Am) && all(sm$A == Am))
       return(structure(s0, class = c("abess_mmlt", "abess_tram")))
     else
@@ -147,15 +150,15 @@ cor_init.mmlt <- function(m0, mb) {
 
 # Helper ------------------------------------------------------------------
 
-.splice_mmlt <- function(args, m, A, I, k_max, thresh, ...) {
+.splice_mmlt <- function(args, m, A, I, k_max, thresh, ncfs, ...) {
+  if (k_max >= 2)
+    browser()
   m0 <- m
   A0 <- A
   I0 <- I
-  L <- L0 <- - logLik(m) / nrow(m$data)
-  cf <- cf0 <- coef_mmlt(m0)
-  ncfs <- names(cf)
-  cfA <- cf[names(cf) %in% A0]
-  cfI <- cf[names(cf) %in% I0]
+  L <- L0 <- -logLik(m) / nrow(m$data)
+  cfA <- cf <- cf0 <- coef_mmlt(m0)
+  cfI <- args$fixed
 
   bwd_sacrifice <- sapply(seq_along(cfA), \(parm) {
     ncfs <- c(cfA[parm], cfI)
@@ -163,21 +166,20 @@ cor_init.mmlt <- function(m0, mb) {
     args$fixed <- ncfs
     m_retrained <- do.call("mmlt", args)
     nll_wo <- - logLik(m_retrained) / nrow(m_retrained$data)
-    nll_wo - L
+    structure(L - nll_wo, names = names(cfA)[parm])
   })
 
   fwd_sacrifice <- sapply(seq_along(cfI), \(parm) {
     ncfs <- c(cfI, cfA)
-    ncfs[names(cfI)] <- 0
     args$fixed <- ncfs[-parm]
     m_retrained <- do.call("mmlt", args)
     nll_wo <- - logLik(m_retrained) / nrow(m$data)
-    L - nll_wo
+    structure(nll_wo - L, names = names(cfI)[parm])
   })
 
   for (k in seq_len(k_max)) {
-    Ak <- ncfs[.ak_compute(bwd_sacrifice, k)]
-    Ik <- ncfs[.ik_compute(fwd_sacrifice, k)]
+    Ak <- A[.ak_compute(bwd_sacrifice, k)]
+    Ik <- I[.ik_compute(fwd_sacrifice, k)]
 
     newA <- sort(union(setdiff(A, Ak), Ik))
     newI <- setdiff(ncfs, newA)
@@ -194,17 +196,16 @@ cor_init.mmlt <- function(m0, mb) {
     newL <- -logLik(newm) / nrow(m$data)
 
     if (L > newL) {
-      cf <- coef(newm, with_baseline = TRUE)
-      cfs <- coef(newm)
-      cfb <- cf0[!names(cf) %in% names(cfs)]
+      cf <- coef_mmlt(newm)
+      m <- newm
       L <- newL
       A <- newA
       I <- newI
     }
   }
 
-  if (L0 - L < thresh)
-    ret <- list(mod = m, A = A, I = I)
+  if (L0 - L > thresh)
+    ret <- list(mod = newm, A = A, I = I)
   else
     ret <- list(mod = m0, A = A0, I = I0)
 
