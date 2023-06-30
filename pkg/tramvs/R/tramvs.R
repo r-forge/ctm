@@ -171,7 +171,7 @@ cor_init.stram <- function(m0, mb) {
 #'
 #' dat <- data.frame(y = Y, x = X)
 #' res <- tramvs(y ~ ., data = dat, modFUN = Lm)
-#' plot(res, type = "s")
+#' plot(res, type = "b")
 #' plot(res, which = "path")
 #'
 #' @importFrom methods as
@@ -247,27 +247,27 @@ tramvs <- function(formula, data, modFUN, mandatory = NULL, supp_max = NULL,
   cfI <- cfs[names(cfs) %in% I0]
 
   bwd_sacrifice <- sapply(seq_along(cfA), \(parm) {
-    ncfs <- cfs
-    ncfs[parm] <- 0
+    ncfs <- c(cfA[parm], cfI)
+    ncfs[1] <- 0
     m_retrained <- modFUN(formula, data, fixed = ncfs,
                           theta = theta_init[!names(theta_init) %in% names(ncfs)],
                           ... = ...)
     nll_wo <- - logLik(m_retrained) / nrow(m$data)
-    nll_wo - L
+    structure(L - nll_wo, names = names(cfA)[parm])
   })
 
   fwd_sacrifice <- sapply(seq_along(cfI), \(parm) {
-    ncfs <- cfs[-parm]
+    ncfs <- c(cfI[-parm], cfA)
     m_retrained <- modFUN(formula, data, fixed = ncfs,
                           theta = theta_init[!names(theta_init) %in% names(ncfs)],
                           ... = ...)
     nll_wo <- - logLik(m_retrained) / nrow(m$data)
-    L - nll_wo
+    structure(nll_wo - L, names = names(cfI)[parm])
   })
 
   for (k in seq_len(k_max)) {
-    Ak <- ncfs[.ak_compute(bwd_sacrifice, k)]
-    Ik <- ncfs[.ik_compute(fwd_sacrifice, k)]
+    Ak <- A[.ak_compute(bwd_sacrifice, k)]
+    Ik <- I[.ik_compute(fwd_sacrifice, k)]
 
     newA <- sort(union(setdiff(A, Ak), Ik))
     if (!is.null(mcfs))
@@ -290,13 +290,14 @@ tramvs <- function(formula, data, modFUN, mandatory = NULL, supp_max = NULL,
       cf <- coef(newm, with_baseline = TRUE)
       cfs <- coef(newm)
       cfb <- cf0[!names(cf) %in% names(cfs)]
+      m <- newm
       L <- newL
       A <- newA
       I <- newI
     }
   }
 
-  if (L0 - L < thresh)
+  if (L0 - L > thresh)
     ret <- list(mod = m, A = A, I = I)
   else
     ret <- list(mod = m0, A = A0, I = I0)
