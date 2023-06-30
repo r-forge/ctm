@@ -203,7 +203,7 @@ cor_init.mmlt <- function(m0, mb) {
   }
 
   if (L0 - L > thresh)
-    ret <- list(mod = newm, A = A, I = I)
+    ret <- list(mod = m, A = A, I = I)
   else
     ret <- list(mod = m0, A = A0, I = I0)
 
