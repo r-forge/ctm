@@ -90,7 +90,7 @@ Y <- 1 + X \%*\% beta + rnorm(N)
 
 dat <- data.frame(y = Y, x = X)
 res <- tramvs(y ~ ., data = dat, modFUN = Lm)
-plot(res, type = "s")
+plot(res, type = "b")
 plot(res, which = "path")
 
 }
