@@ -8,6 +8,8 @@ mtram <- function(object, formula, data,
                   Hessian = FALSE, tol = .Machine$double.eps,
                   # standardise = FALSE,
                   ...) {
+
+    call <- match.call()
     
     standardise <- TRUE
     stopifnot(inherits(object, "mlt_fit"))
@@ -265,6 +267,7 @@ mtram <- function(object, formula, data,
     if (Hessian) opt$Hessian <- numDeriv::hessian(ll, opt$par)
     opt$loglik <- ll
     if(!is.null(gr)) opt$gr <- gr
+    opt$call <- call
     class(opt) <- "mtram"
     opt
 }
@@ -284,6 +287,24 @@ logLik.mtram <- function(object, parm = NULL, ...) {
 coef.mtram <- function(object, ...)
     object$par
 
+Hessian.mtram <- function(object, ...) {
+    H <- object$Hessian
+    if (is.null(H)) {
+        call <- object$call
+        call$Hessian <- TRUE
+        H <- eval(call, parent.frame())$Hessian
+    }
+    return(H)
+}
+
+### FIXME: one would want sd for _marginal_ parameters,
+### that is, coef(object) / sqrt(1 + coef(object)["gamma"]^2) in the
+### simplest case of repeated measurements
+vcov.mtram <- function(object, ...) {
+    class(object) <- c("mtram", "mlt")
+    return(mlt:::vcov.mlt(object))
+}
+    
 .Marsaglia_1963 <- function(lower = rep(-Inf, nrow(sigma)), 
                             upper = rep(Inf, nrow(sigma)), 
                             mean = rep(0, nrow(sigma)), 

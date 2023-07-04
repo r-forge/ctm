@@ -1,6 +1,6 @@
 
 library("tram")
-options(digits = 3) ## make M1 happy
+options(digits = 1) ## make M1 happy
 
 ## dgp
 set.seed(29)

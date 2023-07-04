@@ -51,7 +51,7 @@ mtram(object, formula, data,
 \references{
 
   Luisa Barbanti and Torsten Hothorn (2023). A Transformation Perspective on 
-  Marginal and Conditional Models, \emph{Biostatistics}, \doi{10.48550/arXiv.1910.09219}.
+  Marginal and Conditional Models, \emph{Biostatistics}, \doi{10.1093/biostatistics/kxac048}.
 
 }
 \examples{

@@ -6,6 +6,9 @@ library("trtf")
 ### Windows diffs...
 options(digits = 3)
 
+chk <- function(x, y, tol = 1e-1) 
+    stopifnot(isTRUE(all.equal(x, y, check.attributes = FALSE, tol = tol)))
+
 data("GBSG2", package = "TH.data")
 
 cmod <- coxph(Surv(time, cens) ~ progrec + pnodes + strata(horTh, tgrade),
@@ -13,21 +16,20 @@ cmod <- coxph(Surv(time, cens) ~ progrec + pnodes + strata(horTh, tgrade),
 Cmod <- Coxph(Surv(time, cens) | 0 + horTh:tgrade ~ progrec + pnodes, 
               data = GBSG2)
 
-round(max(abs(coef(cmod) - coef(Cmod))), 3)
-round(max(abs(diag(vcov(cmod)) - diag(vcov(Cmod)))), 3)
+chk(coef(cmod), coef(Cmod))
+chk(diag(vcov(cmod)), diag(vcov(Cmod)))
 
 Cmod_lf <- Coxph(Surv(time, cens) | 0 + horTh:tgrade ~ progrec + pnodes, 
                 data = GBSG2, log_first = TRUE)
 
-round(max(abs(coef(cmod) - coef(Cmod_lf))), 4)
-round(max(abs(diag(vcov(cmod)) - diag(vcov(Cmod_lf)))), 4)
-
+chk(coef(cmod), coef(Cmod_lf))
+chk(diag(vcov(cmod)), diag(vcov(Cmod_lf)))
 
 cmod_2 <- coxph(Surv(time, cens) ~ ., data = GBSG2)
 Cmod_2 <- Coxph(Surv(time, cens) ~ ., data = GBSG2)
 
-round(max(abs(coef(cmod_2) - coef(Cmod_2))), 4)
-round(max(abs(diag(vcov(cmod_2)) - diag(vcov(Cmod_2)))), 4)
+chk(coef(cmod_2), coef(Cmod_2))
+chk(diag(vcov(cmod_2)), diag(vcov(Cmod_2)))
 
 cmod <- Coxph(Surv(time, cens) ~ horTh, data = GBSG2)
 (tmod <- trafotree(cmod, formula = Surv(time, cens) ~ horTh | ., data = GBSG2))
@@ -50,5 +52,11 @@ m2 <- Coxph(y ~ 1, data = GBSG2,
             LRtest = FALSE, order = ORDER)
 LR2 <- resid(as.mlt(m2))
 
-stopifnot(all.equal(LR1, LR2))
+chk(LR1, LR2)
 
+## interval-censoring
+load(system.file("rda", "Primary_endpoint_data.rda", package = "TH.data"))
+
+## [tram] Parametric distribution-free PH model (interval censoring)
+mci <- Coxph(iDFS ~ randarm, data = CAOsurv, log_first = TRUE)
+logLik(mci)

@@ -84,6 +84,10 @@ An object of class \code{Coxph}, with corresponding \code{coef},
 
   (m2 <- Coxph(Surv(time, cens) ~ horTh, data = GBSG2))
 
+  ### McLain & Ghosh (2013)
+  (m3 <- Coxph(Surv(time, cens) ~ horTh, data = GBSG2, 
+               frailty = "Gamma"))
+
   ### Wald intervals
   confint(m1)
   confint(m2)
