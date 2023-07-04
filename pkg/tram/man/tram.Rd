@@ -12,6 +12,7 @@ linear shift-scale transformation models.
 tram(formula, data, subset, weights, offset, cluster, na.action = na.omit, 
      distribution = c("Normal", "Logistic", "MinExtrVal", "MaxExtrVal",
                       "Exponential", "Cauchy", "Laplace"), 
+     frailty = c("None", "Gamma", "InvGauss", "PositiveStable"),
      transformation = c("discrete", "linear", "logarithmic", "smooth"), 
      LRtest = TRUE, prob = c(0.1, 0.9), support = NULL, 
      bounds = NULL, add = c(0, 0), order = 6, 
@@ -55,6 +56,10 @@ tram_data(formula, data, subset, weights, offset, cluster, na.action = na.omit)
                       include the cumulative distribution functions of the standard normal, the
                       standard logistic and the standard minimum extreme value distribution.
   }
+  \item{frailty}{character specifying the addition of a frailty term, that
+                 is, a random component added to the linear predictor of the
+                 model, with specific distribution (Gamma, inverse Gaussian,
+                 positive stable).}
   \item{transformation}{character specifying the complexity of the
        response-transformation. For discrete responses, one parameter is assigned
        to each level (except the last one), for continuous responses linear,

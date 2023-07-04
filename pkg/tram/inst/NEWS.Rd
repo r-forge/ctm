@@ -2,20 +2,23 @@
 \name{NEWS}
 \title{NEWS file for the tram package}
 
-\section{Changes in Version 0.8-3 (2023-05-22)}{
+\section{Changes in Version 1.0-0 (2023-04-03)}{
   \itemize{
-    \item{Remove intercepts from baseline functions in shift-scale models
-          when remove_intercept = FALSE. This ensures centering of variables in
-          the shift term doesn't change the corresponding coefficients or standard
-          errors.}
+    \item{Improved, simplified, and generalised implementation of \code{mmlt}.}
+    \item{\code{Coxph}, \code{Colr}, and \code{BoxCox} allow unbiased
+          estimation of time-to-event distributions under dependent
+          censoring.}
+    \item{All \code{tram} models can be equipped with frailty terms.}
   }
 }
 
 \section{Changes in Version 0.8-2 (2023-03-28)}{
-   \itemize{
+  \itemize{
     \item{Update demo \code{stram}.}
-   }
+  }
 }
+
+
 
 \section{Changes in Version 0.8-1 (2023-03-09)}{
   \itemize{

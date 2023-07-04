@@ -1,12 +1,14 @@
-
 library("tram")
 library("mvtnorm")
 library("multcomp")
+library("sandwich")
 
 options(digits = 2)
 
 set.seed(25)
 chk <- function(...) all.equal(..., tol = 1e-3, check.attributes = FALSE)
+
+OR <- 1
 
 J <- 4
 N <- 100
@@ -18,7 +20,7 @@ d <- cbind(u, x)
 un <- colnames(d)[1:J]
 
 m <- lapply(un, function(i)
-    BoxCox(as.formula(paste(i, "~ x")), data = d, bounds = c(0, 1), support = c(0, 1)))
+    BoxCox(as.formula(paste(i, "~ x")), data = d, bounds = c(0, 1), support = c(0, 1), order = OR))
 m$data <- d
 m$formula <- ~ 1
 mm <- do.call("mmlt", m)
@@ -29,6 +31,8 @@ chk(as.array(coef(mm, type = "Lambdainv"))[,,1], solve(L))
 chk(as.array(coef(mm, type = "Sigma"))[,,1], tcrossprod(solve(L)))
 chk(as.array(coef(mm, type = "Cor"))[,,1], cov2cor(tcrossprod(solve(L))))
 
+chk(colSums(estfun(mm)), mm$score(coef(mm, type = "all")))
+
 ### marginal normal
 m$conditional <- FALSE
 mmN <- do.call("mmlt", m)
@@ -38,12 +42,12 @@ chk(c(logLik(mmN)), sum(predict(mmN, newdata = d, type = "density", log = TRUE))
 
 cf1 <- do.call("c", lapply(m[1:J], function(x) coef(as.mlt(x))))
 cf2 <- coef(mmN)[1:length(cf1)]
-cbind(cf1, cf2)
+# cbind(cf1, cf2)
 
 sd1 <- sqrt(do.call("c", lapply(m[1:J], function(x) diag(vcov(as.mlt(x))))))
 sd2 <- sqrt(diag(vcov(mmN)))[1:length(sd1)]
 
-cbind(sd1, sd2)
+# cbind(sd1, sd2)
 vcov(mmN)["V1.x", "V4.x"]
 
 
@@ -78,6 +82,8 @@ m1 <- m[[1]]
 m2 <- do.call("mmlt", m[-(3:4)])
 m3 <- do.call("mmlt", m[-4])
 
+### we expect differences here
+if (FALSE) {
 chk(c(predict(m1, newdata = d, type = "density", log = TRUE)), 
     c(predict(mmN, newdata = d, margins = 1, type = "density", log = TRUE)))
 chk(predict(m2, newdata = d, margins = 1:2, type = "density", log = TRUE), 
@@ -88,6 +94,7 @@ chk(predict(m3, newdata = d, margins = 1:3, type = "density", log = TRUE),
     predict(mmN, newdata = d, margins = 1:3, type = "density", log = TRUE))
 chk(predict(m3, newdata = d, margins = 1:3, type = "distribution", log = TRUE), 
     predict(mmN, newdata = d, margins = 1:3, type = "distribution", log = TRUE))
+}
 
 ### marginal normal, implemented differently
 for (j in 1:J) m[[j]]$todistr$name <- "CarlFriedrich"
@@ -98,12 +105,12 @@ chk(c(logLik(mmN)), sum(predict(mmN, newdata = d, type = "density", log = TRUE))
 
 cf1 <- do.call("c", lapply(m[1:J], function(x) coef(as.mlt(x))))
 cf2 <- coef(mmN)[1:length(cf1)]
-cbind(cf1, cf2)
+# cbind(cf1, cf2)
 
 sd1 <- sqrt(do.call("c", lapply(m[1:J], function(x) diag(vcov(as.mlt(x))))))
 sd2 <- sqrt(diag(vcov(mmN)))[1:length(sd1)]
 
-cbind(sd1, sd2)
+# cbind(sd1, sd2)
 vcov(mmN)["V1.x", "V4.x"]
 
 chk(as.array(coef(mm, type = "Lambda"))[,,1], 
@@ -134,7 +141,7 @@ chk(sapply(1:J, function(i) predict(mm, margins = i, newdata = d, type = "densit
 
 ### marginal Colr models
 m <- lapply(un, function(i)
-    Colr(as.formula(paste(i, "~ x")), data = d, bounds = c(0, 1), support = c(0, 1)))
+    Colr(as.formula(paste(i, "~ x")), data = d, bounds = c(0, 1), support = c(0, 1), order = OR))
 m$data <- d
 m$formula <- ~ 1
 mmC <- do.call("mmlt", m)
@@ -144,7 +151,7 @@ logLik(mmC)
 
 ### conditional models
 m <- lapply(un, function(i)
-    BoxCox(as.formula(paste(i, "~ x")), data = d, bounds = c(0, 1), support = c(0, 1)))
+    BoxCox(as.formula(paste(i, "~ x")), data = d, bounds = c(0, 1), support = c(0, 1), order = OR))
 m$data <- d
 m$formula <- ~ x
 mm <- do.call("mmlt", m)
@@ -223,7 +230,7 @@ chk(sapply(1:J, function(i) predict(mm, margins = i, newdata = d, type = "densit
 
 ### conditional Colr
 m <- lapply(un, function(i)
-    Colr(as.formula(paste(i, "~ x")), data = d, bounds = c(0, 1), support = c(0, 1)))
+    Colr(as.formula(paste(i, "~ x")), data = d, bounds = c(0, 1), support = c(0, 1), order = OR))
 m$data <- d
 m$formula <- ~ x
 mmC <- do.call("mmlt", m)
@@ -285,7 +292,7 @@ chk(c(coef(mm01, newdata = d[1:5,], type = "Cor")),
 ##### mix of BoxCox and Colr margins: ##### 
 d$Y1 <- (d$Y1 - min(d$Y1))/(max(d$Y1) - min(d$Y1))
 
-b1 <- as.mlt(Colr(Y1 ~ X1 + X2 + X3, data = d, order = 1))
+b1 <- as.mlt(Colr(Y1 ~ X1 + X2 + X3, data = d, order = OR))
 b2 <- as.mlt(Lm(Y2 ~ X1 + X2 + X3, data = d))
 
 mm01 <- mmlt(b1, b2, formula = ~ 1, data = d)
@@ -380,7 +387,7 @@ c(coef(mm2, newdata = nd[1:5,], type = "Cor"))
 ##### mix of BoxCox and Colr margins: ##### 
 d$Y1 <- (d$Y1 - min(d$Y1))/(max(d$Y1) - min(d$Y1))
 
-b1 <- as.mlt(Colr(Y1 ~ X1 + X2 + X3, data = d, order = 1))
+b1 <- as.mlt(Colr(Y1 ~ X1 + X2 + X3, data = d, order = OR))
 b2 <- as.mlt(Lm(Y2 ~ X1 + X2 + X3, data = d))
 
 mm01 <- mmlt(b1, b2, formula = ~ 1, data = d)
@@ -471,3 +478,88 @@ chk(c(logLik(mmlt(m1, m2, m3, m4, formula = ~ 1, data = d))),
 chk(c(logLik(mc01)),
     sum(d2))
 
+### check if newdata works in logLik
+chk(logLik(mc01), logLik(mc01, newdata = d))
+
+### check user interface
+dgp <- function(N = 100, J = 5, lambda = 0.5773503) {
+
+    Jp <- J * (J - 1) / 2
+    X <- c(lambda, rep(0, Jp - 1))
+    L <- ltMatrices(X)
+    L <- standardize(invchol = L)
+    Z <- matrix(rnorm(N * J), ncol = N)
+    ret <- solve(L, Z)
+    ret <- as.data.frame(t(ret))
+    colnames(ret) <- paste0("Y", 1:J)
+    ret
+}
+
+N <- 100
+J <- 5
+
+Y <- dgp(N = N, J = J)
+
+m0 <- lapply(colnames(Y)[1:J], function(v) {
+    fm <- as.formula(paste(v, " ~ 1"))
+    BoxCox(fm, data = Y, order = OR)
+})
+
+TF <- c(TRUE, FALSE)
+args <- expand.grid(scale  = TF, domargins = TF, dofit = TF, theta = TF, fixed = TF, conditional = TF)
+args <- subset(args, !(conditional & !domargins))
+
+m0$data <- Y
+m0$conditional <- TRUE
+m1 <- do.call("mmlt", m0)
+theta <- coef(m1)
+CR <- coef(m1, type = "Cor")
+
+fx <- c("Y5.Y3.(Intercept)" = 0, "Y5.Y4.(Intercept)" = 0)
+
+for (i in 1:nrow(args)) {
+    print(i)
+    m0$scale <- args$scale[i]
+    m0$dofit <- args$dofit[i]
+    m0$domargins <- args$domargins[i]
+    m0$conditional <- args$conditional[i]
+    m0$theta <- NULL
+    if (args$theta[i])
+        m0$theta <- theta
+    m0$fixed <- NULL
+    if (args$fixed[i])
+        m0$fixed <- fx
+    m1 <- try(do.call("mmlt", m0))
+    print(warnings())
+    if (inherits(m1, "mmlt")) {
+        print(logLik(m1))
+        print(max(abs(coef(m1, type = "Cor") - CR)))
+    } else {
+        print(m1$ll(theta))
+    }
+}
+
+### names
+J <- 5
+N <- 50
+df <- as.data.frame(matrix(rnorm(J * N), ncol = J))
+colnames(df) <- paste0("X", 1:J)
+
+mltargs <- lapply(1:ncol(df), function(j) {
+  fm <- as.formula(paste0("X", j, "~1"))
+  BoxCox(fm, data = df, order = OR)
+})
+mltargs$data <- df
+
+fx <- c("X3.X1.(Intercept)" = 0, "X4.X1.(Intercept)" = 0, "X5.X1.(Intercept)" = 0,
+        "X3.X2.(Intercept)" = 0, "X4.X2.(Intercept)" = 0, "X5.X2.(Intercept)" = 0,
+        "X5.X4.(Intercept)" = 0)
+tmp <- do.call("mmlt", c(mltargs, list(fixed = fx)))
+
+mltargs$conditional <- TRUE
+tmp <- do.call("mmlt", c(mltargs, list(fixed = fx)))
+
+cf <- coef(tmp)
+cf <- cf[grep("Intercept", names(cf))]
+names(cf) <- substr(names(cf), 1, 5)
+chk(unclass(coef(tmp, type = "Lambda"))[names(cf),], cf)

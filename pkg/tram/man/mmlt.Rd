@@ -1,6 +1,8 @@
 \name{mmlt}
 \alias{mmlt}
-\alias{coef.mmlt}
+\alias{mmltoptim}
+\alias{coef.cmmlt}
+\alias{coef.mmmlt}
 \alias{predict.mmlt}
 \alias{simulate.mmlt}
 \title{
@@ -8,18 +10,26 @@
 }
 \description{
   A proof-of-concept implementation of multivariate conditional
-transformation models
+  transformation models
 }
 \usage{
-mmlt(..., formula = ~ 1, data, conditional = GAUSSIAN, theta = NULL, 
-     control.outer = list(trace = FALSE), scale = FALSE, dofit = TRUE)
-\method{coef}{mmlt}(object, newdata, 
+mmlt(..., formula = ~ 1, data, conditional = FALSE, theta = NULL, fixed = NULL,
+     scale = FALSE, optim = mmltoptim(), args = list(seed = 1, M = 1000), 
+     dofit = TRUE, domargins = TRUE)
+mmltoptim(auglag = list(maxtry = 5), ...)
+\method{coef}{cmmlt}(object, newdata, 
+                    type = c("all", "conditional", "Lambda", "Lambdainv", 
+                             "Precision", "PartialCorr", "Sigma", "Corr", 
+                             "Spearman", "Kendall"), 
+                     ...)
+\method{coef}{mmmlt}(object, newdata, 
                     type = c("all", "marginal", "Lambda", "Lambdainv", 
-                             "Sigma", "Corr", "Spearman"), 
+                             "Precision", "PartialCorr", "Sigma", "Corr", 
+                             "Spearman", "Kendall"), 
                      ...)
 \method{predict}{mmlt}(object, newdata, margins = 1:J, 
-                       type = c("trafo", "distribution", "density"), 
-                       log = FALSE, ...)
+                       type = c("trafo", "distribution", "survivor", "density", "hazard"), 
+                       log = FALSE, args = object$args, ...)
 \method{simulate}{mmlt}(object, nsim = 1L, seed = NULL, newdata, K = 50, ...)
 }
 \arguments{
@@ -40,14 +50,22 @@ gives the same likelihood but different parameter estimates.
 }
   \item{theta}{an optional vector of starting values.
 }
-  \item{control.outer}{a list controlling \code{\link[alabama]{auglag}}
+  \item{fixed}{an optional named numeric vector of predefined parameter values.
 }
-  \item{scale}{logical; parameters are not scaled prior to optimisation by
-default.
+  \item{scale}{a logical indicating if (internal) scaling shall be applied
+          to the model coefficients.
 }
+  \item{optim}{a list of optimisers as returned by \code{\link{mmltoptim}}
+}
+  \item{args}{a list of arguments for \code{\link[mvtnorm]{lpmvnorm}}.}
   \item{dofit}{logical; parameters are fitted by default, otherwise a list
                with log-likelihood and score function is returned.
 }
+  \item{domargins}{logical; all model parameters are fitted by default, 
+                   including the parameters of marginal models.
+}
+\item{auglag}{a list of arguments to \code{\link[alabama]{auglag}} ensuring
+              a numerically determined Hessian is returned.}
   \item{object}{an object of class \code{mmlt}.
 }
   \item{newdata}{an optional data.frame coefficients and predictions shall
@@ -68,9 +86,7 @@ variable, or multiple integers (currently only \code{1:j} implemented).
 }
 \details{
   The function implements multivariate conditional transformation models
-  as described by Klein et al (2020). The response is assumed absolutely
-  continuous at the moment, discrete versions will be added later.
-
+  as described by Klein et al (2020). 
   Below is a simple example for an unconditional bivariate distribution.
   See \code{demo("undernutrition", package = "tram")} for a conditional
   three-variate example.
@@ -104,15 +120,20 @@ methods.
   logLik(m_speed_dist)
   sum(predict(m_speed_dist, newdata = cars, type = "density", log = TRUE))
 
-  ## lambda defining the Cholesky of the precision matrix,
-  ## with standard error
-  coef(m_speed_dist, type = "Lambda")
-  sqrt(vcov(m_speed_dist)["dist.sped.(Intercept)", 
-                          "dist.sped.(Intercept)"])
-
-  ## simpler: Wald test of independence of speed and dist (the "dist.sped.(Intercept)"
+  ## Wald test of independence of speed and dist (the "dist.sped.(Intercept)"
   ## coefficient)
   summary(m_speed_dist)
+
+  ## LR test comparing to independence model
+  LR <- 2 * (logLik(m_speed_dist) - logLik(m_speed) - logLik(m_dist))
+  pchisq(LR, df = 1, lower.tail = FALSE)
+
+  ## constrain lambda to zero and fit independence model
+  ## => log-likelihood is the sum of the marginal log-likelihoods
+  mI <- mmlt(m_speed, m_dist, formula = ~1, data = cars, 
+             fixed = c("dist.sped.(Intercept)" = 0))
+  logLik(m_speed) + logLik(m_dist)
+  logLik(mI)
 
   ## linear correlation, ie Pearson correlation of speed and dist after
   ## transformation to bivariate normality

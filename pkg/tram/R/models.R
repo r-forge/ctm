@@ -11,6 +11,15 @@ Coxph <- function(formula, data, subset, weights, offset, cluster, na.action = n
               inherits(td$response, "response") ||
               is.numeric(td$response))
 
+    if (.mrightORmcounting(td$response)) {
+        ocall <- call <- match.call(expand.dots = TRUE)
+        call$primary <- "Coxph"
+        call[[1L]] <- quote(Compris)
+        ret <- eval(call, parent.frame())
+        ret$call <- ocall
+        return(ret)
+    }
+
     ret <- tram(td, transformation = "smooth", distribution = "MinExtrVal", 
                 negative = FALSE, ...)
     if (!inherits(ret, "mlt")) return(ret)
@@ -22,7 +31,8 @@ Coxph <- function(formula, data, subset, weights, offset, cluster, na.action = n
         ret$tram <- paste(ifelse(is.null(td$mt$s), "", "(Stratified)"), 
                           "Parametric Linear Cox Regression Model")
     }
-    class(ret) <- c("Coxph", class(ret))
+    if (!inherits(ret, "fmlt"))
+        class(ret) <- c("Coxph", class(ret))
     ret
 }
 
@@ -89,7 +99,8 @@ Aareg <- function(formula, data, subset, weights, offset, cluster, na.action = n
         ret$tram <- paste(ifelse(is.null(td$mt$s), "", "(Stratified)"), 
                           "Parametric Linear Aalen Regression Model")
     }
-    class(ret) <- c("Aareg", class(ret))
+    if (!inherits(ret, "fmlt"))
+        class(ret) <- c("Aareg", class(ret))
     ret
 }
 
@@ -186,7 +197,8 @@ Survreg <- function(formula, data, subset, weights, offset, cluster, na.action =
         ret$tram <- paste(ifelse(is.null(td$mt$s), "", "(Stratified)"),
                           .simpleCap(dist), "Linear Regression Model")
     }
-    class(ret) <- c("Survreg", class(ret))
+    if (!inherits(ret, "fmlt"))
+        class(ret) <- c("Survreg", class(ret))
     ret
 }
 
@@ -202,6 +214,15 @@ Colr <- function(formula, data, subset, weights, offset, cluster, na.action = na
               inherits(td$response, "response") ||
               is.numeric(td$response))
 
+    if (.mrightORmcounting(td$response)) {
+        ocall <- call <- match.call(expand.dots = TRUE)
+        call$primary <- "Colr"
+        call[[1L]] <- quote(Compris)
+        ret <- eval(call, parent.frame())
+        ret$call <- ocall
+        return(ret)
+    }
+
     ret <- tram(td, transformation = "smooth", 
                 distribution = "Logistic", negative = FALSE, ...)
     if (!inherits(ret, "mlt")) return(ret)
@@ -213,7 +234,8 @@ Colr <- function(formula, data, subset, weights, offset, cluster, na.action = na
         ret$tram <- paste(ifelse(is.null(td$mt$s), "", "(Stratified)"),
                           "Continuous Outcome Logistic Regression")
     }
-    class(ret) <- c("Colr", class(ret))
+    if (!inherits(ret, "fmlt"))
+        class(ret) <- c("Colr", class(ret))
     ret
 }
 
@@ -253,7 +275,8 @@ Polr <- function(formula, data, subset, weights, offset, cluster, na.action = na
                               "Ordered Probit Regression Model")
         }                   
     }
-    class(ret) <- c("Polr", class(ret))
+    if (!inherits(ret, "fmlt"))
+        class(ret) <- c("Polr", class(ret))
     ret
 }
 
@@ -280,7 +303,8 @@ Lm <- function(formula, data, subset, weights, offset, cluster, na.action = na.o
         ret$tram <- paste(ifelse(is.null(td$mt$s), "", "(Stratified)"),
                           "Normal Linear Regression Model")
     }
-    class(ret) <- c("Lm", class(ret))
+    if (!inherits(ret, "fmlt"))
+        class(ret) <- c("Lm", class(ret))
     ret
 }
 
@@ -296,6 +320,15 @@ BoxCox <- function(formula, data, subset, weights, offset, cluster, na.action = 
               inherits(td$response, "response") ||
               is.numeric(td$response))
 
+    if (.mrightORmcounting(td$response)) {
+        ocall <- call <- match.call(expand.dots = TRUE)
+        call$primary <- "BoxCox"
+        call[[1L]] <- quote(Compris)
+        ret <- eval(call, parent.frame())
+        ret$call <- ocall
+        return(ret)
+    }
+
     ret <- tram(td, transformation = "smooth", distribution = "Normal", 
                 negative = TRUE, ...)
     if (!inherits(ret, "mlt")) return(ret)
@@ -307,7 +340,8 @@ BoxCox <- function(formula, data, subset, weights, offset, cluster, na.action = 
         ret$tram <- paste(ifelse(is.null(td$mt$s), "", "(Stratified)"),
                           "Non-normal (Box-Cox-Type) Linear Regression Model")
     }
-    class(ret) <- c("BoxCox", class(ret))
+    if (!inherits(ret, "fmlt"))
+        class(ret) <- c("BoxCox", class(ret))
     ret
 }
 
@@ -334,7 +368,8 @@ Lehmann <- function(formula, data, subset, weights, offset, cluster, na.action =
         ret$tram <- paste(ifelse(is.null(td$mt$s), "", "(Stratified)"),
                           "Proportional Reverse Time Hazards Linear Regression Model")
     }
-    class(ret) <- c("Lehmann", class(ret))
+    if (!inherits(ret, "fmlt"))
+        class(ret) <- c("Lehmann", class(ret))
     ret
 }
 

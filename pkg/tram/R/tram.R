@@ -108,6 +108,7 @@ tram_data <- function(formula, data, subset, weights, offset, cluster, na.action
 
 tram <- function(formula, data, subset, weights, offset, cluster, na.action = na.omit,
                  distribution = c("Normal", "Logistic", "MinExtrVal", "MaxExtrVal", "Exponential", "Cauchy", "Laplace"),
+                 frailty = c("None", "Gamma", "InvGauss", "PositiveStable"),
                  transformation = c("discrete", "linear", "logarithmic", "smooth"),
                  LRtest = TRUE, 
                  prob = c(.1, .9), support = NULL, bounds = NULL, add = c(0, 0), order = 6, negative =
@@ -124,6 +125,11 @@ tram <- function(formula, data, subset, weights, offset, cluster, na.action = na
 #        call$dofit <- FALSE
         fitted <- eval(call[!names(call) %in% c("constraints", "model_only")], parent.frame())
     }
+
+    frailty <- match.arg(frailty)
+    distribution <- match.arg(distribution)
+    if (frailty != "None" && distribution != "MinExtrVal")
+        stop("Frailties only implemented for distribution = MinExtrVal")
 
     if (!inherits(td <- formula, "tram_data")) {
         mf <- match.call(expand.dots = FALSE)
@@ -303,6 +309,11 @@ tram <- function(formula, data, subset, weights, offset, cluster, na.action = na
         fulllogLik <- logLik(ret)
         ret$LRtest <- c(LRstat = -2 * (nulllogLik - fulllogLik), 
                         df = attr(fulllogLik, "df") - attr(nulllogLik, "df"))
+    }
+
+    if (frailty != "None") {
+        ret <- mlt:::fmlt(as.mlt(ret), frailty = frailty)
+        ret$frailty <- frailty
     }
 
     ret

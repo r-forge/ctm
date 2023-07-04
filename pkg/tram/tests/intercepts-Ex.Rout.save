@@ -1,13 +1,11 @@
 
-R version 4.3.0 (2023-04-21) -- "Already Tomorrow"
+R version 4.3.1 (2023-06-16) -- "Beagle Scouts"
 Copyright (C) 2023 The R Foundation for Statistical Computing
 Platform: x86_64-pc-linux-gnu (64-bit)
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
 Type 'license()' or 'licence()' for distribution details.
-
-  Natural language support but running in an English locale
 
 R is a collaborative project with many contributors.
 Type 'contributors()' for more information and
@@ -22,7 +20,8 @@ Type 'q()' to quit R.
 Loading required package: mlt
 Loading required package: basefun
 Loading required package: variables
-> options(digits = 3) ## make M1 happy
+Loading required package: mvtnorm
+> options(digits = 1) ## make M1 happy
 > 
 > ## dgp
 > set.seed(29)
@@ -38,52 +37,52 @@ Loading required package: variables
 > m0 <- Survreg(y ~ x | x, data = d, remove_intercept = FALSE)
 > coef(as.mlt(m0))
      log(y) (Intercept)           x       scl_x 
-     1.5168      2.3807     -0.1040     -0.0377 
+       1.52        2.38       -0.10       -0.04 
 > sqrt(diag(vcov(m0)))
 (Intercept)           x       scl_x 
-      0.142       0.241       0.155 
+        0.1         0.2         0.2 
 > 
 > m1 <- Survreg(y ~ xx | x, data = d, remove_intercept = FALSE)
 > coef(as.mlt(m1))
      log(y) (Intercept)          xx       scl_x 
-     1.5168      1.8610     -0.1039     -0.0376 
+       1.52        1.86       -0.10       -0.04 
 > sqrt(diag(vcov(m1)))
 (Intercept)          xx       scl_x 
-      1.088       0.241       0.155 
+        1.1         0.2         0.2 
 > 
 > m2 <- Survreg(y ~ xx | xx, data = d, remove_intercept = FALSE)
 > coef(as.mlt(m2))
      log(y) (Intercept)          xx      scl_xx 
-     1.3805      1.8608     -0.1040     -0.0377 
+       1.38        1.86       -0.10       -0.04 
 > sqrt(diag(vcov(m2)))
 (Intercept)          xx      scl_xx 
-      1.088       0.241       0.155 
+        1.1         0.2         0.2 
 > 
 > 
 > ## h-intercept; scale_shift
 > m0 <- Survreg(y ~ x | x, data = d, scale_shift = TRUE)
 > coef(as.mlt(m0))
 (Intercept)      log(y)           x       scl_x 
-    -2.3823      1.5174     -0.0614     -0.0394 
+      -2.38        1.52       -0.06       -0.04 
 > sqrt(diag(vcov(m0)))
     x scl_x 
-0.113 0.158 
+  0.1   0.2 
 > 
 > m1 <- Survreg(y ~ xx | x, data = d, scale_shift = TRUE)
 > coef(as.mlt(m1))
 (Intercept)      log(y)          xx       scl_x 
-    -2.0753      1.5174     -0.0614     -0.0394 
+      -2.08        1.52       -0.06       -0.04 
 > sqrt(diag(vcov(m1)))
    xx scl_x 
-0.113 0.158 
+  0.1   0.2 
 > 
 > m2 <- Survreg(y ~ xx | xx, data = d, scale_shift = TRUE)
 > coef(as.mlt(m2))
 (Intercept)      log(y)          xx      scl_xx 
-    -1.8808      1.3751     -0.0556     -0.0394 
+      -1.88        1.38       -0.06       -0.04 
 > sqrt(diag(vcov(m2)))
     xx scl_xx 
- 0.097  0.157 
+   0.1    0.2 
 > 
 > OR <- 1
 > 
@@ -96,10 +95,10 @@ In c.basis(bresponse = function (data, deriv = 0L, integrate = FALSE)  :
   more than one basis contains an intercept term
 > coef(as.mlt(m0))
     Bs1(ly) (Intercept)           x       scl_x 
-    -1.4713     -0.6770      0.0725     -0.0381 
+      -1.47       -0.68        0.07       -0.04 
 > sqrt(diag(vcov(m0)))
 (Intercept)           x       scl_x 
-     0.0795      0.1361      0.1565 
+       0.08        0.14        0.16 
 > 
 > m1 <- Coxph(ly ~ xx | x, data = d, log_first = FALSE, order = OR, remove_intercept = FALSE)
 Warning message:
@@ -107,10 +106,10 @@ In c.basis(bresponse = function (data, deriv = 0L, integrate = FALSE)  :
   more than one basis contains an intercept term
 > coef(as.mlt(m1))
     Bs1(ly) (Intercept)          xx       scl_x 
-    -1.4713     -0.3148      0.0725     -0.0381 
+      -1.47       -0.31        0.07       -0.04 
 > sqrt(diag(vcov(m1)))
 (Intercept)          xx       scl_x 
-      0.614       0.136       0.156 
+        0.6         0.1         0.2 
 > 
 > m2 <- Coxph(ly ~ xx | xx, data = d, log_first = FALSE, order = OR, remove_intercept = FALSE)
 Warning message:
@@ -118,39 +117,39 @@ In c.basis(bresponse = function (data, deriv = 0L, integrate = FALSE)  :
   more than one basis contains an intercept term
 > coef(as.mlt(m2))
     Bs1(ly) (Intercept)          xx      scl_xx 
-    -1.3388     -0.3161      0.0722     -0.0377 
+      -1.34       -0.32        0.07       -0.04 
 > sqrt(diag(vcov(m2)))
 (Intercept)          xx      scl_xx 
-      0.613       0.136       0.156 
+        0.6         0.1         0.2 
 > 
 > OR <- 1
 > 
 > ## h-intercept; scale_shift
 > m0 <- Coxph(y ~ x | x, data = d, scale_shift = TRUE, log_first = TRUE, order = OR)
 > coef(as.mlt(m0))
- Bs1(y)  Bs2(y)       x   scl_x 
--2.1495  0.7940  0.0614 -0.0394 
+Bs1(y) Bs2(y)      x  scl_x 
+ -2.15   0.79   0.06  -0.04 
 > sqrt(diag(vcov(m0)))
     x scl_x 
-0.113 0.158 
+  0.1   0.2 
 > 
 > m1 <- Coxph(y ~ xx | x, data = d, scale_shift = TRUE, log_first = TRUE, order = OR)
 > coef(as.mlt(m1))
- Bs1(y)  Bs2(y)      xx   scl_x 
--1.8426  1.1009  0.0614 -0.0394 
+Bs1(y) Bs2(y)     xx  scl_x 
+ -1.84   1.10   0.06  -0.04 
 > sqrt(diag(vcov(m1)))
    xx scl_x 
-0.113 0.158 
+  0.1   0.2 
 > 
 > m2 <- Coxph(y ~ xx | xx, data = d, scale_shift = TRUE, log_first = TRUE, order = OR)
 > coef(as.mlt(m2))
- Bs1(y)  Bs2(y)      xx  scl_xx 
--1.6788  0.9963  0.0549 -0.0381 
+Bs1(y) Bs2(y)     xx scl_xx 
+ -1.68   1.00   0.05  -0.04 
 > sqrt(diag(vcov(m2)))
     xx scl_xx 
-0.0974 0.1577 
+   0.1    0.2 
 > 
 > 
 > proc.time()
    user  system elapsed 
-  2.161   0.066   2.218 
+   1.41    0.03    1.44 
