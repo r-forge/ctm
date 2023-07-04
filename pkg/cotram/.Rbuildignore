@@ -7,7 +7,3 @@ test_randomunif.R
 demo/
 Makefile
 tests/mcotram-Ex.R
-R/mcotram.R
-man/mcotram.R
-demo/
-tests/mcotram-Ex.R*
