@@ -380,24 +380,11 @@ The following object is masked from 'package:MASS':
 [1] TRUE
 > 
 > ## predicting marginal distributions and comparing across models with constant lambda
-> predict(mm01, newdata = d[1:5,], q = -2:2, 
-+         margins = 1, type = "distribution")
-       
-Y1         [,1]    [,2]    [,3]    [,4]    [,5]
-     -2 4.9e-09 1.8e-05 5.6e-14 4.3e-08 1.1e-09
-     -1 2.0e-06 1.3e-03 1.4e-10 1.1e-05 5.7e-07
-      0 2.3e-04 2.8e-02 1.0e-07 9.1e-04 8.9e-05
-      1 8.6e-03 2.2e-01 2.3e-05 2.3e-02 4.3e-03
-      2 1.0e-01 6.3e-01 1.5e-03 1.9e-01 6.5e-02
-> predict(mm02, newdata = d[1:5,], q = -2:2, 
-+         margins = 2, type = "distribution")
-       
-Y1         [,1]    [,2]    [,3]    [,4]    [,5]
-     -2 4.9e-09 1.8e-05 5.6e-14 4.3e-08 1.1e-09
-     -1 2.0e-06 1.3e-03 1.4e-10 1.1e-05 5.7e-07
-      0 2.3e-04 2.8e-02 1.0e-07 9.1e-04 8.9e-05
-      1 8.6e-03 2.2e-01 2.3e-05 2.3e-02 4.3e-03
-      2 1.0e-01 6.3e-01 1.5e-03 1.9e-01 6.5e-02
+> chk(predict(mm01, newdata = d[1:5,], q = -2:2, 
++         margins = 1, type = "distribution"),
++     predict(mm02, newdata = d[1:5,], q = -2:2, 
++         margins = 2, type = "distribution"))
+[1] TRUE
 > 
 > ## expect correlations to be the same for the model with constant lambdas
 > chk(c(coef(mm01, newdata = d[1:5,], type = "Cor")), 
@@ -465,70 +452,49 @@ Y1         [,1]    [,2]    [,3]    [,4]    [,5]
 > chk(logLik(mm01), logLik(mm02))
 [1] TRUE
 > 
-> ## x-dependent correlations. expect slightly different logliks
-> mm1 <- mmlt(b1, b2, formula = ~ X1 + X2 + X3, data = d)
-> mm2 <- mmlt(b2, b1, formula = ~ X1 + X2 + X3, data = d)
-> 
-> logLik(mm1)
-'log Lik.' -277 (df=14)
-> logLik(mm2)
-'log Lik.' -277 (df=14)
-> 
 > ## checking gradients
 > chk(c(numDeriv::grad(mm01$ll, mm02$par)),c(mm01$sc(mm02$par)))
 [1] TRUE
-> chk(c(numDeriv::grad(mm1$ll, mm2$par)),c(mm1$sc(mm2$par)))
-[1] TRUE
 > 
-> ### BUT
+> ## x-dependent correlations. expect slightly different logliks when
+> ## conditional = TRUE
+> mm1 <- mmlt(b1, b2, formula = ~ X1 + X2 + X3, data = d, conditional = TRUE)
+Warning message:
+In mmlt(b1, b2, formula = ~X1 + X2 + X3, data = d, conditional = TRUE) :
+  Conditional models with covariate-dependent correlations are order-dependent
+> mm2 <- mmlt(b2, b1, formula = ~ X1 + X2 + X3, data = d, conditional = TRUE)
+Warning message:
+In mmlt(b2, b1, formula = ~X1 + X2 + X3, data = d, conditional = TRUE) :
+  Conditional models with covariate-dependent correlations are order-dependent
+> 
+> logLik(mm1)
+'log Lik.' -266 (df=14)
+> logLik(mm2)
+'log Lik.' -282 (df=14)
+> 
+> ### BUT: identical models when conditional = FALSE
 > mm1 <- mmlt(b1, b2, formula = ~ X1 + X2 + X3, data = d, conditional = FALSE)
 > mm2 <- mmlt(b2, b1, formula = ~ X1 + X2 + X3, data = d, conditional = FALSE)
 > 
-> logLik(mm1)
-'log Lik.' -277 (df=14)
-> logLik(mm2)
-'log Lik.' -277 (df=14)
+> chk(logLik(mm1), logLik(mm2))
+[1] TRUE
 > 
 > ## predicting marginal distributions and comparing across models with constant lambda
 > x <- 0:4 / 4
 > nd <- expand.grid(X1 = x, X2 = x, X3 = x)
-> predict(mm01, newdata = nd[1:5,], q = -2:2, 
-+         margins = 1, type = "distribution")
-       
-Y1         [,1]    [,2]    [,3]    [,4]    [,5]
-     -2 0.00045 3.8e-05 2.1e-06 8.2e-08 2.1e-09
-     -1 0.01047 1.6e-03 1.7e-04 1.2e-05 5.8e-07
-      0 0.09727 2.6e-02 5.0e-03 6.6e-04 5.9e-05
-      1 0.38758 1.8e-01 5.9e-02 1.4e-02 2.3e-03
-      2 0.76608 5.3e-01 2.9e-01 1.2e-01 3.4e-02
-> predict(mm02, newdata = nd[1:5,], q = -2:2, 
-+         margins = 2, type = "distribution")
-       
-Y1         [,1]    [,2]    [,3]    [,4]    [,5]
-     -2 0.00045 3.8e-05 2.1e-06 8.2e-08 2.1e-09
-     -1 0.01047 1.6e-03 1.7e-04 1.2e-05 5.8e-07
-      0 0.09727 2.6e-02 5.0e-03 6.6e-04 5.9e-05
-      1 0.38758 1.8e-01 5.9e-02 1.4e-02 2.3e-03
-      2 0.76608 5.3e-01 2.9e-01 1.2e-01 3.4e-02
+> chk(predict(mm01, newdata = nd[1:5,], q = -2:2, 
++         margins = 1, type = "distribution"),
++     predict(mm02, newdata = nd[1:5,], q = -2:2, 
++         margins = 2, type = "distribution"))
+[1] TRUE
 > 
-> predict(mm1, newdata = nd[1:5,], q = -2:2, 
-+         margins = 1, type = "distribution")
-       
-Y1         [,1]    [,2]    [,3]    [,4]    [,5]
-     -2 0.00025 1.8e-05 8.3e-07 2.6e-08 5.3e-10
-     -1 0.00769 1.0e-03 9.5e-05 5.7e-06 2.3e-07
-      0 0.08624 2.2e-02 3.8e-03 4.4e-04 3.4e-05
-      1 0.38017 1.7e-01 5.3e-02 1.2e-02 1.7e-03
-      2 0.77463 5.4e-01 2.9e-01 1.1e-01 3.1e-02
-> predict(mm2, newdata = nd[1:5,], q = -2:2, 
-+         margins = 2, type = "distribution")
-       
-Y1         [,1]    [,2]    [,3]    [,4]    [,5]
-     -2 0.00025 1.8e-05 8.3e-07 2.6e-08 5.3e-10
-     -1 0.00769 1.0e-03 9.5e-05 5.7e-06 2.3e-07
-      0 0.08624 2.2e-02 3.8e-03 4.4e-04 3.4e-05
-      1 0.38017 1.7e-01 5.3e-02 1.2e-02 1.7e-03
-      2 0.77463 5.4e-01 2.9e-01 1.1e-01 3.1e-02
+> ## predicting marginal distributions and comparing across models with
+> ## x-dependent lambda and conditional = FALSE
+> chk(predict(mm1, newdata = nd[1:5,], q = -2:2, 
++         margins = 1, type = "distribution"),
++     predict(mm2, newdata = nd[1:5,], q = -2:2, 
++         margins = 2, type = "distribution"))
+[1] TRUE
 > 
 > ## expect correlations to be the same for the model with constant lambdas
 > chk(c(coef(mm01, newdata = nd[1:5,], type = "Cor")), 
@@ -536,10 +502,9 @@ Y1         [,1]    [,2]    [,3]    [,4]    [,5]
 [1] TRUE
 > 
 > ## correlations for models with x-dependent lambda
-> c(coef(mm1, newdata = nd[1:5,], type = "Cor"))
-[1] -0.88 -0.85 -0.80 -0.73 -0.63
-> c(coef(mm2, newdata = nd[1:5,], type = "Cor"))
-[1] -0.88 -0.85 -0.80 -0.73 -0.63
+> chk(c(coef(mm1, newdata = nd[1:5,], type = "Cor")),
++     c(coef(mm2, newdata = nd[1:5,], type = "Cor")))
+[1] TRUE
 > 
 > 
 > ##### mix of BoxCox and Colr margins: ##### 
@@ -787,7 +752,6 @@ y.4.x.1   0.072   0.070   0.111   0.122
 +     if (args$fixed[i])
 +         m0$fixed <- fx
 +     m1 <- try(do.call("mmlt", m0))
-+     print(warnings())
 +     if (inherits(m1, "mmlt")) {
 +         print(logLik(m1))
 +         print(max(abs(coef(m1, type = "Cor") - CR)))
@@ -796,187 +760,139 @@ y.4.x.1   0.072   0.070   0.111   0.122
 +     }
 + }
 [1] 1
-NULL
 'log Lik.' -678 (df=18)
 [1] 0.045
 [1] 2
-NULL
 'log Lik.' -678 (df=18)
 [1] 0.045
 [1] 3
-NULL
 'log Lik.' -678 (df=18)
 [1] 0.046
 [1] 4
-NULL
 'log Lik.' -678 (df=18)
 [1] 0.046
 [1] 5
-NULL
 'log Lik.' -678 (df=18)
 [1] 0.045
 [1] 6
-NULL
 'log Lik.' -678 (df=18)
 [1] 0.045
 [1] 7
-NULL
 [1] 678
 [1] 8
-NULL
 [1] 678
 [1] 9
-NULL
 'log Lik.' -678 (df=20)
 [1] 4e-08
 [1] 10
-NULL
 'log Lik.' -678 (df=20)
 [1] 3.3e-08
 [1] 11
-NULL
 'log Lik.' -678 (df=20)
 [1] 0
 [1] 12
-NULL
 'log Lik.' -678 (df=20)
 [1] 0
 [1] 13
-NULL
 'log Lik.' -678 (df=20)
 [1] 3.6e-08
 [1] 14
-NULL
 'log Lik.' -678 (df=20)
 [1] 0
 [1] 15
-NULL
 [1] 678
 [1] 16
-NULL
 [1] 678
 [1] 17
-NULL
 'log Lik.' -678 (df=18)
 [1] 0.045
 [1] 18
-NULL
 'log Lik.' -678 (df=18)
 [1] 0.045
 [1] 19
-NULL
 'log Lik.' -678 (df=18)
 [1] 0.045
 [1] 20
-NULL
 'log Lik.' -678 (df=18)
 [1] 0.045
 [1] 21
-NULL
 'log Lik.' -681 (df=18)
 [1] 0.046
 [1] 22
-NULL
 'log Lik.' -681 (df=18)
 [1] 0.046
 [1] 23
-NULL
 'log Lik.' -678 (df=18)
 [1] 0.045
 [1] 24
-NULL
 'log Lik.' -678 (df=18)
 [1] 0.045
 [1] 25
-NULL
 'log Lik.' -678 (df=18)
 [1] 0.045
 [1] 26
-NULL
 'log Lik.' -678 (df=18)
 [1] 0.045
 [1] 27
-NULL
 'log Lik.' -678 (df=18)
 [1] 0.045
 [1] 28
-NULL
 'log Lik.' -678 (df=18)
 [1] 0.045
 [1] 29
-NULL
 [1] 681
 [1] 30
-NULL
 [1] 681
 [1] 31
-NULL
 'log Lik.' -678 (df=18)
 [1] 0.045
 [1] 32
-NULL
 'log Lik.' -678 (df=18)
 [1] 0.045
 [1] 33
-NULL
 'log Lik.' -678 (df=20)
 [1] 3.7e-08
 [1] 34
-NULL
 'log Lik.' -678 (df=20)
 [1] 7.6e-06
 [1] 35
-NULL
 'log Lik.' -678 (df=20)
 [1] 1.1e-16
 [1] 36
-NULL
 'log Lik.' -678 (df=20)
 [1] 1.1e-16
 [1] 37
-NULL
 'log Lik.' -681 (df=20)
 [1] 1.1e-16
 [1] 38
-NULL
 'log Lik.' -681 (df=20)
 [1] 1.1e-16
 [1] 39
-NULL
 'log Lik.' -678 (df=20)
 [1] 1.1e-16
 [1] 40
-NULL
 'log Lik.' -678 (df=20)
 [1] 1.1e-16
 [1] 41
-NULL
 'log Lik.' -678 (df=20)
 [1] 3.6e-08
 [1] 42
-NULL
 'log Lik.' -678 (df=20)
 [1] 3.6e-08
 [1] 43
-NULL
 'log Lik.' -678 (df=20)
 [1] 8.9e-08
 [1] 44
-NULL
 'log Lik.' -678 (df=20)
 [1] 8.9e-08
 [1] 45
-NULL
 [1] 681
 [1] 46
-NULL
 [1] 681
 [1] 47
-NULL
 'log Lik.' -678 (df=20)
 [1] 8.9e-08
 [1] 48
-NULL
 'log Lik.' -678 (df=20)
 [1] 8.9e-08
 > 
@@ -1008,4 +924,4 @@ NULL
 > 
 > proc.time()
    user  system elapsed 
-  33.90    0.12   34.10 
+   37.1     0.1    37.2 
