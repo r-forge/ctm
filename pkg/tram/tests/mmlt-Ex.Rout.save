@@ -754,147 +754,147 @@ y.4.x.1   0.072   0.070   0.111   0.122
 +     m1 <- try(do.call("mmlt", m0))
 +     if (inherits(m1, "mmlt")) {
 +         print(logLik(m1))
-+         print(max(abs(coef(m1, type = "Cor") - CR)))
++         print(chk(coef(m1, type = "Cor"), CR))
 +     } else {
 +         print(m1$ll(theta))
 +     }
 + }
 [1] 1
 'log Lik.' -678 (df=18)
-[1] 0.045
+[1] "Mean relative difference: 0.044"
 [1] 2
 'log Lik.' -678 (df=18)
-[1] 0.045
+[1] "Mean relative difference: 0.044"
 [1] 3
 'log Lik.' -678 (df=18)
-[1] 0.046
+[1] "Mean relative difference: 0.27"
 [1] 4
 'log Lik.' -678 (df=18)
-[1] 0.046
+[1] "Mean relative difference: 0.27"
 [1] 5
 'log Lik.' -678 (df=18)
-[1] 0.045
+[1] "Mean relative difference: 0.043"
 [1] 6
 'log Lik.' -678 (df=18)
-[1] 0.045
+[1] "Mean relative difference: 0.043"
 [1] 7
 [1] 678
 [1] 8
 [1] 678
 [1] 9
 'log Lik.' -678 (df=20)
-[1] 4e-08
+[1] TRUE
 [1] 10
 'log Lik.' -678 (df=20)
-[1] 3.3e-08
+[1] TRUE
 [1] 11
 'log Lik.' -678 (df=20)
-[1] 0
+[1] TRUE
 [1] 12
 'log Lik.' -678 (df=20)
-[1] 0
+[1] TRUE
 [1] 13
 'log Lik.' -678 (df=20)
-[1] 3.6e-08
+[1] TRUE
 [1] 14
 'log Lik.' -678 (df=20)
-[1] 0
+[1] TRUE
 [1] 15
 [1] 678
 [1] 16
 [1] 678
 [1] 17
 'log Lik.' -678 (df=18)
-[1] 0.045
+[1] "Mean relative difference: 0.044"
 [1] 18
 'log Lik.' -678 (df=18)
-[1] 0.045
+[1] "Mean relative difference: 0.044"
 [1] 19
 'log Lik.' -678 (df=18)
-[1] 0.045
+[1] "Mean relative difference: 0.043"
 [1] 20
 'log Lik.' -678 (df=18)
-[1] 0.045
+[1] "Mean relative difference: 0.043"
 [1] 21
 'log Lik.' -681 (df=18)
-[1] 0.046
+[1] "Mean relative difference: 0.051"
 [1] 22
 'log Lik.' -681 (df=18)
-[1] 0.046
+[1] "Mean relative difference: 0.051"
 [1] 23
 'log Lik.' -678 (df=18)
-[1] 0.045
+[1] "Mean relative difference: 0.043"
 [1] 24
 'log Lik.' -678 (df=18)
-[1] 0.045
+[1] "Mean relative difference: 0.043"
 [1] 25
 'log Lik.' -678 (df=18)
-[1] 0.045
+[1] "Mean relative difference: 0.043"
 [1] 26
 'log Lik.' -678 (df=18)
-[1] 0.045
+[1] "Mean relative difference: 0.043"
 [1] 27
 'log Lik.' -678 (df=18)
-[1] 0.045
+[1] "Mean relative difference: 0.043"
 [1] 28
 'log Lik.' -678 (df=18)
-[1] 0.045
+[1] "Mean relative difference: 0.043"
 [1] 29
 [1] 681
 [1] 30
 [1] 681
 [1] 31
 'log Lik.' -678 (df=18)
-[1] 0.045
+[1] "Mean relative difference: 0.043"
 [1] 32
 'log Lik.' -678 (df=18)
-[1] 0.045
+[1] "Mean relative difference: 0.043"
 [1] 33
 'log Lik.' -678 (df=20)
-[1] 3.7e-08
+[1] TRUE
 [1] 34
 'log Lik.' -678 (df=20)
-[1] 7.6e-06
+[1] TRUE
 [1] 35
 'log Lik.' -678 (df=20)
-[1] 1.1e-16
+[1] TRUE
 [1] 36
 'log Lik.' -678 (df=20)
-[1] 1.1e-16
+[1] TRUE
 [1] 37
 'log Lik.' -681 (df=20)
-[1] 1.1e-16
+[1] TRUE
 [1] 38
 'log Lik.' -681 (df=20)
-[1] 1.1e-16
+[1] TRUE
 [1] 39
 'log Lik.' -678 (df=20)
-[1] 1.1e-16
+[1] TRUE
 [1] 40
 'log Lik.' -678 (df=20)
-[1] 1.1e-16
+[1] TRUE
 [1] 41
 'log Lik.' -678 (df=20)
-[1] 3.6e-08
+[1] TRUE
 [1] 42
 'log Lik.' -678 (df=20)
-[1] 3.6e-08
+[1] TRUE
 [1] 43
 'log Lik.' -678 (df=20)
-[1] 8.9e-08
+[1] TRUE
 [1] 44
 'log Lik.' -678 (df=20)
-[1] 8.9e-08
+[1] TRUE
 [1] 45
 [1] 681
 [1] 46
 [1] 681
 [1] 47
 'log Lik.' -678 (df=20)
-[1] 8.9e-08
+[1] TRUE
 [1] 48
 'log Lik.' -678 (df=20)
-[1] 8.9e-08
+[1] TRUE
 > 
 > ### names
 > J <- 5
@@ -924,4 +924,4 @@ y.4.x.1   0.072   0.070   0.111   0.122
 > 
 > proc.time()
    user  system elapsed 
-   37.1     0.1    37.2 
+  39.20    0.15   39.35 

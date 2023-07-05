@@ -533,7 +533,7 @@ for (i in 1:nrow(args)) {
     m1 <- try(do.call("mmlt", m0))
     if (inherits(m1, "mmlt")) {
         print(logLik(m1))
-        print(max(abs(coef(m1, type = "Cor") - CR)))
+        print(chk(coef(m1, type = "Cor"), CR))
     } else {
         print(m1$ll(theta))
     }
