@@ -279,10 +279,10 @@ chk(c(numDeriv::grad(mm01$ll, mm02$par)),
     c(mm01$sc(mm02$par)))
 
 ## predicting marginal distributions and comparing across models with constant lambda
-predict(mm01, newdata = d[1:5,], q = -2:2, 
-        margins = 1, type = "distribution")
-predict(mm02, newdata = d[1:5,], q = -2:2, 
-        margins = 2, type = "distribution")
+chk(predict(mm01, newdata = d[1:5,], q = -2:2, 
+        margins = 1, type = "distribution"),
+    predict(mm02, newdata = d[1:5,], q = -2:2, 
+        margins = 2, type = "distribution"))
 
 ## expect correlations to be the same for the model with constant lambdas
 chk(c(coef(mm01, newdata = d[1:5,], type = "Cor")), 
@@ -344,44 +344,45 @@ mm02 <- mmlt(b2, b1, formula = ~ 1, data = d)
 
 chk(logLik(mm01), logLik(mm02))
 
-## x-dependent correlations. expect slightly different logliks
-mm1 <- mmlt(b1, b2, formula = ~ X1 + X2 + X3, data = d)
-mm2 <- mmlt(b2, b1, formula = ~ X1 + X2 + X3, data = d)
+## checking gradients
+chk(c(numDeriv::grad(mm01$ll, mm02$par)),c(mm01$sc(mm02$par)))
+
+## x-dependent correlations. expect slightly different logliks when
+## conditional = TRUE
+mm1 <- mmlt(b1, b2, formula = ~ X1 + X2 + X3, data = d, conditional = TRUE)
+mm2 <- mmlt(b2, b1, formula = ~ X1 + X2 + X3, data = d, conditional = TRUE)
 
 logLik(mm1)
 logLik(mm2)
 
-## checking gradients
-chk(c(numDeriv::grad(mm01$ll, mm02$par)),c(mm01$sc(mm02$par)))
-chk(c(numDeriv::grad(mm1$ll, mm2$par)),c(mm1$sc(mm2$par)))
-
-### BUT
+### BUT: identical models when conditional = FALSE
 mm1 <- mmlt(b1, b2, formula = ~ X1 + X2 + X3, data = d, conditional = FALSE)
 mm2 <- mmlt(b2, b1, formula = ~ X1 + X2 + X3, data = d, conditional = FALSE)
 
-logLik(mm1)
-logLik(mm2)
+chk(logLik(mm1), logLik(mm2))
 
 ## predicting marginal distributions and comparing across models with constant lambda
 x <- 0:4 / 4
 nd <- expand.grid(X1 = x, X2 = x, X3 = x)
-predict(mm01, newdata = nd[1:5,], q = -2:2, 
-        margins = 1, type = "distribution")
-predict(mm02, newdata = nd[1:5,], q = -2:2, 
-        margins = 2, type = "distribution")
+chk(predict(mm01, newdata = nd[1:5,], q = -2:2, 
+        margins = 1, type = "distribution"),
+    predict(mm02, newdata = nd[1:5,], q = -2:2, 
+        margins = 2, type = "distribution"))
 
-predict(mm1, newdata = nd[1:5,], q = -2:2, 
-        margins = 1, type = "distribution")
-predict(mm2, newdata = nd[1:5,], q = -2:2, 
-        margins = 2, type = "distribution")
+## predicting marginal distributions and comparing across models with
+## x-dependent lambda and conditional = FALSE
+chk(predict(mm1, newdata = nd[1:5,], q = -2:2, 
+        margins = 1, type = "distribution"),
+    predict(mm2, newdata = nd[1:5,], q = -2:2, 
+        margins = 2, type = "distribution"))
 
 ## expect correlations to be the same for the model with constant lambdas
 chk(c(coef(mm01, newdata = nd[1:5,], type = "Cor")), 
     c(coef(mm02, newdata = nd[1:5,], type = "Cor")))
 
 ## correlations for models with x-dependent lambda
-c(coef(mm1, newdata = nd[1:5,], type = "Cor"))
-c(coef(mm2, newdata = nd[1:5,], type = "Cor"))
+chk(c(coef(mm1, newdata = nd[1:5,], type = "Cor")),
+    c(coef(mm2, newdata = nd[1:5,], type = "Cor")))
 
 
 ##### mix of BoxCox and Colr margins: ##### 
@@ -530,7 +531,6 @@ for (i in 1:nrow(args)) {
     if (args$fixed[i])
         m0$fixed <- fx
     m1 <- try(do.call("mmlt", m0))
-    print(warnings())
     if (inherits(m1, "mmlt")) {
         print(logLik(m1))
         print(max(abs(coef(m1, type = "Cor") - CR)))
