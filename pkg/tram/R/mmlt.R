@@ -682,6 +682,9 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
             }
             names(op$par) <- names(lambdastart)
             ret <- c(start, op$par * scl[names(lambdastart)])
+            ### note: We throw away optim_hessian. vcov.mmlt
+            ### uses numDeriv::hessian INCLUDING marginal parameters
+            ### (which is probably the right thing to do)
             ret <- list(par = ret, value = -op$value)
         } else {
             ### no parameters to optimise over
