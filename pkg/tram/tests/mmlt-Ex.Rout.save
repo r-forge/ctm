@@ -922,6 +922,59 @@ y.4.x.1   0.072   0.070   0.111   0.122
 > chk(unclass(coef(tmp, type = "Lambda"))[names(cf),], cf)
 [1] TRUE
 > 
+> ### check discrete models
+> J <- 2
+> N <- 100
+> S <- cov2cor(tcrossprod(matrix(runif(J * J), ncol = J)))
+> y <- rmvnorm(N, sigma = S)
+> u <- as.data.frame(plogis(y))
+> x <- runif(N)
+> d <- cbind(u, x)
+> un <- colnames(d)[1:J]
+> d[1:J] <- lapply(d[1:J], function(x) 
++     cut(x, breaks = c(-Inf, quantile(x, prob = 1:3 / 4), Inf), ordered_result = TRUE))
+> 
+> m <- lapply(un, function(i)
++     Polr(as.formula(paste(i, "~ x")), data = d, method = "probit"))
+> m$data <- d
+> m$formula <- ~ 1
+> m$args <- list(seed = 1, M = 100)
+> mm <- do.call("mmlt", m)
+> 
+> L <- as.array(coef(mm, type = "Lambda"))[,,1]
+> chk(as.array(coef(mm, type = "Lambdainv"))[,,1], solve(L))
+[1] TRUE
+> chk(as.array(coef(mm, type = "Sigma"))[,,1], tcrossprod(solve(L)))
+[1] TRUE
+> chk(as.array(coef(mm, type = "Cor"))[,,1], cov2cor(tcrossprod(solve(L))))
+[1] TRUE
+> chk(colSums(estfun(mm)), mm$score(coef(mm, type = "all")))
+[1] TRUE
+> 
+> for (j in 1:J) m[[j]]$todistr$name <- "CarlFriedrich"
+> 
+> mmN <- do.call("mmlt", m)
+> 
+> chk(logLik(mm), logLik(mmN))
+[1] TRUE
+> chk(coef(mm), coef(mmN))
+[1] TRUE
+> chk(diag(vcov(mm)), diag(vcov(mmN)))
+[1] TRUE
+> chk(as.array(coef(mm, type = "Lambda"))[,,1], 
++     as.array(coef(mmN, type = "Lambda"))[,,1])
+[1] TRUE
+> chk(as.array(coef(mm, type = "Lambdainv"))[,,1], 
++     as.array(coef(mmN, type = "Lambdainv"))[,,1])
+[1] TRUE
+> chk(as.array(coef(mm, type = "Sigma"))[,,1], 
++     as.array(coef(mmN, type = "Sigma"))[,,1])
+[1] TRUE
+> chk(as.array(coef(mm, type = "Spearman"))[,,1], 
++     as.array(coef(mmN, type = "Spearman"))[,,1])
+[1] TRUE
+> 
+> 
 > proc.time()
    user  system elapsed 
-  39.20    0.15   39.35 
+ 32.449   0.088  32.558 

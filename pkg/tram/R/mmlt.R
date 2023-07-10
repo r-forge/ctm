@@ -323,8 +323,11 @@
     if (what == "dzleft") {
 #        stopifnot(!models$cont[j])
         if (models$normal[[j]])
-            return(trl)
-        return(tmp$todistr$d(trl))
+            return(rep(1, length(trl)))
+        qn <- qnorm(tmp$todistr$p(trl, log = TRUE), log.p = TRUE)
+        dn <- dnorm(qn)
+        dn[!is.finite(dn)] <- 1
+        return(tmp$todistr$d(trl) / dn)
     }
    if (what == "zright") {
 #        stopifnot(!models$cont[j])
@@ -335,8 +338,11 @@
     if (what == "dzright") {
 #        stopifnot(!models$cont[j])
         if (models$normal[[j]])
-            return(trr)
-        return(tmp$todistr$d(trr))
+            return(rep(1, length(trr)))
+        qn <- qnorm(tmp$todistr$p(trr, log = TRUE), log.p = TRUE)
+        dn <- dnorm(qn)
+        dn[!is.finite(dn)] <- 1
+        return(tmp$todistr$d(trr) / dn)
     }
     if (what == "zprime") {
 #        stopifnot(models$cont[j])
@@ -593,12 +599,8 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
                 dzr <- .rbind(.mget(m, j = which(!m$cont), parm = parm, what = "dzright", newdata = newdata))
                 dzr[!is.finite(dzr)] <- 0
                 scp[cJ + 1:dJ] <- lapply(1:dJ, function(j) {
-                    dl <- c(dnorm(lower[j,]))
-                    dl[!is.finite(lower[j,])] <- 1
-                    dr <- c(dnorm(upper[j,]))
-                    dr[!is.finite(upper[j,])] <- 1
-                    return(CS(dmm[[j]]$Yleft / dl * c(dzl[j,]) * c(sc$lower[j,])) +
-                           CS(dmm[[j]]$Yright / dr * c(dzr[j,]) * c(sc$upper[j,])))
+                    return(CS(dmm[[j]]$Yleft * c(dzl[j,]) * c(sc$lower[j,])) +
+                           CS(dmm[[j]]$Yright * c(dzr[j,]) * c(sc$upper[j,])))
                 })
             }
         }
