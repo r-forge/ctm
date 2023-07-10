@@ -563,3 +563,45 @@ cf <- coef(tmp)
 cf <- cf[grep("Intercept", names(cf))]
 names(cf) <- substr(names(cf), 1, 5)
 chk(unclass(coef(tmp, type = "Lambda"))[names(cf),], cf)
+
+### check discrete models
+J <- 2
+N <- 100
+S <- cov2cor(tcrossprod(matrix(runif(J * J), ncol = J)))
+y <- rmvnorm(N, sigma = S)
+u <- as.data.frame(plogis(y))
+x <- runif(N)
+d <- cbind(u, x)
+un <- colnames(d)[1:J]
+d[1:J] <- lapply(d[1:J], function(x) 
+    cut(x, breaks = c(-Inf, quantile(x, prob = 1:3 / 4), Inf), ordered_result = TRUE))
+
+m <- lapply(un, function(i)
+    Polr(as.formula(paste(i, "~ x")), data = d, method = "probit"))
+m$data <- d
+m$formula <- ~ 1
+m$args <- list(seed = 1, M = 100)
+mm <- do.call("mmlt", m)
+
+L <- as.array(coef(mm, type = "Lambda"))[,,1]
+chk(as.array(coef(mm, type = "Lambdainv"))[,,1], solve(L))
+chk(as.array(coef(mm, type = "Sigma"))[,,1], tcrossprod(solve(L)))
+chk(as.array(coef(mm, type = "Cor"))[,,1], cov2cor(tcrossprod(solve(L))))
+chk(colSums(estfun(mm)), mm$score(coef(mm, type = "all")))
+
+for (j in 1:J) m[[j]]$todistr$name <- "CarlFriedrich"
+
+mmN <- do.call("mmlt", m)
+
+chk(logLik(mm), logLik(mmN))
+chk(coef(mm), coef(mmN))
+chk(diag(vcov(mm)), diag(vcov(mmN)))
+chk(as.array(coef(mm, type = "Lambda"))[,,1], 
+    as.array(coef(mmN, type = "Lambda"))[,,1])
+chk(as.array(coef(mm, type = "Lambdainv"))[,,1], 
+    as.array(coef(mmN, type = "Lambdainv"))[,,1])
+chk(as.array(coef(mm, type = "Sigma"))[,,1], 
+    as.array(coef(mmN, type = "Sigma"))[,,1])
+chk(as.array(coef(mm, type = "Spearman"))[,,1], 
+    as.array(coef(mmN, type = "Spearman"))[,,1])
+
