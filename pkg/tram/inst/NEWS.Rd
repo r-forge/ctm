@@ -2,7 +2,7 @@
 \name{NEWS}
 \title{NEWS file for the tram package}
 
-\section{Changes in Version 1.0-0 (2023-04-03)}{
+\section{Changes in Version 1.0-0 (2023-07-13)}{
   \itemize{
     \item{Improved, simplified, and generalised implementation of \code{mmlt}.}
     \item{\code{Coxph}, \code{Colr}, and \code{BoxCox} allow unbiased
