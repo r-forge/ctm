@@ -24,7 +24,7 @@ R.Surv <- function(object, as.R.ordered = FALSE, ...) {
           if (all(tm[status == 0] < utm[length(utm)]))
               utm <- utm[-length(utm)]
           ### convert to ordered factor
-          ct <- cut(tm, breaks = c(-Inf, utm, Inf), ordered = TRUE)
+          ct <- cut(tm, breaks = c(-Inf, utm, Inf), ordered_result = TRUE)
           ### events in category k contribute
           ### Prob(k) - Prob(k - 1)
           lf <- rg <- ct
