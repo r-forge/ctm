@@ -2,6 +2,14 @@
 \name{NEWS}
 \title{NEWS file for the mlt package}
 
+\section{Changes in Version 1.4-9 (2023-08-16)}{
+  \subsection{Bug Fix}{
+    \itemize{
+      \item{Make sure \code{R(Surv(...), as.R.ordered = TRUE)} matches Kaplan-Meier for right-censored and possibly tied observations.}
+    }
+  }
+}
+
 \section{Changes in Version 1.4-8 (2023-06-27)}{
   \subsection{New features}{
     \itemize{
