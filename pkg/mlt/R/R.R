@@ -34,7 +34,10 @@ R.Surv <- function(object, as.R.ordered = FALSE, ...) {
           rg[status == 0] <- levels(ct)[nlevels(ct)]
           ### Note: Censoring before first event contributes
           ### 1 - 0 = 1 (coded as interval with cleft = NA, cright = NA)
-          lf[status != 1] <- c(NA, levels(ct))[lf[status != 1]]
+          ### handle censoring times tied to event times separately
+          idx <- which(status != 1)
+          idx <- idx[!(tm[idx] %in% utm)]	### censoring tied to event
+          lf[idx] <- c(NA, levels(ct))[lf[idx]]
           ### left truncation
           tl <- NA
           if (type == "counting")
