@@ -105,7 +105,7 @@ vcov.tram <- function(object, with_baseline = FALSE, complete = FALSE, ...)
     Hbase <- H[-shift, -shift, drop = FALSE]
     Hoff <- H[shift, -shift, drop = FALSE]
     ### H <- try(Hlin - tcrossprod(Hoff %*% solve(Hbase), Hoff))
-    H <- try(Hlin - Hoff %*% solve(Hbase, t(Hoff)))
+    H <- try(Hlin - Hoff %*% solve(Hbase, t(as(Hoff, "matrix"))))
     if (inherits(H, "try-error"))
         return(vcov(as.mlt(object))[shift, shift])
     ret <- solve(H)
