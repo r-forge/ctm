@@ -64,7 +64,7 @@ mkbasis <- function(yvar, transformation = c("discrete", "linear", "logarithmic"
                 "linear" = {
                     fm <- as.formula(paste0("~", yvar$name))
                     as.basis(fm, data = as.data.frame(mkgrid(yvar), check.names = FALSE), 
-                             remove_intercept = TRUE)
+                             remove_intercept = TRUE, ui = Matrix(1), ci = 0)
                 },
                 "logarithmic" = log_basis(yvar, ui = "increasing", remove_intercept = TRUE),
                 "smooth" = Bernstein_basis(yvar, ui = c("increasing", "zeroint"), order = order,

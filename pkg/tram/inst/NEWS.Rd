@@ -9,6 +9,7 @@
           estimation of time-to-event distributions under dependent
           censoring.}
     \item{All \code{tram} models can be equipped with frailty terms.}
+    \item{Fix some minor issues.}
   }
 }
 
@@ -17,8 +18,6 @@
     \item{Update demo \code{stram}.}
   }
 }
-
-
 
 \section{Changes in Version 0.8-1 (2023-03-09)}{
   \itemize{
