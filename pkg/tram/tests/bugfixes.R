@@ -176,3 +176,12 @@ d <- data.frame(y = h2y( shift + FZi(U) / scale),
 m <- BoxCox(y ~ x | x, data = d, scale_shift = TRUE)
 coef(m)
 try(diag(vcov(m)))
+
+### constraints in remove intercept were incorrect
+### spotted by Balint
+stopifnot(isTRUE(all.equal(
+  coef(as.mlt(Lm(dist ~ 1, data = cars, remove_intercept = FALSE)))[2:1] * c(-1, 1),
+  coef(as.mlt(Lm(dist ~ 1, data = cars))), check.attributes = FALSE)))
+stopifnot(isTRUE(all.equal(
+  coef(as.mlt(Survreg(dist ~ 1, data = cars, remove_intercept = FALSE)))[2:1] * c(-1, 1),
+  coef(as.mlt(Survreg(dist ~ 1, data = cars))), check.attributes = FALSE)))
