@@ -302,7 +302,9 @@ Hessian.mtram <- function(object, ...) {
 ### simplest case of repeated measurements
 vcov.mtram <- function(object, ...) {
     class(object) <- c("mtram", "mlt")
-    return(mlt:::vcov.mlt(object))
+    ret <- mlt:::vcov.mlt(object)
+    colnames(ret) <- rownames(ret) <- names(coef(object))
+    return(ret)
 }
     
 .Marsaglia_1963 <- function(lower = rep(-Inf, nrow(sigma)), 
