@@ -9,8 +9,8 @@
   Multivariate Conditional Transformation Models
 }
 \description{
-  A proof-of-concept implementation of multivariate conditional
-  transformation models
+  Conditional transformation models for multivariate continuous, discrete,
+  or a mix of continuous and discrete outcomes
 }
 \usage{
 mmlt(..., formula = ~ 1, data, conditional = FALSE, theta = NULL, fixed = NULL,

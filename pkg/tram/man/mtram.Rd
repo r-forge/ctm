@@ -41,8 +41,9 @@ mtram(object, formula, data,
   transformation model. The methodology is described in Barbanti and Hothorn
   (2022) and examples are given in the \code{mtram} package vignette.
 
-  This is a proof-of-concept implementation. Only \code{coef()} and 
-  \code{logLik()} methods are available at the moment.
+  Only \code{coef()} and \code{logLik()} methods are available at the
+  moment, see \code{vignette("mtram", package = "tram")} for worked
+  examples.
 }
 \value{
   An object of class \code{tram} with \code{coef()} and \code{logLik()}
