@@ -73,7 +73,7 @@ distributions for the primary event of interest and all competing events.
 \references{
 
   Claudia Czado and Ingrid Van Keilegom (2023). Dependent Censoring Based on Parametric Copulas.
-  \emph{Biometrika}, \doi{10.1093/biomet/asac067}.
+  \emph{Biometrika}, \bold{110}(3), 721--738, \doi{10.1093/biomet/asac067}.
 
   Negera Wakgari Deresa and Ingrid Van Keilegom (2023).  Copula Based Cox Proportional Hazards 
   Models for Dependent Censoring. \emph{Journal of the American Statistical

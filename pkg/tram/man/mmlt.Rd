@@ -97,9 +97,9 @@ methods.
 }
 \references{
 
-  Nadja Klein, Torsten Hothorn, Luisa Barbanti, Thomas Kneib (2020),
+  Nadja Klein, Torsten Hothorn, Luisa Barbanti, Thomas Kneib (2022),
   Multivariate Conditional Transformation Models. \emph{Scandinavian Journal
-  of Statistics}, \doi{10.1111/sjos.12501}.
+  of Statistics}, \bold{49}, 116--142, \doi{10.1111/sjos.12501}.
 
 }
 \examples{
