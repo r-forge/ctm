@@ -3,11 +3,18 @@
 \title{NEWS file for the mlt.docreg package}
 
 
+\section{Changes in Version 1.1-7 (2023-08-28)}{
+  \itemize{
+    \item{Update reference output.}
+  }
+}
+
 \section{Changes in Version 1.1-6 (2022-08-15)}{
   \itemize{
     \item{Package \pkg{np} is scheduled for removal from CRAN.}
   }
 }
+
 
 
 \section{Changes in Version 1.1-5 (2022-06-21)}{

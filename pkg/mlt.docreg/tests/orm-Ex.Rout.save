@@ -1,6 +1,6 @@
 
-R version 4.1.2 (2021-11-01) -- "Bird Hippie"
-Copyright (C) 2021 The R Foundation for Statistical Computing
+R version 4.3.1 (2023-06-16) -- "Beagle Scouts"
+Copyright (C) 2023 The R Foundation for Statistical Computing
 Platform: x86_64-pc-linux-gnu (64-bit)
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
@@ -48,10 +48,6 @@ Type 'q()' to quit R.
 + }
 Loading required package: rms
 Loading required package: Hmisc
-Loading required package: lattice
-Loading required package: survival
-Loading required package: Formula
-Loading required package: ggplot2
 
 Attaching package: 'Hmisc'
 
@@ -59,29 +55,15 @@ The following objects are masked from 'package:base':
 
     format.pval, units
 
-Loading required package: SparseM
-
-Attaching package: 'SparseM'
-
-The following object is masked from 'package:base':
-
-    backsolve
-
 Loading required package: tram
 Loading required package: mlt
 Loading required package: basefun
 Loading required package: variables
-
-Attaching package: 'variables'
-
-The following object is masked from 'package:ggplot2':
-
-    unit
-
+Loading required package: mvtnorm
 > 
 > ret
 [1] TRUE
 > 
 > proc.time()
    user  system elapsed 
- 13.739   0.423  14.151 
+  6.070   0.180   6.244 
