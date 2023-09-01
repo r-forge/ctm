@@ -1,6 +1,6 @@
 Package: cotram
 Title: Count Transformation Models
-Version: 0.5-1
+Version: 0.5-0
 Date: 2023-09-01
 Authors@R: c(
 	person(given = "Sandra", family = "Siegfried", role = c("aut", "cre"), 
