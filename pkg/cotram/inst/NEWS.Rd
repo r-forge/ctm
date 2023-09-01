@@ -5,6 +5,7 @@
 \section{Changes in Version 0.5-0 (2023-07-04)}{
   \itemize{
     \item{Bring \code{mcotram} back with \pkg{tram} 1.0-0.}
+    \item{Update email address.}
   }
 }
 
