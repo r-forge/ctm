@@ -13,6 +13,7 @@ mmltVS(
   m_max = 10,
   verbose = TRUE,
   parallel = FALSE,
+  m0 = NULL,
   future_args = list(strategy = "multisession", workers = supp_max),
   ...
 )
@@ -40,6 +41,8 @@ of an unconditional \code{modFUN(update(formula, . ~ 1))}.}
 \item{parallel}{toggle for parallel computing via
 \code{\link[future.apply]{future_lapply}}}
 
+\item{m0}{Transformation model for initialization}
+
 \item{future_args}{arguments passed to \code{\link[future]{plan}}; defaults
 to a \code{"multisession"} with \code{supp_max} workers}
 
@@ -47,7 +50,6 @@ to a \code{"multisession"} with \code{supp_max} workers}
   Arguments passed on to \code{\link[=abess_mmlt]{abess_mmlt}}
   \describe{
     \item{\code{supp}}{support size of the coefficient vector}
-    \item{\code{m0}}{Transformation model for initialization}
   }}
 }
 \value{
