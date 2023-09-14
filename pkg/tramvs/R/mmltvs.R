@@ -19,14 +19,20 @@
 #' @examples
 #'
 #' @export
-mmltVS <- function(mltargs, supp_max = NULL, k_max = NULL, thresh = NULL,
-                   init = TRUE, m_max = 10, verbose = TRUE, parallel = FALSE,
-                   future_args = list(strategy = "multisession",
-                                      workers = supp_max), ...) {
+mmltVS <- function(
+    mltargs, supp_max = NULL, k_max = NULL, thresh = NULL,
+    init = TRUE, m_max = 10, verbose = TRUE, parallel = FALSE,
+    m0 = NULL, future_args = list(
+      strategy = "multisession", workers = supp_max), ...
+) {
+
+  if (is.null(m0)) {
+    m0 <- do.call("mmlt", mltargs)
+    ncfs <- coef_mmlt(m0)
+  }
 
   if (is.null(supp_max)) {
-    m0 <- do.call("mmlt", mltargs)
-    supp_max <- length(ncfs <- coef_mmlt(m0))
+    supp_max <- length(ncfs)
   }
 
   if (verbose & interactive() & !parallel)
@@ -46,7 +52,7 @@ mmltVS <- function(mltargs, supp_max = NULL, k_max = NULL, thresh = NULL,
                       init = init, m_max = m_max, m0 = m0)
     list(
       fit = fit,
-      SIC = -logLik(fit$m) + length(fit$A) * log(length(coef(m0))) *
+      SIC = -logLik(fit$m) + length(fit$A) * log(supp_max) *
         log(log(nrow(fit$m$data)))
     )
   })
