@@ -1,7 +1,108 @@
-# tramnet main function
+#' Regularized transformation models
+#' @rdname tramnet
+#'
+#' @param model Either a \code{"formula"} specifying the regression or an object
+#'     of class \code{"tram"}.
+#' @param ... Additional arguments passed to \code{\link[CVXR]{solve}}.
+#'
+#' @return An object of class \code{"tramnet"} with \code{coef}, \code{logLik},
+#'     \code{summary}, \code{simulate}, \code{residuals} and \code{plot} methods
+#'
+#' @details Partially penalized and constrained transformation models,
+#'    including Cox models and continuous outcome logistic regression.
+#'    The methodology is described in the \code{tramnet} vignette
+#'    accompanying this package.
+#'
+#' @references Lucas Kook and Torsten Hothorn, The R Journal (2021) 13:1, pages
+#'    581-594. \doi{10.32614/RJ-2021-054}
+#'
+#' @examples
+#'
+#' if (require("penalized") & require("survival")) {
+#'   ## --- Comparison with penalized
+#'   data("nki70", package = "penalized")
+#'   nki70$resp <- with(nki70, Surv(time, event))
+#'   x <- scale(model.matrix( ~ 0 + DIAPH3 + NUSAP1 + TSPYL5 + C20orf46,
+#'                           data = nki70))
+#'   fit <- penalized(response = resp, penalized = x, lambda1 = 1, lambda2 = 0,
+#'                    standardize = FALSE, data = nki70)
+#'   y <- Coxph(resp ~ 1, data = nki70, order = 10, log_first = TRUE)
+#'   fit2 <- tramnet(y, x, lambda = 1, alpha = 1) ## L1 only
+#'   coef(fit)
+#'   coef(fit2)
+#' }
+#'
+#' @export
+tramnet <- function(model, ...) {
+  UseMethod("tramnet")
+}
 
-tramnet <-
-  function(model, x, lambda, alpha, constraints = NULL, ...) {
+#' @rdname tramnet
+#'
+#' @param data Object of class \code{"data.frame"} containing the variables
+#'    referred to in the formula \code{model}.
+#' @param tram_fun Character referring to an implementation in package
+#'    \code{'tram'}. See \code{\link[tramnet]{BoxCoxNET}} for the implemented
+#'    models.
+#' @param tram_args Additional arguments (besides \code{model} and \code{data})
+#'    passed to \code{tram_fun}.
+#'
+#' @exportS3Method tramnet formula
+#'
+tramnet.formula <- function(
+    model, data, lambda, alpha, tram_fun, tram_args = NULL, constraints = NULL, ...
+) {
+
+  call <- match.call()
+
+  ### Fit unpenalized unconditional model
+  fm0 <- update(model, . ~ 1)
+  m0 <- do.call(tram_fun, args = c(list(formula = fm0, data = data), tram_args))
+
+  ### Model matrix
+  x <- scale(.rm_int(model.matrix(model, data)))
+  preproc <- function(newdata) {
+    scale(.rm_int(model.matrix(model, newdata)),
+          center = attr(x, "scaled:center"),
+          scale = attr(x, "scaled:scale"))
+  }
+
+  ret <- tramnet.tram(model = m0, x = x, lambda = lambda, alpha = alpha,
+                      constraints = constraints, ...)
+  ret$process_newdata <- preproc
+  ret
+}
+
+.rm_int <- function(x) {
+  if (all(x[, 1] == 1))
+    return(x[, -1L, drop = FALSE])
+  return(x)
+}
+
+#' @rdname tramnet
+#' @param x A numeric matrix, where each row corresponds to the same row in the
+#'    \code{data} argument used to fit \code{model}.
+#' @param lambda A positive penalty parameter for the whole penalty function.
+#' @param alpha A mixing parameter (between zero and one) defining the fraction
+#'    between lasso and ridge penalties, where \code{alpha = 1} corresponds to
+#'    a pure lasso and \code{alpha = 0} to a pure ridge penalty.
+#' @param constraints An optional list containing a matrix of linear inequality
+#'    contraints on the regression coefficients and a vector specifying the rhs
+#'    of the inequality.
+#'
+#' @exportS3Method tramnet tram
+#'
+#' @import CVXR
+#' @import tram
+#' @importFrom basefun as.basis
+#' @importFrom grDevices rgb
+#' @importFrom graphics matplot par plot text
+#' @importFrom mlt `coef<-` as.mlt ctm mlt
+#' @importFrom sandwich estfun
+#' @importFrom stats as.formula coef getCall logLik model.matrix predict
+#'     simulate update variable.names weights update.default
+#'
+tramnet.tram <- function(model, x, lambda, alpha, constraints = NULL, ...) {
     ### <FIXME> handle offset and maybe fixed parameters </FIXME>
     .tramnet_checks(model = model, x = x, lambda = lambda, alpha = alpha)
     call <- match.call()
@@ -281,3 +382,4 @@ tramnet <-
     return(c("tramnet_Lm", "tramnet"))
   return("tramnet")
 }
+

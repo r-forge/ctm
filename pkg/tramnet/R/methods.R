@@ -1,26 +1,49 @@
-# logLik method for class "tramnet"
-
+#' S3 methods for class \code{"tramnet"}
+#'
+#' @rdname methods
+#'
+#' @param object Object of class \code{"tramnet"}.
+#' @param parm Parameters to evaluate the log likelihood at.
+#' @param w Optional vector of sample weights.
+#' @param newdata Data to evaluate the log likelihood at.
+#' @param add_penalty Whethr or not to return the penalized log-likelihood
+#'     (default \code{add_penalty = FALSE}).
+#' @param ... Additional arguments to \code{\link[mlt]{logLik.mlt}}
+#'
+#' @return Returns (potentially weighted \code{w}) log-likelihood based on
+#' \code{object} evaluated at parameters \code{parm} and data \code{newdata}
+#'
+#' @exportS3Method logLik tramnet
+#'
 logLik.tramnet <- function(object,
                            parm = coef(object, tol = 0, with_baseline = TRUE),
-                           w = NULL, newdata, ...) {
+                           w = NULL, newdata = NULL, add_penalty = FALSE, ...) {
   if (length(list(...)) > 0L)
     warning("additional arguments ignored")
 
   ctmobj <- .tramnet2ctm(object)
-  if (missing(newdata))
-    newdata <- .get_tramnet_data(object)
+  newdata <- .get_tramnet_data(object, newdata)
   mltobj <- mlt(ctmobj, data = newdata, dofit = FALSE)
   if (object$model$negative)
     parm <- .flip_sign(object, parm)
   ret <- logLik(mltobj, parm = parm, w = w, ...)
-  pen <- .elnet(object)
+  pen <- if (add_penalty) .elnet(object) else 0
   attr(ret, "df") <- NA
   class(ret) <- "logLik"
   return(ret - pen)
 }
 
-# coef method for class "tramnet"
-
+#' @rdname methods
+#'
+#' @param with_baseline If \code{TRUE}, also prints coefficients for the
+#'     baseline transformation.
+#' @param tol Tolerance when an estimate should be considered 0 and not
+#'     returned (default \code{tol = 1e-6}).
+#' @param ... Additional arguments to \code{\link[mlt]{coef.mlt}}
+#'
+#' @return Numeric vector containing the model shift parameter estimates
+#'
+#' @exportS3Method coef tramnet
 coef.tramnet <- function(object, with_baseline = FALSE, tol = 1e-6, ...) {
   if (length(list(...)) > 0L)
     warning("additional arguments ignored")
@@ -34,8 +57,13 @@ coef.tramnet <- function(object, with_baseline = FALSE, tol = 1e-6, ...) {
   return(c(theta, beta))
 }
 
-# coef method for class "tramnet_Lm"
-
+#' @rdname methods
+#'
+#' @param as.lm See \code{\link[mlt]{coef.mlt}}
+#'
+#' @return Numeric vector containing the linear model shift parameter estimates
+#'
+#' @exportS3Method coef tramnet_Lm
 coef.tramnet_Lm <- function(object, with_baseline = FALSE, tol = 1e-6,
                             as.lm = FALSE, ...) {
   class(object) <- class(object)[-1L]
@@ -53,73 +81,119 @@ coef.tramnet_Lm <- function(object, with_baseline = FALSE, tol = 1e-6,
 }
 
 
-# predict method for class "tramnet"
-
-predict.tramnet <- function(object, newdata = .get_tramnet_data(object), ...) {
+#' @rdname methods
+#'
+#' @return
+#' Vector of predictions based on \code{object} evaluated at each row
+#' of \code{newdata}
+#'
+#' @exportS3Method predict tramnet
+#'
+predict.tramnet <- function(object, newdata = NULL, ...) {
+  newdata <- .get_tramnet_data(object, newdata)
   ctmobj <- .tramnet2ctm(object)
   predict(ctmobj, newdata = newdata, ...)
 }
 
-# simulate method for class "tramnet"
-
+#' @rdname methods
+#'
+#' @param nsim Number of simulations, see \code{\link[mlt]{simulate.mlt}}.
+#' @param seed Random seed, see \code{\link[mlt]{simulate.mlt}}.
+#' @param bysim Return by simulation, see \code{\link[mlt]{simulate.mlt}}.
+#'
+#' @return Returns a \code{list} of \code{data.frames} containing parametric
+#'     bootstrap samples of the response based on the data supplied in
+#'     \code{newdata}
+#'
+#' @exportS3Method simulate tramnet
+#'
 simulate.tramnet <- function(object, nsim = 1, seed = NULL,
-                             newdata = .get_tramnet_data(object),
+                             newdata = NULL,
                              bysim = TRUE, ...) {
+  newdata <- .get_tramnet_data(object, newdata)
   ctmobj <- .tramnet2ctm(object)
   simulate(ctmobj, nsim = nsim, seed = seed,
            newdata = newdata, bysim = bysim, ...)
 }
 
-# estfun method for class "tramnet"
-
+#' @rdname methods
+#'
+#' @param x Object of class \code{"tramnet"}.
+#'
+#' @return Matrix of score contributions w.r.t. model parameters evaluated at
+#'     \code{parm}
+#'
+#' @exportS3Method estfun tramnet
+#'
 estfun.tramnet <- function(x, parm = coef(x, with_baseline = TRUE, tol = 0),
-                           w = NULL, newdata, ...) {
-  if (any(x$tuning_parm > 0))
+                           w = NULL, newdata = NULL, ...) {
+  if (x$tuning_parm["lambda"] > 0)
     stop("Cannot compute the score for penalised parameters.")
+  newdata <- .get_tramnet_data(x, newdata)
   ctmobj <- .tramnet2ctm(x)
-  if (missing(newdata))
-    newdata <- .get_tramnet_data(x)
   mltobj <- mlt(ctmobj, data = newdata, dofit = FALSE)
   return(estfun(mltobj, parm = parm, w = w))
 }
 
-# residuals method for class "tramnet"
-
+#' @rdname methods
+#'
+#' @return Returns a numeric vector of residuals for each row in \code{newdata}
+#' @exportS3Method residuals tramnet
+#'
 residuals.tramnet <- function(object,
                               parm = coef(object, tol = 0,
                                           with_baseline = TRUE),
-                              w = NULL, newdata, ...) {
+                              w = NULL, newdata = NULL, ...) {
+  newdata <- .get_tramnet_data(object, newdata)
   ctmobj <- .tramnet2ctm(object)
-  if (missing(newdata))
-    newdata <- .get_tramnet_data(object)
   mltobj <- mlt(ctmobj, data = newdata, dofit = FALSE)
   return(residuals(object = mltobj, parm = parm,
                    w = w, newdata = newdata, ...))
 }
 
-# plot method for class "tramnet"
-
-plot.tramnet <- function(x, newdata,
+#' Plot \code{"tramnet"} objects
+#'
+#' @param x Object of class \code{"tramnet"}.
+#' @param newdata See \code{\link[mlt]{plot.ctm}}.
+#' @param type See \code{\link[mlt]{plot.ctm}}.
+#' @param q See \code{\link[mlt]{plot.ctm}}.
+#' @param prob See \code{\link[mlt]{plot.ctm}}.
+#' @param K See \code{\link[mlt]{plot.ctm}}.
+#' @param col See \code{\link[mlt]{plot.ctm}}.
+#' @param lty See \code{\link[mlt]{plot.ctm}}.
+#' @param add See \code{\link[mlt]{plot.ctm}}.
+#' @param ... Additional arguments passed to \code{\link[mlt]{plot.ctm}}.
+#'
+#' @exportS3Method plot tramnet
+#'
+plot.tramnet <- function(x, newdata = NULL,
                          type = c("distribution", "survivor", "density",
                                   "logdensity", "hazard", "loghazard",
                                   "cumhazard", "quantile", "trafo"),
                          q = NULL, prob = 1:(K - 1)/K, K = 50,
                          col = rgb(.1, .1, .1, .1), lty = 1, add = FALSE, ...) {
+  newdata <- .get_tramnet_data(x, newdata)
   ctmobj <- .tramnet2ctm(x)
-  if (missing(newdata))
-    newdata <- .get_tramnet_data(x)
   plot(ctmobj, newdata = newdata, type = type, q = q, prob = prob, K = K,
        col = col, lty = lty, add = add, ...)
 }
 
 # print method for class "tramnet"
 
+#' @rdname methods
+#'
+#' @return Object of class \code{"summary.tramnet"}.
+#' @exportS3Method print tramnet
+#'
 print.tramnet <- function(x, ...) {
   print(summary(x, ...))
 }
 
-# summary method for class "tramnet"
-
+#' @rdname methods
+#'
+#' @return Object of class \code{"summary.tramnet"}.
+#' @exportS3Method summary tramnet
+#'
 summary.tramnet <- function(object, ...) {
   tp <- object$model$tram
   if (object$tuning_parm[1] > 0)
@@ -132,8 +206,14 @@ summary.tramnet <- function(object, ...) {
   ret
 }
 
-# print summary method for class "tramnet"
-
+#' @rdname methods
+#'
+#' @param digits Number of digits to print.
+#' @param ... Ignored.
+#'
+#' @return Invisible \code{x}.
+#' @exportS3Method print summary.tramnet
+#'
 print.summary.tramnet <- function(x, digits = max(3L, getOption("digits") - 3L),
                                   ...) {
   cat("\nCall:\n")
@@ -188,8 +268,17 @@ print.summary.tramnet <- function(x, digits = max(3L, getOption("digits") - 3L),
   return(mod)
 }
 
-.get_tramnet_data <- function(object) {
-  return(cbind(object$model$data, object$x))
+#' @importFrom stats model.response model.frame
+.get_tramnet_data <- function(object, newdata = NULL) {
+  if (is.null(newdata))
+    return(cbind(object$model$data, object$x))
+  if (is.null(object$process_newdata))
+    return(newdata)
+  newr <- as.data.frame(model.response(model.frame(
+    object$call$formula, data = newdata)))
+  colnames(newr) <- variable.names(object$model)
+  newx <- object$process_newdata(newdata)
+  cbind(newr, newx)
 }
 
 .tramnet_sparsity <- function(object, ...) {

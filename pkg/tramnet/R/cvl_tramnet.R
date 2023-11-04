@@ -1,5 +1,37 @@
-# Cross validation for "tramnet" models
-
+#' Cross-validating tramnet models
+#'
+#' @description
+#' k-fold cross validation for \code{"tramnet"} objects over a grid of
+#'    the tuning parameters based on out-of-sample log-likelihood.
+#'
+#' @param object Object of class \code{"tramnet"}.
+#' @param fold Number of folds for cross validation.
+#' @param lambda Values for lambda to iterate over.
+#' @param alpha Values for alpha to iterate over.
+#' @param folds Manually specify folds for comparison with other methods.
+#' @param fit_opt If \code{TRUE}, returns the full model evaluated at optimal
+#'     hyper-parameters
+#'
+#' @return Returns out-of-sample logLik and coefficient estimates for
+#'    corresponding folds and values of the hyper-parameters as an object of
+#'    class \code{"cvl_tramnet"}
+#'
+#' @examples
+#' \donttest{
+#' set.seed(241068)
+#' if (require("survival") & require("TH.data")) {
+#'   data("GBSG2", package = "TH.data")
+#'   X <- 1 * matrix(GBSG2$horTh == "yes", ncol = 1)
+#'   colnames(X) <- "horThyes"
+#'   GBSG2$surv <- with(GBSG2, Surv(time, cens))
+#'   m <- Coxph(surv ~ 1, data = GBSG2, log_first = TRUE)
+#'   mt <- tramnet(model = m, x = X, lambda = 0, alpha = 0)
+#'   mc <- Coxph(surv ~ horTh, data = GBSG2)
+#'   cvl_tramnet(mt, fold = 2, lambda = c(0, 1), alpha = c(0, 1))
+#' }
+#' }
+#'
+#' @export
 cvl_tramnet <- function(object, fold = 2, lambda = 0, alpha = 0, folds = NULL,
                         fit_opt = FALSE) {
   if (!inherits(object, "tramnet"))
@@ -38,7 +70,7 @@ cvl_tramnet <- function(object, fold = 2, lambda = 0, alpha = 0, folds = NULL,
 # Helper functions
 
 .cvl_helper <- function(val_grid, df, rsp, folds, object, fold, n) {
-  ret <- apply(val_grid, 1, function(pars) {
+  apply(val_grid, 1, function(pars) {
     message("Performing ", fold, "-fold cross validation")
     sapply(seq_len(fold), function(x, lmb = pars[1], alp = pars[2]) {
       message("Fold: ", x)
@@ -60,7 +92,6 @@ cvl_tramnet <- function(object, fold = 2, lambda = 0, alpha = 0, folds = NULL,
       }
     }, simplify = FALSE)
   })
-  return(ret)
 }
 
 .get_logLik <- function(cvl_helper_out, fold) {
