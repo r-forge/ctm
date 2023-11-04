@@ -1,5 +1,35 @@
 # Profiling tuning parameters
 
+#' Profiling tuning parameters
+#'
+#' @param model Object of class \code{"tramnet"}.
+#' @param min_lambda Minimal value of lambda (default \code{min_lambda = 0}).
+#' @param max_lambda Maximal value of lambda (default \code{max_lambda = 15}).
+#' @param nprof Number of profiling steps (default \code{nprof = 5}).
+#' @param as.lm Return scaled coefficients for class \code{"tramnet_Lm"}.
+#'
+#' @description Computes the regularization path of all coefficients for a
+#'    single tuning parameter, lambda, over a sequence of values.
+#'
+#'
+#' @return Object of class \code{"prof_lambda"} which contains the
+#'     regularization path of all coefficients and the log-likelihood over the
+#'     penalty parameter lambda
+#'
+#' @examples
+#' \donttest{
+#' if (require("survival") & require("penalized")) {
+#'   data("nki70", package = "penalized")
+#'   nki70$resp <- with(nki70, Surv(time, event))
+#'   x <- scale(model.matrix( ~ 0 + DIAPH3 + NUSAP1 + TSPYL5 + C20orf46, data = nki70))
+#'   y <- Coxph(resp ~ 1, data = nki70, order = 10, log_first = TRUE)
+#'   fit <- tramnet(y, x, lambda = 0, alpha = 1)
+#'   pfl <- prof_lambda(fit)
+#'   plot_path(pfl)
+#' }
+#' }
+#'
+#' @export
 prof_lambda <- function(model, min_lambda = 0, max_lambda = 15, nprof = 5,
                         as.lm = FALSE) {
   stopifnot(inherits(model, "tramnet"))
@@ -38,8 +68,35 @@ prof_lambda <- function(model, min_lambda = 0, max_lambda = 15, nprof = 5,
   return(ret)
 }
 
-# Profiling tuning parameters
-
+#' Profiling tuning parameters
+#'
+#' @description Computes the regularization path of all coefficients for a
+#'     single tuning, alpha, parameter over a sequence of values.
+#'
+#' @param model Object of class \code{"tramnet"}.
+#' @param min_alpha Minimal value of alpha (default \code{min_alpha = 0}).
+#' @param max_alpha Maximal value of alpha (default \code{max_alpha = 1}).
+#' @param nprof Number of profiling steps (default \code{nprof = 5}).
+#' @param as.lm Return scaled coefficients for class \code{"tramnet_Lm"}.
+#'
+#' @return Object of class \code{"prof_alpha"} which contains the regularization
+#'     path of all coefficients and the log-likelihood over the mixing parameter
+#'     alpha
+#'
+#' @examples
+#' \donttest{
+#' if (require("survival") & require("penalized")) {
+#'   data("nki70", package = "penalized")
+#'   nki70$resp <- with(nki70, Surv(time, event))
+#'   x <- scale(model.matrix( ~ 0 + DIAPH3 + NUSAP1 + TSPYL5 + C20orf46, data = nki70))
+#'   y <- Coxph(resp ~ 1, data = nki70, order = 10, log_first = TRUE)
+#'   fit <- tramnet(y, x, lambda = 1, alpha = 1)
+#'   pfa <- prof_alpha(fit)
+#'   plot_path(pfa)
+#' }
+#' }
+#'
+#' @export
 prof_alpha <- function(model, min_alpha = 0, max_alpha = 1, nprof = 5,
                        as.lm = FALSE) {
   stopifnot(inherits(model, "tramnet"))
@@ -74,8 +131,37 @@ prof_alpha <- function(model, min_alpha = 0, max_alpha = 1, nprof = 5,
   return(ret)
 }
 
-# Plot profiles for "profile_*_tramnet" classes
-
+#' Plot regularization paths
+#'
+#' @description Plot regularization paths and optionally log-likelihood
+#'     trajectories of objects of class \code{"prof_alpha"} and
+#'     \code{"prof_lambda"}. Coefficient names are automatically added to the
+#'     plot.
+#'
+#' @param object Object of class \code{"prof_alpha"} or \code{"prof_lambda"}.
+#' @param plot_logLik Whether \code{logLik} trajectory should be plotted
+#'     (default \code{plot_logLik = FALSE}).
+#' @param ... Additional arguments to \code{\link{plot}}
+#'
+#' @return None.
+#'
+#' @examples
+#' \donttest{
+#' if (require("survival") & require("penalized")) {
+#'   data("nki70", package = "penalized")
+#'   nki70$resp <- with(nki70, Surv(time, event))
+#'   x <- scale(model.matrix( ~ 0 + DIAPH3 + NUSAP1 + TSPYL5 + C20orf46, data = nki70))
+#'   y <- Coxph(resp ~ 1, data = nki70, order = 10, log_first = TRUE)
+#'   fit1 <- tramnet(y, x, lambda = 0, alpha = 1)
+#'   pfl <- prof_lambda(fit1)
+#'   plot_path(pfl)
+#'   fit2 <- tramnet(y, x, lambda = 1, alpha = 1)
+#'   pfa <- prof_alpha(fit2)
+#'   plot_path(pfa)
+#' }
+#' }
+#'
+#' @export
 plot_path <- function(object, plot_logLik = FALSE, ...) {
   if (inherits(object, "prof_lambda"))
     .plot_lpath(object, plot_logLik, ...)

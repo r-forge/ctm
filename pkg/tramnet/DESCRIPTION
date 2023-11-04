@@ -1,10 +1,11 @@
 Package: tramnet
 Title: Penalized Transformation Models
-Version: 0.0-8
-Date: 2023-03-10
+Version: 0.1-0
+Date: 2023-11-02
 URL: http://ctm.R-forge.R-project.org
 Authors@R: c(person("Lucas", "Kook", role = c("cre", "aut"),
-                    email = "lucasheinrich.kook@gmail.com"),
+                    email = "lucasheinrich.kook@gmail.com",
+                    comment = c(ORCID = "0000-0002-7546-7356")),
              person("Balint", "Tamasi", role = "ctb"),
              person("Sandra", "Siegfried", role = "ctb"),
              person("Samuel", "Pawel", role = "ctb"),
@@ -16,15 +17,19 @@ Description: Partially penalized versions of specific transformation models
     of the Cox model, other parametric survival models (Weibull, etc.), models for
     binary and ordered categorical variables, normal and transformed-normal (Box-Cox type)
     linear models, and continuous outcome logistic regression. Hyperparameter tuning
-    is facilitated through model-based optimization functionalities from package 'mlrMBO'.
-    The accompanying vignette describes the methodology used in 'tramnet' in detail.
+    is facilitated through model-based optimization functionalities from package 'mlr3MBO'.
+    The methodology is described in Kook et al. (2021) <doi:10.32614/RJ-2021-054>.
     Transformation models and model-based optimization are described in
     Hothorn et al. (2019) <doi:10.1111/sjos.12291> and
     Bischl et al. (2016) <arxiv:1703.03373>, respectively.
-Depends: R (>= 3.5.0), tram (>= 0.3-2), CVXR (>= 0.99-4), mlrMBO (>= 1.1-2)
-Imports: mlt, basefun, sandwich, ParamHelpers, lhs, mlr, smoof, stats
-Suggests: penalized, TH.data, survival, knitr, mlbench, colorspace, mvtnorm, 
-    glmnet, trtf, Matrix, lattice, kableExtra, coin, tbm, DiceKriging
-VignetteBuilder: knitr
-Encoding: UTF-8
+Depends: R (>= 4.0.0), tram (>= 1.0-0), CVXR (>= 1.0-0)
+Imports: mlt, basefun, sandwich, stats, paradox, mlr3mbo, bbotk
+Suggests: 
+    penalized,
+    TH.data,
+    survival,
+    testthat (>= 3.0.0)
 License: GPL-2
+RoxygenNote: 7.2.3
+Encoding: UTF-8
+Config/testthat/edition: 3
