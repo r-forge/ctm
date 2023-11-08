@@ -2,6 +2,12 @@
 \name{NEWS}
 \title{NEWS file for the tram package}
 
+\section{Changes in Version 1.0-1 (2023-11-08)}{
+  \itemize{
+    \item{Allow shift-scale transformation models in \code{mmlt}.}
+  }
+}
+
 \section{Changes in Version 1.0-0 (2023-08-25)}{
   \itemize{
     \item{Improved, simplified, and generalised implementation of \code{mmlt}.}
