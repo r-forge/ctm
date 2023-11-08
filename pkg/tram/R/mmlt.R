@@ -187,7 +187,7 @@
     nn <- sapply(1:J, function(j) {
         !is.null(m[[j]]$fixed) ||
         !isTRUE(all.equal(unique(m[[j]]$offset), 0)) ||
-        m[[j]]$model$scale_shift
+        !is.null(m[[j]]$model$model$bscaling)
     })
 
     type <- lapply(1:J, function(j)
