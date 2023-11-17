@@ -334,6 +334,8 @@
                 trd <- predict(tmp, newdata = newdata, type = "density", ...)
         }
     } else {
+        ### this won't work with offsets or shift-scale
+        stopifnot(all(!models$nn))
         if (is.null(newdata)) {
             trl <- c(models$mm[[j]]$iY$Yleft %*% prm)
             trl[!is.finite(trl)] <- -Inf
