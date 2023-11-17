@@ -2,6 +2,7 @@
 library("tram")
 library("sandwich")
 library("survival")
+library("numDeriv")
 
 ### scores for fixed parameters
 cars$int <- 1
@@ -185,3 +186,13 @@ stopifnot(isTRUE(all.equal(
 stopifnot(isTRUE(all.equal(
   coef(as.mlt(Survreg(dist ~ 1, data = cars, remove_intercept = FALSE)))[2:1] * c(-1, 1),
   coef(as.mlt(Survreg(dist ~ 1, data = cars))), check.attributes = FALSE)))
+
+### mmlt with shift-scale had incorrect gradients
+m1 <- Lm(Sepal.Width ~ Petal.Length | Petal.Width, data = iris)
+m2 <- Lm(Sepal.Length ~ Petal.Length | Petal.Width, data = iris)
+m0 <- mmlt(m1, m2, data = iris, formula = ~ 1, domargins = FALSE)
+cf <- coef(m0)
+m <- mmlt(m1, m2, data = iris, formula = ~ 1, dofit = FALSE)
+stopifnot(isTRUE(all.equal(c(m$score(cf)), c(grad(m$ll, cf)), check.attributes = FALSE)))
+
+
