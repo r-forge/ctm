@@ -1,4 +1,36 @@
 
+### needed by shift-scale models; this needs a much better
+### interface and encapsulation
+.hscore <- function(model, parm, newdata, prime = FALSE) {
+
+    m <- mb <- model$model
+    mb$bscaling <- NULL
+    d <- 1
+    names(d) <- model$response
+    if (prime) {
+        X <- model.matrix(mb, data = newdata, deriv = d)
+    } else {
+        X <- model.matrix(mb, data = newdata)
+    }
+
+    if (is.null(m$bscaling)) {
+        return(X)
+    } else {
+        Z <- model.matrix(m$bscaling, data = newdata)
+        sterm <- exp(.5 * c(predict(m, 
+                                    newdata = newdata, 
+                                    coef = parm, terms = "bscaling")))
+        if (model$scale_shift) {
+            lp <- X %*% parm[1:ncol(X)]
+            return(cbind(sterm * X, sterm * .5 * lp * Z))
+        }
+        idx <- attr(X, "Assign")[2,] != "bshifting"
+        X[,idx] <- X[,idx, drop = FALSE] * sterm
+        lp <- X[,idx] %*% parm[which(idx)]
+        return(cbind(X, lp * .5 * Z))
+    }
+}
+
 ### catch constraint violations here
 .log <- function(x) {
   ret <- log(pmax(.Machine$double.eps, x))
@@ -241,6 +273,7 @@
         return(ret)
     }
 
+
     if (what == "scale") {
         if (models$cont[j]) {
             Y <- models$mm[[j]]$eY$Y
@@ -268,6 +301,23 @@
     if (is.null(newdata)) {
         if (models$nn[j]) newdata <- tmp$data
     }
+
+    if (what == "mm") {
+        if (models$cont[j]) {
+            return(.hscore(tmp$model, prm, newdata, prime = FALSE))
+        } else {
+            stop("not yet implemented")
+        }
+    }
+    if (what == "mmprime") {
+        if (models$cont[j]) {
+            return(.hscore(tmp$model, prm, newdata, prime = TRUE))
+        } else {
+            stop("not yet implemented")
+        }
+    }
+
+
     if (models$cont[j]) {
         if (is.null(newdata)) {
             tr <- c(models$mm[[j]]$eY$Y %*% prm)
@@ -575,12 +625,18 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
         if (cJ) {
             if (all(m$normal)) {
                 zp <- .rbind(.mget(m, j = which(m$cont), parm = parm, what = "zprime", newdata = newdata))
+                if (any(m$nn[m$cont])) {
+                    mm <- .mget(m, j = which(m$cont), parm = parm, what = "mm", newdata = newdata)
+                    mmp <- .mget(m, j = which(m$cont), parm = parm, what = "mmprime", newdata = newdata)
+                }
                 scp[1:cJ] <- lapply(1:cJ, function(j) {
                     CS(mm[[j]] * c(sc$obs[j,])) + CS(mmp[[j]] / c(zp[j,]))
                 })
             } else {
                 dz <- .rbind(.mget(m, j = which(m$cont), parm = parm, what = "dtrafo", newdata = newdata))
                 ef <- lapply(which(m$cont), function(j) .mget(m, j = j, parm = parm, what = "estfun", newdata = newdata))
+                if (any(m$nn[m$cont]))
+                    mm <- .mget(m, j = which(m$cont), parm = parm, what = "mm", newdata = newdata)
                 scp[1:cJ] <- lapply(1:cJ, function(j) {
                     CS(mm[[j]] * c(sc$obs[j,] + z[j,]) / c(dnorm(z[j,])) * c(dz[j,])) - CS(ef[[j]])
                 })
