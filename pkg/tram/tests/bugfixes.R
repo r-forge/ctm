@@ -195,4 +195,10 @@ cf <- coef(m0)
 m <- mmlt(m1, m2, data = iris, formula = ~ 1, dofit = FALSE)
 stopifnot(isTRUE(all.equal(c(m$score(cf)), c(grad(m$ll, cf)), check.attributes = FALSE)))
 
+m1 <- Lm(Sepal.Width ~ Petal.Length | Petal.Width, data = iris, scale_shift = TRUE)
+m2 <- Lm(Sepal.Length ~ Petal.Length | Petal.Width, data = iris, scale_shift = TRUE)
+m0 <- mmlt(m1, m2, data = iris, formula = ~ 1, domargins = FALSE)
+cf <- coef(m0)
+m <- mmlt(m1, m2, data = iris, formula = ~ 1, dofit = FALSE)
+stopifnot(isTRUE(all.equal(c(m$score(cf)), c(grad(m$ll, cf)), check.attributes = FALSE)))
 
