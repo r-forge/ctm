@@ -2,11 +2,17 @@
 \name{NEWS}
 \title{NEWS file for the mlt package}
 
-\section{Changes in Version 1.4-10 (2023-09-08)}{
+\section{Changes in Version 1.5-0 (2023-12-01)}{
   \subsection{Bugfixes}{
     \itemize{
       \item{Do no use zero as lower bound (when running \code{R(Surv(...), as.R.interval =
             TRUE)}) except when zero is first death time.}
+    }
+  }
+  \subsection{New features}{
+    \itemize{
+      \item{Add slots to \code{mmlt} for externally computing transformations and derivatives 
+            thereof, needed by \code{tram::mmlt}.}
     }
   }
 }
