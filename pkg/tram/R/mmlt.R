@@ -1,36 +1,4 @@
 
-### needed by shift-scale models; this needs a much better
-### interface and encapsulation
-.hscore <- function(model, parm, newdata, prime = FALSE) {
-
-    m <- mb <- model$model
-    mb$bscaling <- NULL
-    d <- 1
-    names(d) <- model$response
-    if (prime) {
-        X <- model.matrix(mb, data = newdata, deriv = d)
-    } else {
-        X <- model.matrix(mb, data = newdata)
-    }
-
-    if (is.null(m$bscaling)) {
-        return(X)
-    } else {
-        Z <- model.matrix(m$bscaling, data = newdata)
-        sterm <- exp(.5 * c(predict(m, 
-                                    newdata = newdata, 
-                                    coef = parm, terms = "bscaling")))
-        if (model$scale_shift) {
-            lp <- X %*% parm[1:ncol(X)]
-            return(cbind(sterm * X, sterm * .5 * lp * Z))
-        }
-        idx <- attr(X, "Assign")[2,] != "bshifting"
-        X[,idx] <- X[,idx, drop = FALSE] * sterm
-        lp <- X[,idx] %*% parm[which(idx)]
-        return(cbind(X, lp * .5 * Z))
-    }
-}
-
 ### catch constraint violations here
 .log <- function(x) {
   ret <- log(pmax(.Machine$double.eps, x))
@@ -166,7 +134,6 @@
     w <- lapply(m, weights)
     out <- lapply(w, function(x) stopifnot(isTRUE(all.equal(x, w[[1]]))))
     w <- w[[1L]]
-    if (isTRUE(all.equal(unique(w), 1))) w <- FALSE
   
     mm <- lapply(m, function(mod) {
       eY <- get("eY", environment(mod$parm))
@@ -215,165 +182,78 @@
         return(list(left = ml, right = mr))
     })
 
-    ### needs newdata for predict
-    nn <- sapply(1:J, function(j) {
-        !is.null(m[[j]]$fixed) ||
-        !isTRUE(all.equal(unique(m[[j]]$offset), 0)) ||
-        !is.null(m[[j]]$model$model$bscaling)
-    })
-
     type <- lapply(1:J, function(j)
         mlt:::.type_of_response(m[[j]]$response))
 
     return(list(models = m, mf = mf, cont = cmod, type = type, normal = normal, 
                 nobs = nobs, weights = w, nparm = P, parm = parm, 
-                ui = ui, ci = ci, mm = mm, names = nm, nn = nn))
+                ui = ui, ci = ci, mm = mm, names = nm))
 }
 
-.model_matrix <- function(models, j = 1, newdata = NULL, prime = FALSE) {
-
-    if (is.null(newdata)) {
-        if (models$cont[j]) {
-            if (prime) return(models$mm[[j]]$eY$Yprime)
-            return(models$mm[[j]]$eY$Y)
-        }
-        stopifnot(!prime)
-        Yleft <- models$mm[[j]]$iY$Yleft
-        Yright <- models$mm[[j]]$iY$Yright
-        return(list(Yleft = Yleft, Yright = Yright))
-    }
-
-    resp <- models$models[[j]]$model$response
-    y <- R(newdata[[resp]])
-    if (models$cont[j] || mlt:::.type_of_response(y) == "double") {
-        if (prime) {
-            drv <- 1L
-            names(drv) <- models$models[[j]]$model$response
-            return(model.matrix(models$models[[j]]$model, data = newdata, deriv = drv))
-        } else {
-            return(model.matrix(models$models[[j]]$model, data = newdata))
-        }
-    }
-    iY <- mlt:::.mm_interval(model = models$models[[j]]$model, data = newdata, resp, y)
-    Yleft <- iY$Yleft
-    Yright <- iY$Yright
-    return(list(Yleft = Yleft, Yright = Yright))
-}
-
-.mget <- function(models, j = 1, parm, newdata = NULL,
+.mget <- function(models, j = 1, parm, newdata = NULL, weights = NULL,
                   what = c("trafo", "dtrafo", "z", "zleft", 
                            "dzleft", "zright", "dzright", "zprime", 
-                           "mm", "mmprime", "estfun", "scale"), ...) {
+                           "trafoprime", "estfun", "scale"), ...) {
 
     what <- match.arg(what)
 
     if (length(j) > 1) {
         ret <- lapply(j, .mget, models = models, parm = parm, 
-                      newdata = newdata, what = what)
+                      newdata = newdata, weights = weights, 
+                      what = what, ...)
         return(ret)
     }
 
-
-    if (what == "scale") {
-        if (models$cont[j]) {
-            Y <- models$mm[[j]]$eY$Y
-        } else {
-            Y <- models$mm[[j]]$iY$Yleft
-        }
-        Ytmp <- Y
-        Ytmp[!is.finite(Ytmp)] <- NA
-        sc <- apply(abs(Ytmp), 2, max, na.rm = TRUE)
-        lt1 <- sc < 1.1
-        gt1 <- sc >= 1.1
-        sc[gt1] <- 1 / sc[gt1]
-        sc[lt1] <- 1
-        return(sc)
-    }
+    if (what == "scale")
+        return(models$models[[j]]$parsc)
 
     prm <- models$parm(parm)[[j]]
-    tmp <- models$models[[j]]
-    cf <- coef(tmp)
-    cf[] <- prm
-    coef(tmp) <- cf
-
-    ### check for fixed, offset, and shift_scale; go through predict if this is the case
-    ### (slow but works)
-    if (is.null(newdata)) {
-        if (models$nn[j]) newdata <- tmp$data
-    }
-
-    if (what == "mm") {
-        if (models$cont[j]) {
-            return(.hscore(tmp$model, prm, newdata, prime = FALSE))
-        } else {
-            stop("not yet implemented")
-        }
-    }
-    if (what == "mmprime") {
-        if (models$cont[j]) {
-            return(.hscore(tmp$model, prm, newdata, prime = TRUE))
-        } else {
-            stop("not yet implemented")
-        }
+    tmp <- as.mlt(models$models[[j]])
+    if (!is.null(newdata)) {
+        tmp <- mlt(tmp$model, data = newdata, # weights = weights,
+                                              # offset = tmp$offset, 
+                   fixed = tmp$fixed, theta = prm,
+                   scale = tmp$scale, dofit = FALSE)
     }
 
 
+    if (what == "trafoprime") {
+        ret <- models$models[[j]]$trafoprime(prm, weights)
+        if (models$cont[j])
+            return(ret[c("exY", "exYprime")])
+        ret$iYleft[!is.finite(ret$iYleft[,1])] <- 0
+        ret$iYright[!is.finite(ret$iYright[,1])] <- 0
+        return(ret[c("iYleft", "iYright")])
+    }
+
+    ret <- tmp$trafo(prm, weights)
     if (models$cont[j]) {
-        if (is.null(newdata)) {
-            tr <- c(models$mm[[j]]$eY$Y %*% prm)
-            trp <- c(models$mm[[j]]$eY$Yprime %*% prm)
-            if (!models$normal[j])
-                trd <- tmp$todistr$d(tr) * trp
-        } else {
-            tr <- predict(tmp, newdata = newdata, type = "trafo", ...)
-            drv <- 1L
-            names(drv) <- tmp$model$response
-            trp <- predict(tmp, newdata = newdata, type = "trafo", 
-                           deriv = drv, ...)
-            if (!models$normal[j])
-                trd <- predict(tmp, newdata = newdata, type = "density", ...)
-        }
+        tr <- ret$trex
+        trp <- ret$trexprime
+        if (!models$normal[j])
+            trd <- tmp$todistr$d(tr) * trp
     } else {
-        ### this won't work with offsets or shift-scale
-        stopifnot(all(!models$nn))
-        if (is.null(newdata)) {
-            trl <- c(models$mm[[j]]$iY$Yleft %*% prm)
-            trl[!is.finite(trl)] <- -Inf
-            trr <- c(models$mm[[j]]$iY$Yright %*% prm)
-            trr[!is.finite(trr)] <- Inf
-        } else {
-            mmj <- .model_matrix(models, j = j, newdata = newdata)
-            ### continuous response for model with censoring
-            if (is.matrix(mmj)) return(c(mmj %*% prm))
-            trl <- c(mmj$Yleft %*% prm)
-            trl[!is.finite(trl)] <- -Inf
-            trr <- c(mmj$Yright %*% prm)
-            trr[!is.finite(trr)] <- Inf
-        }
+        trl <- ret$trleft
+        trr <- ret$trright
     }
 
     if (what == "trafo") {
-#        stopifnot(models$cont[j])
         return(tr)
     }
     if (what == "dtrafo") {
-#        stopifnot(models$cont[j])
         return(tmp$todistr$d(tr))
     }
     if (what == "z") {
-#        stopifnot(models$cont[j])
         if (models$normal[j]) 
             return(tr)
         return(qnorm(tmp$todistr$p(tr, log = TRUE), log.p = TRUE))
     }
     if (what == "zleft") {
-#        stopifnot(!models$cont[j])
         if (models$normal[[j]])
             return(trl)
         return(qnorm(tmp$todistr$p(trl, log = TRUE), log.p = TRUE))
     }
     if (what == "dzleft") {
-#        stopifnot(!models$cont[j])
         if (models$normal[[j]])
             return(rep(1, length(trl)))
         qn <- qnorm(tmp$todistr$p(trl, log = TRUE), log.p = TRUE)
@@ -382,13 +262,11 @@
         return(tmp$todistr$d(trl) / dn)
     }
    if (what == "zright") {
-#        stopifnot(!models$cont[j])
         if (models$normal[[j]])
             return(trr)
         return(qnorm(tmp$todistr$p(trr, log = TRUE), log.p = TRUE))
     }
     if (what == "dzright") {
-#        stopifnot(!models$cont[j])
         if (models$normal[[j]])
             return(rep(1, length(trr)))
         qn <- qnorm(tmp$todistr$p(trr, log = TRUE), log.p = TRUE)
@@ -397,16 +275,13 @@
         return(tmp$todistr$d(trr) / dn)
     }
     if (what == "zprime") {
-#        stopifnot(models$cont[j])
         if (models$normal[[j]])
             return(trp)
         qn <- qnorm(tmp$todistr$p(tr, log = TRUE), log.p = TRUE)
         return(trd / dnorm(qn))
     }
     if (what == "estfun") {
-        if (is.null(newdata))
-            return(estfun(tmp))
-        return(estfun(tmp, newdata = newdata))
+        return(estfun(tmp, parm = prm))
     }
 }
 
@@ -526,33 +401,8 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
         names(theta) <- eparnames
     }
 
-
-    if (cJ) {
-        mm <- lapply(1:cJ, function(j) .model_matrix(m, j = j))
-        mmp <- lapply(1:cJ, function(j) .model_matrix(m, j = j, prime = TRUE))
-    }
-    if (dJ) {
-        dmm <- lapply(cJ + 1:dJ, function(j) .model_matrix(m, j = j))
-        dmm <- lapply(dmm, function(x) {
-            x$Yleft[!is.finite(x$Yleft[,1]),] <- 0
-            x$Yright[!is.finite(x$Yright[,1]),] <- 0
-            x
-        })
-    }
-
-
     ### note: estfun() already has weights already multiplied to scores
     weights <- m$weights
-    if (weights) {
-        if (cJ) {
-            mm <- lapply(mm, function(x) x * weights)
-            mmp <- lapply(mmp, function(x) x * weights)
-        }
-        if (dJ) {
-            dmm <- lapply(dmm, function(x) list(Yleft = x$Yleft * weights,
-                                                Yright = x$Yright * weights))
-        }
-    }
 
     LAMBDA <- ltMatrices(matrix(0, nrow = Jp, ncol = nrow(lX)),
                          byrow = TRUE, diag = FALSE, names = names(m$models))
@@ -569,14 +419,18 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
         Lambda[] <- t(lX %*% .Xparm(parm))
         ret <- 0
         if (cJ) {
-            z <- .rbind(.mget(m, j = which(m$cont), parm = parm, what = "z", newdata = newdata))
-            zp <- .rbind(.mget(m, j = which(m$cont), parm = parm, what = "zprime", newdata = newdata))
+            z <- .rbind(.mget(m, j = which(m$cont), parm = parm, what = "z", 
+                              newdata = newdata, weights = weights))
+            zp <- .rbind(.mget(m, j = which(m$cont), parm = parm, what = "zprime", 
+                               newdata = newdata, weights = weights))
             ret <- colSums(.log(zp))
             if (!dJ) return(ret + llsc$logLik(obs = z, Lambda = Lambda))
         }
         if (dJ) {
-            lower <- .rbind(.mget(m, j = which(!m$cont), parm = parm, what = "zleft", newdata = newdata))
-            upper <- .rbind(.mget(m, j = which(!m$cont), parm = parm, what = "zright", newdata = newdata))
+            lower <- .rbind(.mget(m, j = which(!m$cont), parm = parm, what = "zleft", 
+                                  newdata = newdata, weights = weights))
+            upper <- .rbind(.mget(m, j = which(!m$cont), parm = parm, what = "zright", 
+                                  newdata = newdata, weights = weights))
             if (!cJ)
                 return(llsc$logLik(lower = lower, upper = upper, Lambda = Lambda))
         }
@@ -602,13 +456,16 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
         Lambda[] <- t(lX %*% .Xparm(parm))
 
         if (cJ) {
-            z <- .rbind(.mget(m, j = which(m$cont), parm = parm, what = "z", newdata = newdata))
+            z <- .rbind(.mget(m, j = which(m$cont), parm = parm, what = "z", 
+                              newdata = newdata, weights = weights))
             if (!dJ)
                 sc <- llsc$score(obs = z, Lambda = Lambda)
         }
         if (dJ) {
-            lower <- .rbind(.mget(m, j = which(!m$cont), parm = parm, what = "zleft", newdata = newdata))
-            upper <- .rbind(.mget(m, j = which(!m$cont), parm = parm, what = "zright", newdata = newdata))
+            lower <- .rbind(.mget(m, j = which(!m$cont), parm = parm, what = "zleft", 
+                                  newdata = newdata, weights = weights))
+            upper <- .rbind(.mget(m, j = which(!m$cont), parm = parm, what = "zright", 
+                                  newdata = newdata, weights = weights))
             if (!cJ)
                 sc <- llsc$score(lower = lower, upper = upper, Lambda = Lambda)
         }
@@ -625,40 +482,43 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
         scp <- vector(mode = "list", length = cJ + dJ)
 
         if (cJ) {
+            mm <- .mget(m, j = which(m$cont), parm = parm, what = "trafoprime", 
+                        newdata = newdata, weights = weights)
             if (all(m$normal)) {
-                zp <- .rbind(.mget(m, j = which(m$cont), parm = parm, what = "zprime", newdata = newdata))
-                if (any(m$nn[m$cont])) {
-                    mm <- .mget(m, j = which(m$cont), parm = parm, what = "mm", newdata = newdata)
-                    mmp <- .mget(m, j = which(m$cont), parm = parm, what = "mmprime", newdata = newdata)
-                }
+                zp <- .rbind(.mget(m, j = which(m$cont), parm = parm, what = "zprime", 
+                                   newdata = newdata, weights = weights))
                 scp[1:cJ] <- lapply(1:cJ, function(j) {
-                    CS(mm[[j]] * c(sc$obs[j,])) + CS(mmp[[j]] / c(zp[j,]))
+                    CS(mm[[j]]$exY * c(sc$obs[j,])) + CS(mm[[j]]$exYprime / c(zp[j,]))
                 })
             } else {
-                dz <- .rbind(.mget(m, j = which(m$cont), parm = parm, what = "dtrafo", newdata = newdata))
-                ef <- lapply(which(m$cont), function(j) .mget(m, j = j, parm = parm, what = "estfun", newdata = newdata))
-                if (any(m$nn[m$cont]))
-                    mm <- .mget(m, j = which(m$cont), parm = parm, what = "mm", newdata = newdata)
+                dz <- .rbind(.mget(m, j = which(m$cont), parm = parm, what = "dtrafo", 
+                                   newdata = newdata, weights = weights))
+                ef <- lapply(which(m$cont), function(j) .mget(m, j = j, parm = parm, what = "estfun", 
+                                                              newdata = newdata, weights = weights))
                 scp[1:cJ] <- lapply(1:cJ, function(j) {
-                    CS(mm[[j]] * c(sc$obs[j,] + z[j,]) / c(dnorm(z[j,])) * c(dz[j,])) - CS(ef[[j]])
+                    CS(mm[[j]]$exY * c(sc$obs[j,] + z[j,]) / c(dnorm(z[j,])) * c(dz[j,])) - CS(ef[[j]])
                 })
             }
         }
 
         if (dJ) {
+            mm <- .mget(m, j = which(!m$cont), parm = parm, what = "trafoprime", 
+                        newdata = newdata, weights = weights)
             if (all(m$normal)) {
                 scp[cJ + 1:dJ] <- lapply(1:dJ, function(j) {
-                    CS(dmm[[j]]$Yleft * c(sc$lower[j,])) +
-                    CS(dmm[[j]]$Yright * c(sc$upper[j,]))
+                    CS(mm[[j]]$iYleft * c(sc$lower[j,])) +
+                    CS(mm[[j]]$iYright * c(sc$upper[j,]))
                 })
             } else {
-                dzl <- .rbind(.mget(m, j = which(!m$cont), parm = parm, what = "dzleft", newdata = newdata))
+                dzl <- .rbind(.mget(m, j = which(!m$cont), parm = parm, what = "dzleft", 
+                                    newdata = newdata, weights = weights))
                 dzl[!is.finite(dzl)] <- 0
-                dzr <- .rbind(.mget(m, j = which(!m$cont), parm = parm, what = "dzright", newdata = newdata))
+                dzr <- .rbind(.mget(m, j = which(!m$cont), parm = parm, what = "dzright", 
+                                    newdata = newdata, weights = weights))
                 dzr[!is.finite(dzr)] <- 0
                 scp[cJ + 1:dJ] <- lapply(1:dJ, function(j) {
-                    return(CS(dmm[[j]]$Yleft * c(dzl[j,]) * c(sc$lower[j,])) +
-                           CS(dmm[[j]]$Yright * c(dzr[j,]) * c(sc$upper[j,])))
+                    return(CS(mm[[j]]$iYleft * c(dzl[j,]) * c(sc$lower[j,])) +
+                           CS(mm[[j]]$iYright * c(dzr[j,]) * c(sc$upper[j,])))
                 })
             }
         }
@@ -687,9 +547,6 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
         scl[] <- 1
         names(scl) <- parnames
     }
-
-    if (!weights) 
-        weights <- 1
 
     f <- function(par, scl, ...) {
         if (!is.null(fixed)) {
