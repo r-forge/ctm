@@ -229,7 +229,8 @@
             ### for non-shift-scale models but more complex in this latter
             ### class)
             trafoprime = function(beta) {
-                ret <- list()
+                ret <- vector(mode = "list", length = 4L)
+                names(ret) <- c("exY", "exYprime", "iYleft", "iYright")
                 idx <- !Assign[2,] %in% "bscaling"
                 if (!is.null(es$full_ex)) {
                     ret$exY <- exY[,idx,drop = FALSE] * exweights
@@ -241,15 +242,23 @@
                 }
                 if (!SCALE) return(ret)
 
-                nm <- names(ret)
                 sparm <- .parm(beta)
                 slp <- c(soffset + Z %*% sparm[Assign[2,] == "bscaling"])
                 sterm <- exp(.5 * slp)
                 tr <- trafo(beta)
+                names(tr) <- c("exY", "exYprime", "iYleft", "iYright")
 
                 if (model$scale_shift) {
-                    ret <- lapply(1:length(ret), 
-                        function(j) cbind(sterm * ret[[j]], .5 * tr[[j]] * Z))
+                    if (!is.null(es$full_ex)) {
+                        ret[c("exY", "exYprime")] <- lapply(c("exY", "exYprime"), 
+                            function(j) cbind(sterm[es$full_ex] * ret[[j]][es$full_ex,,drop = FALSE], 
+                                              .5 * tr[[j]][es$full_ex] * Z[es$full_ex,,drop = FALSE]))
+                    }
+                    if (!is.null(es$full_nex)) {
+                        ret[c("iYleft", "iYright")] <- lapply(c("iYleft", "iYright"), 
+                            function(j) cbind(sterm[es$full_nex] * ret[[j]][es$full_nex,,drop = FALSE], 
+                                              .5 * tr[[j]][es$full_nex] * Z[es$full_nex,,drop = FALSE]))
+                    }
                 } else {
                     bbeta <- beta
                     if (is.matrix(bbeta)) {
@@ -258,15 +267,23 @@
                         bbeta[Assign[2,] %in% c("bshifting", "bscaling")] <- 0
                     }
                     tr <- trafo(bbeta)
+                    names(tr) <- c("exY", "exYprime", "iYleft", "iYright")
 
                     idx <- !Assign[2,idx] %in% "bshifting"
                     
-                    ret <- lapply(1:length(ret), 
-                        function(j) cbind(sterm * ret[[j]][,idx], 
-                                          ret[[j]][,!idx,drop = FALSE], 
-                                          sterm * .5 * tr[[j]] * Z))
+                    if (!is.null(es$full_ex)) {
+                        ret[c("exY", "exYprime")] <- lapply(c("exY", "exYprime"), 
+                            function(j) cbind(sterm[es$full_ex] * ret[[j]][es$full_ex,idx,drop = FALSE], 
+                                              ret[[j]][es$full_ex,!idx,drop = FALSE], 
+                                              sterm[es$full_ex] * .5 * tr[[j]][es$full_ex] * Z[es$full_ex, , drop = FALSE]))
+                    }
+                    if (!is.null(es$full_nex)) {
+                        ret[c("iYleft", "iYright")]  <- lapply(c("iYleft", "iYright"), 
+                            function(j) cbind(sterm[es$full_nex] * ret[[j]][es$full_nex,idx,drop = FALSE], 
+                                              ret[[j]][es$full_nex,!idx,drop = FALSE], 
+                                              sterm[es$full_nex] * .5 * tr[[j]][es$full_nex] * Z[es$full_nex, , drop = FALSE]))
+                    }
                 }
-                names(ret) <- nm
                 return(ret)
             },
             ll = function(beta) {
