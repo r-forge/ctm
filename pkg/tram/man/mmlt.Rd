@@ -18,18 +18,18 @@ mmlt(..., formula = ~ 1, data, conditional = FALSE, theta = NULL, fixed = NULL,
      dofit = TRUE, domargins = TRUE)
 mmltoptim(auglag = list(maxtry = 5), ...)
 \method{coef}{cmmlt}(object, newdata, 
-                    type = c("all", "conditional", "Lambda", "Lambdainv", 
-                             "Precision", "PartialCorr", "Sigma", "Corr", 
-                             "Spearman", "Kendall"), 
-                     ...)
+     type = c("all", "conditional", "Lambda", "Lambdainv", 
+              "Precision", "PartialCorr", "Sigma", "Corr", 
+              "Spearman", "Kendall"), 
+     ...)
 \method{coef}{mmmlt}(object, newdata, 
-                    type = c("all", "marginal", "Lambda", "Lambdainv", 
-                             "Precision", "PartialCorr", "Sigma", "Corr", 
-                             "Spearman", "Kendall"), 
-                     ...)
+     type = c("all", "marginal", "Lambda", "Lambdainv", 
+              "Precision", "PartialCorr", "Sigma", "Corr", 
+              "Spearman", "Kendall"), 
+     ...)
 \method{predict}{mmlt}(object, newdata, margins = 1:J, 
-                       type = c("trafo", "distribution", "survivor", "density", "hazard"), 
-                       log = FALSE, args = object$args, ...)
+        type = c("trafo", "distribution", "survivor", "density", "hazard"), 
+                 log = FALSE, args = object$args, ...)
 \method{simulate}{mmlt}(object, nsim = 1L, seed = NULL, newdata, K = 50, ...)
 }
 \arguments{
