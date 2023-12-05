@@ -482,8 +482,9 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
         scp <- vector(mode = "list", length = cJ + dJ)
 
         if (cJ) {
-            mm <- .mget(m, j = which(m$cont), parm = parm, what = "trafoprime", 
-                        newdata = newdata, weights = weights)
+            mm <- lapply(which(m$cont), 
+                function(j) .mget(m, j = j, parm = parm, what = "trafoprime", 
+                                  newdata = newdata, weights = weights))
             if (all(m$normal)) {
                 zp <- .rbind(.mget(m, j = which(m$cont), parm = parm, what = "zprime", 
                                    newdata = newdata, weights = weights))
@@ -502,8 +503,9 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
         }
 
         if (dJ) {
-            mm <- .mget(m, j = which(!m$cont), parm = parm, what = "trafoprime", 
-                        newdata = newdata, weights = weights)
+            mm <- lapply(which(!m$cont), 
+                function(j) .mget(m, j = j, parm = parm, what = "trafoprime", 
+                                  newdata = newdata, weights = weights))
             if (all(m$normal)) {
                 scp[cJ + 1:dJ] <- lapply(1:dJ, function(j) {
                     CS(mm[[j]]$iYleft * c(sc$lower[j,])) +
