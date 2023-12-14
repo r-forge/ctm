@@ -9,22 +9,30 @@
     return(TRUE)
 }
 
-.mright2mcounting <- function(object, tol = .001) {
+.mright2NP <- function(object) {
+    stopifnot(inherits(object, "Surv"))
+    stopifnot(attr(object, "type") == "mright")
+    stopifnot(!is.null(ev <- attr(object, "states")))
 
-    stopifnot(attr(object, "type") == "mcounting")
-
-    x <- unclass(object)
-    ev <- attr(object, "states")
-    J <- length(ev)
-    st <- x[, "status"]
-    st <- factor(st, levels = 0:J, labels = c("rc", ev))
-
-    yl <- yr <- y <- x[,1]
-    yr[st == "rc"] <- Inf
-    yl[st != "rc"] <- pmax(sqrt(.Machine$double.eps), 
-                           y[st != "rc"] - tol)
-    yr[st != "rc"] <- y[st != "rc"] + tol
-    return(Surv(time = yl, time2 = yr, event = st))
+    time <- object[,"time"]
+    status <- object[, "status"]
+    idx <- status == 0
+    TE <- time[idx]
+    J <- 1:length(ev)
+    ret <- lapply(J, function(j) {
+        ret <- as.Surv(R(Surv(time, event = status == j), 
+                         as.R.interval = TRUE))
+        ret[idx,"time1"] <- TE
+        ret
+    })
+    for (j in J) {
+        idx <- status == j
+        TE <- time[idx]
+        for (k in J[J != j])
+            ret[[k]][idx,"time1"] <- TE
+    }
+    names(ret) <- paste0("Event_", ev)
+    return(ret)
 }
 
 .Surv2Survs <- function(object) {
@@ -51,7 +59,7 @@
             tm2[OE] <- Inf
             return(Surv(time = tm, time2 = tm2, type = "interval2"))
         })
-        names(ret) <- ev
+        names(ret) <- paste0("Event_", ev)
         return(ret)
     }
 }
@@ -61,6 +69,7 @@ Compris <- function(formula, data, subset, weights, na.action, offset,
                     competing = switch(primary, "Coxph" = "weibull", 
                                                 "Colr" = "loglogistic", 
                                                 "BoxCox" = "lognormal"),
+                    NPlogLik = FALSE, 
                     optim = mmltoptim(), args = list(seed = 1, M = 1000), 
                     scale = FALSE, tol = .001, ...)
 {
@@ -91,15 +100,18 @@ Compris <- function(formula, data, subset, weights, na.action, offset,
     if (nlevels(ev) == 2)
         return(FUNe(formula = formula, data = mf, order = order[J], ...))
 
-    if (J > 2 && attr(y, "type") == "mright") {
-        warning("Adding small interval censoring to exact event times")
-        y <- .mright2mcounting(y, tol = tol)
-    }
-
-    if (attr(y, "type") == "mcounting") {
-        tmp <- mf
-        y <- .Surv2Survs(y)
-        tmp[names(y)] <- y
+    if (!(attr(y, "type") == "mright" && J == 2 && !NPlogLik)) {
+        ### all observations are intervals, maximise J-dim probabilities
+        if (attr(y, "type") == "mcounting") {
+            tmp <- mf
+            y <- .Surv2Survs(y)
+            tmp[names(y)] <- y
+        } else {
+            ### J > 2 && attr(y, "type") == "mright" || NPlogLik
+            tmp <- mf
+            y <- .mright2NP(y)
+            tmp[names(y)] <- y
+        }
 
         m <- lapply(1:length(y), function(j) {
             fmj <- formula
