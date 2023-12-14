@@ -5,6 +5,7 @@
 \section{Changes in Version 1.0-1 (2023-11-17)}{
   \itemize{
     \item{Allow shift-scale transformation models in \code{mmlt}.}
+    \item{Add nonparametric log-likelihood to \code{Compris}.}
   }
 }
 
