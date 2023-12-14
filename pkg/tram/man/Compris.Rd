@@ -13,6 +13,7 @@ Compris(formula, data, subset, weights, na.action, offset,
         competing = switch(primary, Coxph = "weibull", 
                                     Colr = "loglogistic", 
                                     BoxCox = "lognormal"), 
+        NPlogLik = FALSE,
         optim = mmltoptim(), args = list(seed = 1, M = 1000), 
         scale = FALSE, tol = 0.001, ...)
 }
@@ -48,6 +49,8 @@ Compris(formula, data, subset, weights, na.action, offset,
   \item{competing}{a character defining the marginal models for the
 remaining competing events.
 }
+  \item{NPlogLik}{logical, optimise nonparametric likelihood defined in
+                  terms of multivariate probabilities.}
   \item{optim}{see \code{mmlt}.
 }
  \item{args}{a list of arguments for \code{\link[mvtnorm]{lpmvnorm}}.
