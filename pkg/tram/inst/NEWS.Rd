@@ -2,7 +2,7 @@
 \name{NEWS}
 \title{NEWS file for the tram package}
 
-\section{Changes in Version 1.0-1 (2023-11-17)}{
+\section{Changes in Version 1.0-1 (2023-12-18)}{
   \itemize{
     \item{Allow shift-scale transformation models in \code{mmlt}.}
     \item{Add nonparametric log-likelihood to \code{Compris}.}
