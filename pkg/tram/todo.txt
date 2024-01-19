@@ -1,0 +1,1 @@
+[] implement perm_test for class stram 
