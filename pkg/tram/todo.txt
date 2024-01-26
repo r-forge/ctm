@@ -1,1 +1,31 @@
-[] implement perm_test for class stram 
+[] implementation of perm_test for class "stram"
+
+[] problems with confband() when log_first = TRUE
+
+library("tram")
+
+load(system.file("rda", "Primary_endpoint_data.rda", package = "TH.data"))
+
+levs <- levels(CAOsurv$randarm)
+nd1 <- data.frame(randarm = factor(levs, levels = levs))
+
+mc <- Coxph(iDFS ~ randarm, data = CAOsurv, log_first = TRUE)
+
+try(cb <- confband(as.mlt(mc), newdata =  nd1[1,, drop = FALSE], K = 20, cheat = 100))
+
+
+[] tram only work for integer y if all sequential integers are present in the data:
+
+library("tram")
+
+## works if all sequential integers are present
+y <- rpois(100, 2)
+Lm(y ~ 1)
+
+## doesn't work anymore if we remove all integers == 2
+y <- y[y != 2]
+try(Lm(y ~ 1))
+
+## works again
+y <- as.double(y)
+try(Lm(y ~ 1)) 
