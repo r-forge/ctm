@@ -22,11 +22,10 @@ Type 'q()' to quit R.
 > ### by Sandra Siegfried, Balint Tamasi & Torsten Hothorn
 > 
 > ## required packages
-> pkgs <- c("Rcpp", "mlt", "tram",  "trtf", "SparseGrid", "ATR", "tramME", "multcomp",
-+   "coin", "TH.data", "survival", "colorspace", "xtable")
+> pkgs <- c("mlt", "tram",  "trtf", "SparseGrid", "ATR",
++   "tramME", "multcomp", "coin", "TH.data", "survival", "colorspace", "xtable")
 > 
 > ix <- which(!sapply(pkgs, require, char = TRUE))
-Loading required package: Rcpp
 Loading required package: mlt
 Loading required package: basefun
 Loading required package: variables
@@ -848,6 +847,7 @@ logrho                           NA        NA
 > ## ----install------------------------------------------------------------------
 > ix <- which(!sapply(pkgs, require, char = TRUE))
 Loading required package: fastGHQuad
+Loading required package: Rcpp
 Loading required package: icenReg
 Loading required package: coda
 Loading required package: TransModel
@@ -1245,7 +1245,7 @@ There were 28 warnings (use warnings() to see them)
 > 
 > ## ----TVAR-plotFUN-------------------------------------------------------------
 > xlim.tvar <- c(100, max(q))
-> plot.tvar <- function(object, K = 50, xlim = xlim.tvar) {
+> plot.tvar <- function(object, K = 20, xlim = xlim.tvar) {
 + object <- as.mlt(object)
 + 
 + y <- variable.names(object, "response")
@@ -1332,12 +1332,12 @@ There were 28 warnings (use warnings() to see them)
 +   data = CAOsurv, RandDist = "Gamma", n.knots = 6, kappa = 1000)
 
 Be patient. The program is computing ... 
-The program took 0.33 seconds 
+The program took 0.23 seconds 
 >  frailtypack::frailtyPenal(DFS ~ randarm,
 +   data = CAOsurv, n.knots = 6, kappa = 1000)
 
 Be patient. The program is computing ... 
-The program took 0.07 seconds 
+The program took 0.05 seconds 
 Call:
 frailtypack::frailtyPenal(formula = DFS ~ randarm, data = CAOsurv, 
     n.knots = 6, kappa = 1000)
@@ -1428,12 +1428,12 @@ other attached packages:
 [13] nlme_3.1-164      gamlss.dist_6.1-1 gamlss.data_6.0-2 mpr_1.0.6        
 [17] flexsurv_2.2.2    rstpm2_1.6.3      eha_2.11.2        ICsurv_1.0.1     
 [21] rms_6.7-1         Hmisc_5.1-1       TransModel_2.3    icenReg_2.0.16   
-[25] coda_0.19-4       fastGHQuad_1.0.1  xtable_1.8-4      colorspace_2.1-0 
-[29] coin_1.4-3        multcomp_1.4-25   TH.data_1.1-2     MASS_7.3-60.0.1  
-[33] survival_3.5-7    tramME_1.0.5      ATR_0.1-1         SparseGrid_0.8.2 
-[37] trtf_0.4-2        partykit_1.2-20   libcoin_1.0-10    tram_1.0-1       
-[41] mvtnorm_1.2-4     mlt_1.5-0         basefun_1.1-4     variables_1.1-1  
-[45] Rcpp_1.0.12      
+[25] coda_0.19-4       fastGHQuad_1.0.1  Rcpp_1.0.12       xtable_1.8-4     
+[29] colorspace_2.1-0  coin_1.4-3        multcomp_1.4-25   TH.data_1.1-2    
+[33] MASS_7.3-60.0.1   survival_3.5-7    tramME_1.0.5      ATR_0.1-1        
+[37] SparseGrid_0.8.2  trtf_0.4-2        partykit_1.2-20   libcoin_1.0-10   
+[41] tram_1.0-1        mvtnorm_1.2-4     mlt_1.5-0         basefun_1.1-4    
+[45] variables_1.1-1  
 
 loaded via a namespace (and not attached):
  [1] rstudioapi_0.15.0     magrittr_2.0.3        modeltools_0.2-23    
@@ -1472,4 +1472,4 @@ loaded via a namespace (and not attached):
 > 
 > proc.time()
    user  system elapsed 
-586.942 774.255 426.668 
+463.748 580.568 335.670 

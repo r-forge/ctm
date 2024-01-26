@@ -3,7 +3,7 @@
 ### by Sandra Siegfried, Balint Tamasi & Torsten Hothorn
 
 ## required packages
-pkgs <- c("Rcpp", "mlt", "tram",  "trtf", "SparseGrid", "ATR",
+pkgs <- c("mlt", "tram",  "trtf", "SparseGrid", "ATR",
   "tramME", "multcomp", "coin", "TH.data", "survival", "colorspace", "xtable")
 
 ix <- which(!sapply(pkgs, require, char = TRUE))
@@ -730,7 +730,7 @@ mcvi2 <- flexsurv::flexsurvspline(iDFS ~ randarm +
 
 ## ----TVAR-plotFUN-------------------------------------------------------------
 xlim.tvar <- c(100, max(q))
-plot.tvar <- function(object, K = 50, xlim = xlim.tvar) {
+plot.tvar <- function(object, K = 20, xlim = xlim.tvar) {
 object <- as.mlt(object)
 
 y <- variable.names(object, "response")
