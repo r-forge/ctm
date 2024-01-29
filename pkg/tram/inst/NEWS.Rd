@@ -2,6 +2,15 @@
 \name{NEWS}
 \title{NEWS file for the tram package}
 
+\section{Changes in Version 1.0-2 (2024-01-29)}{
+  \itemize{
+    \item{New \code{demo("survtram")} and \code{demo("hcc")}.}
+    \item{\code{predict} methods for \code{tram} and \code{stram} 
+          now offer the same \code{type} argument as 
+          \code{mlt::predict.ctm} offers.}
+  }
+}
+
 \section{Changes in Version 1.0-1 (2023-12-18)}{
   \itemize{
     \item{Allow shift-scale transformation models in \code{mmlt}.}

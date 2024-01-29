@@ -143,8 +143,10 @@ bread.tram <- function(x, ...)
     bread(as.mlt(x), ...)
 
 predict.tram <- function(object, newdata = model.frame(object), 
-    type = c("lp", "trafo", "distribution", "survivor", "density", 
-             "logdensity", "hazard", "loghazard", "cumhazard", "quantile"), ...) {
+    type = c("lp", "trafo", "distribution", "logdistribution", 
+             "survivor", "logsurvivor", "density", "logdensity", 
+             "hazard", "loghazard", "cumhazard", "logcumhazard", 
+             "odds", "logodds", "quantile"), ...) {
 
     type <- match.arg(type)
     if (type == "lp") {
@@ -157,9 +159,11 @@ predict.tram <- function(object, newdata = model.frame(object),
 }
 
 predict.stram <- function(object, newdata = model.frame(object), 
-    type = c("lp", "trafo", "distribution", "survivor", "density", 
-             "logdensity", "hazard", "loghazard", "cumhazard", "quantile"), 
-             what = c("shifting", "scaling"), ...) {
+    type = c("lp", "trafo", "distribution", "logdistribution", 
+             "survivor", "logsurvivor", "density", "logdensity", 
+             "hazard", "loghazard", "cumhazard", "logcumhazard", 
+             "odds", "logodds", "quantile"),              
+    what = c("shifting", "scaling"), ...) {
 
     type <- match.arg(type)
     if (type == "lp") {
