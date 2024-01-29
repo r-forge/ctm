@@ -1,18 +1,22 @@
-### Demo for location-scale transformation models ###
-### DOI: 10.1080/00031305.2023.2203177
+### Code from "Distribution-Free Location-Scale Regression"
+###   by Sandra Siegfried, Lucas Kook & Torsten Hothorn
+###   https://doi.org/10.1080/00031305.2023.2203177
 
 ## run all the code (including the computationally intensive examples)
 run_all <- FALSE 
 
-## general setup ##
-library("lattice")
-library("gridExtra")
-library("grid") ### for textGrob
-library("latticeExtra")
-library("reshape2")
-library("colorspace")
-library("xtable")
+## required packages
+pkgs <- c("tram", "cotram", "trtf", "ATR", "tramvs", "survival", "coin",
+  "multcomp", "TH.data", "gamlss", "gamlss.cens", "mpr", "KONPsurv", "lattice",
+  "latticeExtra", "grid",  "gridExtra", "reshape2", "colorspace", "xtable")
 
+ix <- which(!sapply(pkgs, require, char = TRUE))
+if (length(ix) > 0) {install.packages(pkgs[ix], repos = "https://stat.ethz.ch/CRAN/")
+ sapply(pkgs[ix], require, char = TRUE)}
+
+`coef<-` <- mlt::`coef<-` ## masked
+
+## general setup
 acol <- sequential_hcl(6, "BluYl")[1:5]
 
 col <- acol[c(2, (length(acol)) - 1)]
@@ -243,12 +247,11 @@ PI.stram <- function(object, newdata = model.frame(sm), reference = 0) {
 (estPI <- PI.stram(sm, newdata = nd[nd$mode == "Cesarean section",, drop = FALSE]))
 
 library("mvtnorm")
-smm <- sm
 vc <- vcov(sm)
 rx <- rmvnorm(10000, coef(sm), vc)
-FUN <- function(cf) {
-  coef(smm) <- cf
-  PI.stram(smm, newdata = nd[nd$mode == "Cesarean section",, drop = FALSE])
+FUN <- function(cf, object = sm) {
+  coef(object) <- cf
+  PI.stram(object, newdata = nd[nd$mode == "Cesarean section",, drop = FALSE])
 }
 retPI <- apply(rx, MARGIN = 1, FUN = FUN)
 (ciPI <- quantile(retPI, probs = c(.025, .975)))
