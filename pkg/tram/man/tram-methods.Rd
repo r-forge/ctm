@@ -48,15 +48,16 @@
 \method{logLik}{tram}(object, parm = coef(as.mlt(object), fixed = FALSE), ...)
 \method{estfun}{tram}(x, parm = coef(as.mlt(x), fixed = FALSE), ...)
 \method{predict}{tram}(object, newdata = model.frame(object), 
-        type = c("lp", "trafo", "distribution", "survivor", "density", 
-                 "logdensity", "hazard", "loghazard", "cumhazard", 
-                 "quantile"), 
-           ...)
+        type = c("lp", "trafo", "distribution", "logdistribution", 
+             "survivor", "logsurvivor", "density", "logdensity", 
+             "hazard", "loghazard", "cumhazard", "logcumhazard", 
+             "odds", "logodds", "quantile"), ...) 
 \method{predict}{stram}(object, newdata = model.frame(object), 
-        type = c("lp", "trafo", "distribution", "survivor", "density", 
-                 "logdensity", "hazard", "loghazard", "cumhazard", 
-                 "quantile"), what = c("shifting", "scaling"),
-           ...)
+        type = c("lp", "trafo", "distribution", "logdistribution", 
+             "survivor", "logsurvivor", "density", "logdensity", 
+             "hazard", "loghazard", "cumhazard", "logcumhazard", 
+             "odds", "logodds", "quantile"), 
+        what = c("shifting", "scaling"), ...)
 \method{plot}{tram}(x, newdata = model.frame(x), 
      which = c("QQ-PIT", "baseline only", "distribution"), 
      confidence = c("none", "interval", "band"), level = 0.95, 
