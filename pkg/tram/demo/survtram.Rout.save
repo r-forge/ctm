@@ -19,11 +19,11 @@ Type 'q()' to quit R.
 
 > ### Code from
 > ### "Smooth Transformation Models for Survival Analysis: A Tutorial Using R"
-> ### by Sandra Siegfried, Balint Tamasi & Torsten Hothorn
+> ###   by Sandra Siegfried, Balint Tamasi & Torsten Hothorn
 > 
-> ## required packages
-> pkgs <- c("mlt", "tram",  "trtf", "SparseGrid", "ATR",
-+   "tramME", "multcomp", "coin", "TH.data", "survival", "colorspace", "xtable")
+> # required packages
+> pkgs <- c("mlt", "tram",  "trtf", "SparseGrid", "ATR", "tramME", "multcomp",
++   "coin", "TH.data", "survival", "colorspace", "xtable")
 > 
 > ix <- which(!sapply(pkgs, require, char = TRUE))
 Loading required package: mlt
@@ -206,6 +206,7 @@ Loading required package: xtable
 +   col = lcol, lwd = lwd, xlab = xlab, ylab = ylabS)
 > legend("bottomright", legend = levs, col = col, bty = "n", lty = 1, lwd = 1, cex = .8)
 > plot.risktab(tvar = "OStime")
+> 
 > 
 > 
 > ## ----WEI-model-fit, echo = FALSE, cache = TRUE--------------------------------
@@ -836,7 +837,7 @@ logrho                           NA        NA
 + Colr(iDFS ~ randarm, data = CAOsurv, log_first = TRUE)
 > 
 > 
-> ## Appendix ##
+> ### Appendix
 > ## ----pkgs---------------------------------------------------------------------
 > ## additional packages
 > pkgs <- c("fastGHQuad", "icenReg", "TransModel", "rms", "ICsurv", "eha",
@@ -844,7 +845,7 @@ logrho                           NA        NA
 +   "coxme", "parfm", "frailtyEM", "frailtypack", "timereg")
 > 
 > 
-> ## ----install------------------------------------------------------------------
+> ## ----install-pkgs-------------------------------------------------------------
 > ix <- which(!sapply(pkgs, require, char = TRUE))
 Loading required package: fastGHQuad
 Loading required package: Rcpp
@@ -983,7 +984,7 @@ The following object is masked from ‘package:survival’:
 
 Loading required package: timereg
 > if (length(ix) > 0) {install.packages(pkgs[ix], repos = "https://stat.ethz.ch/CRAN/")
-+  sapply(pkgs[ix], require, char = TRUE)}
++    sapply(pkgs[ix], require, char = TRUE)}
 > 
 > 
 > ## ----pkgs-setup---------------------------------------------------------------
@@ -1243,33 +1244,21 @@ The type of censoring is interval
 There were 28 warnings (use warnings() to see them)
 > 
 > 
-> ## ----TVAR-plotFUN-------------------------------------------------------------
-> xlim.tvar <- c(100, max(q))
-> plot.tvar <- function(object, K = 20, xlim = xlim.tvar) {
-+ object <- as.mlt(object)
-+ 
-+ y <- variable.names(object, "response")
-+ s <- mkgrid(object, K)
-+ s[[y]] <- s[[y]][s[[y]] > xlim[1] & s[[y]] < xlim[2]]
-+ nd <- expand.grid(s)
-+ 
-+ K <- model.matrix(object$model, data = nd)
-+ Kyes <- K[nd$randarm == levels(nd$randarm)[2],]
-+ Kyes[,grep("Intercept", colnames(Kyes))] <- 0  
-+ gh <- glht(parm(coef(object), vcov(object)), Kyes)
-+ ci <- exp(confint(gh)$confint)
-+ coxy <- s[[y]]
-+ 
-+ par(mgp = c(2.5, 1, 0), mar = c(4, 4, 1.5, 4))
-+ plot(coxy, ci[, "Estimate"], ylim = ylimHR, type = "n",
-+      xlab = xlab, ylab = "Hazard ratio", las = 1, lwd = lwd)
-+ lines(coxy, ci[, "Estimate"], lty = 1, lwd = lwd)
-+ abline(h = 1, lty = 3)
-+ }
-> 
-> 
 > ## ----TVAR-iDFS-plot, fig.width = 6, fig.height = 3----------------------------
-> plot.tvar(mcvi1)
+> ## HR from "tram"
+> xlim.tvar <- c(100, max(q))
+> 
+> y <- variable.names(mcvi1, "response")
+> s <- mkgrid(mcvi1, n = 50)
+> s[[y]] <- s[[y]][s[[y]] > xlim[1] & s[[y]] < xlim[2]]
+> 
+> lhaz <- predict(as.mlt(mcvi1), newdata = s, type = "logcumhazard")
+> hr <- exp(lhaz[,2] - lhaz[,1])
+> 
+> par(mgp = c(2.5, 1, 0), mar = c(4, 4, 1.5, 4))
+> plot(s[[y]], hr, ylim = ylimHR, type = "l",
++      xlab = xlab, ylab = "Hazard ratio", las = 1, lwd = lwd)
+> abline(h = 1, lty = 3)
 > 
 > ## HR from "flexsurvspline"
 > haz <- predict(mcvi2, type = "cumhaz", newdata =  nd1)
@@ -1283,7 +1272,6 @@ There were 28 warnings (use warnings() to see them)
 +   bty = "n")
 > 
 > 
-> 
 > ## ----TVAR-DFS-fit, cache = TRUE-----------------------------------------------
 > mcv1 <- tram::Coxph(DFS | randarm ~ 1, data = CAOsurv, log_first = TRUE)
 > mcv2 <- flexsurv::flexsurvspline(DFS ~ randarm + gamma1(randarm) + gamma2(randarm),
@@ -1291,7 +1279,19 @@ There were 28 warnings (use warnings() to see them)
 > 
 > 
 > ## ----TVAR-DFS-plot, fig.width = 6, fig.height = 3-----------------------------
-> plot.tvar(mcv1)
+> xlim.tvar <- c(100, max(q))
+> 
+> y <- variable.names(mcv1, "response")
+> s <- mkgrid(mcv1, n = 50)
+> s[[y]] <- s[[y]][s[[y]] > xlim[1] & s[[y]] < xlim[2]]
+> 
+> lhaz <- predict(as.mlt(mcv1), newdata = s, type = "logcumhazard")
+> hr <- exp(lhaz[,2] - lhaz[,1])
+> 
+> par(mgp = c(2.5, 1, 0), mar = c(4, 4, 1.5, 4))
+> plot(s[[y]], hr, ylim = ylimHR, type = "l",
++      xlab = xlab, ylab = "Hazard ratio", las = 1, lwd = lwd)
+> abline(h = 1, lty = 3)
 > 
 > ## HR from "flexsurvspline"
 > haz <- predict(mcv2, type = "cumhaz", newdata =  nd1)
@@ -1332,12 +1332,12 @@ There were 28 warnings (use warnings() to see them)
 +   data = CAOsurv, RandDist = "Gamma", n.knots = 6, kappa = 1000)
 
 Be patient. The program is computing ... 
-The program took 0.23 seconds 
+The program took 0.26 seconds 
 >  frailtypack::frailtyPenal(DFS ~ randarm,
 +   data = CAOsurv, n.knots = 6, kappa = 1000)
 
 Be patient. The program is computing ... 
-The program took 0.05 seconds 
+The program took 0.06 seconds 
 Call:
 frailtypack::frailtyPenal(formula = DFS ~ randarm, data = CAOsurv, 
     n.knots = 6, kappa = 1000)
@@ -1470,6 +1470,7 @@ loaded via a namespace (and not attached):
 [94] purrr_1.0.2           rlang_1.1.3           mnormt_2.1.1         
 > 
 > 
+> 
 > proc.time()
    user  system elapsed 
-463.748 580.568 335.670 
+556.204 759.452 396.732 
