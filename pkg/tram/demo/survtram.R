@@ -1,10 +1,10 @@
 ### Code from
 ### "Smooth Transformation Models for Survival Analysis: A Tutorial Using R"
-### by Sandra Siegfried, Balint Tamasi & Torsten Hothorn
+###   by Sandra Siegfried, Balint Tamasi & Torsten Hothorn
 
-## required packages
-pkgs <- c("mlt", "tram",  "trtf", "SparseGrid", "ATR",
-  "tramME", "multcomp", "coin", "TH.data", "survival", "colorspace", "xtable")
+# required packages
+pkgs <- c("mlt", "tram",  "trtf", "SparseGrid", "ATR", "tramME", "multcomp",
+  "coin", "TH.data", "survival", "colorspace", "xtable")
 
 ix <- which(!sapply(pkgs, require, char = TRUE))
 if (length(ix) > 0) {install.packages(pkgs[ix], repos = "https://stat.ethz.ch/CRAN/")
@@ -147,6 +147,7 @@ plot(surv_OS, ylim = ylimS, xlim = xlim,
   col = lcol, lwd = lwd, xlab = xlab, ylab = ylabS)
 legend("bottomright", legend = levs, col = col, bty = "n", lty = 1, lwd = 1, cex = .8)
 plot.risktab(tvar = "OStime")
+
 
 
 ## ----WEI-model-fit, echo = FALSE, cache = TRUE--------------------------------
@@ -501,7 +502,7 @@ ml <-
 Colr(iDFS ~ randarm, data = CAOsurv, log_first = TRUE)
 
 
-## Appendix ##
+### Appendix
 ## ----pkgs---------------------------------------------------------------------
 ## additional packages
 pkgs <- c("fastGHQuad", "icenReg", "TransModel", "rms", "ICsurv", "eha",
@@ -509,10 +510,10 @@ pkgs <- c("fastGHQuad", "icenReg", "TransModel", "rms", "ICsurv", "eha",
   "coxme", "parfm", "frailtyEM", "frailtypack", "timereg")
 
 
-## ----install------------------------------------------------------------------
+## ----install-pkgs-------------------------------------------------------------
 ix <- which(!sapply(pkgs, require, char = TRUE))
 if (length(ix) > 0) {install.packages(pkgs[ix], repos = "https://stat.ethz.ch/CRAN/")
- sapply(pkgs[ix], require, char = TRUE)}
+   sapply(pkgs[ix], require, char = TRUE)}
 
 
 ## ----pkgs-setup---------------------------------------------------------------
@@ -728,33 +729,21 @@ mcvi2 <- flexsurv::flexsurvspline(iDFS ~ randarm +
     gamma1(randarm) + gamma2(randarm), data = CAOsurv, k = 3)
 
 
-## ----TVAR-plotFUN-------------------------------------------------------------
+## ----TVAR-iDFS-plot, fig.width = 6, fig.height = 3----------------------------
+## HR from "tram"
 xlim.tvar <- c(100, max(q))
-plot.tvar <- function(object, K = 20, xlim = xlim.tvar) {
-object <- as.mlt(object)
 
-y <- variable.names(object, "response")
-s <- mkgrid(object, K)
+y <- variable.names(mcvi1, "response")
+s <- mkgrid(mcvi1, n = 50)
 s[[y]] <- s[[y]][s[[y]] > xlim[1] & s[[y]] < xlim[2]]
-nd <- expand.grid(s)
 
-K <- model.matrix(object$model, data = nd)
-Kyes <- K[nd$randarm == levels(nd$randarm)[2],]
-Kyes[,grep("Intercept", colnames(Kyes))] <- 0  
-gh <- glht(parm(coef(object), vcov(object)), Kyes)
-ci <- exp(confint(gh)$confint)
-coxy <- s[[y]]
+lhaz <- predict(as.mlt(mcvi1), newdata = s, type = "logcumhazard")
+hr <- exp(lhaz[,2] - lhaz[,1])
 
 par(mgp = c(2.5, 1, 0), mar = c(4, 4, 1.5, 4))
-plot(coxy, ci[, "Estimate"], ylim = ylimHR, type = "n",
+plot(s[[y]], hr, ylim = ylimHR, type = "l",
      xlab = xlab, ylab = "Hazard ratio", las = 1, lwd = lwd)
-lines(coxy, ci[, "Estimate"], lty = 1, lwd = lwd)
 abline(h = 1, lty = 3)
-}
-
-
-## ----TVAR-iDFS-plot, fig.width = 6, fig.height = 3----------------------------
-plot.tvar(mcvi1)
 
 ## HR from "flexsurvspline"
 haz <- predict(mcvi2, type = "cumhaz", newdata =  nd1)
@@ -768,7 +757,6 @@ legend("topright", lty = 1:2, lwd = 2, col = c("black", col2),
   bty = "n")
 
 
-
 ## ----TVAR-DFS-fit, cache = TRUE-----------------------------------------------
 mcv1 <- tram::Coxph(DFS | randarm ~ 1, data = CAOsurv, log_first = TRUE)
 mcv2 <- flexsurv::flexsurvspline(DFS ~ randarm + gamma1(randarm) + gamma2(randarm),
@@ -776,7 +764,19 @@ mcv2 <- flexsurv::flexsurvspline(DFS ~ randarm + gamma1(randarm) + gamma2(randar
 
 
 ## ----TVAR-DFS-plot, fig.width = 6, fig.height = 3-----------------------------
-plot.tvar(mcv1)
+xlim.tvar <- c(100, max(q))
+
+y <- variable.names(mcv1, "response")
+s <- mkgrid(mcv1, n = 50)
+s[[y]] <- s[[y]][s[[y]] > xlim[1] & s[[y]] < xlim[2]]
+
+lhaz <- predict(as.mlt(mcv1), newdata = s, type = "logcumhazard")
+hr <- exp(lhaz[,2] - lhaz[,1])
+
+par(mgp = c(2.5, 1, 0), mar = c(4, 4, 1.5, 4))
+plot(s[[y]], hr, ylim = ylimHR, type = "l",
+     xlab = xlab, ylab = "Hazard ratio", las = 1, lwd = lwd)
+abline(h = 1, lty = 3)
 
 ## HR from "flexsurvspline"
 haz <- predict(mcv2, type = "cumhaz", newdata =  nd1)
@@ -833,4 +833,5 @@ print.results(list(mo1, mo2, mo3, mo4))
 
 ## ----session, results = "markup"----------------------------------------------
 sessionInfo()
+
 
