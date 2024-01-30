@@ -2,7 +2,7 @@
 \name{NEWS}
 \title{NEWS file for the tram package}
 
-\section{Changes in Version 1.0-2 (2024-01-29)}{
+\section{Changes in Version 1.0-2 (2024-01-30)}{
   \itemize{
     \item{New \code{demo("survtram")} and \code{demo("hcc")}.}
     \item{\code{predict} methods for \code{tram} and \code{stram} 
