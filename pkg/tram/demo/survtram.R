@@ -244,9 +244,9 @@ plot(as.mlt(mcs), type = "survivor", newdata = nd1, col = col)
 
 ## ----SCOX-HR-plot, echo = FALSE-----------------------------------------------
 qHR <- seq(50, max(q), by = 1)
-lhaz <- predict(mcs, type = "loghazard", newdata = nd1, q = qHR)
-hr <- unname(exp(lhaz[, 2] - lhaz[, 1]))
-plot(qHR, hr, type = "l", ylab = "Hazard ratio", xlab = xlab,
+cumhaz <- predict(mcs, type = "cumhazard", newdata = nd1, q = qHR)
+cumhr <- unname(cumhaz[, 2] / cumhaz[, 1])
+plot(qHR, cumhr, type = "l", ylab = expression(Lambda[1]*Lambda[0]^{-1}), xlab = xlab,
   ylim = ylimHR, xlim = xlimHR <- range(qHR), lwd = lwd)
 
 abline(h = exp(coef(mc)), lty = 2, lwd = 1) ## constant HR
@@ -284,7 +284,7 @@ ci2 <- exp(confint(mc))
 
 ## ----TCOX-HR-plot-------------------------------------------------------------
 plot(coxy, ci[, "Estimate"], ylim = ylimHR, type = "n",
-  xlim = xlimHR, xlab = xlab, ylab = "Hazard ratio")
+  xlim = xlimHR, xlab = xlab, ylab = expression(Lambda[1]*Lambda[0]^{-1}))
 polygon(c(coxy, rev(coxy)), c(ci[,"lwr"], rev(ci[, "upr"])),
         border = NA, col = rgb(.1, .1, .1, .1))
 lines(coxy, ci[, "Estimate"], lty = 1, lwd = lwd)
@@ -730,28 +730,28 @@ mcvi2 <- flexsurv::flexsurvspline(iDFS ~ randarm +
 
 
 ## ----TVAR-iDFS-plot, fig.width = 6, fig.height = 3----------------------------
-## HR from "tram"
+## cumHR from "tram"
 xlim.tvar <- c(100, max(q))
 
 y <- variable.names(mcvi1, "response")
 s <- mkgrid(mcvi1, n = 50)
 s[[y]] <- s[[y]][s[[y]] > xlim[1] & s[[y]] < xlim[2]]
 
-lhaz <- predict(as.mlt(mcvi1), newdata = s, type = "logcumhazard")
-hr <- exp(lhaz[,2] - lhaz[,1])
+cumhaz <- predict(as.mlt(mcvi1), newdata = s, type = "cumhazard")
+cumhr <- cumhaz[,2] / cumhaz[,1]
 
 par(mgp = c(2.5, 1, 0), mar = c(4, 4, 1.5, 4))
-plot(s[[y]], hr, ylim = ylimHR, type = "l",
-     xlab = xlab, ylab = "Hazard ratio", las = 1, lwd = lwd)
+plot(s[[y]], cumhr, ylim = ylimHR, type = "l",
+     xlab = xlab, ylab = expression(Lambda[1]*Lambda[0]^{-1}), las = 1, lwd = lwd)
 abline(h = 1, lty = 3)
 
-## HR from "flexsurvspline"
-haz <- predict(mcvi2, type = "cumhaz", newdata =  nd1)
-lhr <- unlist(unname(haz[[1]][[2]][2] /  haz[[1]][[1]][2]))
-t <- unlist(unname(haz[[1]][[1]][1]))
-ret <- as.data.frame(cbind(t, lhr))
+## cumHR from "flexsurvspline"
+cumhaz <- predict(mcvi2, type = "cumhaz", newdata =  nd1)
+cumhr <- unlist(unname(cumhaz[[1]][[2]][2] /  cumhaz[[1]][[1]][2]))
+t <- unlist(unname(cumhaz[[1]][[1]][1]))
+ret <- as.data.frame(cbind(t, cumhr))
 ret <- ret[ret$t > xlim.tvar[1] & ret$t < xlim.tvar[2], ]
-lines(ret$t, ret$lhr, lty = 2, lwd = 2, col = col2 <- "darkgrey")
+lines(ret$t, ret$cumhr, lty = 2, lwd = 2, col = col2 <- "darkgrey")
 legend("topright", lty = 1:2, lwd = 2, col = c("black", col2),
   legend = c(bquote("package:"~bold("tram")), bquote("package:"~bold("flexsurv"))),
   bty = "n")
@@ -764,27 +764,28 @@ mcv2 <- flexsurv::flexsurvspline(DFS ~ randarm + gamma1(randarm) + gamma2(randar
 
 
 ## ----TVAR-DFS-plot, fig.width = 6, fig.height = 3-----------------------------
+## cumHR from "tram"
 xlim.tvar <- c(100, max(q))
 
 y <- variable.names(mcv1, "response")
 s <- mkgrid(mcv1, n = 50)
 s[[y]] <- s[[y]][s[[y]] > xlim[1] & s[[y]] < xlim[2]]
 
-lhaz <- predict(as.mlt(mcv1), newdata = s, type = "logcumhazard")
-hr <- exp(lhaz[,2] - lhaz[,1])
+cumhaz <- predict(as.mlt(mcv1), newdata = s, type = "cumhazard")
+cumhr <- cumhaz[,2] / cumhaz[,1]
 
 par(mgp = c(2.5, 1, 0), mar = c(4, 4, 1.5, 4))
-plot(s[[y]], hr, ylim = ylimHR, type = "l",
-     xlab = xlab, ylab = "Hazard ratio", las = 1, lwd = lwd)
+plot(s[[y]], cumhr, ylim = ylimHR, type = "l",
+     xlab = xlab, ylab =  expression(Lambda[1]*Lambda[0]^{-1}), las = 1, lwd = lwd)
 abline(h = 1, lty = 3)
 
-## HR from "flexsurvspline"
-haz <- predict(mcv2, type = "cumhaz", newdata =  nd1)
-lhr <- unlist(unname(haz[[1]][[2]][2] /  haz[[1]][[1]][2]))
-t <- unlist(unname(haz[[1]][[1]][1]))
-ret <- as.data.frame(cbind(t, lhr))
+## cumHR from "flexsurvspline"
+cumhaz <- predict(mcv2, type = "cumhaz", newdata =  nd1)
+cumhr <- unlist(unname(cumhaz[[1]][[2]][2] /  cumhaz[[1]][[1]][2]))
+t <- unlist(unname(cumhaz[[1]][[1]][1]))
+ret <- as.data.frame(cbind(t, cumhr))
 ret <- ret[ret$t > xlim.tvar[1] & ret$t < xlim.tvar[2], ]
-lines(ret$t, ret$lhr, lty = 2, lwd = 2, col = col2 <- "darkgrey")
+lines(ret$t, ret$cumhr, lty = 2, lwd = 2, col = col2 <- "darkgrey")
 legend("topright", lty = 1:2, lwd = 2, col = c("black", col2),
   legend = c(bquote("package:"~bold("tram")), bquote("package:"~bold("flexsurv"))),
   bty = "n")
