@@ -1,7 +1,7 @@
 Package: tram
 Title: Transformation Models
 Version: 1.0-2
-Date: 2024-01-29
+Date: 2024-01-30
 Authors@R: c(person("Torsten", "Hothorn", role = c("aut", "cre"),
                     email = "Torsten.Hothorn@R-project.org", comment = c(ORCID = "0000-0001-8301-0471")),
              person("Luisa", "Barbanti", role = "aut",
