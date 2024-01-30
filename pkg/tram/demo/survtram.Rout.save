@@ -447,9 +447,9 @@ Likelihood-ratio Test: Chisq = 6.882057 on 2 degrees of freedom; p = 0.03203
 > 
 > ## ----SCOX-HR-plot, echo = FALSE-----------------------------------------------
 > qHR <- seq(50, max(q), by = 1)
-> lhaz <- predict(mcs, type = "loghazard", newdata = nd1, q = qHR)
-> hr <- unname(exp(lhaz[, 2] - lhaz[, 1]))
-> plot(qHR, hr, type = "l", ylab = "Hazard ratio", xlab = xlab,
+> cumhaz <- predict(mcs, type = "cumhazard", newdata = nd1, q = qHR)
+> cumhr <- unname(cumhaz[, 2] / cumhaz[, 1])
+> plot(qHR, cumhr, type = "l", ylab = expression(Lambda[1]*Lambda[0]^{-1}), xlab = xlab,
 +   ylim = ylimHR, xlim = xlimHR <- range(qHR), lwd = lwd)
 > 
 > abline(h = exp(coef(mc)), lty = 2, lwd = 1) ## constant HR
@@ -488,7 +488,7 @@ Likelihood-ratio Test: Chisq = 6.882057 on 2 degrees of freedom; p = 0.03203
 > 
 > ## ----TCOX-HR-plot-------------------------------------------------------------
 > plot(coxy, ci[, "Estimate"], ylim = ylimHR, type = "n",
-+   xlim = xlimHR, xlab = xlab, ylab = "Hazard ratio")
++   xlim = xlimHR, xlab = xlab, ylab = expression(Lambda[1]*Lambda[0]^{-1}))
 > polygon(c(coxy, rev(coxy)), c(ci[,"lwr"], rev(ci[, "upr"])),
 +         border = NA, col = rgb(.1, .1, .1, .1))
 > lines(coxy, ci[, "Estimate"], lty = 1, lwd = lwd)
@@ -1245,28 +1245,28 @@ There were 28 warnings (use warnings() to see them)
 > 
 > 
 > ## ----TVAR-iDFS-plot, fig.width = 6, fig.height = 3----------------------------
-> ## HR from "tram"
+> ## cumHR from "tram"
 > xlim.tvar <- c(100, max(q))
 > 
 > y <- variable.names(mcvi1, "response")
 > s <- mkgrid(mcvi1, n = 50)
 > s[[y]] <- s[[y]][s[[y]] > xlim[1] & s[[y]] < xlim[2]]
 > 
-> lhaz <- predict(as.mlt(mcvi1), newdata = s, type = "logcumhazard")
-> hr <- exp(lhaz[,2] - lhaz[,1])
+> cumhaz <- predict(as.mlt(mcvi1), newdata = s, type = "cumhazard")
+> cumhr <- cumhaz[,2] / cumhaz[,1]
 > 
 > par(mgp = c(2.5, 1, 0), mar = c(4, 4, 1.5, 4))
-> plot(s[[y]], hr, ylim = ylimHR, type = "l",
-+      xlab = xlab, ylab = "Hazard ratio", las = 1, lwd = lwd)
+> plot(s[[y]], cumhr, ylim = ylimHR, type = "l",
++      xlab = xlab, ylab = expression(Lambda[1]*Lambda[0]^{-1}), las = 1, lwd = lwd)
 > abline(h = 1, lty = 3)
 > 
-> ## HR from "flexsurvspline"
-> haz <- predict(mcvi2, type = "cumhaz", newdata =  nd1)
-> lhr <- unlist(unname(haz[[1]][[2]][2] /  haz[[1]][[1]][2]))
-> t <- unlist(unname(haz[[1]][[1]][1]))
-> ret <- as.data.frame(cbind(t, lhr))
+> ## cumHR from "flexsurvspline"
+> cumhaz <- predict(mcvi2, type = "cumhaz", newdata =  nd1)
+> cumhr <- unlist(unname(cumhaz[[1]][[2]][2] /  cumhaz[[1]][[1]][2]))
+> t <- unlist(unname(cumhaz[[1]][[1]][1]))
+> ret <- as.data.frame(cbind(t, cumhr))
 > ret <- ret[ret$t > xlim.tvar[1] & ret$t < xlim.tvar[2], ]
-> lines(ret$t, ret$lhr, lty = 2, lwd = 2, col = col2 <- "darkgrey")
+> lines(ret$t, ret$cumhr, lty = 2, lwd = 2, col = col2 <- "darkgrey")
 > legend("topright", lty = 1:2, lwd = 2, col = c("black", col2),
 +   legend = c(bquote("package:"~bold("tram")), bquote("package:"~bold("flexsurv"))),
 +   bty = "n")
@@ -1279,27 +1279,28 @@ There were 28 warnings (use warnings() to see them)
 > 
 > 
 > ## ----TVAR-DFS-plot, fig.width = 6, fig.height = 3-----------------------------
+> ## cumHR from "tram"
 > xlim.tvar <- c(100, max(q))
 > 
 > y <- variable.names(mcv1, "response")
 > s <- mkgrid(mcv1, n = 50)
 > s[[y]] <- s[[y]][s[[y]] > xlim[1] & s[[y]] < xlim[2]]
 > 
-> lhaz <- predict(as.mlt(mcv1), newdata = s, type = "logcumhazard")
-> hr <- exp(lhaz[,2] - lhaz[,1])
+> cumhaz <- predict(as.mlt(mcv1), newdata = s, type = "cumhazard")
+> cumhr <- cumhaz[,2] / cumhaz[,1]
 > 
 > par(mgp = c(2.5, 1, 0), mar = c(4, 4, 1.5, 4))
-> plot(s[[y]], hr, ylim = ylimHR, type = "l",
-+      xlab = xlab, ylab = "Hazard ratio", las = 1, lwd = lwd)
+> plot(s[[y]], cumhr, ylim = ylimHR, type = "l",
++      xlab = xlab, ylab =  expression(Lambda[1]*Lambda[0]^{-1}), las = 1, lwd = lwd)
 > abline(h = 1, lty = 3)
 > 
-> ## HR from "flexsurvspline"
-> haz <- predict(mcv2, type = "cumhaz", newdata =  nd1)
-> lhr <- unlist(unname(haz[[1]][[2]][2] /  haz[[1]][[1]][2]))
-> t <- unlist(unname(haz[[1]][[1]][1]))
-> ret <- as.data.frame(cbind(t, lhr))
+> ## cumHR from "flexsurvspline"
+> cumhaz <- predict(mcv2, type = "cumhaz", newdata =  nd1)
+> cumhr <- unlist(unname(cumhaz[[1]][[2]][2] /  cumhaz[[1]][[1]][2]))
+> t <- unlist(unname(cumhaz[[1]][[1]][1]))
+> ret <- as.data.frame(cbind(t, cumhr))
 > ret <- ret[ret$t > xlim.tvar[1] & ret$t < xlim.tvar[2], ]
-> lines(ret$t, ret$lhr, lty = 2, lwd = 2, col = col2 <- "darkgrey")
+> lines(ret$t, ret$cumhr, lty = 2, lwd = 2, col = col2 <- "darkgrey")
 > legend("topright", lty = 1:2, lwd = 2, col = c("black", col2),
 +   legend = c(bquote("package:"~bold("tram")), bquote("package:"~bold("flexsurv"))),
 +   bty = "n")
@@ -1332,12 +1333,12 @@ There were 28 warnings (use warnings() to see them)
 +   data = CAOsurv, RandDist = "Gamma", n.knots = 6, kappa = 1000)
 
 Be patient. The program is computing ... 
-The program took 0.26 seconds 
+The program took 0.4 seconds 
 >  frailtypack::frailtyPenal(DFS ~ randarm,
 +   data = CAOsurv, n.knots = 6, kappa = 1000)
 
 Be patient. The program is computing ... 
-The program took 0.06 seconds 
+The program took 0.07 seconds 
 Call:
 frailtypack::frailtyPenal(formula = DFS ~ randarm, data = CAOsurv, 
     n.knots = 6, kappa = 1000)
@@ -1432,7 +1433,7 @@ other attached packages:
 [29] colorspace_2.1-0  coin_1.4-3        multcomp_1.4-25   TH.data_1.1-2    
 [33] MASS_7.3-60.0.1   survival_3.5-7    tramME_1.0.5      ATR_0.1-1        
 [37] SparseGrid_0.8.2  trtf_0.4-2        partykit_1.2-20   libcoin_1.0-10   
-[41] tram_1.0-1        mvtnorm_1.2-4     mlt_1.5-0         basefun_1.1-4    
+[41] tram_1.0-2        mvtnorm_1.2-4     mlt_1.5-0         basefun_1.1-4    
 [45] variables_1.1-1  
 
 loaded via a namespace (and not attached):
@@ -1473,4 +1474,4 @@ loaded via a namespace (and not attached):
 > 
 > proc.time()
    user  system elapsed 
-556.204 759.452 396.732 
+649.739 881.243 486.267 
