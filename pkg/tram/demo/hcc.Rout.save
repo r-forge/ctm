@@ -1,0 +1,508 @@
+
+R version 4.3.2 (2023-10-31) -- "Eye Holes"
+Copyright (C) 2023 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> 
+> ### Reproducibility material for
+> ###
+> ### Construction and evaluation of optimal diagnostic 
+> ### tests with application to hepatocellular carcinoma diagnosis
+> ###
+> ### Hepatocellular Carcinoma Diagnosis
+> source("https://gitlab.com/asewak/optcomb/-/raw/main/hcc.R?ref_type=heads&inline=false", echo = TRUE)
+
+> pkgs <- c("openxlsx", "tram", "tramME", "mvtnorm", 
++     "parallel", "xtable", "randomForest", "ggplot2", "pracma", 
++     "qrng")
+
+> req <- sapply(pkgs, require, char = TRUE)
+Loading required package: openxlsx
+Loading required package: tram
+Loading required package: mlt
+Loading required package: basefun
+Loading required package: variables
+Loading required package: mvtnorm
+Loading required package: tramME
+Loading required package: parallel
+Loading required package: xtable
+Loading required package: randomForest
+randomForest 4.7-1.1
+Type rfNews() to see new features/changes/bug fixes.
+Loading required package: ggplot2
+
+Attaching package: ‘ggplot2’
+
+The following object is masked from ‘package:randomForest’:
+
+    margin
+
+The following object is masked from ‘package:variables’:
+
+    unit
+
+Loading required package: pracma
+Loading required package: qrng
+
+> if (!all(req)) {
++     sapply(pkgs[!req], install.packages)
++     req[!req] <- sapply(pkgs[!req], require, char = TRUE)
++ }
+
+> if (!all(req)) stop("cannot load dependencies")
+
+> set.seed(3006)
+
+> alpha <- 0.05
+
+> qs <- c(alpha/2, 1 - alpha/2)
+
+> ps <- seq(0, 1, by = 1e-04)
+
+> n_boot <- 100
+
+> n_reps <- 10
+
+> dat <- read.xlsx("https://datadryad.org/stash/downloads/file_stream/44697", 
++     sheet = 1)
+
+> d <- with(dat, data.frame(id = 1:nrow(dat), D = HCC_studyGr, 
++     AFP = AFP_ng_per_ml, PIV = PIVKA_delete_range, OPN, DKK, 
++     Age, Gender, Eti .... [TRUNCATED] 
+
+> d$D <- factor(d$D, levels = 0:1, labels = 0:1)
+
+> d$Gender <- factor(d$Gender, levels = 0:1, labels = c("Male", 
++     "Female"))
+
+> d$Age <- as.numeric(d$Age)
+
+> d$Eti_g <- ifelse(d$Etiology %in% c(2, 3), "Viral", 
++     "Non-viral")
+
+> d$Eti_g <- factor(d$Eti_g, levels = c("Non-viral", 
++     "Viral"))
+
+> rm(dat)
+
+> var_shft <- "D"
+
+> lvls <- levels(d[, var_shft])
+
+> bcol <- c("DKK", "OPN", "PIV", "AFP")
+
+> bcoln <- c("DKK-1", "OPN", "PIVKA-II", "AFP")
+
+> J <- length(bcol)
+
+> dd <- d
+
+> dd[, bcol] <- log(dd[, bcol])
+
+> ccol <- c("Age", "Gender", "Eti_g")
+
+> mod2llr <- function(m, newdata, ...) {
++     var_shft <- "D"
++     nd0 <- nd1 <- newdata
++     nd0[, var_shft] <- factor(lvls[1], levels = lvls, lab .... [TRUNCATED] 
+
+> gcdfi <- function(par, xout) {
++     l <- seq(-15, 15, by = 0.001)
++     cdf <- mgcv::psum.chisq(-2 * (l - par$cn), lb = par$lb0, 
++         df = pa .... [TRUNCATED] 
+
+> rocc <- function(m, mrgn) {
++     gparsm <- m2gpar(m, margins = mrgn)
++     if (length(mrgn) == 1) {
++         qf0 <- qchisq(1 - ps, df = gparsm$df, .... [TRUNCATED] 
+
+> m2gpar <- function(m, margins = 1:J) {
++     cf_all <- coef(m)
++     scl <- cf_all[grep("scl_", names(cf_all))]
++     scl <- scl[margins]
++     scls .... [TRUNCATED] 
+
+> theta2aucs <- function(theta) {
++     mms <- do.call(mmlt, c(msl, data = list(dd), theta = list(theta), 
++         dofit = FALSE))
++     rocms_sim < .... [TRUNCATED] 
+
+> theta2coefs <- function(theta) {
++     mms <- do.call(mmlt, c(msl, data = list(dd), theta = list(theta), 
++         dofit = FALSE))
++     cf <- coef .... [TRUNCATED] 
+
+> plot_mcdfs <- function(i) {
++     r <- rocc(m = mm, mrgn = i)
++     aucm <- pracma::trapz(ps, r)
++     bm <- dd[bcol][, i]
++     y <- ys[[i]]
++      .... [TRUNCATED] 
+
+> plot_bi <- function(cmb) {
++     r <- rocc(mm, cmb)
++     aucb <- pracma::trapz(ps, r)
++     bm <- dd[bcol][, cmb]
++     bmx <- bm[, 1]
++     bmy <- .... [TRUNCATED] 
+
+> plot_bidf <- function(cmb) {
++     gbmx <- seq(lims[1], lims[2], length.out = n_out)
++     gbmy <- seq(lims[1], lims[2], length.out = n_out)
++     n .... [TRUNCATED] 
+
+> oosllr <- function() {
++     folds <- cut(sample(nrow(dd), replace = FALSE), breaks = 2, 
++         labels = FALSE)
++     ind_test <- which(folds == .... [TRUNCATED] 
+
+> plot_gof <- function(nd) {
++     nd$lp1 <- predict(mm, newdata = nd, margin = 1, type = "trafo")
++     nd$lp2 <- predict(mm, newdata = nd, margin =  .... [TRUNCATED] 
+
+> plot_mon <- function(dat) {
++     ylab <- "Spline term"
++     xlabs <- bcoln[1:3]
++     m1 <- BoxCoxME(OPN ~ s(DKK, k = 20), data = dat)
++     plot( .... [TRUNCATED] 
+
+> plot_hyj <- function(j) {
++     xlims <- c(-4, 12)
++     ylims <- c(-15, 15)
++     n_out <- 100
++     cxa <- 1
++     cxt <- 0.8
++     grd <- seq(xli .... [TRUNCATED] 
+
+> nd <- dd
+
+> nd0 <- nd[dd$D == 0, ][1, ]
+
+> nd1 <- nd[dd$D == 1, ][1, ]
+
+> form_tss <- paste(bcol, "~ D | D")
+
+> ms <- lapply(form_tss, BoxCox, data = dd, scale_shift = TRUE, 
++     prob = c(0, 1))
+
+> mm <- do.call(mmlt, c(ms, data = list(dd)))
+
+> llr <- mod2llr(mm, nd)
+
+> gpars <- m2gpar(mm)
+
+> rllr <- range(llr)
+
+> ords <- lapply(1:J, function(e) seq(1, e))
+
+> roccs <- lapply(ords, rocc, m = mm)
+
+> r_umat <- do.call(cbind, roccs)
+
+> matplot(ps, r_umat, type = "l", lty = 4:1, col = 1, 
++     xlab = "1 - Specificity", ylab = "Sensitivity", las = 1)
+
+> abline(0, 1, col = "gray80")
+
+> lgnd <- sapply(ords, function(i) paste(bcoln[i], collapse = ", "))
+
+> legend("bottomright", legend = lgnd, lty = 4:1, cex = 0.8, 
++     col = c(rep(1, J)), bty = "n")
+
+> rocms <- lapply(1:J, rocc, m = mm)
+
+> aucm <- sapply(rocms, function(r) pracma::trapz(ps, 
++     r))
+
+> aucc <- sapply(roccs, function(r) pracma::trapz(ps, 
++     r))
+
+> cf <- coef(mm)
+
+> V <- vcov(mm)
+
+> V <- (V + t(V))/2
+
+> P <- rmvnorm(n_boot, mean = cf, sigma = V)
+
+> cols <- colnames(P)
+
+> ms_mlt <- lapply(ms, as.mlt)
+
+> msl <- lapply(1:J, function(j) mlt(ms_mlt[[j]]$model, 
++     data = dd))
+
+> aucs <- mclapply(1:nrow(P), function(j) theta2aucs(P[j, 
++     ]), mc.cores = 6)
+
+> aucms <- do.call(rbind, sapply(aucs, "[", 1))
+
+> auccs <- do.call(rbind, sapply(aucs, "[", 2))
+
+> ci_aucm <- apply(aucms, 2, function(x) quantile(x, 
++     qs))
+
+> ci_aucc <- apply(auccs, 2, function(x) quantile(x, 
++     qs))
+
+> aucmr <- format(round(aucm, 3))
+
+> auccr <- format(round(aucc, 3))
+
+> ci_aucmr <- format(round(ci_aucm, 3))
+
+> ci_auccr <- format(round(ci_aucc, 3))
+
+> prtci <- function(x, y) paste0("(", x, ", ", y, ")")
+
+> ci_aucmrt <- apply(ci_aucmr, 2, function(x) prtci(x[1], 
++     x[2]))
+
+> ci_auccrt <- apply(ci_auccr, 2, function(x) prtci(x[1], 
++     x[2]))
+
+> tb_auc <- data.frame(name = bcoln, paste(aucmr, ci_aucmrt), 
++     paste(auccr, ci_auccrt), row.names = NULL)
+
+> colnames(tb_auc) <- c("Marker", "Marginal AUC (95% CI)", 
++     "Cumulative AUC (95% CI)")
+
+> tb_auc
+    Marker Marginal AUC (95% CI) Cumulative AUC (95% CI)
+1    DKK-1  0.674 (0.632, 0.726)    0.674 (0.632, 0.726)
+2      OPN  0.716 (0.680, 0.752)    0.780 (0.742, 0.821)
+3 PIVKA-II  0.767 (0.721, 0.811)    0.844 (0.811, 0.881)
+4      AFP  0.814 (0.772, 0.856)    0.883 (0.850, 0.911)
+
+> coefs <- mclapply(1:nrow(P), function(j) theta2coefs(P[j, 
++     ]), mc.cores = 6)
+
+> coefs <- do.call(rbind, coefs)
+
+> ci_coefs <- apply(coefs, 2, function(x) quantile(x, 
++     qs))
+
+> ci_coefsr <- format(round(ci_coefs, 3))
+
+> coefp <- theta2coefs(cf)
+
+> coefpr <- format(round(coefp, 3))
+
+> cf_ci <- apply(ci_coefsr, 2, function(x) prtci(x[1], 
++     x[2]))
+
+> tb_cfs <- data.frame(name = names(cf_ci), paste(coefpr, 
++     cf_ci), row.names = NULL)
+
+> tb_cfs$name <- c(paste0("location.", bcoln), paste0("scale.", 
++     bcoln), paste0("correlation.", gsub("\\.", " - ", tail(tb_cfs$name, 
++     J *  .... [TRUNCATED] 
+
+> colnames(tb_cfs) <- c("Variable", "Coefficient (95% CI)")
+
+> tb_cfs
+                Variable   Coefficient (95% CI)
+1         location.DKK-1 0.721 ( 0.515,  0.962)
+2           location.OPN 0.780 ( 0.518,  1.027)
+3      location.PIVKA-II 1.257 ( 0.956,  1.527)
+4           location.AFP 1.572 ( 1.241,  1.911)
+5            scale.DKK-1 0.499 ( 0.201,  0.790)
+6              scale.OPN 1.232 ( 0.958,  1.546)
+7         scale.PIVKA-II 0.694 ( 0.410,  0.996)
+8              scale.AFP 0.753 ( 0.460,  0.960)
+9  correlation.OPN - DKK 0.104 (-0.001,  0.210)
+10 correlation.PIV - DKK 0.302 ( 0.186,  0.363)
+11 correlation.PIV - OPN 0.315 ( 0.211,  0.399)
+12 correlation.AFP - DKK 0.232 ( 0.116,  0.314)
+13 correlation.AFP - OPN 0.348 ( 0.247,  0.417)
+14 correlation.AFP - PIV 0.833 ( 0.800,  0.865)
+
+> cexauc <- 0.9
+
+> n_out <- 100
+
+> lims <- c(-4, 12)
+
+> layout(mat = matrix(c(1, 11, 12, 13, 5, 2, 14, 15, 
++     6, 8, 3, 16, 7, 9, 10, 4), nrow = 4, byrow = TRUE))
+
+> par(mar = c(0, 0, 0, 0) + 0.1, oma = c(4, 4, 4, 4))
+
+> ylims <- c(-10, 10)
+
+> cols <- c("#1B1919FF", "#AD002ABF")
+
+> pchs <- c(20, 3)
+
+> rng <- sapply(dd[, bcol], range)
+
+> ys <- apply(rng, 2, function(x) seq(lims[1], lims[2], 
++     by = 0.1), simplify = FALSE)
+
+> ind_D0 <- which(dd$D == 0)
+
+> lapply(1:J, plot_mcdfs)
+[[1]]
+NULL
+
+[[2]]
+NULL
+
+[[3]]
+NULL
+
+[[4]]
+[1] -4 12
+
+
+> cmbs <- combn(J, 2)
+
+> apply(cmbs, 2, plot_bi)
+[[1]]
+NULL
+
+[[2]]
+NULL
+
+[[3]]
+[1] -4 12
+
+[[4]]
+NULL
+
+[[5]]
+[1] -4 12
+
+[[6]]
+[1] -4 12
+
+
+> apply(cmbs, 2, plot_bidf)
+NULL
+
+> form_tss <- paste(bcol, "~ D | D")
+
+> form_cl <- as.formula(paste("D ~", paste(bcol, collapse = "+")))
+
+> oosllrs <- mclapply(1:n_reps, function(x) oosllr())
+
+> oosllrd <- do.call(rbind, oosllrs)
+
+> llru <- aggregate(cbind(llrt, llrr) ~ id, data = oosllrd, 
++     FUN = mean)
+
+> colnames(llru) <- c("id", "llrt", "llrr")
+
+> ddm <- merge(dd, llru, by = "id", all.x = TRUE)
+
+> mct <- Colr(llrt ~ D * (Age + Gender + Eti_g), data = ddm)
+
+> grd_age <- 30:90
+
+> nda <- nda0 <- nda1 <- expand.grid(Gender = unique(dd$Gender), 
++     Eti_g = unique(dd$Eti_g), Age = grd_age)
+
+> nda0$D <- nd0$D
+
+> nda1$D <- nd1$D
+
+> auc_cov <- PI(mct, nda1, nda0, one2one = T, conf.level = 0.95)
+
+> nda_cov <- cbind(nda, auc_cov)
+
+> ggplot(nda_cov, aes(x = Age, y = Estimate)) + geom_ribbon(aes(ymin = lwr, 
++     ymax = upr), alpha = 0.2) + geom_line() + ylim(0, 1) + ylab("Estima ..." ... [TRUNCATED] 
+
+> plot_gof(subset(dd, D == 0))
+$pvalmin
+[1] 0.2664517
+
+$pvalprod
+[1] 0.1214408
+
+
+> plot_gof(subset(dd, D == 1))
+$pvalmin
+[1] 0.004200534
+
+$pvalprod
+[1] 0.00499267
+
+
+> layout(mat = matrix(c(1, 0, 0, 2, 3, 0, 4, 5, 6), 
++     nrow = 3, byrow = TRUE))
+
+> par(mar = c(0, 0, 0, 0) + 0.1, oma = c(5, 5, 0.5, 
++     0.5))
+
+> ylims <- c(-5.5, 5.5)
+
+> cx <- 1.2
+
+> cxt <- 0.9
+
+> plot_mon(subset(dd, D == 0))
+
+> plot_mon(subset(dd, D == 1))
+
+> rm(ylims, cx, cxt)
+
+> layout(mat = matrix(c(1, 2, 3, 4), nrow = 2, byrow = TRUE))
+
+> par(mar = c(0, 0, 0, 0) + 0.1, oma = c(4, 4, 0.5, 
++     0.5))
+
+> lapply(1:J, plot_hyj)
+[[1]]
+NULL
+
+[[2]]
+NULL
+
+[[3]]
+NULL
+
+[[4]]
+NULL
+
+Warning messages:
+1: In regularize.values(x, y, ties, missing(ties), na.rm = na.rm) :
+  collapsing to unique 'x' values
+2: In regularize.values(x, y, ties, missing(ties), na.rm = na.rm) :
+  collapsing to unique 'x' values
+3: In regularize.values(x, y, ties, missing(ties), na.rm = na.rm) :
+  collapsing to unique 'x' values
+4: In regularize.values(x, y, ties, missing(ties), na.rm = na.rm) :
+  collapsing to unique 'x' values
+5: In regularize.values(x, y, ties, missing(ties), na.rm = na.rm) :
+  collapsing to unique 'x' values
+6: In regularize.values(x, y, ties, missing(ties), na.rm = na.rm) :
+  collapsing to unique 'x' values
+7: In regularize.values(x, y, ties, missing(ties), na.rm = na.rm) :
+  collapsing to unique 'x' values
+8: In regularize.values(x, y, ties, missing(ties), na.rm = na.rm) :
+  collapsing to unique 'x' values
+9: In regularize.values(x, y, ties, missing(ties), na.rm = na.rm) :
+  collapsing to unique 'x' values
+> ###
+> ### Simulation; takes a while
+> if (FALSE) 
++     source("https://gitlab.com/asewak/optcomb/-/raw/main/sim.R?ref_type=heads&inline=false", echo = TRUE)
+> 
+> proc.time()
+    user   system  elapsed 
+1582.476    2.098  351.173 
