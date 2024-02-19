@@ -17,6 +17,7 @@ xlab <- "Time (in days)"
 lxlab <- paste0(xlab, " on log-scale")
 ylabS <- "Probability of survival"
 ylablHaz <- "Log-cumulative hazard"
+ylabcumHR <- expression(Lambda[1](t)*Lambda[0](t)^{-1})
 ylimS <- c(0, 1)
 ylimHR <- c(0, 1.6)
 q <- 0:2204
@@ -69,7 +70,7 @@ frmtll <- function(x, math = FALSE, mark = FALSE) {
     if (is.na(x)) return("")
   ret <- frmt2(abs(x), math = FALSE)
   if (x < 0) ret <- paste0(ifelse(math, "$-$", "-"), ret)
-  if (mark) ret <- paste0("{\\color{gray}", ret, "}")
+  if (mark) ret <- paste0("{\\color{darkgray}", ret, "}")
   ret
 }
 
@@ -160,7 +161,7 @@ summary(mw)
 coef(mw, as.survreg = TRUE) ## same interpretation as "survreg"
 score_test(mw)
 perm_test(mw)
-plot(as.mlt(mw), type = "survivor", newdata = nd1, col = col)
+# plot(as.mlt(mw), type = "survivor", newdata = nd1, col = col)
 
 
 ## ----COX-model-fit, echo = FALSE, cache = TRUE--------------------------------
@@ -172,7 +173,7 @@ Coxph(iDFS ~ randarm, data = CAOsurv, log_first = TRUE)
 summary(mc)
 score_test(mc)
 perm_test(mc)
-plot(as.mlt(mc), type = "survivor", newdata = nd1, col = col)
+# plot(as.mlt(mc), type = "survivor", newdata = nd1, col = col)
 
 
 ## ----COX-lHaz, echo = FALSE---------------------------------------------------
@@ -238,15 +239,16 @@ Coxph(iDFS ~ randarm | randarm, data = CAOsurv, log_first = TRUE)
 
 ## ----SCOX-summary, cache = TRUE, results = "hide", fig.show = "hide"----------
 summary(mcs)
+confint(mcs)
 perm_test_biv.stram(mcs)
-plot(as.mlt(mcs), type = "survivor", newdata = nd1, col = col)
+# plot(as.mlt(mcs), type = "survivor", newdata = nd1, col = col)
 
 
 ## ----SCOX-HR-plot, echo = FALSE-----------------------------------------------
 qHR <- seq(50, max(q), by = 1)
 cumhaz <- predict(mcs, type = "cumhazard", newdata = nd1, q = qHR)
 cumhr <- unname(cumhaz[, 2] / cumhaz[, 1])
-plot(qHR, cumhr, type = "l", ylab = expression(Lambda[1]*Lambda[0]^{-1}), xlab = xlab,
+plot(qHR, cumhr, type = "l", ylab = ylabcumHR, xlab = xlab,
   ylim = ylimHR, xlim = xlimHR <- range(qHR), lwd = lwd)
 
 abline(h = exp(coef(mc)), lty = 2, lwd = 1) ## constant HR
@@ -284,7 +286,7 @@ ci2 <- exp(confint(mc))
 
 ## ----TCOX-HR-plot-------------------------------------------------------------
 plot(coxy, ci[, "Estimate"], ylim = ylimHR, type = "n",
-  xlim = xlimHR, xlab = xlab, ylab = expression(Lambda[1]*Lambda[0]^{-1}))
+  xlim = xlimHR, xlab = xlab, ylab = ylabcumHR)
 polygon(c(coxy, rev(coxy)), c(ci[,"lwr"], rev(ci[, "upr"])),
         border = NA, col = rgb(.1, .1, .1, .1))
 lines(coxy, ci[, "Estimate"], lty = 1, lwd = lwd)
@@ -444,18 +446,28 @@ sqrt(diag(vcov(mmc)))
 ma <- 
 CoxphME(iDFS ~ randarm + s(age, by = as.ordered(randarm), fx = TRUE, k = 6),
   data = CAOsurv, log_first = TRUE)
-sma <- smooth_terms(ma)
-hr <- exp(sma[[1]]["s(age)"] + coef(ma))[,, drop = TRUE]
-age <- sma[[1]]$age
+nd <- model.frame(ma)[rep(2, 100), ]
+nd$age <- seq(min(CAOsurv$age), max(CAOsurv$age), length.out = 100)
+xx <- model.matrix(ma, data = nd, type = "X", keep_sign = FALSE)$X
+ip <- grep("randarm", names(bb <- coef(ma, with_baseline = TRUE)))
+vc <- vcov(ma, parm = ip)
+bb <- bb[ip]
 
+## NOTE: unadjusted
+cb <- exp(confint(multcomp::glht(multcomp::parm(bb, vc), linfct = xx),
+                  calpha = univariate_calpha())$confint)
 
 ## ----HTECOX-summary, cache = TRUE, results = "hide", fig.show = 'hide'--------
 summary(ma)
 
 
 ## ----HTECOX-HR-plot-----------------------------------------------------------
-plot(age, hr, type = "l", ylab = "Hazard ratio", xlab = "Age (in years)",
-  ylim = ylimHR, lwd = lwd)
+## Plot HR
+plot(nd$age, cb[, "Estimate"], type = "n", ylab = "Hazard ratio", xlab = "Age (in years)",
+     ylim = ylimHR)
+polygon(c(nd$age, rev(nd$age)), c(cb[, "lwr"], rev(cb[, "upr"])),
+        border = NA, col = rgb(.1, .1, .1, .1))
+lines(nd$age, cb[, "Estimate"], lwd = lwd)
 abline(h = 1, lty = 3)
 rug(CAOsurv$age, lwd = 2, col = rgb(.1, .1, .1, .1))
 
@@ -507,8 +519,7 @@ Colr(iDFS ~ randarm, data = CAOsurv, log_first = TRUE)
 ## additional packages
 pkgs <- c("fastGHQuad", "icenReg", "TransModel", "rms", "ICsurv", "eha",
   "rstpm2", "flexsurv", "mpr", "gamlss", "gamlss.cens", 
-  "coxme", "parfm", "frailtyEM", "frailtypack", "timereg")
-
+  "coxme", "parfm", "frailtyEM", "frailtypack", "mgcv", "timereg")
 
 ## ----install-pkgs-------------------------------------------------------------
 ix <- which(!sapply(pkgs, require, char = TRUE))
@@ -593,6 +604,7 @@ tab <- function(mod, parm = trt, math = TRUE, mark = TRUE, tex = TRUE) {
   
   cfint <- switch(call["Call"],
     "coxph" = "log-HR", "Coxph" = "log-HR", "CoxphME" = "log-HR", 
+    "gam" = ifelse(mod$family$family == "Cox PH", "log-HR", NA),
     "coxme" = "log-HR", "frailtyPenal" = "log-HR", "emfrail" = "log-HR",
     "survreg" = "log-AF", "Survreg" = "log-HR",
     "stpm2" = ifelse(identical(mod@link$link, link.stpm2.ph, ignore.environment = TRUE),
@@ -606,8 +618,8 @@ tab <- function(mod, parm = trt, math = TRUE, mark = TRUE, tex = TRUE) {
   if (inherits(mod, c("stram", "mpr", "gamlss"))) cfint <- NA
   if (is.null(cfint)) cfint <- NA
   
-  mark <- ifelse(mark && inherits(mod, c("coxph", "coxme", "cph", "ic_sp", "ic_ph", "ic_po", 
-    "cox.aalen", "emfrail", "flexurvspline", "frailtyPenal")), TRUE, FALSE)
+  mark <- ifelse(mark && call["Call"] %in% c("gam", "coxph", "coxme", "cph", "ic_sp", "ic_ph", "ic_po", 
+    "cox.aalen", "emfrail", "frailtyPenal"), TRUE, FALSE)
   ret <- c(cfint, frmt3(cf, math = math), frmt3(se, math = math),
     frmtll(ll, mark = mark, math = math))
   names(ret) <- n <- c("Interpretation", "Estimate", "Std. Error", "logLik")
@@ -647,7 +659,7 @@ with(CAOsurv, all.equal(Surv(time = iDFStime, time2 = iDFStime2, event = iDFSeve
 ## ----Cox-iDFS-fit, echo = FALSE, cache = TRUE---------------------------------
 mci1 <- tram::Coxph(iDFS ~ randarm, data = CAOsurv, log_first = TRUE)
 mci2 <- rstpm2::stpm2(Surv(time = iDFStime, time2 = iDFStime2, event = iDFSevent,
-    type = "interval") ~ randarm, data = CAOsurv, log.time.transform = TRUE)
+    type = "interval") ~ randarm, data = CAOsurv)
 mci3 <- flexsurv::flexsurvspline(iDFS ~ randarm, data = CAOsurv, k = 3)
 mci4 <- icenReg::ic_sp(iDFS ~ randarm, data = CAOsurv, model = "ph")
 
@@ -669,8 +681,7 @@ print.results(list(mc1, mc2, mc3))
 ## ----STRAT-iDFS-fit, cache = TRUE---------------------------------------------
 mstci1 <- tram::Coxph(iDFS | strat ~ randarm, data = CAOsurv, log_first = TRUE)
 mstci2 <- rstpm2::stpm2(Surv(time = iDFStime, time2 = iDFStime2, event = iDFSevent,
-    type = "interval") ~ randarm + strata(strat),
-  data = CAOsurv, log.time.transform = TRUE)
+    type = "interval") ~ randarm + strata(strat), data = CAOsurv)
 mstci3 <- flexsurv::flexsurvspline(iDFS ~ randarm + gamma1(strat) + gamma2(strat),
   data = CAOsurv, k = 3)
 
@@ -714,8 +725,7 @@ print.results(list(mswi1, mswi2))
 
 
 ## ----LS-DFS-fit, echo = FALSE, cache = TRUE-----------------------------------
-msw1 <- tram::Survreg(DFS ~ randarm | randarm, data = CAOsurv,
-  remove_intercept = FALSE)
+msw1 <- tram::Survreg(DFS ~ randarm | randarm, data = CAOsurv, remove_intercept = FALSE)
 msw2 <- mpr::mpr(DFS ~ list(~ randarm, ~ randarm), data = CAOsurv)
 
 
@@ -742,7 +752,7 @@ cumhr <- cumhaz[,2] / cumhaz[,1]
 
 par(mgp = c(2.5, 1, 0), mar = c(4, 4, 1.5, 4))
 plot(s[[y]], cumhr, ylim = ylimHR, type = "l",
-     xlab = xlab, ylab = expression(Lambda[1]*Lambda[0]^{-1}), las = 1, lwd = lwd)
+     xlab = xlab, ylab = ylabcumHR, las = 1, lwd = lwd)
 abline(h = 1, lty = 3)
 
 ## cumHR from "flexsurvspline"
@@ -776,7 +786,7 @@ cumhr <- cumhaz[,2] / cumhaz[,1]
 
 par(mgp = c(2.5, 1, 0), mar = c(4, 4, 1.5, 4))
 plot(s[[y]], cumhr, ylim = ylimHR, type = "l",
-     xlab = xlab, ylab =  expression(Lambda[1]*Lambda[0]^{-1}), las = 1, lwd = lwd)
+     xlab = xlab, ylab =  ylabcumHR, las = 1, lwd = lwd)
 abline(h = 1, lty = 3)
 
 ## cumHR from "flexsurvspline"
@@ -802,18 +812,66 @@ mcME3 <- coxme::coxme(DFS ~ randarm + (1 | Block), data = CAOsurv)
 print.results(list(mcME1, mcME2, mcME3))
 
 
+## ----HTECOX-DFS, eval = FALSE, echo = TRUE------------------------------------
+## tramME::CoxphME(DFS ~ randarm + s(age, by = as.ordered(randarm), fx = TRUE, k = 6),
+##   data = CAOsurv, log_first = TRUE)
+## mgcv::gam(DFStime ~ randarm + s(age, by = as.ordered(randarm), fx = TRUE, k = 6),
+##   data = CAOsurv, family = cox.ph(), weights = DFSevent)
+
+## ----HTECOX-DFS-fit-----------------------------------------------------------
+ma1 <- CoxphME(DFS ~ randarm +
+    s(age, by = as.ordered(randarm), fx = TRUE, k = 6),
+               data = CAOsurv, log_first = TRUE)
+ma2 <- gam(DFStime ~ randarm +
+    s(age, by = as.ordered(randarm), fx = TRUE, k = 6),
+               data = CAOsurv, family = cox.ph(), weights = DFSevent)
+
+
+## ----HTECOX-DFS-results-------------------------------------------------------
+print.results(list(ma1, ma2))
+
+
+## ----HTECOX-DFS-plot----------------------------------------------------------
+nd <- model.frame(ma1)[rep(2, 100), ]
+nd$age <- seq(min(CAOsurv$age), max(CAOsurv$age), length.out = 100)
+xx <- model.matrix(ma1, data = nd, type = "X", keep_sign = FALSE)$X
+ip <- grep("randarm", names(bb <- coef(ma1, with_baseline = TRUE)))
+vc <- vcov(ma1, parm = ip)
+bb <- bb[ip]
+
+cb1 <- exp(confint(multcomp::glht(multcomp::parm(bb, vc), linfct = xx),
+                  calpha = univariate_calpha())$confint)
+
+plot(nd$age, cb1[, "Estimate"], type = "n", ylab = "Hazard ratio", xlab = "Age (in years)",
+     ylim = ylimHR)
+matlines(nd$age, cb1, lwd = lwd, col = 1, lty = 1)
+# polygon(c(nd$age, rev(nd$age)), c(cb1[, "lwr"], rev(cb1[, "upr"])),
+#         border = NA, col = rgb(.1, .1, .1, .1))
+abline(h = 1, lty = 3)
+
+summary(ma2)
+
+nd2 <- model.frame(ma2)[rep(2, 100), ]
+nd2$age <- seq(min(CAOsurv$age), max(CAOsurv$age), length.out = 100)
+pr <- predict(ma2, newdata = nd2, type = "link", se.fit = TRUE)
+
+matlines(nd2$age, exp(c(pr$fit) + qnorm(0.975) * pr$se.fit %o% c(0, -1, 1)),
+         col = col2, lwd = lwd, lty = 2)
+
+legend("bottomright", lty = 1:2, lwd = 2, col = c("black", col2),
+  legend = c(bquote("package:"~bold("tramME")), bquote("package:"~bold("mgcv"))),
+  bty = "n")
+
+
+
 ## ----FRAILTY-DFS-fit, cache = TRUE--------------------------------------------
-mfc1 <- tram::Coxph(DFS ~ randarm, data = CAOsurv, frailty = "Gamma",
-  log_first = TRUE)
-mfc2 <- rstpm2::stpm2(Surv(DFStime, DFSevent) ~ randarm, cluster = "id", 
-  data = CAOsurv, RandDist = "Gamma", log.time.transform = TRUE)
-mfc3 <- survival::coxph(DFS ~ randarm +
-    frailty(id, distribution = "gamma"), data = CAOsurv)
+mfc1 <- tram::Coxph(DFS ~ randarm, data = CAOsurv, log_first = TRUE, frailty = "Gamma")
+mfc2 <- rstpm2::stpm2(Surv(DFStime, DFSevent) ~ randarm, data = CAOsurv,
+  cluster = "id", RandDist = "Gamma")
+mfc3 <- survival::coxph(DFS ~ randarm + frailty(id, distribution = "gamma"), data = CAOsurv)
 mfc4 <- frailtyEM::emfrail(DFS ~ randarm + cluster(id), data = CAOsurv)
-mfc5 <- frailtypack::frailtyPenal(DFS ~ randarm + cluster(id),
-  data = CAOsurv, RandDist = "Gamma", n.knots = 6, kappa = 1000)
- frailtypack::frailtyPenal(DFS ~ randarm,
-  data = CAOsurv, n.knots = 6, kappa = 1000)
+mfc5 <- frailtypack::frailtyPenal(DFS ~ randarm + cluster(id), data = CAOsurv,
+  RandDist = "Gamma", n.knots = 10, kappa = 1)
 
 
 ## ----FRAILTY-DFS-results------------------------------------------------------
@@ -822,8 +880,7 @@ print.results(list(mfc1, mfc2, mfc3, mfc4, mfc5))
 
 ## ----Colr-DFS-fit, cache = TRUE-----------------------------------------------
 mo1 <- tram::Colr(DFS ~ randarm, data = CAOsurv, log_first = TRUE)
-mo2 <- rstpm2::stpm2(Surv(DFStime, DFSevent) ~ randarm, data = CAOsurv,
-  log.time.transform = TRUE, link.type = "PO")
+mo2 <- rstpm2::stpm2(Surv(DFStime, DFSevent) ~ randarm, data = CAOsurv, link.type = "PO")
 mo3 <- flexsurv::flexsurvspline(iDFS ~ randarm, data = CAOsurv, k = 3, scale = "odds")
 mo4 <- timereg::Gprop.odds(DFS ~ prop(randarm), data = CAOsurv)
 
