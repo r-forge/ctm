@@ -812,12 +812,6 @@ mcME3 <- coxme::coxme(DFS ~ randarm + (1 | Block), data = CAOsurv)
 print.results(list(mcME1, mcME2, mcME3))
 
 
-## ----HTECOX-DFS, eval = FALSE, echo = TRUE------------------------------------
-## tramME::CoxphME(DFS ~ randarm + s(age, by = as.ordered(randarm), fx = TRUE, k = 6),
-##   data = CAOsurv, log_first = TRUE)
-## mgcv::gam(DFStime ~ randarm + s(age, by = as.ordered(randarm), fx = TRUE, k = 6),
-##   data = CAOsurv, family = cox.ph(), weights = DFSevent)
-
 ## ----HTECOX-DFS-fit-----------------------------------------------------------
 ma1 <- CoxphME(DFS ~ randarm +
     s(age, by = as.ordered(randarm), fx = TRUE, k = 6),
@@ -845,8 +839,6 @@ cb1 <- exp(confint(multcomp::glht(multcomp::parm(bb, vc), linfct = xx),
 plot(nd$age, cb1[, "Estimate"], type = "n", ylab = "Hazard ratio", xlab = "Age (in years)",
      ylim = ylimHR)
 matlines(nd$age, cb1, lwd = lwd, col = 1, lty = 1)
-# polygon(c(nd$age, rev(nd$age)), c(cb1[, "lwr"], rev(cb1[, "upr"])),
-#         border = NA, col = rgb(.1, .1, .1, .1))
 abline(h = 1, lty = 3)
 
 summary(ma2)
