@@ -16,10 +16,11 @@ tramnet(model, ...)
   tram_fun,
   tram_args = NULL,
   constraints = NULL,
+  groups = NULL,
   ...
 )
 
-\method{tramnet}{tram}(model, x, lambda, alpha, constraints = NULL, ...)
+\method{tramnet}{tram}(model, x, lambda, alpha, constraints = NULL, groups = NULL, ...)
 }
 \arguments{
 \item{model}{Either a \code{"formula"} specifying the regression or an object
@@ -46,6 +47,9 @@ passed to \code{tram_fun}.}
 \item{constraints}{An optional list containing a matrix of linear inequality
 contraints on the regression coefficients and a vector specifying the rhs
 of the inequality.}
+
+\item{groups}{For group lasso penalties, groups can be supplied as a vector
+of consecutive integers of the same length as columns in \code{x}.}
 
 \item{x}{A numeric matrix, where each row corresponds to the same row in the
 \code{data} argument used to fit \code{model}.}

@@ -50,7 +50,8 @@ tramnet <- function(model, ...) {
 #' @exportS3Method tramnet formula
 #'
 tramnet.formula <- function(
-    model, data, lambda, alpha, tram_fun, tram_args = NULL, constraints = NULL, ...
+    model, data, lambda, alpha, tram_fun, tram_args = NULL, constraints = NULL,
+    groups = NULL, ...
 ) {
 
   call <- match.call()
@@ -68,7 +69,7 @@ tramnet.formula <- function(
   }
 
   ret <- tramnet.tram(model = m0, x = x, lambda = lambda, alpha = alpha,
-                      constraints = constraints, ...)
+                      constraints = constraints, groups = groups, ...)
   ret$process_newdata <- preproc
   ret
 }
@@ -89,6 +90,8 @@ tramnet.formula <- function(
 #' @param constraints An optional list containing a matrix of linear inequality
 #'    contraints on the regression coefficients and a vector specifying the rhs
 #'    of the inequality.
+#' @param groups For group lasso penalties, groups can be supplied as a vector
+#'    of consecutive integers of the same length as columns in \code{x}.
 #'
 #' @exportS3Method tramnet tram
 #'
@@ -102,9 +105,11 @@ tramnet.formula <- function(
 #' @importFrom stats as.formula coef getCall logLik model.matrix predict
 #'     simulate update variable.names weights update.default
 #'
-tramnet.tram <- function(model, x, lambda, alpha, constraints = NULL, ...) {
+tramnet.tram <- function(model, x, lambda, alpha, constraints = NULL,
+                         groups = NULL, ...) {
     ### <FIXME> handle offset and maybe fixed parameters </FIXME>
-    .tramnet_checks(model = model, x = x, lambda = lambda, alpha = alpha)
+    .tramnet_checks(model = model, x = x, lambda = lambda, alpha = alpha,
+                    groups = groups)
     call <- match.call()
     trdat <- .get_tram_data(model)
     stopifnot(trdat$nobs == nrow(x))
@@ -113,7 +118,7 @@ tramnet.tram <- function(model, x, lambda, alpha, constraints = NULL, ...) {
     theta <- Variable(nth)
     beta <- Variable(nb)
     prob <- .tramnet_objective(trdat, x, theta, beta,
-                               alpha, lambda, constraints)
+                               alpha, lambda, constraints, groups)
     res <- solve(prob, ...)
     ret <- list(call = call, model = model, x = x, result = res,
                 beta = res$getValue(beta), theta = res$getValue(theta),
@@ -123,7 +128,9 @@ tramnet.tram <- function(model, x, lambda, alpha, constraints = NULL, ...) {
     return(ret)
   }
 
-.tramnet_checks <- function(model, x, lambda, alpha) {
+.tramnet_checks <- function(model, x, lambda, alpha, groups) {
+  if (!is.null(groups) && !all(diff(sort(unique(groups))) == 1))
+    stop("The provides `groups` should be supplied as consecutive integers.")
   if (!(inherits(model, "tram") | inherits(model, "mlt")))
     stop("The provided model should be of class 'tram'")
   if (!inherits(x, "matrix"))
@@ -141,7 +148,7 @@ tramnet.tram <- function(model, x, lambda, alpha, constraints = NULL, ...) {
 }
 
 .tramnet_objective <-
-  function(trdat, x, theta, beta, alpha, lambda, constraints) {
+  function(trdat, x, theta, beta, alpha, lambda, constraints, groups) {
     xe <- x[trdat$exact$which, , drop = FALSE]
     xl <- x[trdat$censl$which, , drop = FALSE]
     xr <- x[trdat$censr$which, , drop = FALSE]
@@ -256,9 +263,18 @@ tramnet.tram <- function(model, x, lambda, alpha, constraints = NULL, ...) {
         lll <- llr <- lli <- 0
       }
     )
-    obj <- -(lle + lll + llr + lli) +
-      (0.5 * (1 - alpha) * power(p_norm(lambda * beta, 2), 2) +
-                  alpha * p_norm(lambda * beta, 1))
+    lik <- -(lle + lll + llr + lli)
+    if (is.null(groups))
+      pen <- (0.5 * (1 - alpha) * power(p_norm(lambda * beta, 2), 2) +
+                alpha * p_norm(lambda * beta, 1))
+    else {
+      pens <- sapply(unique(groups), \(group) {
+        pmat <- diag(as.numeric(groups == group))
+        p_norm(pmat %*% beta, 2)
+      })
+      pen <- lambda * do.call("sum", pens)
+    }
+    obj <- lik + pen
     const <- list(trdat$const$ui %*% theta >= trdat$const$ci)
     if (!is.null(constraints)) {
       const[[2]] <- constraints[[1]] %*% beta >= constraints[[2]]
