@@ -1,7 +1,7 @@
 Package: tramnet
 Title: Penalized Transformation Models
 Version: 0.1-0
-Date: 2023-11-02
+Date: 2024-03-20
 URL: http://ctm.R-forge.R-project.org
 Authors@R: c(person("Lucas", "Kook", role = c("cre", "aut"),
                     email = "lucasheinrich.kook@gmail.com",
@@ -30,6 +30,6 @@ Suggests:
     survival,
     testthat (>= 3.0.0)
 License: GPL-2
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.1
 Encoding: UTF-8
 Config/testthat/edition: 3
