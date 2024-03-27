@@ -13,3 +13,5 @@ Examples/tram-Ex.Rout.save
 todo.txt
 survtram.Rout.save
 survtram_plots.pdf
+hcc_plots.pdf
+hcc.Rout.save
