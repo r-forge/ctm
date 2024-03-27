@@ -15,17 +15,17 @@
 \usage{
 mmlt(..., formula = ~ 1, data, conditional = FALSE, theta = NULL, fixed = NULL,
      scale = FALSE, optim = mmltoptim(), args = list(seed = 1, M = 1000), 
-     dofit = TRUE, domargins = TRUE)
+     dofit = TRUE, domargins = TRUE, sequentialfit = FALSE)
 mmltoptim(auglag = list(maxtry = 5), ...)
 \method{coef}{cmmlt}(object, newdata, 
      type = c("all", "conditional", "Lambda", "Lambdainv", 
               "Precision", "PartialCorr", "Sigma", "Corr", 
-              "Spearman", "Kendall"), 
+              "Spearman", "Kendall"), fixed = FALSE, 
      ...)
 \method{coef}{mmmlt}(object, newdata, 
      type = c("all", "marginal", "Lambda", "Lambdainv", 
               "Precision", "PartialCorr", "Sigma", "Corr", 
-              "Spearman", "Kendall"), 
+              "Spearman", "Kendall"), fixed = FALSE,
      ...)
 \method{predict}{mmlt}(object, newdata, margins = 1:J, 
         type = c("trafo", "distribution", "survivor", "density", "hazard"), 
@@ -50,7 +50,9 @@ gives the same likelihood but different parameter estimates.
 }
   \item{theta}{an optional vector of starting values.
 }
-  \item{fixed}{an optional named numeric vector of predefined parameter values.
+  \item{fixed}{an optional named numeric vector of predefined parameter values
+or a logical (for \code{coef}) indicating to also return fixed parameters
+(only when \code{type = "all"}).
 }
   \item{scale}{a logical indicating if (internal) scaling shall be applied
           to the model coefficients.
@@ -63,6 +65,11 @@ gives the same likelihood but different parameter estimates.
 }
   \item{domargins}{logical; all model parameters are fitted by default, 
                    including the parameters of marginal models.
+}
+  \item{sequentialfit}{logical; fit parameters sequentially by adding one
+       model at a time, keeping all parameters concerning previously added models
+       fixed. This does not lead to an optimal estimate but might provide
+       attractive starting values.
 }
 \item{auglag}{a list of arguments to \code{\link[alabama]{auglag}} ensuring
               a numerically determined Hessian is returned.}
