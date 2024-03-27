@@ -2,6 +2,16 @@
 \name{NEWS}
 \title{NEWS file for the tram package}
 
+\section{Changes in Version 1.0-3 (2024-03-26)}{
+  \itemize{
+    \item{Add sequential fits to \code{mmlt}.}
+    \item{Add \code{fixed = TRUE/FALSE} argument to \code{coef.mmlt}
+          such that the whole parameter vector can be retrieved.}
+    \item{Handle constraints for fixed parameters correctly (as \code{mlt}
+          always did).}
+  }
+}
+
 \section{Changes in Version 1.0-2 (2024-01-30)}{
   \itemize{
     \item{New \code{demo("survtram")} and \code{demo("hcc")}.}
