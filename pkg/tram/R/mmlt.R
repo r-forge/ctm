@@ -126,7 +126,8 @@
 .models <- function(...) {
 
     m <- lapply(list(...), function(x) as.mlt(x))
-    nm <- abbreviate(sapply(m, function(x) x$model$response), 4)
+    # nm <- abbreviate(sapply(m, function(x) x$model$response), 4)
+    nm <- sapply(m, function(x) x$model$response)
     J <- length(m)
     Jp <- J * (J - 1) / 2
     normal <- sapply(m, function(x) x$todistr$name == "normal")
@@ -359,22 +360,23 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
             stop("Cannot perform sequential fit with fixed values")
         mj <- as.mlt(m[[1]])
         for (j in 2:length(m)) {
-            args <- m[1:j]
-            args$formula <- formula
-            args$data <- data
-            args$conditional <- conditional
-            args$scale <- scale
-            args$optim <- optim
-            args$args <- args
-            args$domargins <- domargins
+            mc <- m[1:j]
+            mc$formula <- formula
+            mc$data <- data
+            mc$conditional <- conditional
+            mc$scale <- scale
+            mc$optim <- optim
+            mc$args <- args
+            if (!is.null(mc$args$w)) mc$args$w <- mc$args$w[1:(j - 1L),,drop = FALSE]
+            mc$domargins <- domargins
             cf <- .start(do.call(".models", m[1:j]), colnames(lX))
             cfj <- coef(mj, fixed = TRUE)
             if (j == 2)
                 names(cfj) <- names(cf)[1:length(cfj)]
             ### fix coefs and estimate jth row of
             ### lambda and (if domargins) jth marginal parameters only
-            args$fixed <- cfj
-            mj <- do.call("mmlt", args)
+            mc$fixed <- cfj
+            mj <- do.call("mmlt", mc)
         }
         return(mj)
     }

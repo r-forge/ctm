@@ -127,7 +127,7 @@ methods.
   logLik(m_speed_dist)
   sum(predict(m_speed_dist, newdata = cars, type = "density", log = TRUE))
 
-  ## Wald test of independence of speed and dist (the "dist.sped.(Intercept)"
+  ## Wald test of independence of speed and dist (the "dist.speed.(Intercept)"
   ## coefficient)
   summary(m_speed_dist)
 
@@ -138,7 +138,7 @@ methods.
   ## constrain lambda to zero and fit independence model
   ## => log-likelihood is the sum of the marginal log-likelihoods
   mI <- mmlt(m_speed, m_dist, formula = ~1, data = cars, 
-             fixed = c("dist.sped.(Intercept)" = 0))
+             fixed = c("dist.speed.(Intercept)" = 0))
   logLik(m_speed) + logLik(m_dist)
   logLik(mI)
 
