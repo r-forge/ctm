@@ -126,8 +126,9 @@ R.Surv <- function(object, as.R.ordered = FALSE, as.R.interval = FALSE, ...) {
 
 R.factor <- function(object, ...) {
 
-    warning("response is unordered factor;
-             results may depend on order of levels")
+    if (nlevels(object) > 2)
+        warning("response is unordered factor;
+                 results may depend on order of levels")
     return(R(as.ordered(object), ...))
 }
 
