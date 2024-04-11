@@ -248,7 +248,8 @@ Polr <- function(formula, data, subset, weights, offset, cluster, na.action = na
     mf[[1L]] <- quote(tram_data)
     td <- eval(mf, parent.frame())
 
-    stopifnot(is.ordered(td$response) || inherits(td$response, "response"))
+    stopifnot(is.ordered(td$response) || inherits(td$response, "response") || 
+              (is.factor(td$response) && nlevels(td$response) == 2))
 
     method <- match.arg(method)
     distribution <- c("logistic" = "Logistic", "probit" = "Normal", 

@@ -202,3 +202,10 @@ cf <- coef(m0)
 m <- mmlt(m1, m2, data = iris, formula = ~ 1, dofit = FALSE)
 stopifnot(isTRUE(all.equal(c(m$score(cf)), c(grad(m$ll, cf)), check.attributes = FALSE)))
 
+### tram didn't allow binary factors
+d <- data.frame(y = gl(2, 50), x = runif(100))
+m0 <- tram(y ~ x, data = d, transformation = "discrete", distribution = "Logistic")
+m1 <- Polr(y ~ x, data = d, method = "logistic")
+m2 <- glm(y ~ x, data = d, family = binomial())
+stopifnot(isTRUE(all.equal(c(logLik(m0)), c(logLik(m1)))))
+stopifnot(isTRUE(all.equal(c(logLik(m0)), c(logLik(m2)))))
