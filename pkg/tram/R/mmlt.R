@@ -186,9 +186,18 @@
     type <- lapply(1:J, function(j)
         mlt:::.type_of_response(m[[j]]$response))
 
+    fixed <- vector(mode = "list", length = J)
+    for (j in 1:J) {
+        if (!is.null(m$fixed[[j]])) {
+            fj <- m$fixed[[j]]
+            names(fj) <- paste(nm[j], names(fj), sep = ".")
+            fixed[[j]] <- fj
+        }
+    }
+
     return(list(models = m, mf = mf, cont = cmod, type = type, normal = normal, 
                 nobs = nobs, weights = w, nparm = P, parm = parm, 
-                ui = ui, ci = ci, mm = mm, names = nm))
+                ui = ui, ci = ci, mm = mm, names = nm, fixed = fixed))
 }
 
 .mget <- function(models, j = 1, parm, newdata = NULL, weights = NULL,
@@ -209,6 +218,9 @@
         return(models$models[[j]]$parsc)
 
     prm <- models$parm(parm)[[j]]
+    ### remove marginally fix parameters
+    if (!is.null(models$fixed[[j]]))
+        prm <- prm[!names(prm) %in% names(models$fixed[[j]])]
     tmp <- as.mlt(models$models[[j]])
     if (!is.null(newdata)) {
         tmp <- mlt(tmp$model, data = newdata, # weights = weights,
@@ -423,6 +435,13 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
     }
 
     start <- .start(m, colnames(lX), names(fixed))
+    ### marginal fixed parameters
+    if (!is.null(m$fixed)) {
+        mfixed <- do.call("c", m$fixed)
+        fixed <- c(fixed, mfixed)
+        start <- .start(m, colnames(lX), names(fixed))
+    }
+    
     parnames <- eparnames <- names(start)
     lparnames <- names(start)[-(1:sum(m$nparm))]
     if (!is.null(fixed)) eparnames <- eparnames[!eparnames %in% names(fixed)]
