@@ -188,8 +188,8 @@
 
     fixed <- vector(mode = "list", length = J)
     for (j in 1:J) {
-        if (!is.null(m$fixed[[j]])) {
-            fj <- m$fixed[[j]]
+        if (!is.null(m[[j]]$fixed)) {
+            fj <- m[[j]]$fixed
             names(fj) <- paste(nm[j], names(fj), sep = ".")
             fixed[[j]] <- fj
         }
