@@ -704,7 +704,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
 
 
 .coef.mmlt <- function(object, newdata,
-                       type = c("all", "Lambda", "Lambdainv", "Precision", 
+                       type = c("all", "Lambdapar", "Lambda", "Lambdainv", "Precision", 
                                 "PartialCorr", "Sigma", "Corr", "Spearman", "Kendall"), 
                        fixed = FALSE, ...)
 {
@@ -733,9 +733,10 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
         ret <- ltMatrices(t(X %*% prm), byrow = TRUE, diag = FALSE, names = object$names)
     }
 
-    if (inherits(object, "mmmlt")) ret <- invcholD(ret)
+    if (inherits(object, "mmmlt")) ret <- invcholD(ret0 <- ret)
 
-    ret <- switch(type, "Lambda" = ret,
+    ret <- switch(type, "Lambdapar" = ret0, 
+                        "Lambda" = ret,
                         "Lambdainv" = solve(ret),
                         "Precision" = invchol2pre(ret),
                         "PartialCorr" = invchol2pc(ret),
@@ -745,7 +746,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
 }
 
 coef.cmmlt <- function(object, newdata,
-                       type = c("all", "conditional", "Lambda", "Lambdainv", 
+                       type = c("all", "conditional", "Lambdapar", "Lambda", "Lambdainv", 
                                 "Precision", "PartialCorr", "Sigma", "Corr", 
                                 "Spearman", "Kendall"), fixed = FALSE,
                        ...)
@@ -761,7 +762,7 @@ coef.cmmlt <- function(object, newdata,
 }
 
 coef.mmmlt <- function(object, newdata,
-                       type = c("all", "marginal", "Lambda", "Lambdainv", 
+                       type = c("all", "marginal", "Lambdapar", "Lambda", "Lambdainv", 
                                 "Precision", "PartialCorr", "Sigma", "Corr", 
                                 "Spearman", "Kendall"), fixed = FALSE,
                        ...)
