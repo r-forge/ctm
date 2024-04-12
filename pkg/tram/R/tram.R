@@ -152,8 +152,8 @@ tram <- function(formula, data, subset, weights, offset, cluster, na.action = na
     ### for binary responses, the second parameter is redundant
     ### this should happen in the basis function, but as.basis.factor_var
     ### currently doesn't allow it
-    yfixed <- 0
-    if (is.factor(td$response)) {
+    yfixed <- NULL
+    if (is.factor(td$response) && nlevels(td$response) == 2L) {
         yfixed <- 0
         names(yfixed) <- rev(colnames(rbasis(td$mf)))[1L]
     }
