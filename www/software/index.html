@@ -254,6 +254,9 @@ package</a>.</p>
 <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Loading required package: variables
 </code></pre></div></div>
 
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Loading required package: mvtnorm
+</code></pre></div></div>
+
 <p>Now all tram functions are ready to be used, for example the Colr()
 function for fitting a series of potentially stratified logistic regression
 models to a continuous outcome variable (let’s start with median 
@@ -269,7 +272,7 @@ Boston Housing values):</p>
 </span></code></pre></div></div>
 
 <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## 
-##   Continuous Outcome Logistic Regression 
+##  (Stratified) Continuous Outcome Logistic Regression 
 ## 
 ## Call:
 ## Colr(formula = y | 0 + chas ~ crim + zn + indus + nox + rm + 
