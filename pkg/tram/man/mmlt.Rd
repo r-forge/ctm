@@ -18,12 +18,12 @@ mmlt(..., formula = ~ 1, data, conditional = FALSE, theta = NULL, fixed = NULL,
      dofit = TRUE, domargins = TRUE, sequentialfit = FALSE)
 mmltoptim(auglag = list(maxtry = 5), ...)
 \method{coef}{cmmlt}(object, newdata, 
-     type = c("all", "conditional", "Lambda", "Lambdainv", 
+     type = c("all", "conditional", "Lambdapar", "Lambda", "Lambdainv", 
               "Precision", "PartialCorr", "Sigma", "Corr", 
               "Spearman", "Kendall"), fixed = FALSE, 
      ...)
 \method{coef}{mmmlt}(object, newdata, 
-     type = c("all", "marginal", "Lambda", "Lambdainv", 
+     type = c("all", "marginal", "Lambdapar", "Lambda", "Lambdainv", 
               "Precision", "PartialCorr", "Sigma", "Corr", 
               "Spearman", "Kendall"), fixed = FALSE,
      ...)
