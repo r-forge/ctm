@@ -149,6 +149,15 @@ tram <- function(formula, data, subset, weights, offset, cluster, na.action = na
                       extrapolate = extrapolate, log_first = log_first,
                       remove_intercept = !remove_intercept)
 
+    ### for binary responses, the second parameter is redundant
+    ### this should happen in the basis function, but as.basis.factor_var
+    ### currently doesn't allow it
+    yfixed <- 0
+    if (is.factor(td$response)) {
+        yfixed <- 0
+        names(yfixed) <- rev(colnames(rbasis(td$mf)))[1L]
+    }
+
     iS <- NULL
     if (!is.null(td$mt$s)) {
         ### model.matrix(~ s1) has intercept
@@ -254,7 +263,7 @@ tram <- function(formula, data, subset, weights, offset, cluster, na.action = na
         }
     } 
     ### </FIXME>
-    fixed <- c(list(...)$fixed, Xfixed)
+    fixed <- c(list(...)$fixed, yfixed, Xfixed)
 
     if (!is.null(iS) && !is.null(isX)) {
       nS <-  as.character(td$mt$s[[2]])
