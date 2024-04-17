@@ -13,7 +13,7 @@ stmboost(model, formula, data = list(), weights = NULL,
 }
 \arguments{
   \item{model}{an object of class \code{mlt} as returned by
-\code{\link{mlt}[mlt]}.
+\code{\link[mlt]{mlt}}.
 }
   \item{formula}{a model formula describing how the parameters of
 \code{model} depend on explanatory variables, see

@@ -2,6 +2,12 @@
 \name{NEWS}
 \title{NEWS file for the \pkg{tbm} package}
 
+\section{Changes in Version 0.3-6 (2024-04-17)}{
+  \itemize{
+    \item Fix broken link.
+    }
+}
+
 \section{Changes in Version 0.3-5 (2022-01-14)}{
   \itemize{
     \item Prepare for basefun 1.1-2 release.
