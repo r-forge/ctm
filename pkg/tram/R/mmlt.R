@@ -77,6 +77,12 @@
             a$invchol <- Lambda
         } else {
             a$chol <- mvtnorm::standardize(chol = solve(Lambda))
+            D <- mvtnorm::diagonals(a$chol)
+            if (any(D < .Machine$double.eps)) {
+                ### might happen in very rare cases
+                D[D < .Machine$double.eps] <- 2 * .Machine$double.eps
+                mvtnorm::diagonals(a$chol) <- D
+            }
         }
         return(do.call("ldpmvnorm", a))
     }
@@ -106,6 +112,12 @@
         ### avoid calling solve() multiple times
         D <- sqrt(Tcrossprod(chol, diag_only = TRUE))
         a$invchol <- sLambda <- invcholD(Lambda, D = D)
+        D <- mvtnorm::diagonals(a$invchol)
+        if (any(D > 1 / .Machine$double.eps)) {
+            ### might happen in very rare cases
+            D[D > 1 / .Machine$double.eps] <- 1 / (2 * .Machine$double.eps)
+            mvtnorm::diagonals(a$invchol) <- D
+        }
         ret <- do.call("sldpmvnorm", a)
         ret$chol <- -vectrick(sLambda, ret$invchol)
         ### END
@@ -412,7 +424,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
             if (conditional) {
                 ### theta are conditional parameters, scale with sigma
                 class(sm)[1] <- "cmmlt" ### do NOT standardize Lambda
-                d <- rowMeans(diagonals(coef(sm, newdata = data, type = "Sigma")))
+                d <- rowMeans(mvtnorm::diagonals(coef(sm, newdata = data, type = "Sigma")))
                 theta[1:sum(m$nparm)] <- theta[1:sum(m$nparm)] * rep(sqrt(d), times = m$nparm)
             }
         } else {
@@ -426,8 +438,17 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
     Jp <- J * (J - 1) / 2
     llsc <- .ll(c(cJ, dJ), standardize = !conditional, args)
 
-    if (dJ && is.null(args$w))
-        args$w <- .MCw(J = dJ, M = args$M, seed = args$seed)
+    if (dJ) {
+        if (is.null(args$w)) {
+            args$w <- .MCw(J = dJ, M = args$M, seed = args$seed)
+        } else {
+            if (!is.matrix(args$w)) args$w <- matrix(args$w, nrow = 1)
+            if (nrow(args$w) < dJ - 1) stop("incorrect dimension of w")
+            if (nrow(args$w) > dJ - 1)
+                ### make sure only dJ - 1 columns are present
+                args$w <- args$w[-(dJ:nrow(args$w)),,drop = FALSE]
+        }
+    }
 
     .Xparm <- function(parm) {
         parm <- parm[-(1:sum(m$nparm))]
@@ -896,7 +917,7 @@ predict.mmlt <- function (object, newdata, margins = 1:J,
         }
         ### conditional models
         mcov <- coef(object, newdata = newdata, type = "Sigma")
-        msd <- sqrt(diagonals(mcov)[margins,])
+        msd <- sqrt(mvtnorm::diagonals(mcov)[margins,])
         if (length(unique(msd)) == 1L && 
             !"bscaling" %in% names(tmp$model$model)) { ### no stram model
             cf <- cf / unique(msd)
