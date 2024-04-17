@@ -7,7 +7,7 @@
     \item{Add sequential fits to \code{mmlt}.}
     \item{Add \code{fixed = TRUE/FALSE} argument to \code{coef.mmlt}
           such that the whole parameter vector can be retrieved.}
-    \item{Handle constraints for fixed parameters correctly (as \code{mlt}
+    \item{Handle constraints for fixed parameters in \code{mmlt} correctly (as \code{mlt}
           always did).}
     \item{\code{tram} and \code{Polr} allow binary responses (and return
           results identical to \code{glm} with appropriate \code{family}).}
