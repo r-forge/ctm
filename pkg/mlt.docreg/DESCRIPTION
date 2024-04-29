@@ -9,7 +9,7 @@ Description: Additional documentation, a package vignette and
 Depends: mlt (>= 1.3-2)
 Imports: numDeriv, stats, eha, multcomp (>= 1.4-4), lattice, survival, flexsurv, truncreg
 Suggests: variables, basefun, MASS, TH.data,
-  knitr, prodlim, gridExtra, nnet, 
+  knitr, prodlim, gridExtra, nnet, mgcv,
   HSAUR3, sandwich, grid, latticeExtra, colorspace, 
   Matrix,  AER, coin, gamlss.data, mlbench, 
   tram (>=  0.6-0), rms

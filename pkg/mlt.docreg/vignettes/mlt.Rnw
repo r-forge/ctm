@@ -1,7 +1,7 @@
 
 %\VignetteEngine{knitr::knitr}
 %\VignetteIndexEntry{mlt}
-%\VignetteDepends{variables, basefun, mlt, survival, eha, prodlim, truncreg, lattice, gridExtra, MASS, nnet, HSAUR3, sandwich, flexsurv, grid, latticeExtra, colorspace, multcomp, Matrix, AER, coin, gamlss.data, mlbench}
+%\VignetteDepends{variables, basefun, mlt, survival, eha, prodlim, truncreg, lattice, gridExtra, MASS, nnet, HSAUR3, sandwich, flexsurv, grid, latticeExtra, colorspace, multcomp, Matrix, AER, coin, gamlss.data, mlbench, mgcv}
 
 \documentclass[article,nojss,shortnames]{jss}
 
@@ -32,7 +32,7 @@
 <<mlt-setup, echo = FALSE, results = "hide", message = FALSE, warning = FALSE>>=
 set.seed(290875)
 
-pkgs <- sapply(c("mlt", "survival", "eha", "prodlim", "truncreg", "lattice", "gridExtra",
+pkgs <- sapply(c("mgcv", "mlt", "survival", "eha", "prodlim", "truncreg", "lattice", "gridExtra",
          "MASS", "nnet", "HSAUR3", "sandwich", "flexsurv", "grid", "latticeExtra", 
          "colorspace", "multcomp", "eha"), require, char = TRUE)
 
@@ -3002,7 +3002,7 @@ pkg <- function(pkg) {
 }
 
 pkgs <- c("mlt", "variables", "basefun", "survival", "eha", "prodlim", "truncreg", "MASS", "nnet", "HSAUR3", "sandwich", 
-  "flexsurv", "multcomp", "Matrix", "BB", "alabama", "tram")
+  "flexsurv", "multcomp", "Matrix", "BB", "alabama", "tram", "mgcv")
 out <- sapply(pkgs, pkg)
 
 x <- readLines("packages.bib")
