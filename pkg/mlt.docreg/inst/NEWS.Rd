@@ -3,6 +3,12 @@
 \title{NEWS file for the mlt.docreg package}
 
 
+\section{Changes in Version 1.1-8 (2024-04-29)}{
+  \itemize{
+    \item{Remove unnecessary packages from vignette.}
+  }
+}
+
 \section{Changes in Version 1.1-7 (2023-08-28)}{
   \itemize{
     \item{Update reference output.}
