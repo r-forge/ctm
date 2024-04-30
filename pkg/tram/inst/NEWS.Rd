@@ -5,6 +5,7 @@
 \section{Changes in Version 1.0-4 (2024-04-18)}{
   \itemize{
     \item{Allow larger then needed \code{args$w} argument in \code{mmlt}.}
+    \item{Fix bug in \code{predict.mmlt}.}
   }
 }
 
