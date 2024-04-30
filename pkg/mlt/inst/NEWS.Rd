@@ -2,6 +2,14 @@
 \name{NEWS}
 \title{NEWS file for the mlt package}
 
+\section{Changes in Version 1.5-2 (2024-04-30)}{
+  \subsection{Bugfixes}{
+    \itemize{
+      \item{Handle \code{Surv} objects with smaller than zero values in \code{R.Surv(..., as.R.interval = TRUE)}.}
+    }
+  }
+}
+
 \section{Changes in Version 1.5-1 (2024-04-11)}{
   \subsection{Bugfixes}{
     \itemize{
