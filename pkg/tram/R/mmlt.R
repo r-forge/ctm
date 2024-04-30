@@ -252,15 +252,14 @@
     }
 
     ret <- tmp$trafo(prm, weights)
-    if (models$cont[j]) {
-        tr <- ret$trex
-        trp <- ret$trexprime
-        if (!models$normal[j])
-            trd <- tmp$todistr$d(tr) * trp
-    } else {
-        trl <- ret$trleft
-        trr <- ret$trright
-    }
+    ### extract both exact and interval (former might be needed for
+    ### predictions)
+    tr <- ret$trex
+    trp <- ret$trexprime
+    if (!models$normal[j])
+        trd <- tmp$todistr$d(tr) * trp
+    trl <- ret$trleft
+    trr <- ret$trright
 
     if (what == "trafo") {
         return(tr)
