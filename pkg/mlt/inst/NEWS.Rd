@@ -8,6 +8,11 @@
       \item{Handle \code{Surv} objects with smaller than zero values in \code{R.Surv(..., as.R.interval = TRUE)}.}
     }
   }
+  \subsection{New features}{
+    \itemize{
+      \item{Add \code{maxeval = 1000L} for \code{nloptr}.}
+    }
+  }
 }
 
 \section{Changes in Version 1.5-1 (2024-04-11)}{
