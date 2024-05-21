@@ -34,8 +34,8 @@ Bernstein_basis(var, order = 2, ui = c("none", "increasing", "decreasing",
 \references{
 
   Rida T. Farouki (2012), The Bernstein Polynomial Basis: A Centennial Retrospective,
-  \emph{Computer Aided Geometric Design}, \bold{29}(6), 379--419.
-  http://dx.doi.org/10.1016/j.cagd.2012.03.001
+  \emph{Computer Aided Geometric Design}, \bold{29}(6), 379--419, 
+  \doi{10.1016/j.cagd.2012.03.001}.
 
 }
 \examples{

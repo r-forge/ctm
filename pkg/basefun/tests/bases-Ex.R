@@ -141,3 +141,10 @@ testb(c(b0 = c(b1 = Bb, b2 = b(b2g = gb, b2z = bz))))
 testb(c(b0 = c(b1 = Bb, b2 = c(b2g = gb, b2z = bz))))
 testb(c(b0 = b(b1 = Bb, b2 = c(b2g = gb, b2z = bz))))
 
+### cyclic basis
+cb <- cyclic_basis(numeric_var("x"), order = 3, frequency = pi)
+### generate data + coefficients
+x <- data.frame(x = -10:10 * pi)
+f <- cb(x) %*% runif(6)
+stopifnot(all(abs(diff(f)) < sqrt(.Machine$double.eps)))
+
