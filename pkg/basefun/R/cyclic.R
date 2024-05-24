@@ -15,7 +15,7 @@ cyclic_basis <- function(var, order = 3, frequency) {
             if (is.null(varname)) varname <- colnames(data)[1]
             x <- data[[varname]]
         }
-        if (frequency < bounds[1L] || bounds[2L] > frequency)
+        if (frequency < bounds[1L] || frequency > bounds[2L])
             warning("bounded variable with unmatching frequency")
 
         X <- matrix(2 * pi * (1:order) / frequency, 
