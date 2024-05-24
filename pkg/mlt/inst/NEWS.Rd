@@ -11,6 +11,7 @@
   \subsection{New features}{
     \itemize{
       \item{Add \code{maxeval = 1000L} for \code{nloptr}.}
+      \item{Report \code{nloptr} more detailed status messages.}
     }
   }
 }
