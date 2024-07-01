@@ -10631,13 +10631,15 @@ m_s1 <- cotram(Saeger ~ tvar1 + tvar2 + tvar3 + tvar4 + tvar5 + tvar6 + Jahr,
                order = ord, data = aquabirds, method = "probit", add = c(-1, 300))
 
 ### multi-species transformation model: M-Lambda, discrete approximation
-m_disc3_const <- mcotram(m_h1, m_k1, m_s1, data = aquabirds)
+m_disc3_const <- mcotram(m_h1, m_k1, m_s1, data = aquabirds, M = 250)
 ### multi-species transformation model: M-Lambda(x), discrete approximation
-m_disc3 <- mcotram(m_h1, m_k1, m_s1, formula = fm, data = aquabirds)
+m_disc3 <- mcotram(m_h1, m_k1, m_s1, formula = fm, data = aquabirds, M = 250)
 
 ### Measures of dependence, M-Lambda, discrete approximation
-lambda3_d <- coef(m_disc3_const, newdata = nd, type = "Lambda")[1, ]
-corr3_d <- coef(m_disc3_const, newdata = nd, type = "Corr")[1, ]
+(lambda3_d <- coef(m_disc3_const, newdata = nd, type = "Lambda")[1, ])
+(corr3_d <- coef(m_disc3_const, newdata = nd, type = "Corr")[1, ])
+
+if (FALSE) {
 confints_d3 <- ci_const(m_disc3_const)
 
 ## standard errors for Lambda
@@ -10697,7 +10699,7 @@ f_mar_d(m_disc3$marginals[[1]],
         m_disc3$marginals[[2]],
         m_disc3$marginals[[3]])
 par(op)
-
+}
 
 ### discrete approximation, likelihood-ratio test
 logLik(m_disc3)  
@@ -10740,8 +10742,11 @@ m_cont3_const <- mmlt(m_h2, m_k2, m_s2, data = aquabirds)
 m_cont3 <- mmlt(m_h2, m_k2, m_s2, formula = fm, data = aquabirds)
 
 ### Measures of dependence, M-Lambda, continuous approximation
-lambda3_c <- coef(m_cont3_const, newdata = nd, type = "Lambda")[1, ]
-corr3_c <- coef(m_cont3_const, newdata = nd, type = "Corr")[1, ]
+(lambda3_c <- coef(m_cont3_const, newdata = nd, type = "Lambda")[1, ])
+(corr3_c <- coef(m_cont3_const, newdata = nd, type = "Corr")[1, ])
+
+if (FALSE) {
+
 confints_c3 <- ci_const(m_cont3_const)
 
 ## standard errors for Lambda
@@ -11454,3 +11459,5 @@ plot(dret[, "disc"], dret[, "orig"],
      col = rgb(.1, .1, .1, .3), pch = 19)
 abline(a = 0, b = 1, col = adjustcolor("red", alpha.f = .5))
 # par(op)
+
+}
