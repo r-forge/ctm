@@ -84,7 +84,7 @@ or a logical (for \code{coef}) indicating to also return fixed parameters
 single integers giving the marginal distribution of the corresponding
 variable, or multiple integers (currently only \code{1:j} implemented).
 }
-  \item{log}{logical; return log-probabilities or log-densities of
+  \item{log}{logical; return log-probabilities or log-densities if
 \code{TRUE}.
 }
   \item{nsim}{number of samples to generate.}
