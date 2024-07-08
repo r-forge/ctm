@@ -3,7 +3,7 @@
 ## build html-files for website
 build: pages-dist
 	bundle exec jekyll build
-	cp -r _site/* ../www/
+	cp -rf _site/* ../www/
 	@echo "NOTE: To update the website, please add/commit changes in ctm/www/."
 
 ## Development only
