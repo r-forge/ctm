@@ -104,7 +104,7 @@ Sandra Siegfried and Torsten Hothorn\\
 Institut f\"ur Epidemiologie, Biostatistik und Pr\"avention \\
 Universit\"at Z\"urich \\
 Hirschengraben 84, CH-8001 Z\"urich, Switzerland \\
-\texttt{siegfried.sandra@protonmail.com}
+\texttt{sandra.siegfried@alumni.uzh.ch}
 }
 
 \begin{document}

@@ -4,7 +4,7 @@ Version: 0.5-0
 Date: 2023-09-02
 Authors@R: c(
 	person(given = "Sandra", family = "Siegfried", role = c("aut", "cre"), 
-	email = "siegfried.sandra@protonmail.com",
+	email = "sandra.siegfried@alumni.uzh.ch",
 	comment = c(ORCID = "0000-0002-7312-1001")),
 	person(given = "Luisa", family = "Barbanti", role = "aut",
 	comment = c(ORCID = "0000-0001-5352-5802")),
