@@ -16,9 +16,6 @@ set.seed(29)
   
   ## check tram vs cotram coefs
   stopifnot(all.equal(cf, cfc, check.attributes = FALSE))
-  
-  # print(paste("coefficients all equal for tram & cotram, for log_first = ", mc$log_first, " and ", 
-  #             mc$model$todistr$name, " inv. link.", sep = "'"))
 }
 
 
@@ -30,16 +27,13 @@ set.seed(29)
   
   ## likelihood contributions interval-censored
   L <- predict(m, newdata = data.frame(yi = d$y + as.integer(log_first), x = d$x), type = "distribution") -
-    predict(m, newdata = data.frame(yi = d$y + as.integer(log_first) - 1L, x = d$x), type = "distribution")
+    predict(m, newdata = data.frame(yi = (d$y - 1L) + as.integer(log_first), x = d$x), type = "distribution")
   
-  ## check interval-censored vs cotram log-likelihoods
+  ## check interval-censored vs cotram log-likelihood contributions
   stopifnot(all.equal(log(L), mc$logliki(coef(as.mlt(mc)), mc$weights), check.attributes = FALSE))
   
-  ## check tram vs cotram log-likelihoods
+  # check tram vs cotram log-likelihood contributions
   stopifnot(all.equal(m$logliki(coef(as.mlt(m)), m$weight), mc$logliki(coef(as.mlt(mc)), mc$weight)))
-  
-  # print(paste("log-likelihoods all equal for tram & cotram, for log_first = ", mc$log_first, " and ", 
-  #             mc$model$todistr$name, " inv. link.", sep = "'"))
 }
 
 
@@ -66,30 +60,51 @@ for (log_first in c(FALSE, TRUE)) {
   yleft[yleft < 0] <- -Inf
   yi <- Surv(yleft + plus_one, y + plus_one, type = "interval2")
   
-  yi2 <- cotram:::R_count(y, plus_one = log_first)
+  yi2 <- cotram:::R.count(as.integer(y), plus_one = log_first)
   all.equal(yi, yi2)
   
   d <- data.frame(y = y, yi = yi, x = x)
   
   for (link in links) {
     # print(link)
+    
+    ## fit "cotram"
     mc <- cotram(as.formula(y ~ x), data = d, method = link, log_first = log_first)
-    # print(mc)
     
     ## check model.frame
     stopifnot(all.equal(nd <- model.frame(mc), d[names(nd)], check.attributes = FALSE))
     
+    ## "tram" with interval-censored response
     tram <- unname(trams[link])
-    m <- do.call(tram, list(formula = yi ~ x, support = mc$support, bounds = mc$bounds, log_first = log_first))
-    # print(m)
+    m <- do.call(tram, list(formula = yi ~ x, support = c(mc$support), bounds = mc$bounds, log_first = log_first))
     
     ## check if same model
     stopifnot(mc$model$todistr$name == m$model$todistr$name)
     
+    ## check coefs and logLiks
     .check_cf(m, mc)
     .check_ll(m, mc)
+    
+    ## "tram" with integer response
+    yi <- as.integer(y + plus_one)
+    m2 <- do.call(tram, list(formula = yi ~ x, support = mc$support, bounds = mc$bounds, log_first = log_first))
+    
+    ## check if same model
+    stopifnot(mc$model$todistr$name == m2$model$todistr$name)
+    
+    ## check coefs and logLiks
+    .check_cf(m2, mc)
+    .check_ll(m2, mc)
   }
 }
+
+## NOTE: 
+## - Models with integer-y and interval-censored-y are equivalent for "tram" 
+##   and "cotram"
+## - The discrepancy between "cotram" and "tram" fit come from the different
+##   support
+## - "tram" codes the interval as (NA, 0], "cotram" as (-Inf, 0], but are equivalently
+##   treated as left-censored
 
 
 ## additional checks for plus_one
