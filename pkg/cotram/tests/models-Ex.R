@@ -66,6 +66,9 @@ for (log_first in c(FALSE, TRUE)) {
   yleft[yleft < 0] <- -Inf
   yi <- Surv(yleft + plus_one, y + plus_one, type = "interval2")
   
+  yi2 <- cotram:::R_count(y, plus_one = log_first)
+  all.equal(yi, yi2)
+  
   d <- data.frame(y = y, yi = yi, x = x)
   
   for (link in links) {
