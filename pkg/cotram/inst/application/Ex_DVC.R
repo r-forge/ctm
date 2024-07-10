@@ -297,3 +297,4 @@ xyplot(cbind(lwr, Estimate, upr) ~ q | interval, data = cb,
        ylim = c(0 - .1, 1 + .1))
 
 warnings()
+sessionInfo()

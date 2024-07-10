@@ -1,3 +1,4 @@
+
 library("cotram")
 library("MASS")
 
@@ -256,3 +257,4 @@ wireframe(p ~ q * x | dgp, data = tmp_dgps,
 
 
 warnings()
+sessionInfo()
