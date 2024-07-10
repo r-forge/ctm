@@ -29,8 +29,8 @@ cotram <- function(formula, data, method = c("logit", "cloglog", "loglog", "prob
     plus_one <- as.integer(log_first)
     
     ## interval-censored count response for correct likelihood
-    td$response <- R_count(td$response, plus_one = plus_one)
-    td$mf[, td$rname] <- R_count(td$mf[, td$rname], plus_one = plus_one)
+    td$response <- R.count(td$response, plus_one = plus_one)
+    td$mf[, td$rname] <- R.count(td$mf[, td$rname], plus_one = plus_one)
     
     ## support
     support <- c(0, round(quantile(y, probs = prob)))[0:1 + length(prob)] + plus_one
