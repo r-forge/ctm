@@ -107,7 +107,6 @@ for (log_first in c(FALSE, TRUE)) {
     ## check coefs and logLiks
     .check_cf(m2, mc, tol = 1e-6)
     .check_ll(m2, mc, tol = 1e-6)
-    ## NOTE: predict.tram does return a matrix, which is why we don't check it here
   }
 }
 
