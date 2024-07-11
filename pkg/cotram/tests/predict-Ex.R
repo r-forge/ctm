@@ -105,13 +105,8 @@ mc1 <- cotram(y ~ 1, log_first = FALSE, prob = prob <- .99, extrapolate = TRUE)
 m1 <- Colr(yi ~ 1, data = data.frame(yi = Surv(yleft, y, type = "interval2")), extrapolate = TRUE,
             log_first = FALSE, support = c(0, quantile(y, prob = prob)), bounds = c(-.01, Inf))
 
-## <FIXME> quantiles with q
-# m1p <- Colr(y ~ 1, extrapolate = TRUE,
-#            log_first = FALSE, support = c(0, quantile(y, prob = prob)), bounds = c(-.01, Inf))
-# 
-# predict(m1p, type = "quantile", prob = pr, newdata = model.frame(y = y))
-# predict(mc1, type = "quantile", prob = pr, smooth = TRUE, newdata = model.frame(y = y))
-## <\FIXME>
+## <FIXME> works in package "tram" -- but should it? </FIXME>
+try(predict(mc1, type = "quantile", prob = pr, smooth = TRUE, q = 1:10))
 
 ## cotram: log_first = TRUE
 mc2 <- cotram(y ~ 1, log_first = TRUE, extrapolate = TRUE, prob = .99)
