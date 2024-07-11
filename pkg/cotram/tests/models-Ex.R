@@ -20,21 +20,24 @@ set.seed(29)
 
 
 ### check log-likelihood (tram vs cotram model)
-.check_ll <- function(m, mc, both = TRUE, ...) {
+.check_ll <- function(m, mc, ...) {
   
   ## simple check wrt to newdata
   stopifnot(logLik(mc) == logLik(mc, newdata = model.frame(mc)))
   
   ## likelihood contributions interval-censored
-  if (both) {
-    nd_m <- d[c("y", "x")]
-    colnames(nd_m) <- colnames(m$data)
-    L <- predict(m, newdata = data.frame(yi = nd_m[, 1] + as.integer(log_first), x = nd_m[, 2]), type = "distribution") -
-      predict(m, newdata = data.frame(yi = (nd_m[, 1] - 1L) + as.integer(log_first), x = nd_m[, 2]), type = "distribution")
-    
-    ## check interval-censored vs cotram log-likelihood contributions
-    stopifnot(all.equal(log(L), mc$logliki(coef(as.mlt(mc)), mc$weights), check.attributes = FALSE, ...))
-  }
+  ### newdata
+  nd_m <- d[c("y", "x")]
+  colnames(nd_m) <- colnames(m$data)
+  nd_m1 <- nd_m2 <- nd_m
+  nd_m2[, 1] <- nd_m2[, 1] + as.integer(log_first)
+  nd_m1[, 1] <- (nd_m1[, 1] - 1L) + as.integer(log_first)
+  
+  L <- predict(m, newdata = nd_m2, type = "distribution") -
+    predict(m, newdata = nd_m1, type = "distribution")
+  
+  ## check interval-censored vs cotram log-likelihood contributions
+  stopifnot(all.equal(log(L), mc$logliki(coef(as.mlt(mc)), mc$weights), check.attributes = FALSE, ...))
   
   # check tram vs cotram log-likelihood contributions
   stopifnot(all.equal(m$logliki(coef(as.mlt(m)), m$weight), mc$logliki(coef(as.mlt(mc)), mc$weight), ...))
@@ -103,7 +106,7 @@ for (log_first in c(FALSE, TRUE)) {
     
     ## check coefs and logLiks
     .check_cf(m2, mc, tol = 1e-6)
-    .check_ll(m2, mc, both = FALSE, tol = 1e-6)
+    .check_ll(m2, mc, tol = 1e-6)
     ## NOTE: predict.tram does return a matrix, which is why we don't check it here
   }
 }
