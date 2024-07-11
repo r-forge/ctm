@@ -105,13 +105,17 @@ mc1 <- cotram(y ~ 1, log_first = FALSE, prob = prob <- .99, extrapolate = TRUE)
 m1 <- Colr(yi ~ 1, data = data.frame(yi = Surv(yleft, y, type = "interval2")), extrapolate = TRUE,
             log_first = FALSE, support = c(0, quantile(y, prob = prob)), bounds = c(-.01, Inf))
 
-## <FIXME> works in package "tram" -- but should it? </FIXME>
-try(predict(mc1, type = "quantile", prob = pr, smooth = TRUE, q = 1:10))
-
 ## cotram: log_first = TRUE
 mc2 <- cotram(y ~ 1, log_first = TRUE, extrapolate = TRUE, prob = .99)
 
 .check_prd(mc2)
+
+## <FIXME> works in package "tram" -- but should it? </FIXME>
+try(predict(mc1, type = "quantile", prob = pr, smooth = TRUE, q = 1:10))
+
+## <FIXME> when problems with one newdata configuration, can't predict at all. 
+## (This comes from "tram") </FIXME>
+try(predict(mc, type = "quantile", prob = pr, smooth = TRUE))
 
 if (FALSE) {
 layout(matrix(c(1:4), nrow = 2, byrow = TRUE))
