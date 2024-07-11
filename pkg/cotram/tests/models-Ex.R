@@ -109,10 +109,9 @@ for (log_first in c(FALSE, TRUE)) {
 }
 
 ## NOTE: 
-## - Models with integer-y and interval-censored-y are equivalent for "tram" 
-##   and "cotram"
-## - The discrepancy between "cotram" and "tram" fit come from the different
-##   support
+## - Models with integer-y and interval-censored-y are not exactly equivalent for "tram" 
+## - The discrepancy between "cotram" and interval-censored "tram" fit come
+##   from the different support (is rounded it "cotram)
 ## - "tram" codes the interval as (NA, 0], "cotram" as (-Inf, 0], but are equivalently
 ##   treated as left-censored
 
