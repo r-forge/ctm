@@ -1,3 +1,12 @@
+
+## to get the same version of "cotram" and other important packages, run:
+# pkgs <- c("cotram/cotram_0.1-1.tar.gz", "tram/tram_0.3-2.tar.gz",
+#   "mlt/mlt_1.1-2.tar.gz", "variables/variables_1.0-3.tar.gz", "basefun/basefun_1.0-7.tar.gz",
+#   "multcomp/multcomp_1.4-18.tar.gz")
+# install.packages(paste("https://CRAN.R-project.org/src/contrib/Archive/", pkgs, sep = "/"),
+#   repos = NULL, type = "source")
+
+## libraries
 library("cotram") 
 library("MASS")
 library("multcomp")
