@@ -49,6 +49,7 @@ Loading required package: mvtnorm
 >   ### fit count transformation model with cloglog link
 >   m_birds <- cotram(SG5 ~ AOT + AFS + GST + DBH + DWC + LOG, data = birds,
 +                     method = "cloglog")
+Model was fitted to log(SG5 + 1).
 >   
 >   ### compute asymptotic confidence bands for the distribution function
 >   ### for the first oberservation
@@ -89,6 +90,7 @@ Loading required package: mvtnorm
 >   ### fit count transformation model with cloglog link
 >   m_birds <- cotram(SG5 ~ AOT + AFS + GST + DBH + DWC + LOG, data = birds,
 +                     method = "cloglog")
+Model was fitted to log(SG5 + 1).
 >   logLik(m_birds)
 'log Lik.' -504.4 (df=13)
 > 
@@ -161,6 +163,7 @@ prob     [,1]  [,2]  [,3]
 > 
 >   data("birds", package = "TH.data")
 >   cotram(SG5 ~ AOT + AFS + GST + DBH + DWC + LOG, data = birds)
+Model was fitted to log(SG5 + 1).
 
   Discrete Odds Count Transformation Model 
 
@@ -206,16 +209,22 @@ Log-Likelihood:
 > ## one for each species
 > m_PF <- cotram(Pardosa_ferruginea ~ Elevation + Canopy_openess, 
 +                data = spiders, method = "probit", order = OR)
+Model was fitted to log(Pardosa_ferruginea + 1).
 > m_HL <- cotram(Harpactea_lepida ~ Elevation + Canopy_openess,
 +                data = spiders, method = "probit", order = OR)
+Model was fitted to log(Harpactea_lepida + 1).
 > m_CC <- cotram(Callobius_claustrarius ~ Elevation + Canopy_openess,
 +                data = spiders, method = "probit", order = OR)
+Model was fitted to log(Callobius_claustrarius + 1).
 > m_CT <- cotram(Coelotes_terrestris ~ Elevation + Canopy_openess,
 +                data = spiders, method = "probit", order = OR)
+Model was fitted to log(Coelotes_terrestris + 1).
 > m_PL <- cotram(Pardosa_lugubris ~ Elevation + Canopy_openess,
 +                data = spiders, method = "probit", order = OR)
+Model was fitted to log(Pardosa_lugubris + 1).
 > m_PR <- cotram(Pardosa_riparia ~ Elevation + Canopy_openess,
 +                data = spiders, method = "probit", order = OR)
+Model was fitted to log(Pardosa_riparia + 1).
 > 
 > ### fit dependence parameters
 > mm <- mcotram(m_PF, m_HL, m_CC, m_CT, m_PL, m_PR, data = spiders,
@@ -288,7 +297,7 @@ detaching ‘package:lattice’
 
 > options(digits = 7L)
 > base::cat("Time elapsed: ", proc.time() - base::get("ptime", pos = 'CheckExEnv'),"\n")
-Time elapsed:  93.23 2.433 92.837 0 0 
+Time elapsed:  103.248 2.287 102.952 0 0 
 > grDevices::dev.off()
 null device 
           1 
