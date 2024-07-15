@@ -105,17 +105,19 @@ for (log_first in c(FALSE, TRUE)) {
     stopifnot(mc$model$todistr$name == m2$model$todistr$name)
     
     ## check coefs and logLiks
-    .check_cf(m2, mc, tol = 1e-6)
+    ### minor differences because integer are treated as interval (y - 1, 1] in "tram" 
+    .check_cf(m2, mc, tol = 1e-6) 
     .check_ll(m2, mc, tol = 1e-6)
   }
 }
 
+
 ## NOTE: 
-## - Models with integer-y and interval-censored-y are not exactly equivalent for "tram" 
-## - The discrepancy between "cotram" and interval-censored "tram" fit come
-##   from the different support (is rounded it "cotram)
-## - "tram" codes the interval as (NA, 0], "cotram" as (-Inf, 0], but are equivalently
-##   treated as left-censored
+## - Models with integer-y and interval-censored-y (for [y - 1, y]) are not
+##   exactly equivalent for "tram": This is because the integer is treated as interval (y - 1, y] 
+##   => This also explains the discrepancies between "cotram" and integer-y with "tram"
+## - The discrepancy between "cotram" and interval-censored "tram" fit with "prob" given, 
+##   comes from the different support (is rounded it "cotram")
 
 
 ## additional checks for plus_one
