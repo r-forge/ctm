@@ -59,5 +59,7 @@ cotram <- function(formula, data, method = c("logit", "cloglog", "loglog", "prob
     ret$data[, td$rname] <- y
     ret$count_response <- numeric_var(td$rname, support = min(y):max(y))
     class(ret) <- c("cotram", class(ret))
+    
+    if (log_first) message(paste0("Model was fitted to log(", td$rname, " + 1)."))
     ret
 }

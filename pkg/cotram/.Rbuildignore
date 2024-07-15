@@ -1,8 +1,6 @@
-todos
+todo.txt
 analysis
 DVC.tgz
-^.*\.Rproj$
-^\.Rproj\.user$
 test_randomunif.R
 demo/
 Makefile
