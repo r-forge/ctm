@@ -2,7 +2,7 @@
 \name{NEWS}
 \title{NEWS file for the cotram package}
 
-\section{Changes in Version 0.5-0 (2024-07-15)}{
+\section{Changes in Version 0.5-0 (2024-07-16)}{
   \itemize{
     \item{Bring \code{mcotram} back with \pkg{tram} 1.0-0.}
     \item{Update email address.}
