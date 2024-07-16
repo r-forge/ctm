@@ -1,7 +1,13 @@
-[] implementation of perm_test for class "stram"
 
 
-[] problems with confband() when log_first = TRUE
+## Features
+
+- implementation of perm_test for class "stram"
+
+
+## Checks / Fixes
+
+- problems with confband() when log_first = TRUE 
 
 library("tram")
 
@@ -15,7 +21,8 @@ mc <- Coxph(iDFS ~ randarm, data = CAOsurv, log_first = TRUE)
 try(cb <- confband(as.mlt(mc), newdata =  nd1[1,, drop = FALSE], K = 20, cheat = 100))
 
 
-[] tram only works for integer y if all consecutive integers are present in the data:
+
+- tram only works for integer y if all consecutive integers are present in the data:
 
 library("tram")
 
@@ -32,4 +39,7 @@ try(Lm(yi ~ 1))
 s <- min(yi):max(yi)
 Lm(yi ~ 1, support = s)
 
+
+
+- Interval for integers is defined as (y-1, 1], maybe change to [y-1, y]?
 
