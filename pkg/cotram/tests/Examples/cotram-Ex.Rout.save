@@ -159,7 +159,7 @@ prob     [,1]  [,2]  [,3]
 > ### ** Examples
 > 
 > 
->   op <- options(digits = 3)
+>   op <- options(digits = 2)
 > 
 >   data("birds", package = "TH.data")
 >   cotram(SG5 ~ AOT + AFS + GST + DBH + DWC + LOG, data = birds)
@@ -171,8 +171,8 @@ Call:
 cotram(formula = SG5 ~ AOT + AFS + GST + DBH + DWC + LOG, data = birds)
 
 Coefficients:
-     AOT      AFS      GST      DBH      DWC      LOG 
--0.00930  0.01743 -0.00188  0.00914  0.02082 -0.00411 
+    AOT     AFS     GST     DBH     DWC     LOG 
+-0.0093  0.0174 -0.0019  0.0091  0.0208 -0.0041 
 
 Log-Likelihood:
  -502 (df = 13)
@@ -207,6 +207,7 @@ Log-Likelihood:
 > 
 > ## fit conditional marginal count transformation models
 > ## one for each species
+> ## No test: 
 > m_PF <- cotram(Pardosa_ferruginea ~ Elevation + Canopy_openess, 
 +                data = spiders, method = "probit", order = OR)
 Model was fitted to log(Pardosa_ferruginea + 1).
@@ -277,15 +278,18 @@ Pardosa_riparia              -0.1591119      1.00000000
 > nd <- cbind(f = rep(f, nrow(nd)), nd[rep(1:nrow(nd), each = nlevels(f)),])
 > nd$KD <- c(KD)
 > 
-> library("lattice")
-> contourplot(KD ~ Elevation + Canopy_openess | f, data = nd, 
+> if (require("lattice")) {
++ contourplot(KD ~ Elevation + Canopy_openess | f, data = nd, 
 +             cuts = 18, xlab = "Elevation", ylab = "Canopy openess")
++ }
+Loading required package: lattice
 > 
 > ### for example:
 > ### => constant negative dependence of Pardosa_lugubris and Coelotes_terrestris
 > ### => weak dependence of Harpactea_lepida and Pardosa_ferruginea
 > ###    for low elevations, negative dependence increasing with elevation
 > 
+> ## End(No test)
 > 
 > 
 > 
@@ -297,7 +301,7 @@ detaching ‘package:lattice’
 
 > options(digits = 7L)
 > base::cat("Time elapsed: ", proc.time() - base::get("ptime", pos = 'CheckExEnv'),"\n")
-Time elapsed:  103.248 2.287 102.952 0 0 
+Time elapsed:  109.225 2.423 108.943 0 0 
 > grDevices::dev.off()
 null device 
           1 

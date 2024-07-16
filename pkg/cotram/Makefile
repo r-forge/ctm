@@ -26,7 +26,7 @@ install:	../$(PKGNAME)_$(PKGVERS).tar.gz
 
 check: install
 	cd ..;\
-	R CMD check $(PKGNAME)_$(PKGVERS).tar.gz --as-cran
+	R CMD check --as-cran $(PKGNAME)_$(PKGVERS).tar.gz
 	
 cotram.Rcheck: check
 	
