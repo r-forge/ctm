@@ -74,51 +74,52 @@ M <- 100     ### number of Halton sequences, seem sufficient here
 ## fit conditional marginal count transformation models
 ## one for each species
 \donttest{m_PF <- cotram(Pardosa_ferruginea ~ Elevation + Canopy_openess, 
-               data = spiders, method = "probit", order = OR)}
-\donttest{m_HL <- cotram(Harpactea_lepida ~ Elevation + Canopy_openess,
-               data = spiders, method = "probit", order = OR)}
-\donttest{m_CC <- cotram(Callobius_claustrarius ~ Elevation + Canopy_openess,
-               data = spiders, method = "probit", order = OR)}
-\donttest{m_CT <- cotram(Coelotes_terrestris ~ Elevation + Canopy_openess,
-               data = spiders, method = "probit", order = OR)}
-\donttest{m_PL <- cotram(Pardosa_lugubris ~ Elevation + Canopy_openess,
-               data = spiders, method = "probit", order = OR)}
-\donttest{m_PR <- cotram(Pardosa_riparia ~ Elevation + Canopy_openess,
-               data = spiders, method = "probit", order = OR)}
+               data = spiders, method = "probit", order = OR)
+m_HL <- cotram(Harpactea_lepida ~ Elevation + Canopy_openess,
+               data = spiders, method = "probit", order = OR)
+m_CC <- cotram(Callobius_claustrarius ~ Elevation + Canopy_openess,
+               data = spiders, method = "probit", order = OR)
+m_CT <- cotram(Coelotes_terrestris ~ Elevation + Canopy_openess,
+               data = spiders, method = "probit", order = OR)
+m_PL <- cotram(Pardosa_lugubris ~ Elevation + Canopy_openess,
+               data = spiders, method = "probit", order = OR)
+m_PR <- cotram(Pardosa_riparia ~ Elevation + Canopy_openess,
+               data = spiders, method = "probit", order = OR)
 
 ### fit dependence parameters
-\donttest{mm <- mcotram(m_PF, m_HL, m_CC, m_CT, m_PL, m_PR, data = spiders,
-              M = M, scale = TRUE)}
-\donttest{logLik(mm)}
+mm <- mcotram(m_PF, m_HL, m_CC, m_CT, m_PL, m_PR, data = spiders,
+              M = M, scale = TRUE)
+logLik(mm)
 
 ### Kendall's tau: Dependence of species after accounting
 ### for elevation and canopy openess in marginal models
-\donttest{coef(mm, type = "Kendall")}
+coef(mm, type = "Kendall")
 
 ### regress dependencies on elevation and canopy openess
-\donttest{mmc <- mcotram(m_PF, m_HL, m_CC, m_CT, m_PL, m_PR, data = spiders, 
-               formula = ~ Elevation + Canopy_openess, M = M, scale = TRUE)}
-\donttest{logLik(mmc)}
+mmc <- mcotram(m_PF, m_HL, m_CC, m_CT, m_PL, m_PR, data = spiders, 
+               formula = ~ Elevation + Canopy_openess, M = M, scale = TRUE)
+logLik(mmc)
 
 ### weak evidence for such effects
-\donttest{pchisq(2 * (logLik(mmc) - logLik(mm)), df = 30, lower.tail = FALSE)}
+pchisq(2 * (logLik(mmc) - logLik(mm)), df = 30, lower.tail = FALSE)
 
 ### plot Kendall's tau for different elevations / openess levels
-\donttest{nd <- expand.grid(Elevation = 80:120 * 10, Canopy_openess = 1:10 * 10)}
-\donttest{KD <- Lower_tri(coef(mmc, newdata = nd, type = "Kendall"))}
-\donttest{f <- factor(rownames(KD))}
-\donttest{nd <- cbind(f = rep(f, nrow(nd)), nd[rep(1:nrow(nd), each = nlevels(f)),])}
-\donttest{nd$KD <- c(KD)}
+nd <- expand.grid(Elevation = 80:120 * 10, Canopy_openess = 1:10 * 10)
+KD <- Lower_tri(coef(mmc, newdata = nd, type = "Kendall"))
+f <- factor(rownames(KD))
+nd <- cbind(f = rep(f, nrow(nd)), nd[rep(1:nrow(nd), each = nlevels(f)),])
+nd$KD <- c(KD)
 
-\donttest{if (require("lattice")) {
+if (require("lattice")) {
 contourplot(KD ~ Elevation + Canopy_openess | f, data = nd, 
             cuts = 18, xlab = "Elevation", ylab = "Canopy openess")
- }}
+}
 
 ### for example:
 ### => constant negative dependence of Pardosa_lugubris and Coelotes_terrestris
 ### => weak dependence of Harpactea_lepida and Pardosa_ferruginea
 ###    for low elevations, negative dependence increasing with elevation
 
+}
 }
 \keyword{models}
