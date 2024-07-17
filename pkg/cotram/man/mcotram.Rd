@@ -73,7 +73,7 @@ M <- 100     ### number of Halton sequences, seem sufficient here
 
 ## fit conditional marginal count transformation models
 ## one for each species
-\donttest{m_PF <- cotram(Pardosa_ferruginea ~ Elevation + Canopy_openess, 
+m_PF <- cotram(Pardosa_ferruginea ~ Elevation + Canopy_openess, 
                data = spiders, method = "probit", order = OR)
 m_HL <- cotram(Harpactea_lepida ~ Elevation + Canopy_openess,
                data = spiders, method = "probit", order = OR)
@@ -120,6 +120,5 @@ contourplot(KD ~ Elevation + Canopy_openess | f, data = nd,
 ### => weak dependence of Harpactea_lepida and Pardosa_ferruginea
 ###    for low elevations, negative dependence increasing with elevation
 
-}
 }
 \keyword{models}

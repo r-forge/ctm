@@ -3,7 +3,7 @@ PKGNAME := $(shell sed -n "s/Package: *\([^ ]*\)/\1/p" DESCRIPTION)
 PKGVERS := $(shell sed -n "s/Version: *\([^ ]*\)/\1/p" DESCRIPTION)
 PKGSRC  := $(shell basename `pwd`)
 
-PKGFiles := $(shell ls)
+PKGFiles := $(shell find . -type f -printf "%T@ %p\n" | sort -nr | cut -d\  -f2-)
 
 update: install .Rout.save example.Rout.save
 

@@ -207,7 +207,6 @@ Log-Likelihood:
 > 
 > ## fit conditional marginal count transformation models
 > ## one for each species
-> ## No test: 
 > m_PF <- cotram(Pardosa_ferruginea ~ Elevation + Canopy_openess, 
 +                data = spiders, method = "probit", order = OR)
 Model was fitted to log(Pardosa_ferruginea + 1).
@@ -289,7 +288,6 @@ Loading required package: lattice
 > ### => weak dependence of Harpactea_lepida and Pardosa_ferruginea
 > ###    for low elevations, negative dependence increasing with elevation
 > 
-> ## End(No test)
 > 
 > 
 > 
@@ -301,7 +299,7 @@ detaching ‘package:lattice’
 
 > options(digits = 7L)
 > base::cat("Time elapsed: ", proc.time() - base::get("ptime", pos = 'CheckExEnv'),"\n")
-Time elapsed:  109.225 2.423 108.943 0 0 
+Time elapsed:  124.899 2.336 124.639 0 0 
 > grDevices::dev.off()
 null device 
           1 
