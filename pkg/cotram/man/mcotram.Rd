@@ -73,7 +73,8 @@ M <- 100     ### number of Halton sequences, seem sufficient here
 
 ## fit conditional marginal count transformation models
 ## one for each species
-m_PF <- cotram(Pardosa_ferruginea ~ Elevation + Canopy_openess, 
+## (don't test as it takes too long for CRAN)
+\donttest{m_PF <- cotram(Pardosa_ferruginea ~ Elevation + Canopy_openess, 
                data = spiders, method = "probit", order = OR)
 m_HL <- cotram(Harpactea_lepida ~ Elevation + Canopy_openess,
                data = spiders, method = "probit", order = OR)
@@ -113,6 +114,7 @@ nd$KD <- c(KD)
 if (require("lattice")) {
 contourplot(KD ~ Elevation + Canopy_openess | f, data = nd, 
             cuts = 18, xlab = "Elevation", ylab = "Canopy openess")
+}
 }
 
 ### for example:
