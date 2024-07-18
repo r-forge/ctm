@@ -92,7 +92,7 @@ distributions for the primary event of interest and all competing events.
     library("survival")
     
     ## Competing risk data set involving follicular cell lymphoma
-    ## (from doi:10.1002/9780470870709)
+    ##   (from doi:10.1002/9780470870709)
     data("follic", package = "randomForestSRC")
   
     ## Therapy:
@@ -122,10 +122,14 @@ distributions for the primary event of interest and all competing events.
     ## Fit a Gaussian Copula-based Cox Proportional Hazards Model with
     ##   a marginal "Coxph" model for the primary event of interest and 
     ##   a Weibull "Survreg" model for dependent censoring
-    \donttest{m <- Compris(y ~ ch + age + hgb + clinstg, data = follic, log_first = TRUE)}
+    ## (don't test as it takes too long for CRAN)
+    \donttest{m <- Compris(y ~ ch + age + hgb + clinstg, data = follic, log_first = TRUE)
   
-    \donttest{summary(m)}
-    \donttest{coef(m, type = "Kendall")} ## Kendall's tau
+    summary(m)
+    
+    ## Kendall's tau
+    coef(m, type = "Kendall")
+    }
     ## Similar to Table 4 of Deresa & Van Keilegom (2023),
     ## but using a Gaussian copula instead of a Gumbel copula.
   }
