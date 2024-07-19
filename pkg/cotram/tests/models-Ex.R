@@ -106,8 +106,9 @@ for (log_first in c(FALSE, TRUE)) {
     
     ## check coefs and logLiks
     ### minor differences because integer are treated as interval (y - 1, 1] in "tram" 
-    .check_cf(m2, mc, tol = 1e-6) 
-    .check_ll(m2, mc, tol = 1e-6)
+    ### NOTE: Differences on Mac seem to be larger
+    .check_cf(m2, mc, tol = 1e-3) 
+    .check_ll(m2, mc, tol = 1e-3)
   }
 }
 

@@ -2,6 +2,12 @@
 \name{NEWS}
 \title{NEWS file for the cotram package}
 
+\section{Changes in Version 0.5-1 (2024-07-19)}{
+  \itemize{
+    \item{Fix additional check problems with Mac.}
+  }
+}
+
 \section{Changes in Version 0.5-0 (2024-07-16)}{
   \itemize{
     \item{Bring \code{mcotram} back with \pkg{tram} 1.0-0.}
