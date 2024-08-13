@@ -1039,19 +1039,27 @@ simulate.mmlt <- function(object, nsim = 1L, seed = NULL, newdata, K = 50, ...) 
 
     if (inherits(object, "cmmlt")) {
         for (j in 1:J) {
-            q <- mkgrid(object$models$models[[j]], n = K)[[1L]]
-            pr <- predict(object$models$models[[j]], newdata = newdata, type = "trafo", q = q)
+            tmp <- object$models$models[[j]]
+            q <- mkgrid(tmp, n = K)[[1L]]
+            cf <- coef(tmp)
+            cf[] <- object$models$parm(coef(object))[[j]]
+            coef(tmp) <- cf
+            pr <- predict(tmp, newdata = newdata, type = "trafo", q = q)
             if (!is.matrix(pr)) pr <- matrix(pr, nrow = length(pr), ncol = NROW(newdata))
-            ret[,j] <- as.double(mlt:::.invf(object$models$models[[j]], f = t(pr), 
+            ret[,j] <- as.double(mlt:::.invf(tmp, f = t(pr), 
                                              q = q, z = t(Ztilde[j,,drop = FALSE])))
         }
     } else {
         Ztilde <- pnorm(Ztilde, log.p = TRUE)
         for (j in 1:J) {
-            q <- mkgrid(object$models$models[[j]], n = K)[[1L]]
-            pr <- predict(object$models$models[[j]], newdata = newdata, type = "logdistribution", q = q)
+            tmp <- object$models$models[[j]]
+            q <- mkgrid(tmp, n = K)[[1L]]
+            cf <- coef(tmp)
+            cf[] <- object$models$parm(coef(object))[[j]]
+            coef(tmp) <- cf
+            pr <- predict(tmp, newdata = newdata, type = "logdistribution", q = q)
             if (!is.matrix(pr)) pr <- matrix(pr, nrow = length(pr), ncol = NROW(newdata))
-            ret[,j] <- as.double(mlt:::.invf(object$models$models[[j]], f = t(pr), 
+            ret[,j] <- as.double(mlt:::.invf(tmp, f = t(pr), 
                                              q = q, z = t(Ztilde[j,,drop = FALSE])))
         }
     }
@@ -1094,8 +1102,12 @@ confregion.mmlt <- function(object, level = .95, newdata, K = 250, ...) {
     nd <- if (missing(newdata)) data.frame(1) else newdata
 
     ret <- lapply(1:J, function(j) {
-        prb <- object$models$models[[j]]$todistr$p(a[,j])
-        predict(object$models$models[[j]], newdata = nd, type = "quantile", prob = prb)
+        tmp <- object$models$models[[j]]
+        prb <- tmp$todistr$p(a[,j])
+        cf <- coef(tmp)
+        cf[] <- object$models$parm(coef(object))[[j]]
+        coef(tmp) <- cf
+        predict(tmp, newdata = nd, type = "quantile", prob = prb)
     })
     
     ret <- do.call("cbind", ret)

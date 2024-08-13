@@ -5,6 +5,7 @@
 \section{Changes in Version 1.0-5 (2024-07-04)}{
   \itemize{
     \item{Add example for \code{Compris}.}
+    \item{Correct \code{simulate.mmlt}.}
   }
 }
 
