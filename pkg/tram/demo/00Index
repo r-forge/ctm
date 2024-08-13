@@ -4,3 +4,4 @@ mtram   Marginally Interpretable Linear Transformation Models
 stram	Location-Scale Transformation Models
 hcc	Hepatocellular Carcinoma Diagnostic Test
 survtram	Smooth Transformation Models for Survival Analysis
+npn	Nonparanormal Models

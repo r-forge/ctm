@@ -1,0 +1,241 @@
+
+R version 4.4.1 (2024-06-14) -- "Race for Your Life"
+Copyright (C) 2024 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> 
+> ###
+> ### Fit models for HCC data presented in
+> ### 
+> ###	On Nonparanormal Likelihoods
+> ###	by Torsten Hothorn
+> ###
+> 
+> pkgs <- c("openxlsx", "tram", "survival")
+> req <- sapply(pkgs, require, char = TRUE)
+Loading required package: openxlsx
+Loading required package: tram
+Loading required package: mlt
+Loading required package: basefun
+Loading required package: variables
+Loading required package: mvtnorm
+Loading required package: survival
+> if (!all(req)){
++   sapply(pkgs[!req], install.packages)
++   req[!req] <- sapply(pkgs[!req], require, char = TRUE)
++ }
+> if (!all(req)) 
++   stop("cannot load dependencies")
+> 
+> ### Load data
+> dat <- read.xlsx("https://datadryad.org/api/v2/files/44697/download", sheet = 1)
+> HCC <- with(dat, data.frame(id = 1:nrow(dat),
++                             x = factor(HCC_studyGr),
++                             AFP = log(AFP_ng_per_ml),
++                             PIV = log(PIVKA_delete_range),
++                             OPN = log(OPN),
++                             DKK = log(DKK)))
+> ### limits of detection
+> PIVm <- max(HCC$PIV)
+> AFPm <- max(HCC$AFP)
+> 
+> ### marginal location-scale models
+> mDKK <- BoxCox(
++     DKK ~                               ### probit, h(DKK) via Bernstein
++     x                                   ### location non-HCC / HCC
++     | x,                                ### scale non-HCC / HCC
++     data = HCC)
+> mOPN <- BoxCox(OPN ~ x | x, data = HCC)
+> mPIV <- BoxCox(R(       
++     Surv(PIV, event = PIV < PIVm),      ### right censoring
++     as.R.interval = TRUE) ~             ### empirical likelihood
++     x | x,                              ### location-scale
++     data = HCC)
+> mAFP <- BoxCox(R(Surv(AFP, event = AFP < AFPm), as.R.interval = TRUE) ~ x | x, 
++                data = HCC)
+> 
+> ### joint estimation of marginal and Gaussian copula parameters, s = 2
+> ### location-scale transformation discriminant analysis
+> m <- mmlt(mDKK, mOPN, mPIV, mAFP, data = HCC)
+> ### marginal parameters
+> coef(m, type = "marginal")
+$`1`
+DKK.Bs1(DKK) DKK.Bs2(DKK) DKK.Bs3(DKK) DKK.Bs4(DKK) DKK.Bs5(DKK) DKK.Bs6(DKK) 
+ -1.09527940  -0.76241839   0.03964558   0.45283692   0.86880220   1.57502191 
+DKK.Bs7(DKK)       DKK.x1   DKK.scl_x1 
+  1.89747858   0.54925423  -0.50870557 
+
+$`2`
+OPN.Bs1(OPN) OPN.Bs2(OPN) OPN.Bs3(OPN) OPN.Bs4(OPN) OPN.Bs5(OPN) OPN.Bs6(OPN) 
+  -1.2042978   -0.6044947    1.4183316    1.4183318    1.4627031    1.9719933 
+OPN.Bs7(OPN)       OPN.x1   OPN.scl_x1 
+   2.2392216    0.4540269   -0.9789748 
+
+$`3`
+R.Surv.PIV..event...PIV...PIVm...as.R.interval...TRUE..Bs1(R.Surv.PIV..event...PIV...PIVm...as.R.interval...TRUE.) 
+                                                                                                       -0.95130558 
+R.Surv.PIV..event...PIV...PIVm...as.R.interval...TRUE..Bs2(R.Surv.PIV..event...PIV...PIVm...as.R.interval...TRUE.) 
+                                                                                                       -0.18367456 
+R.Surv.PIV..event...PIV...PIVm...as.R.interval...TRUE..Bs3(R.Surv.PIV..event...PIV...PIVm...as.R.interval...TRUE.) 
+                                                                                                        0.08167929 
+R.Surv.PIV..event...PIV...PIVm...as.R.interval...TRUE..Bs4(R.Surv.PIV..event...PIV...PIVm...as.R.interval...TRUE.) 
+                                                                                                        1.77136285 
+R.Surv.PIV..event...PIV...PIVm...as.R.interval...TRUE..Bs5(R.Surv.PIV..event...PIV...PIVm...as.R.interval...TRUE.) 
+                                                                                                        1.77136308 
+R.Surv.PIV..event...PIV...PIVm...as.R.interval...TRUE..Bs6(R.Surv.PIV..event...PIV...PIVm...as.R.interval...TRUE.) 
+                                                                                                        2.17346756 
+R.Surv.PIV..event...PIV...PIVm...as.R.interval...TRUE..Bs7(R.Surv.PIV..event...PIV...PIVm...as.R.interval...TRUE.) 
+                                                                                                        2.55726711 
+                                                         R.Surv.PIV..event...PIV...PIVm...as.R.interval...TRUE..x1 
+                                                                                                        0.88612353 
+                                                     R.Surv.PIV..event...PIV...PIVm...as.R.interval...TRUE..scl_x1 
+                                                                                                       -0.65538393 
+
+$`4`
+R.Surv.AFP..event...AFP...AFPm...as.R.interval...TRUE..Bs1(R.Surv.AFP..event...AFP...AFPm...as.R.interval...TRUE.) 
+                                                                                                        -0.7747881 
+R.Surv.AFP..event...AFP...AFPm...as.R.interval...TRUE..Bs2(R.Surv.AFP..event...AFP...AFPm...as.R.interval...TRUE.) 
+                                                                                                         0.4370913 
+R.Surv.AFP..event...AFP...AFPm...as.R.interval...TRUE..Bs3(R.Surv.AFP..event...AFP...AFPm...as.R.interval...TRUE.) 
+                                                                                                         1.4284487 
+R.Surv.AFP..event...AFP...AFPm...as.R.interval...TRUE..Bs4(R.Surv.AFP..event...AFP...AFPm...as.R.interval...TRUE.) 
+                                                                                                         1.5923291 
+R.Surv.AFP..event...AFP...AFPm...as.R.interval...TRUE..Bs5(R.Surv.AFP..event...AFP...AFPm...as.R.interval...TRUE.) 
+                                                                                                         2.7584240 
+R.Surv.AFP..event...AFP...AFPm...as.R.interval...TRUE..Bs6(R.Surv.AFP..event...AFP...AFPm...as.R.interval...TRUE.) 
+                                                                                                         2.7584240 
+R.Surv.AFP..event...AFP...AFPm...as.R.interval...TRUE..Bs7(R.Surv.AFP..event...AFP...AFPm...as.R.interval...TRUE.) 
+                                                                                                         3.1569894 
+                                                         R.Surv.AFP..event...AFP...AFPm...as.R.interval...TRUE..x1 
+                                                                                                         1.0723483 
+                                                     R.Surv.AFP..event...AFP...AFPm...as.R.interval...TRUE..scl_x1 
+                                                                                                        -0.7534834 
+
+> ### copula parameter: Lambda
+> coef(m, type = "Lambdapar")
+, , 1
+
+                                                               DKK        OPN
+DKK                                                     1.00000000  0.0000000
+OPN                                                    -0.10484138  1.0000000
+R.Surv.PIV..event...PIV...PIVm...as.R.interval...TRUE. -0.30489652 -0.3237667
+R.Surv.AFP..event...AFP...AFPm...as.R.interval...TRUE.  0.03576815 -0.1798486
+                                                       R.Surv.PIV..event...PIV...PIVm...as.R.interval...TRUE.
+DKK                                                                                                  0.000000
+OPN                                                                                                  0.000000
+R.Surv.PIV..event...PIV...PIVm...as.R.interval...TRUE.                                               1.000000
+R.Surv.AFP..event...AFP...AFPm...as.R.interval...TRUE.                                              -1.329335
+                                                       R.Surv.AFP..event...AFP...AFPm...as.R.interval...TRUE.
+DKK                                                                                                         0
+OPN                                                                                                         0
+R.Surv.PIV..event...PIV...PIVm...as.R.interval...TRUE.                                                      0
+R.Surv.AFP..event...AFP...AFPm...as.R.interval...TRUE.                                                      1
+
+> ### standard errors for all parameters
+> sqrt(diag(vcov(m)))
+                                                                                                             DKK.Bs1(DKK) 
+                                                                                                               0.10220525 
+                                                                                                             DKK.Bs2(DKK) 
+                                                                                                               0.11359599 
+                                                                                                             DKK.Bs3(DKK) 
+                                                                                                               0.30083915 
+                                                                                                             DKK.Bs4(DKK) 
+                                                                                                               0.43034411 
+                                                                                                             DKK.Bs5(DKK) 
+                                                                                                               0.31454748 
+                                                                                                             DKK.Bs6(DKK) 
+                                                                                                               0.13508377 
+                                                                                                             DKK.Bs7(DKK) 
+                                                                                                               0.13993380 
+                                                                                                                   DKK.x1 
+                                                                                                               0.09298937 
+                                                                                                               DKK.scl_x1 
+                                                                                                               0.15284475 
+                                                                                                             OPN.Bs1(OPN) 
+                                                                                                               0.09637052 
+                                                                                                             OPN.Bs2(OPN) 
+                                                                                                               0.10526532 
+                                                                                                             OPN.Bs3(OPN) 
+                                                                                                               0.14165255 
+                                                                                                             OPN.Bs4(OPN) 
+                                                                                                               0.14165255 
+                                                                                                             OPN.Bs5(OPN) 
+                                                                                                               0.26134766 
+                                                                                                             OPN.Bs6(OPN) 
+                                                                                                               0.16005631 
+                                                                                                             OPN.Bs7(OPN) 
+                                                                                                               0.16526690 
+                                                                                                                   OPN.x1 
+                                                                                                               0.08648174 
+                                                                                                               OPN.scl_x1 
+                                                                                                               0.15382700 
+       R.Surv.PIV..event...PIV...PIVm...as.R.interval...TRUE..Bs1(R.Surv.PIV..event...PIV...PIVm...as.R.interval...TRUE.) 
+                                                                                                               0.09300331 
+       R.Surv.PIV..event...PIV...PIVm...as.R.interval...TRUE..Bs2(R.Surv.PIV..event...PIV...PIVm...as.R.interval...TRUE.) 
+                                                                                                               0.11802008 
+       R.Surv.PIV..event...PIV...PIVm...as.R.interval...TRUE..Bs3(R.Surv.PIV..event...PIV...PIVm...as.R.interval...TRUE.) 
+                                                                                                               0.22020914 
+       R.Surv.PIV..event...PIV...PIVm...as.R.interval...TRUE..Bs4(R.Surv.PIV..event...PIV...PIVm...as.R.interval...TRUE.) 
+                                                                                                               0.17504924 
+       R.Surv.PIV..event...PIV...PIVm...as.R.interval...TRUE..Bs5(R.Surv.PIV..event...PIV...PIVm...as.R.interval...TRUE.) 
+                                                                                                               0.17504924 
+       R.Surv.PIV..event...PIV...PIVm...as.R.interval...TRUE..Bs6(R.Surv.PIV..event...PIV...PIVm...as.R.interval...TRUE.) 
+                                                                                                               0.20676774 
+       R.Surv.PIV..event...PIV...PIVm...as.R.interval...TRUE..Bs7(R.Surv.PIV..event...PIV...PIVm...as.R.interval...TRUE.) 
+                                                                                                               0.21740307 
+                                                                R.Surv.PIV..event...PIV...PIVm...as.R.interval...TRUE..x1 
+                                                                                                               0.09396044 
+                                                            R.Surv.PIV..event...PIV...PIVm...as.R.interval...TRUE..scl_x1 
+                                                                                                               0.15597366 
+       R.Surv.AFP..event...AFP...AFPm...as.R.interval...TRUE..Bs1(R.Surv.AFP..event...AFP...AFPm...as.R.interval...TRUE.) 
+                                                                                                               0.08551109 
+       R.Surv.AFP..event...AFP...AFPm...as.R.interval...TRUE..Bs2(R.Surv.AFP..event...AFP...AFPm...as.R.interval...TRUE.) 
+                                                                                                               0.13282214 
+       R.Surv.AFP..event...AFP...AFPm...as.R.interval...TRUE..Bs3(R.Surv.AFP..event...AFP...AFPm...as.R.interval...TRUE.) 
+                                                                                                               0.34109233 
+       R.Surv.AFP..event...AFP...AFPm...as.R.interval...TRUE..Bs4(R.Surv.AFP..event...AFP...AFPm...as.R.interval...TRUE.) 
+                                                                                                               0.40143152 
+       R.Surv.AFP..event...AFP...AFPm...as.R.interval...TRUE..Bs5(R.Surv.AFP..event...AFP...AFPm...as.R.interval...TRUE.) 
+                                                                                                               0.23927589 
+       R.Surv.AFP..event...AFP...AFPm...as.R.interval...TRUE..Bs6(R.Surv.AFP..event...AFP...AFPm...as.R.interval...TRUE.) 
+                                                                                                               0.23927589 
+       R.Surv.AFP..event...AFP...AFPm...as.R.interval...TRUE..Bs7(R.Surv.AFP..event...AFP...AFPm...as.R.interval...TRUE.) 
+                                                                                                               0.25450616 
+                                                                R.Surv.AFP..event...AFP...AFPm...as.R.interval...TRUE..x1 
+                                                                                                               0.09621668 
+                                                            R.Surv.AFP..event...AFP...AFPm...as.R.interval...TRUE..scl_x1 
+                                                                                                               0.15402453 
+                                                                                                      OPN.DKK.(Intercept) 
+                                                                                                               0.05050893 
+                                                   R.Surv.PIV..event...PIV...PIVm...as.R.interval...TRUE..DKK.(Intercept) 
+                                                                                                               0.05411981 
+                                                   R.Surv.PIV..event...PIV...PIVm...as.R.interval...TRUE..OPN.(Intercept) 
+                                                                                                               0.05298288 
+                                                   R.Surv.AFP..event...AFP...AFPm...as.R.interval...TRUE..DKK.(Intercept) 
+                                                                                                               0.05481943 
+                                                   R.Surv.AFP..event...AFP...AFPm...as.R.interval...TRUE..OPN.(Intercept) 
+                                                                                                               0.05414795 
+R.Surv.AFP..event...AFP...AFPm...as.R.interval...TRUE..R.Surv.PIV..event...PIV...PIVm...as.R.interval...TRUE..(Intercept) 
+                                                                                                               0.09619954 
+> 
+> ### convex approximations
+> ## pseudo
+> mm <- mmlt(mDKK, mOPN, mPIV, mAFP, data = HCC, domargins = FALSE)
+> ## sequential
+> ms <- mmlt(mDKK, mOPN, mPIV, mAFP, data = HCC, sequentialfit = TRUE)
+> 
+> proc.time()
+   user  system elapsed 
+ 64.268   0.104  67.096 
