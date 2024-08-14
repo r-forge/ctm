@@ -165,9 +165,10 @@
     stopifnot(length(nobs) == 1L)
     nobs <- nobs[[1L]]
 
-    P <- sapply(m, function(x) length(coef(x)))
+    P <- sapply(m, function(x) length(coef(x, fixed = TRUE)))
     fpar <- factor(rep(1:J, P))
 
+    ### par always includes marginally fixed parameters
     parm <- function(par) {
         mpar <- par[1:sum(P)]
         split(mpar, fpar)
@@ -331,6 +332,7 @@
     J <- length(m$models)
     Jp <- J * (J - 1) / 2
     Jnames <- m$names
+    ### fixed = FALSE?
     margin_par <- do.call("c", lapply(m$models, function(mod) coef(as.mlt(mod))))
     names(margin_par) <- paste(rep(Jnames, time = m$nparm), names(margin_par), sep = ".")
 
@@ -906,8 +908,12 @@ predict.mmlt <- function (object, newdata, margins = 1:J,
     if (length(margins) == 1L) {
         ### ... may carry q = something
         tmp <- object$models$models[[margins]]
-        cf <- coef(tmp)
-        cf[] <- object$models$parm(coef(object))[[margins]]
+        cf <- coef(tmp, fixed = TRUE)
+        ncf <- names(cf)
+        names(cf) <- paste(variable.names(tmp)[1L], names(cf), sep = ".")
+        cfm <- object$models$parm(coef(object, fixed = TRUE))[[margins]]
+        cf[names(cfm)] <- cfm
+        names(cf) <- ncf
         coef(tmp) <- cf
         ### marginal models
         if (!inherits(object, "cmmlt")) {
@@ -1041,8 +1047,12 @@ simulate.mmlt <- function(object, nsim = 1L, seed = NULL, newdata, K = 50, ...) 
         for (j in 1:J) {
             tmp <- object$models$models[[j]]
             q <- mkgrid(tmp, n = K)[[1L]]
-            cf <- coef(tmp)
-            cf[] <- object$models$parm(coef(object))[[j]]
+            cf <- coef(tmp, fixed = TRUE)
+            ncf <- names(cf)
+            names(cf) <- paste(variable.names(tmp)[1L], names(cf), sep = ".")
+            cfm <- object$models$parm(coef(object, fixed = TRUE))[[j]]
+            cf[names(cfm)] <- cfm
+            names(cf) <- ncf
             coef(tmp) <- cf
             pr <- predict(tmp, newdata = newdata, type = "trafo", q = q)
             if (!is.matrix(pr)) pr <- matrix(pr, nrow = length(pr), ncol = NROW(newdata))
@@ -1054,8 +1064,12 @@ simulate.mmlt <- function(object, nsim = 1L, seed = NULL, newdata, K = 50, ...) 
         for (j in 1:J) {
             tmp <- object$models$models[[j]]
             q <- mkgrid(tmp, n = K)[[1L]]
-            cf <- coef(tmp)
-            cf[] <- object$models$parm(coef(object))[[j]]
+            cf <- coef(tmp, fixed = TRUE)
+            ncf <- names(cf)
+            names(cf) <- paste(variable.names(tmp)[1L], names(cf), sep = ".")
+            cfm <- object$models$parm(coef(object, fixed = TRUE))[[j]]
+            cf[names(cfm)] <- cfm
+            names(cf) <- ncf
             coef(tmp) <- cf
             pr <- predict(tmp, newdata = newdata, type = "logdistribution", q = q)
             if (!is.matrix(pr)) pr <- matrix(pr, nrow = length(pr), ncol = NROW(newdata))
