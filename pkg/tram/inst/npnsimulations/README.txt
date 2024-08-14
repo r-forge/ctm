@@ -7,6 +7,6 @@
 
 (1) Adjust number of cores in setup.R
 
-(2) Run ``make all''
+(2) Run ``make -f simMakefile all''
     to reproduce all tables and figures in Section 5.2.
 
