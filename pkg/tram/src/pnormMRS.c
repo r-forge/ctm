@@ -108,9 +108,9 @@ SEXP R_inner (SEXP upper, SEXP lower) {
    da = REAL(ans);
    for (int j = 0; j < ncol; j++) da[j] = 1.0;
    du = REAL(upper);
-   tmpu = Calloc(nrow, double);
+   tmpu = R_Calloc(nrow, double);
    dl = REAL(lower);
-   tmpl = Calloc(nrow, double);
+   tmpl = R_Calloc(nrow, double);
    
    for (int j = 0; j < ncol; j++) {
        C_pnormMRS(du + j * nrow, nrow, tmpu);
@@ -124,7 +124,7 @@ SEXP R_inner (SEXP upper, SEXP lower) {
        }
    }
    
-   Free(tmpl); Free(tmpu);
+   R_Free(tmpl); R_Free(tmpu);
    UNPROTECT(1);
    return(ans);
 }
