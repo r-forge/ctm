@@ -2,6 +2,13 @@
 \name{NEWS}
 \title{NEWS file for the tram package}
 
+\section{Changes in Version 1.0-6 (2024-08-20)}{
+  \itemize{
+    \item{Allow density predictions for all continuous variables (regardless
+          of censoring in training data).}
+  }
+}
+
 \section{Changes in Version 1.0-5 (2024-08-17)}{
   \itemize{
     \item{Add example for \code{Compris}.}
@@ -9,6 +16,7 @@
     \item{Change to \code{R\_Calloc} and friends.}
   }
 }
+
 
 \section{Changes in Version 1.0-4 (2024-05-13)}{
   \itemize{
