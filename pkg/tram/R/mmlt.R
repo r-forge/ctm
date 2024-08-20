@@ -148,6 +148,8 @@
     out <- lapply(w, function(x) stopifnot(isTRUE(all.equal(x, w[[1]]))))
     w <- w[[1L]]
   
+    ### determine if response is numeric and was measured exactly
+    ### (censoring and discreteness are treated the same here)
     mm <- lapply(m, function(mod) {
       eY <- get("eY", environment(mod$parm))
       iY <- get("iY", environment(mod$parm))
@@ -160,6 +162,11 @@
     ### continuous models first
     stopifnot(all(diff(cmod) <= 0))
     stopifnot(all(diff(dmod) >= 0))
+
+    ### determine if response is conceptually numeric
+    cresp <- sapply(m, function(x) 
+        inherits(attr(x$model$bases$response, "variables"), 
+                 "continuous_var"))
 
     nobs <- unique(sapply(m, nobs))
     stopifnot(length(nobs) == 1L)
@@ -208,7 +215,7 @@
         }
     }
 
-    return(list(models = m, mf = mf, cont = cmod, type = type, normal = normal, 
+    return(list(models = m, mf = mf, cont = cmod, cresp = cresp, type = type, normal = normal, 
                 nobs = nobs, weights = w, nparm = P, parm = parm, 
                 ui = ui, ci = ci, mm = mm, names = nm, fixed = fixed))
 }
@@ -992,7 +999,7 @@ predict.mmlt <- function (object, newdata, margins = 1:J,
         return(exp(ret))
     }
     stopifnot(type == "density")
-    stopifnot(all(object$models$cont))
+    stopifnot(all(object$models$cresp))
     zprime <- .mget(object$models, margins, parm = coef(object, type = "all"),
                     newdata = newdata, what = "zprime")
     if (length(margins) > 1L) {
