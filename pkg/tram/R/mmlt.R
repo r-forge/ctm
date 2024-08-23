@@ -111,7 +111,8 @@
         # ret <- do.call("sldpmvnorm", a)
         ### avoid calling solve() multiple times
         D <- sqrt(Tcrossprod(chol, diag_only = TRUE))
-        a$invchol <- sLambda <- invcholD(Lambda, D = D)
+        sLambda <- invcholD(Lambda, D = D)
+        a$invchol <- sLambda
         D <- mvtnorm::diagonals(a$invchol)
         if (any(D > 1 / .Machine$double.eps)) {
             ### might happen in very rare cases
