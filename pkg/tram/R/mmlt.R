@@ -160,6 +160,9 @@
     cmod <- sapply(mm, function(x) !is.null(x$eY))  
     dmod <- sapply(mm, function(x) !is.null(x$iY))  
     stopifnot(all(xor(cmod, dmod)))
+    ### <FIXME> is this the only place (except in ldpmvnorm) 
+    ### where this is checked and assumed?
+    ### </FIXME>
     ### continuous models first
     stopifnot(all(diff(cmod) <= 0))
     stopifnot(all(diff(dmod) >= 0))
@@ -204,9 +207,6 @@
         return(list(left = ml, right = mr))
     })
 
-    type <- lapply(1:J, function(j)
-        mlt:::.type_of_response(m[[j]]$response))
-
     fixed <- vector(mode = "list", length = J)
     for (j in 1:J) {
         if (!is.null(m[[j]]$fixed)) {
@@ -216,7 +216,7 @@
         }
     }
 
-    return(list(models = m, mf = mf, cont = cmod, cresp = cresp, type = type, normal = normal, 
+    return(list(models = m, mf = mf, cont = cmod, cresp = cresp, normal = normal, 
                 nobs = nobs, weights = w, nparm = P, parm = parm, 
                 ui = ui, ci = ci, mm = mm, names = nm, fixed = fixed))
 }
