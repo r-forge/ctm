@@ -220,6 +220,8 @@ Compris <- function(formula, data, subset, weights, na.action, offset,
 
     theta <- c(coef(me), coef(mc), lambda = 0)
 
+    ### <FIXME> extract and add constraints </FIXME>
+
     for (i in 1:length(optim)) {
         op <- try(optim[[i]](theta, ll, sc, mm_ei$ui, mm_ei$ci))
         ## <FIXME> maybe add more informative error message </FIXME>
