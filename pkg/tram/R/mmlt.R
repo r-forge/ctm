@@ -28,12 +28,6 @@
 
             return(logLik(mvnorm(invchol = Lambda), obs = obs, 
                           standardize = standardize, logLik = FALSE))
-
-            if (!standardize)
-                return(ldmvnorm(obs = obs, invchol = Lambda, logLik = FALSE))
-
-            sLambda <- mvtnorm::standardize(invchol = Lambda)
-            return(ldmvnorm(obs = obs, invchol = sLambda, logLik = FALSE))
         }
 
         csc <- function(obs, Lambda) {
@@ -43,26 +37,6 @@
 
             ret <- lLgrad(mvnorm(invchol = Lambda), obs = obs, standardize = standardize)
             return(list(Lambda = ret$scale, obs = ret$obs))
-
-            if (!standardize) {
-                ret <- sldmvnorm(obs = obs, invchol = Lambda)
-                return(list(Lambda = ret$invchol, obs = ret$obs))
-            }
-
-           chol <- solve(Lambda)
-           ### START readable:
-           # schol <- mvtnorm::standardize(chol = chol)
-           # ret <- sldmvnorm(obs = obs, chol = schol)
-           ### avoid calling solve() multiple times
-           D <- sqrt(Tcrossprod(chol, diag_only = TRUE))
-           sLambda <- invcholD(Lambda, D = D)
-           ret <- sldmvnorm(obs = obs, invchol = sLambda)
-           ret$chol <- -vectrick(sLambda, ret$invchol)
-           ### END
-           dobs <- ret$obs
-           ret <- destandardize(chol = chol, invchol = Lambda, 
-                                score_schol = ret$chol)
-           return(list(Lambda = ret, obs = dobs))
        }
 
        return(list(logLik = cll, score = csc))
@@ -81,25 +55,6 @@
         a$standardize <- standardize
         a$logLik <- FALSE
         return(do.call("logLik", a))
-
-        a <- args
-        a$obs <- obs
-        a$mean <- 0
-        a$lower <- lower
-        a$upper <- upper
-        a$logLik <- FALSE
-        if (!standardize) {
-            a$invchol <- Lambda
-        } else {
-            a$chol <- mvtnorm::standardize(chol = solve(Lambda))
-            D <- mvtnorm::diagonals(a$chol)
-            if (any(D < .Machine$double.eps)) {
-                ### might happen in very rare cases
-                D[D < .Machine$double.eps] <- 2 * .Machine$double.eps
-                mvtnorm::diagonals(a$chol) <- D
-            }
-        }
-        return(do.call("ldpmvnorm", a))
     }
 
     sc <- function(obs = NULL, lower, upper, Lambda) {
@@ -116,49 +71,6 @@
                     mean = ret$mean, 
                     lower = ret$lower, 
                     upper = ret$upper)
-        return(ret)
-
-        a <- args
-        a$obs <- obs
-        a$mean <- 0
-        a$lower <- lower
-        a$upper <- upper
-        a$logLik <- TRUE
-        if (!standardize) {
-            a$invchol <- Lambda
-            ret <- do.call("sldpmvnorm", a)
-            return(list(Lambda = ret$invchol,
-                        obs = ret$obs,
-                        mean = ret$mean, 
-                        lower = ret$lower, 
-                        upper = ret$upper))
-        }
-
-        chol <- solve(Lambda)
-        ### START readable:
-        # a$chol <- mvtnorm::standardize(chol = chol)
-        # ret <- do.call("sldpmvnorm", a)
-        ### avoid calling solve() multiple times
-        D <- sqrt(Tcrossprod(chol, diag_only = TRUE))
-        sLambda <- invcholD(Lambda, D = D)
-        a$invchol <- sLambda
-        D <- mvtnorm::diagonals(a$invchol)
-        if (any(D > 1 / .Machine$double.eps)) {
-            ### might happen in very rare cases
-            D[D > 1 / .Machine$double.eps] <- 1 / (2 * .Machine$double.eps)
-            mvtnorm::diagonals(a$invchol) <- D
-        }
-        ret <- do.call("sldpmvnorm", a)
-        ret$chol <- -vectrick(sLambda, ret$invchol)
-        ### END
-        smean <- ret$mean
-        sobs <- ret$obs
-        slower <- ret$lower
-        supper <- ret$upper
-        ret <- destandardize(chol = chol, invchol = Lambda, 
-                             score_schol = ret$chol)
-        ret <- list(Lambda = ret, mean = smean, obs = sobs, 
-                    lower = slower, upper = supper)
         return(ret)
     }
 
@@ -193,8 +105,8 @@
     ### where this is checked and assumed?
     ### </FIXME>
     ### continuous models first
-    stopifnot(all(diff(cmod) <= 0))
-    stopifnot(all(diff(dmod) >= 0))
+#    stopifnot(all(diff(cmod) <= 0))
+#    stopifnot(all(diff(dmod) >= 0))
 
     ### determine if response is conceptually numeric
     cresp <- sapply(m, function(x) 
@@ -484,7 +396,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
     Jp <- J * (J - 1) / 2
     llsc <- .ll(c(cJ, dJ), standardize = !conditional, args)
 
-    if (dJ) {
+    if (dJ > 1L) {
         if (is.null(args$w)) {
             args$w <- .MCw(J = dJ, M = args$M, seed = args$seed)
         } else {
@@ -524,7 +436,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
     weights <- m$weights
 
     LAMBDA <- ltMatrices(matrix(0, nrow = Jp, ncol = nrow(lX)),
-                         byrow = TRUE, diag = FALSE, names = names(m$models))
+                         byrow = TRUE, diag = FALSE, names = m$names) #names(m$models))
 
     ll <- function(parm, newdata = NULL) {
 
@@ -532,13 +444,15 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
             lX <- model.matrix(bx, data = newdata)
 
         # Lambda <- ltMatrices(t(lX %*% .Xparm(parm)), byrow = TRUE, 
-        #                      diag = FALSE, names = names(m$models))
+        #                      diag = FALSE, names = m$names) ##names(m$models))
         # saves time in ltMatrices
         Lambda <- LAMBDA
         Lambda[] <- t(lX %*% .Xparm(parm))
+        ret <- 0
         if (cJ) {
             z <- .rbind(.mget(m, j = which(m$cont), parm = parm, what = "z", 
                               newdata = newdata, weights = weights))
+            rownames(z) <- m$names[which(m$cont)]
             zp <- .rbind(.mget(m, j = which(m$cont), parm = parm, 
                                what = "zprime", newdata = newdata, 
                                weights = weights))
@@ -552,11 +466,12 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
             upper <- .rbind(.mget(m, j = which(!m$cont), parm = parm, 
                                   what = "zright", newdata = newdata, 
                                   weights = weights))
+            rownames(lower) <- rownames(upper) <- m$names[which(!m$cont)]
             if (!cJ)
                 return(llsc$logLik(lower = lower, upper = upper, 
                                    Lambda = Lambda))
         }
-        return(llsc$logLik(obs = z, lower = lower, upper = upper, 
+        return(ret + llsc$logLik(obs = z, lower = lower, upper = upper, 
                            Lambda = Lambda))
     }
 
@@ -573,7 +488,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
             lX <- model.matrix(bx, data = newdata)
 
         # Lambda <- ltMatrices(t(lX %*% .Xparm(parm)), byrow = TRUE, 
-        #                      diag = FALSE, names = names(m$models))
+        #                      diag = FALSE, names = m$names) # names(m$models))
         # saves time in ltMatrices
         Lambda <- LAMBDA
         Lambda[] <- t(lX %*% .Xparm(parm))
@@ -581,6 +496,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
         if (cJ) {
             z <- .rbind(.mget(m, j = which(m$cont), parm = parm, what = "z", 
                               newdata = newdata, weights = weights))
+            rownames(z) <- m$names[which(m$cont)]
             if (!dJ)
                 sc <- llsc$score(obs = z, Lambda = Lambda)
         }
@@ -591,6 +507,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
             upper <- .rbind(.mget(m, j = which(!m$cont), parm = parm, 
                                   what = "zright", newdata = newdata, 
                                   weights = weights))
+            rownames(lower) <- rownames(upper) <- m$names[which(!m$cont)]
             if (!cJ)
                 sc <- llsc$score(lower = lower, upper = upper, 
                                  Lambda = Lambda)
