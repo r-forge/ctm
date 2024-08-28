@@ -26,6 +26,9 @@
             if (dim(Lambda)[2L] > 1)
                 stopifnot(!attr(Lambda, "diag"))
 
+            return(logLik(mvnorm(invchol = Lambda), obs = obs, 
+                          standardize = standardize, logLik = FALSE))
+
             if (!standardize)
                 return(ldmvnorm(obs = obs, invchol = Lambda, logLik = FALSE))
 
@@ -37,6 +40,9 @@
 
             if (dim(Lambda)[2L] > 1)
                 stopifnot(!attr(Lambda, "diag"))
+
+            ret <- lLgrad(mvnorm(invchol = Lambda), obs = obs, standardize = standardize)
+            return(list(Lambda = ret$scale, obs = ret$obs))
 
             if (!standardize) {
                 ret <- sldmvnorm(obs = obs, invchol = Lambda)
@@ -68,6 +74,15 @@
             stopifnot(!attr(Lambda, "diag"))
 
         a <- args
+        a$object <- mvnorm(invchol = Lambda)
+        a$obs <- obs
+        a$lower <- lower
+        a$upper <- upper
+        a$standardize <- standardize
+        a$logLik <- FALSE
+        return(do.call("logLik", a))
+
+        a <- args
         a$obs <- obs
         a$mean <- 0
         a$lower <- lower
@@ -88,6 +103,20 @@
     }
 
     sc <- function(obs = NULL, lower, upper, Lambda) {
+
+        a <- args
+        a$object <- mvnorm(invchol = Lambda)
+        a$obs <- obs
+        a$lower <- lower
+        a$upper <- upper
+        a$standardize <- standardize
+        ret <- do.call("lLgrad", a)
+        ret <- list(Lambda = ret$scale,
+                    obs = ret$obs,
+                    mean = ret$mean, 
+                    lower = ret$lower, 
+                    upper = ret$upper)
+        return(ret)
 
         a <- args
         a$obs <- obs

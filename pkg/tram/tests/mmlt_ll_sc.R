@@ -6,12 +6,14 @@ chk <- function(...)
     stopifnot(isTRUE(all.equal(..., tol = 1e-6, check.attributes = FALSE)))
 
 thischeck <- expression({
-  ltM <- function(x) ltMatrices(x, diag = FALSE, byrow = TRUE)
-  ltD <- function(x) ltMatrices(x, diag = TRUE, byrow = TRUE)
+  nm <- LETTERS[1:J]
+  ltM <- function(x) ltMatrices(x, diag = FALSE, byrow = TRUE, names = nm)
+  ltD <- function(x) ltMatrices(x, diag = TRUE, byrow = TRUE, names = nm)
   prm <- matrix(runif(J * (J - 1) / 2 * N), ncol = N)
   L <- ltM(prm)
 
   obs <- matrix(rnorm(J * N), ncol = N)
+  rownames(obs) <- nm
   lwr <- -2 -abs(obs)
   upr <- 2 + abs(obs)
 
