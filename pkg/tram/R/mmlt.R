@@ -101,12 +101,6 @@
     cmod <- sapply(mm, function(x) !is.null(x$eY))  
     dmod <- sapply(mm, function(x) !is.null(x$iY))  
     stopifnot(all(xor(cmod, dmod)))
-    ### <FIXME> is this the only place (except in ldpmvnorm) 
-    ### where this is checked and assumed?
-    ### </FIXME>
-    ### continuous models first
-#    stopifnot(all(diff(cmod) <= 0))
-#    stopifnot(all(diff(dmod) >= 0))
 
     ### determine if response is conceptually numeric
     cresp <- sapply(m, function(x) 
@@ -534,7 +528,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
                 zp <- .rbind(.mget(m, j = which(m$cont), parm = parm, 
                                    what = "zprime", newdata = newdata, 
                                    weights = weights))
-                scp[1:cJ] <- lapply(1:cJ, function(j) {
+                scp[which(m$cont)] <- lapply(1:cJ, function(j) {
                     CS(mm[[j]]$exY * c(sc$obs[j,])) + 
                         CS(mm[[j]]$exYprime / c(zp[j,]))
                 })
@@ -546,7 +540,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
                              function(j) 
                                  .mget(m, j = j, parm = parm, what = "estfun", 
                                        newdata = newdata, weights = weights))
-                scp[1:cJ] <- lapply(1:cJ, function(j) {
+                scp[which(m$cont)] <- lapply(1:cJ, function(j) {
                     CS(mm[[j]]$exY * c(sc$obs[j,] + z[j,]) / 
                         c(dnorm(z[j,])) * c(dz[j,])) - CS(ef[[j]])
                 })
@@ -558,7 +552,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
                 function(j) .mget(m, j = j, parm = parm, what = "trafoprime", 
                                   newdata = newdata, weights = weights))
             if (all(m$normal)) {
-                scp[cJ + 1:dJ] <- lapply(1:dJ, function(j) {
+                scp[which(!m$cont)] <- lapply(1:dJ, function(j) {
                     CS(mm[[j]]$iYleft * c(sc$lower[j,])) +
                     CS(mm[[j]]$iYright * c(sc$upper[j,]))
                 })
@@ -571,7 +565,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
                                     what = "dzright", newdata = newdata, 
                                     weights = weights))
                 dzr[!is.finite(dzr)] <- 0
-                scp[cJ + 1:dJ] <- lapply(1:dJ, function(j) {
+                scp[which(!m$cont)] <- lapply(1:dJ, function(j) {
                     return(CS(mm[[j]]$iYleft * c(dzl[j,]) * c(sc$lower[j,])) +
                            CS(mm[[j]]$iYright * c(dzr[j,]) * c(sc$upper[j,])))
                 })
