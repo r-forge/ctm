@@ -77,7 +77,7 @@
     return(list(logLik = ll, score = sc))
 }
 
-.models <- function(...) {
+.models <- function(..., strict = TRUE) {
 
     m <- lapply(list(...), function(x) as.mlt(x))
     # nm <- abbreviate(sapply(m, function(x) x$model$response), 4)
@@ -100,7 +100,8 @@
 
     cmod <- sapply(mm, function(x) !is.null(x$eY))  
     dmod <- sapply(mm, function(x) !is.null(x$iY))  
-    stopifnot(all(xor(cmod, dmod)))
+    if (strict)
+        stopifnot(all(xor(cmod, dmod)))
 
     ### determine if response is conceptually numeric
     cresp <- sapply(m, function(x) 
