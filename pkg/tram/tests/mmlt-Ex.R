@@ -2,6 +2,7 @@ library("tram")
 library("mvtnorm")
 library("multcomp")
 library("sandwich")
+library("numDeriv")
 
 options(digits = 2)
 
@@ -605,3 +606,52 @@ chk(as.array(coef(mm, type = "Sigma"))[,,1],
 chk(as.array(coef(mm, type = "Spearman"))[,,1], 
     as.array(coef(mmN, type = "Spearman"))[,,1])
 
+### order independence, starting with 1.1-0, depending on
+### mvtnorm 1.3-0
+N <- 100
+y <- gl(3, N, ordered = TRUE)
+x <- rnorm(length(y))
+w <- rnorm(length(y))
+
+mx <- BoxCox(x ~ 1)
+mw <- BoxCox(w ~ 1)
+my <- Polr(y ~ 1)
+mxwy <- mmlt(mx, mw, my, formula = ~ 1)
+cfxwy <- coef(mxwy)
+Sxwy <- coef(mxwy, type = "Sigma")
+p <- dimnames(Sxwy)[[2L]]
+llxwy <- logLik(mxwy)
+
+gn <- numDeriv::grad(mxwy$ll, cfxwy)
+ga <- mxwy$score(cfxwy)
+chk(gn, ga)
+
+mwxy <- mmlt(mw, mx, my, formula = ~ 1)
+cfwxy <- coef(mwxy)
+Swxy <- coef(mwxy, type = "Sigma")[,p]
+llwxy <- logLik(mwxy)
+
+nm <- names(cfwxy)
+nc <- nm[nm %in% names(cfxwy)]
+chk(cfxwy[nc], cfwxy[nc])
+chk(Swxy, Sxwy)
+chk(llwxy, llxwy)
+
+gn <- numDeriv::grad(mwxy$ll, cfwxy)
+ga <- mwxy$score(cfwxy)
+chk(gn, ga)
+
+myxw <- mmlt(my, mx, mw, formula = ~ 1)
+cfyxw <- coef(myxw)
+Syxw <- coef(myxw, type = "Sigma")[,p]
+llyxw <- logLik(myxw)
+
+nm <- names(cfyxw)
+nc <- nm[nm %in% names(cfxwy)]
+chk(cfxwy[nc], cfyxw[nc])
+chk(Syxw, Sxwy)
+chk(llyxw, llxwy)
+
+gn <- numDeriv::grad(myxw$ll, cfyxw)
+ga <- myxw$score(cfyxw)
+chk(gn, ga)

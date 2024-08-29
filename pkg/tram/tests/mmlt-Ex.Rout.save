@@ -1,7 +1,7 @@
 
-R version 4.3.1 (2023-06-16) -- "Beagle Scouts"
-Copyright (C) 2023 The R Foundation for Statistical Computing
-Platform: x86_64-pc-linux-gnu (64-bit)
+R version 4.4.1 (2024-06-14) -- "Race for Your Life"
+Copyright (C) 2024 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
@@ -33,6 +33,7 @@ The following object is masked from 'package:MASS':
     geyser
 
 > library("sandwich")
+> library("numDeriv")
 > 
 > options(digits = 2)
 > 
@@ -461,11 +462,11 @@ The following object is masked from 'package:MASS':
 > mm1 <- mmlt(b1, b2, formula = ~ X1 + X2 + X3, data = d, conditional = TRUE)
 Warning message:
 In mmlt(b1, b2, formula = ~X1 + X2 + X3, data = d, conditional = TRUE) :
-  Conditional models with covariate-dependent correlations are order-dependent
+  Conditional models with covariate-dependentcorrelations are order-dependent
 > mm2 <- mmlt(b2, b1, formula = ~ X1 + X2 + X3, data = d, conditional = TRUE)
 Warning message:
 In mmlt(b2, b1, formula = ~X1 + X2 + X3, data = d, conditional = TRUE) :
-  Conditional models with covariate-dependent correlations are order-dependent
+  Conditional models with covariate-dependentcorrelations are order-dependent
 > 
 > logLik(mm1)
 'log Lik.' -266 (df=14)
@@ -974,7 +975,65 @@ y.4.x.1   0.072   0.070   0.111   0.122
 +     as.array(coef(mmN, type = "Spearman"))[,,1])
 [1] TRUE
 > 
+> ### order independence, starting with 1.1-0, depending on
+> ### mvtnorm 1.3-0
+> N <- 100
+> y <- gl(3, N, ordered = TRUE)
+> x <- rnorm(length(y))
+> w <- rnorm(length(y))
+> 
+> mx <- BoxCox(x ~ 1)
+> mw <- BoxCox(w ~ 1)
+> my <- Polr(y ~ 1)
+> mxwy <- mmlt(mx, mw, my, formula = ~ 1)
+> cfxwy <- coef(mxwy)
+> Sxwy <- coef(mxwy, type = "Sigma")
+> p <- dimnames(Sxwy)[[2L]]
+> llxwy <- logLik(mxwy)
+> 
+> gn <- numDeriv::grad(mxwy$ll, cfxwy)
+> ga <- mxwy$score(cfxwy)
+> chk(gn, ga)
+[1] TRUE
+> 
+> mwxy <- mmlt(mw, mx, my, formula = ~ 1)
+> cfwxy <- coef(mwxy)
+> Swxy <- coef(mwxy, type = "Sigma")[,p]
+> llwxy <- logLik(mwxy)
+> 
+> nm <- names(cfwxy)
+> nc <- nm[nm %in% names(cfxwy)]
+> chk(cfxwy[nc], cfwxy[nc])
+[1] TRUE
+> chk(Swxy, Sxwy)
+[1] TRUE
+> chk(llwxy, llxwy)
+[1] TRUE
+> 
+> gn <- numDeriv::grad(mwxy$ll, cfwxy)
+> ga <- mwxy$score(cfwxy)
+> chk(gn, ga)
+[1] TRUE
+> 
+> myxw <- mmlt(my, mx, mw, formula = ~ 1)
+> cfyxw <- coef(myxw)
+> Syxw <- coef(myxw, type = "Sigma")[,p]
+> llyxw <- logLik(myxw)
+> 
+> nm <- names(cfyxw)
+> nc <- nm[nm %in% names(cfxwy)]
+> chk(cfxwy[nc], cfyxw[nc])
+[1] "Mean relative difference: 0.0015"
+> chk(Syxw, Sxwy)
+[1] TRUE
+> chk(llyxw, llxwy)
+[1] TRUE
+> 
+> gn <- numDeriv::grad(myxw$ll, cfyxw)
+> ga <- myxw$score(cfyxw)
+> chk(gn, ga)
+[1] TRUE
 > 
 > proc.time()
    user  system elapsed 
-  47.68    0.14   47.83 
+ 47.061   0.091  47.183 
