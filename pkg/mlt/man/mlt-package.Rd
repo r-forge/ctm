@@ -9,9 +9,6 @@
   An introduction to the package is available in the \code{mlt} package
   vignette from package \code{mlt.docreg} (Hothorn, 2020).
 
-  A short talk on most likely transformations is available from
-  \url{https://channel9.msdn.com/Events/useR-international-R-User-conference/useR2016/Most-Likely-Transformations}.
-
   Novice users might find the high(er) level interfaces offered by package
   \pkg{tram} more convenient.
 
