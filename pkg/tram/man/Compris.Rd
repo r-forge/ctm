@@ -117,7 +117,7 @@ distributions for the primary event of interest and all competing events.
     follic$status <- factor(follic$status,
       levels = 0:2, labels = c("admin_cens", "relapse", "death"))
     
-    y <- with(follic, Surv(time = time, event = status))
+    follic$y <- with(follic, Surv(time = time, event = status))
   
     ## Fit a Gaussian Copula-based Cox Proportional Hazards Model with
     ##   a marginal "Coxph" model for the primary event of interest and 
