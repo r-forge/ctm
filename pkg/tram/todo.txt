@@ -4,6 +4,11 @@
 
 - implementation of perm_test for class "stram"
 
+- move mmlt to mlt
+- implement tram::Mmlt with sequential, mixed variables etc
+  maybe we can omit domargins = FALSE and just used "fixed" on the marginal
+  parameters?
+- interface Compris to Mmlt
 
 ## Checks / Fixes
 
