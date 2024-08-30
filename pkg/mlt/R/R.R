@@ -167,7 +167,8 @@ R.factor <- function(object, ...) {
     if (nlevels(object) > 2)
         warning("response is unordered factor;
                  results may depend on order of levels")
-    return(R(as.ordered(object), ...))
+    return(R(ordered(object, levels = levels(object), 
+                     labels = levels(object)), ...))
 }
 
 R.ordered <- function(object, cleft = NA, cright = NA, ...) {

@@ -8,6 +8,7 @@
       \item{Allow interval censoring using \code{-Inf} and \code{Inf}.
             Starting values are affected but the corresponding observations
             contribute zero to the log-likelihood.}
+     \item{Make sure \code{R()} does not drop any unused levels (unlike \code{factor()}).}
     }
   }
   \subsection{New features}{
