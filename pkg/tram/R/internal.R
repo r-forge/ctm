@@ -17,7 +17,7 @@ asvar.numeric <- function(object, name, prob = c(.1, .9), support = NULL, bounds
     }
     if (is.null(support)) {
         support <- quantile(object, prob = prob, na.rm = TRUE)
-        add <- range(object) - support
+        add <- range(object, na.rm = TRUE) - support
         return(variables::numeric_var(name, support = support, add = add, bounds = bounds, ...))
     }
     return(variables::numeric_var(name, support = support, bounds = bounds, add = add,...))
