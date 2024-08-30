@@ -645,8 +645,10 @@ mlt <- function(model, data, weights = NULL, offset = NULL, fixed = NULL,
     vars <- as.vars(model)
     response <- variable.names(model, "response")
     responsevar <- vars[[response]]
-    ### <FIXME>: how can we check Surv objects?
-    if (!inherits(data[[response]], "Surv"))
+    ### <FIXME>: how can we check Surv or R objects (which may contain
+    ### values outside bounds)?
+    if (!(inherits(data[[response]], "Surv") ||
+          inherits(data[[response]], "response")))
         stopifnot(check(responsevar, data))
     ### </FIXME>
     bounds <- bounds(responsevar)
