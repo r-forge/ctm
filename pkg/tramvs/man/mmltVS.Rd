@@ -64,6 +64,3 @@ Select optimal subset based on high dimensional BIC in mmlts
 L0-penalized (i.e., best subset selection) multivariate
     transformation models using the abess algorithm.
 }
-\examples{
-
-}

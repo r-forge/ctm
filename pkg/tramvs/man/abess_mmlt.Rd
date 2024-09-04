@@ -44,6 +44,3 @@ List containing the fitted model via \code{mmlt}, active set
 \description{
 Optimal subset selection for multivariate transformation models
 }
-\examples{
-
-}
