@@ -174,19 +174,12 @@ R.factor <- function(object, ...) {
 R.ordered <- function(object, cleft = NA, cright = NA, ...) {
 
     lev <- levels(object)
-    ### note and replace missing values with
-    ### a meaningful placeholder
-    if (any(ona <- is.na(object)))
-        object[ona] <- lev[1]
     ret <- .mkR(exact = object, cleft = cleft, cright = cright, ...)
     ret[is.na(ret$cright), "cright"] <- ret$exact[is.na(ret$cright)]
     ret[is.na(ret$cleft), "cleft"] <- factor(unclass(object)[is.na(ret$cleft)] - 1,
         levels = 1:length(lev), labels = lev, exclude = 0, ordered = TRUE)
     ret$exact <- NA
-    ret[ret$cright == lev[nlevels(object)], "cright"] <- NA
-    ### reinstall missing values; contribute zero to log-likelihood
-    if (any(ona))
-        ret[ona, "cright"] <- ret[ona, "cleft"] <- ret[ona, "exact"] <- NA
+    ret[which(ret$cright == lev[nlevels(object)]), "cright"] <- NA
     attr(ret, "prob") <- function(weights) {
         ### FIXME: subsetting doesn't change this fct
         if (length(weights) != length(object))
@@ -201,16 +194,12 @@ R.ordered <- function(object, cleft = NA, cright = NA, ...) {
 ### </FIXME>
 R.integer <- function(object, cleft = NA, cright = NA, bounds = c(min(object), Inf), ...) {
 
-    if (any(ona <- is.na(object)))
-        object[ona] <- 1L
     ret <- .mkR(exact = object, cleft = cleft, cright = cright, ...)
     ret$cright[is.na(ret$cright)] <- ret$exact[is.na(ret$cright)]
-    ret$cright[ret$cright == bounds[2]] <- NA
+    ret$cright[which(ret$cright == bounds[2])] <- NA
     ret$cleft[is.na(ret$cleft)] <- ret$exact[is.na(ret$cleft)] - 1
-    ret$cleft[ret$cleft < bounds[1]] <- NA
+    ret$cleft[which(ret$cleft < bounds[1])] <- NA
     ret$exact <- NA
-    if (any(ona))
-        ret[ona, "cright"] <- ret[ona, "cleft"] <- ret[ona, "exact"] <- NA
     attr(ret, "prob") <- function(weights)
         .wecdf(object, weights)
     ret
