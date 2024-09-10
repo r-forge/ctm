@@ -376,14 +376,7 @@
                            Lambda = Lambda))
     }
 
-    sc <- function(parm, newdata = NULL, weights, scores = FALSE) {
-
-        if (scores) {
-            RS <- CS <- function(x) x * weights
-        } else {
-            RS <- function(x) rowSums(x * weights, na.rm = TRUE)
-            CS <- function(x) colSums(x * weights, na.rm = TRUE)
-        }
+    sc <- function(parm, newdata = NULL, weights) {
 
         if (!is.null(newdata) && !isTRUE(all.equal(formula, ~ 1))) 
             lX <- model.matrix(bx, data = newdata)
@@ -420,9 +413,9 @@
         ### <FIXME> explain subset </FIXME>
         Lmat <- Lower_tri(sc$Lambda)[rep(1:Jp, each = ncol(lX)), , drop = FALSE]
         if (identical(c(lX), 1)) {
-            scL <- RS(Lmat) ### NaN might appear in scores
+            scL <- Lmat ### NaN might appear in scores
         } else {
-            scL <- RS(Lmat * t(lX[,rep(1:ncol(lX), Jp), drop = FALSE]))
+            scL <- Lmat * t(lX[,rep(1:ncol(lX), Jp), drop = FALSE])
         }
       
         scp <- vector(mode = "list", length = cJ + dJ)
@@ -436,8 +429,8 @@
                                    what = "zprime", newdata = newdata, 
                                    weights = weights))
                 scp[which(models$cont)] <- lapply(1:cJ, function(j) {
-                    CS(mm[[j]]$exY * c(sc$obs[j,])) + 
-                        CS(mm[[j]]$exYprime / c(zp[j,]))
+                    mm[[j]]$exY * c(sc$obs[j,]) + 
+                        mm[[j]]$exYprime / c(zp[j,])
                 })
             } else {
                 dz <- .rbind(.mget(models, j = which(models$cont), parm = parm, 
@@ -447,9 +440,10 @@
                              function(j) 
                                  .mget(models, j = j, parm = parm, what = "estfun", 
                                        newdata = newdata, weights = weights))
+                ### note: estfun() gives negative weighted gradient of loglik
                 scp[which(models$cont)] <- lapply(1:cJ, function(j) {
-                    CS(mm[[j]]$exY * c(sc$obs[j,] + z[j,]) / 
-                        c(dnorm(z[j,])) * c(dz[j,])) - CS(ef[[j]])
+                    (mm[[j]]$exY * c(sc$obs[j,] + z[j,]) / 
+                        c(dnorm(z[j,])) * c(dz[j,])) - (ef[[j]] / weights)
                 })
             }
         }
@@ -460,8 +454,8 @@
                                   newdata = newdata, weights = weights))
             if (all(models$normal)) {
                 scp[which(!models$cont)] <- lapply(1:dJ, function(j) {
-                    CS(mm[[j]]$iYleft * c(sc$lower[j,])) +
-                    CS(mm[[j]]$iYright * c(sc$upper[j,]))
+                    mm[[j]]$iYleft * c(sc$lower[j,]) +
+                    mm[[j]]$iYright * c(sc$upper[j,])
                 })
             } else {
                 dzl <- .rbind(.mget(models, j = which(!models$cont), parm = parm, 
@@ -473,17 +467,12 @@
                                     weights = weights))
                 dzr[!is.finite(dzr)] <- 0
                 scp[which(!models$cont)] <- lapply(1:dJ, function(j) {
-                    return(CS(mm[[j]]$iYleft * c(dzl[j,]) * c(sc$lower[j,])) +
-                           CS(mm[[j]]$iYright * c(dzr[j,]) * c(sc$upper[j,])))
+                    return((mm[[j]]$iYleft * c(dzl[j,]) * c(sc$lower[j,])) +
+                           (mm[[j]]$iYright * c(dzr[j,]) * c(sc$upper[j,])))
                 })
             }
         }
         
-        if (!scores) {
-            ret <- c(do.call("c", scp), c(scL))
-            names(ret) <- parnames
-            return(ret)
-        }
         ret <- cbind(do.call("cbind", scp), t(scL))
         colnames(ret) <- parnames
         return(ret)
@@ -528,7 +517,10 @@
                 p <- c(p, fixed)
                 par <- p[parnames]
             }
-            ret <- -sc(par * scl, weights = weights, ...) * scl
+            ### trafoprime etc multiply design matrix, we only weight and
+            ### sum-up over scores at the very end
+            w1 <- rep(1, length(weights))
+            ret <- - colSums(weights * sc(par * scl, weights = w1, ...) * scl)
             if (is.null(fixed)) return(ret)
             if (is.matrix(ret))
                 return(ret[, !parnames %in% names(fixed)])
@@ -568,7 +560,12 @@
 
     ret <- list(optimfct = optimfct)
     ret$ll <- function(..., weights) ll(..., weights = weights) * weights
-    ret$score <- sc
+    ret$score <- function(..., weights) {
+        ### trafoprime etc multiply design matrix, we only weight and
+        ### sum-up over scores at the very end
+        w1 <- rep(1, length(weights))
+        sc(..., weights = w1) * weights
+    }
     ret$args <- args
     ret$models <- models
     ret$formula <- formula
@@ -820,7 +817,7 @@ estfun.mmlt <- function(x, parm = coef(x, fixed = TRUE),
         warning("Arguments ", names(args), " are ignored")
     if (is.null(w))
         w <- weights(x)
-    return(x$score(parm, newdata = newdata, weights = w, scores = TRUE))
+    return(x$score(parm, newdata = newdata, weights = w))
 }
 
 summary.mmlt <- function(object, ...) {
