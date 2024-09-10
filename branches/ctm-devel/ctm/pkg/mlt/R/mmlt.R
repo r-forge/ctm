@@ -379,7 +379,7 @@
     sc <- function(parm, newdata = NULL, weights, scores = FALSE) {
 
         if (scores) {
-            RS <- CS <- function(x) x * weights ### ??? really?
+            RS <- CS <- function(x) x * weights
         } else {
             RS <- function(x) rowSums(x * weights, na.rm = TRUE)
             CS <- function(x) colSums(x * weights, na.rm = TRUE)
@@ -567,7 +567,7 @@
     }
 
     ret <- list(optimfct = optimfct)
-    ret$ll <- ll
+    ret$ll <- function(..., weights) ll(..., weights = weights) * weights
     ret$score <- sc
     ret$args <- args
     ret$models <- models
@@ -807,7 +807,7 @@ logLik.mmlt <- function (object, parm = coef(object, fixed = TRUE), w = NULL, ne
         warning("Arguments ", names(args), " are ignored")
     if (is.null(w))
         w <- weights(object)
-    ret <- -sum(object$ll(parm, newdata = newdata, weights = w))
+    ret <- sum(object$ll(parm, newdata = newdata, weights = w))
     attr(ret, "df") <- length(object$par)
     class(ret) <- "logLik"
     ret

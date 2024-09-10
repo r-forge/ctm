@@ -66,8 +66,10 @@
         if (SCALE) {
             parm <- .parm(beta)
             if (is.matrix(parm)) {
-#                slp <- base::rowSums(soffset + Z * parm[,Assign[2,] == "bscaling"])
-                slp <- .Call("R_offrowSums", soffset, Z, parm[,Assign[2,] == "bscaling"])
+#               slp <- base::rowSums(soffset + 
+#                                    Z * parm[,Assign[2,] == "bscaling"])
+                slp <- .Call("R_offrowSums", soffset, Z, 
+                             parm[,Assign[2,] == "bscaling"])
             } else {
                 slp <- c(soffset + Z %*% parm[Assign[2,] == "bscaling"])
             }
@@ -94,7 +96,8 @@
 
     .ofuns <- function(weights, subset = NULL, offset = NULL, 
                        perm = NULL, permutation = NULL, 
-                       distr = todistr) ### <- change todistr via update(, distr =)
+                       distr = todistr) ### <- 
+                       ### change todistr via update(, distr =)
     {
         if (is.null(offset)) {
             offset <- rep(0, nrow(data))
@@ -209,11 +212,14 @@
             id <- function(x) x
             if (!is.null(es$full_ex)) {
                 trex[es$full_ex] <- .dealinf(exY, beta_ex, exoffset, id, 0)
-                trexprime[es$full_ex] <- .dealinf(exYprime, beta_ex, exoffset, id, 0)
+                trexprime[es$full_ex] <- .dealinf(exYprime, beta_ex, 
+                                                  exoffset, id, 0)
             }
             if (!is.null(es$full_nex)) {
-                trleft[es$full_nex] <- .dealinf(iYleft, beta_nex, ioffset, id, -Inf)
-                trright[es$full_nex] <- .dealinf(iYright, beta_nex, ioffset, id, Inf)
+                trleft[es$full_nex] <- .dealinf(iYleft, beta_nex, ioffset, 
+                                                id, -Inf)
+                trright[es$full_nex] <- .dealinf(iYright, beta_nex, ioffset, 
+                                                 id, Inf)
             }
             ret <- list(trex = trex, trexprime = trexprime,
                         trleft = trleft, trright = trright)
@@ -251,13 +257,19 @@
                 if (model$scale_shift) {
                     if (!is.null(es$full_ex)) {
                         ret[c("exY", "exYprime")] <- lapply(c("exY", "exYprime"), 
-                            function(j) cbind(sterm[es$full_ex] * ret[[j]][es$full_ex,,drop = FALSE], 
-                                              .5 * tr[[j]][es$full_ex] * Z[es$full_ex,,drop = FALSE]))
+                            function(j) 
+                                cbind(sterm[es$full_ex] * 
+                                        ret[[j]][es$full_ex,,drop = FALSE], 
+                                      .5 * tr[[j]][es$full_ex] * 
+                                        Z[es$full_ex,,drop = FALSE]))
                     }
                     if (!is.null(es$full_nex)) {
                         ret[c("iYleft", "iYright")] <- lapply(c("iYleft", "iYright"), 
-                            function(j) cbind(sterm[es$full_nex] * ret[[j]][es$full_nex,,drop = FALSE], 
-                                              .5 * tr[[j]][es$full_nex] * Z[es$full_nex,,drop = FALSE]))
+                            function(j) 
+                                cbind(sterm[es$full_nex] * 
+                                          ret[[j]][es$full_nex,,drop = FALSE], 
+                                      .5 * tr[[j]][es$full_nex] * 
+                                          Z[es$full_nex,,drop = FALSE]))
                     }
                 } else {
                     bbeta <- beta
@@ -273,15 +285,23 @@
                     
                     if (!is.null(es$full_ex)) {
                         ret[c("exY", "exYprime")] <- lapply(c("exY", "exYprime"), 
-                            function(j) cbind(sterm[es$full_ex] * ret[[j]][es$full_ex,idx,drop = FALSE], 
-                                              ret[[j]][es$full_ex,!idx,drop = FALSE], 
-                                              sterm[es$full_ex] * .5 * tr[[j]][es$full_ex] * Z[es$full_ex, , drop = FALSE]))
+                            function(j) 
+                                cbind(sterm[es$full_ex] * 
+                                          ret[[j]][es$full_ex,idx,drop = FALSE], 
+                                      ret[[j]][es$full_ex,!idx,drop = FALSE], 
+                                      sterm[es$full_ex] * .5 * 
+                                          tr[[j]][es$full_ex] * 
+                                          Z[es$full_ex, , drop = FALSE]))
                     }
                     if (!is.null(es$full_nex)) {
                         ret[c("iYleft", "iYright")]  <- lapply(c("iYleft", "iYright"), 
-                            function(j) cbind(sterm[es$full_nex] * ret[[j]][es$full_nex,idx,drop = FALSE], 
-                                              ret[[j]][es$full_nex,!idx,drop = FALSE], 
-                                              sterm[es$full_nex] * .5 * tr[[j]][es$full_nex] * Z[es$full_nex, , drop = FALSE]))
+                            function(j) 
+                                cbind(sterm[es$full_nex] * 
+                                          ret[[j]][es$full_nex,idx,drop = FALSE], 
+                                      ret[[j]][es$full_nex,!idx,drop = FALSE], 
+                                      sterm[es$full_nex] * .5 * 
+                                         tr[[j]][es$full_nex] * 
+                                         Z[es$full_nex, , drop = FALSE]))
                     }
                 }
                 return(ret)
@@ -394,7 +414,8 @@
         ui <- ui[!r0,,drop = FALSE]
         ci <- ci[!r0]
         if (nrow(ui) == 0) ui <- ci <- NULL
-#        ci <- ci + sqrt(.Machine$double.eps) ### we need ui %*% theta > ci, not >= ci
+#        ci <- ci + sqrt(.Machine$double.eps) ### 
+         ### we need ui %*% theta > ci, not >= ci
     }
 
     optimfct <- function(theta, weights, subset = NULL, offset = NULL, 
@@ -417,12 +438,16 @@
             }
             if (!Xmult) {
                 fct <- c(weights * of$sc(beta, Xmult = FALSE))
-                return(cbind(shifting = if (model$scale_shift) sterm * fct else fct,
-                             scaling = sterm * c(sc[, idx, drop = FALSE] %*% .parm(beta)[idx]) * .5))
+                return(cbind(shifting = if (model$scale_shift) sterm * fct 
+                                        else fct,
+                             scaling = sterm * c(sc[, idx, drop = FALSE] %*% 
+                                                 .parm(beta)[idx]) * .5))
             }
             ret <- cbind(sterm * sc[, idx, drop = FALSE],
-                  if (!model$scale_shift) sc[, Assign[2, ] == "bshifting", drop = FALSE],
-                  sterm * c(sc[, idx, drop = FALSE] %*% .parm(beta)[idx]) * .5 * Z)
+                  if (!model$scale_shift) sc[, Assign[2, ] == "bshifting", 
+                                             drop = FALSE],
+                  sterm * c(sc[, idx, drop = FALSE] %*% 
+                      .parm(beta)[idx]) * .5 * Z)
             colnames(ret) <- colnames(sc)
             if (!is.null(fixed)) {
                 if (all(names(fixed) %in% names(beta)))
@@ -475,7 +500,8 @@
         }
         if (ret$convergence != 0)
             warning("Optimisation did not converge")
-        ### degrees of freedom: number of free parameters, ie #parm NOT meeting the constraints
+        ### degrees of freedom: number of free parameters, ie
+        ###  #parm NOT meeting the constraints
         ret$df <- length(ret$par)
         ### <FIXME> check on alternative degrees of freedom
 #        if (!is.null(ui)) 
@@ -527,7 +553,8 @@
     ret$logliki <- function(beta, weights)
         .ofuns(weights = weights, offset = offset)$ll(beta)
     ret$score <- function(beta, weights, Xmult = TRUE) 
-        weights * .ofuns(weights = weights, offset = offset)$sc(beta, Xmult = Xmult)
+        weights * .ofuns(weights = weights, offset = offset)$sc(beta, 
+                                                                Xmult = Xmult)
     ret$hessian <- function(beta, weights) 
         .ofuns(weights = weights, offset = offset)$he(beta)
 
@@ -535,7 +562,8 @@
     return(ret)
 }
 
-.mlt_start <- function(model, data, y, pstart, offset = NULL, fixed = NULL, weights = 1) {
+.mlt_start <- function(model, data, y, pstart, offset = NULL, fixed = NULL, 
+                       weights = 1) {
 
     stopifnot(length(pstart) == nrow(data))
 
@@ -594,11 +622,13 @@
         ui <- ui[!r0,,drop = FALSE]
         ci <- ci[!r0]
         if (nrow(ui) == 0) ui <- ci <- NULL
-        ci <- ci + sqrt(.Machine$double.eps) ### we need ui %*% theta > ci, not >= ci
+        ci <- ci + sqrt(.Machine$double.eps) 
+            ### we need ui %*% theta > ci, not >= ci
     }
 
     if (!is.null(ui)) {    
-        ret <- suppressWarnings(try(c(coneproj::qprog(Dmat, dvec, ui, ci, msg = FALSE)$thetahat)))
+        ret <- suppressWarnings(try(c(coneproj::qprog(Dmat, dvec, 
+                                      ui, ci, msg = FALSE)$thetahat)))
         if (inherits(ret, "try-error")) {
             diag(Dmat) <- diag(Dmat) + 1e-3
             ret <- c(coneproj::qprog(Dmat, dvec, ui, ci, msg = FALSE)$thetahat)
@@ -672,9 +702,11 @@ mlt <- function(model, data, weights = NULL, offset = NULL, fixed = NULL,
     if (is.null(theta)) {
         ### unconditional ECDF, essentially
         ### this doesn't really work for censored data, any alternative?
-        if (is.null(pstart)) pstart <- attr(y, "prob")(weights)(y$approxy) ### y$rank / max(y$rank)
+        if (is.null(pstart)) 
+            pstart <- attr(y, "prob")(weights)(y$approxy) ### y$rank / max(y$rank)
         theta <- .mlt_start(model = model, data = data, y = y, 
-                            pstart = pstart, offset = offset, fixed = fixed, weights = weights)
+                            pstart = pstart, offset = offset, 
+                            fixed = fixed, weights = weights)
     }
 
     args <- list()
