@@ -42,8 +42,11 @@
     return(ret)
 }
 
-.log <- function(x)
-    return(log(.pmax(.Machine$double.eps, x)))
+.log <- function(x) {
+    ret <- log(.pmax(.Machine$double.eps, x))
+    dim(ret) <- dim(x)
+    return(ret)
+}
 
 ..mlt_loglik_interval <- function(d, mml, mmr, offset = 0, beta) {
     RC <- !is.finite(mmr[,1])

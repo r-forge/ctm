@@ -3,7 +3,7 @@ useDynLib("mlt", .registration = TRUE)
 
 import("basefun")
 import("variables")
-importFrom("Matrix", "Matrix", "colSums", "rowSums", "crossprod")
+importFrom("Matrix", "Matrix", "colSums", "rowSums", "crossprod", "bdiag")
 import("numDeriv") ### needed by BB???
 importFrom("BB", "spg", "BBoptim")
 importFrom("alabama", "auglag")
@@ -25,7 +25,7 @@ importFrom("methods", "as")
 importFrom("survival", "Surv")
 
 export(R, "coef<-", mlt, ctm, confband, Hessian, Gradient, as.mlt, 
-       mltoptim, as.Surv)
+       mltoptim, as.Surv, mmlt)
 #, paraboot, description
 # Hmlt dmlt, hmlt, pmlt, qmlt, smlt, tmlt
 
