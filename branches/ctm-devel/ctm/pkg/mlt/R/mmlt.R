@@ -623,27 +623,66 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
   
     call <- match.call()
 
+    if (conditional && !domargins)
+        stop("Conditional models must fit marginal and joint parameters.")
+
     models <- .models(...)
+
+    mfixed <- NULL
+    if (!is.null(models$fixed)) {
+        mfixed <- do.call("c", models$fixed)
+    }
+
+    if (!is.null(fixed)) {
+        stopifnot(all(!names(fixed) %in% names(mfixed)))
+    }
+    fixed <- c(mfixed, fixed)
 
     ret <- .mmlt_setup(models = models, formula = formula, dofit = dofit,
                        data = data, conditional = conditional, 
                        args = args)
 
-    if (conditional && !domargins)
-        stop("Conditional models must fit marginal and joint parameters.")
+    if (!dofit) return(ret)
 
-    if (is.null(theta) && dofit) {
+    ### compute starting values for lambda
+    if (is.null(theta) && domargins) {
+        cl <- match.call()
+        cl$conditional <- FALSE
+        cl$domargins <- FALSE
+        sm <- eval(cl, parent.frame())
+        theta <- coef(sm, fixed = TRUE)
+        if (conditional) {
+            ### theta are conditional parameters, scale with sigma
+            class(sm)[1] <- "cmmlt" ### do NOT standardize Lambda
+            d <- rowMeans(mvtnorm::diagonals(coef(sm, newdata = data, 
+                                             type = "Sigma")))
+            theta[1:sum(models$nparm)] <- 
+                theta[1:sum(models$nparm)] * rep(sqrt(d), times = models$nparm)
+        }
+    } 
+
+    if (!domargins) {
+        theta <- numeric(length(ret$parnames))
+        names(theta) <- ret$parnames
         mpar <- do.call("c", models$mcoef)
-        names(mpar) <- ret$parnames[1:length(mpar)]
-        lambdastart <- rep(0, length(ret$parnames) - length(mpar))
-        oret <- .mmlt_fit(ret, weights = models$weights, 
-                          subset = subset, fixed = mpar,  optim = optim, theta = lambdastart)
-
-        if (!domargins) return(oret)
-        theta <- c(mpar, oret$par)
+        theta[ret$parnames[1:length(mpar)]] <- mpar
+        if (!is.null(fixed))
+            theta[names(fixed)] <- fixed
+        nfixed <- unique(c(ret$parnames[1:length(mpar)], names(fixed)))
+        fixed <- theta[nfixed]
+        theta <- theta[!(names(theta) %in% nfixed)]
+        ret <- .mmlt_fit(ret, weights = models$weights, 
+                         subset = subset, fixed = fixed,  optim = optim, theta = theta)
+        class(ret) <- c(ifelse(conditional, "cmmlt", "mmmlt"), "mmlt")
+        ret$mmlt <- "Multivariate Conditional Transformation Model"
+        return(ret)
     }
-    return(.mmlt_fit(ret, weights = models$weights, subset = subset, optim = optim,
-                     theta = theta))
+
+    ret <- .mmlt_fit(ret, weights = models$weights, subset = subset, optim = optim,
+                     theta = theta[!names(theta) %in% names(fixed)], fixed = fixed)
+    class(ret) <- c(ifelse(conditional, "cmmlt", "mmmlt"), "mmlt")
+    ret$mmlt <- "Multivariate Conditional Transformation Model"
+    return(ret)
 }
 
 
@@ -741,7 +780,7 @@ vcov.mmlt <- function(object, ...) {
     H <- object$optim_hessian
     if (is.null(H)) {
         if (requireNamespace("numDeriv")) {
-            H <- numDeriv::hessian(object$ll, object$par)
+            H <- numDeriv::hessian(function(par) sum(object$ll(par)), object$par)
         } else {
             stop("Hessian not available")
         }
@@ -761,20 +800,20 @@ vcov.mmlt <- function(object, ...) {
     ret
 }
 
-logLik.mmlt <- function (object, parm = coef(object), w = NULL, newdata = NULL, ...) 
+logLik.mmlt <- function (object, parm = coef(object, fixed = TRUE), w = NULL, newdata = NULL, ...) 
 {
     args <- list(...)
     if (length(args) > 0) 
         warning("Arguments ", names(args), " are ignored")
     if (is.null(w))
         w <- weights(object)
-    ret <- -object$ll(parm, newdata = newdata, weights = w)
+    ret <- -sum(object$ll(parm, newdata = newdata, weights = w))
     attr(ret, "df") <- length(object$par)
     class(ret) <- "logLik"
     ret
 }
 
-estfun.mmlt <- function(x, parm = coef(x, type = "all"), 
+estfun.mmlt <- function(x, parm = coef(x, fixed = TRUE), 
                         w = NULL, newdata = NULL, ...) {
     args <- list(...)
     if (length(args) > 0)
@@ -860,7 +899,7 @@ predict.mmlt <- function (object, newdata, margins = 1:J,
 
     type <- match.arg(type)
     ### don't feed ...
-    z <- .mget(object$models, margins, parm = coef(object, type = "all"),
+    z <- .mget(object$models, margins, parm = coef(object, fixed = TRUE),
                newdata = newdata, what = "z")
     z <- .rbind(z)
 
@@ -903,7 +942,7 @@ predict.mmlt <- function (object, newdata, margins = 1:J,
     }
     stopifnot(type == "density")
     stopifnot(all(object$models$cresp))
-    zprime <- .mget(object$models, margins, parm = coef(object, type = "all"),
+    zprime <- .mget(object$models, margins, parm = coef(object, fixed = TRUE),
                     newdata = newdata, what = "zprime")
     if (length(margins) > 1L) {
         zprime <- .rbind(zprime)
