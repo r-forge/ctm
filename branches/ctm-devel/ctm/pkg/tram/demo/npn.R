@@ -47,7 +47,7 @@ mAFP <- BoxCox(AFPi ~ x | x,  data = HCC)
 
 ### joint estimation of marginal and Gaussian copula parameters, s = 2
 ### location-scale transformation discriminant analysis
-m <- mmlt(mDKK, mOPN, mPIV, mAFP, data = HCC)
+m <- Mmlt(mDKK, mOPN, mPIV, mAFP, data = HCC)
 ### marginal parameters
 coef(m, type = "marginal")
 ### copula parameter: Lambda
@@ -57,6 +57,6 @@ sqrt(diag(vcov(m)))
 
 ### convex approximations
 ## pseudo
-mm <- mmlt(mDKK, mOPN, mPIV, mAFP, data = HCC, domargins = FALSE)
+mm <- Mmlt(mDKK, mOPN, mPIV, mAFP, data = HCC, domargins = FALSE)
 ## sequential
-ms <- mmlt(mDKK, mOPN, mPIV, mAFP, data = HCC, sequentialfit = TRUE)
+ms <- Mmlt(mDKK, mOPN, mPIV, mAFP, data = HCC, sequentialfit = TRUE)

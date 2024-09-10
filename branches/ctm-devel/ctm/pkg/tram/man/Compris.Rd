@@ -14,7 +14,7 @@ Compris(formula, data, subset, weights, na.action, offset,
                                     Colr = "loglogistic", 
                                     BoxCox = "lognormal"), 
         NPlogLik = FALSE,
-        optim = mmltoptim(), args = list(seed = 1, M = 1000), 
+        optim = Mmltoptim(), args = list(seed = 1, M = 1000), 
         scale = FALSE, tol = 0.001, ...)
 }
 \arguments{
@@ -54,7 +54,7 @@ remaining competing events.
 }
   \item{NPlogLik}{logical, optimise nonparametric likelihood defined in
                   terms of multivariate probabilities.}
-  \item{optim}{see \code{mmlt}.
+  \item{optim}{see \code{Mmlt}.
 }
  \item{args}{a list of arguments for \code{\link[mvtnorm]{lpmvnorm}}.
 }
@@ -73,7 +73,7 @@ regression framework described by Czado and Van Keilegom (2023) and Deresa
 and Van Keilegom (2023).
 }
 \value{
-An object of class \code{mmlt}, allowing to derive marginal time-to-event
+An object of class \code{Mmlt}, allowing to derive marginal time-to-event
 distributions for the primary event of interest and all competing events.
 }
 \references{

@@ -70,7 +70,7 @@ Compris <- function(formula, data, subset, weights, na.action, offset,
                                                 "Colr" = "loglogistic", 
                                                 "BoxCox" = "lognormal"),
                     NPlogLik = FALSE, 
-                    optim = mmltoptim(), args = list(seed = 1, M = 1000), 
+                    optim = Mmltoptim(), args = list(seed = 1, M = 1000), 
                     scale = FALSE, tol = .001, ...)
 {
 
@@ -125,7 +125,7 @@ Compris <- function(formula, data, subset, weights, na.action, offset,
         m$optim <- optim
         m$scale <- scale
         m$args <- args
-        ret <- do.call("mmlt", m)
+        ret <- do.call("Mmlt", m)
         ret$call <- call
         class(ret) <- c("Compris", class(ret))
         return(ret)
@@ -182,12 +182,12 @@ Compris <- function(formula, data, subset, weights, na.action, offset,
     ### set-up likelihood terms
     # A)
     if (length(rc) > 0) {
-        mm_rc <- mmlt(me_rc, mc_rc, dofit = FALSE, args = args)
+        mm_rc <- Mmlt(me_rc, mc_rc, dofit = FALSE, args = args)
     }
     # B)
-    mm_ei <- mmlt(me_ei, mc_ei, dofit = FALSE)
+    mm_ei <- Mmlt(me_ei, mc_ei, dofit = FALSE)
     # C) NOTE that the model order is different here!
-    mm_ce <- mmlt(mc_ce, me_ce, dofit = FALSE)
+    mm_ce <- Mmlt(mc_ce, me_ce, dofit = FALSE)
 
     ro <- function(parm, reverse = FALSE) {
         if (!reverse) {
@@ -228,9 +228,9 @@ Compris <- function(formula, data, subset, weights, na.action, offset,
     }
     names(op$par) <- names(theta)    
 
-    ### fake global mmlt model: this just takes ret$par
+    ### fake global Mmlt model: this just takes ret$par
     ### and doesn't optimise further
-    ret <- mmlt(me_ei, mc_ei, data = d_ei, theta = op$par, 
+    ret <- Mmlt(me_ei, mc_ei, data = d_ei, theta = op$par, 
                 dofit = FALSE)
     ret$optim_hessian <- NULL
     ret$logLik <- -op$value
