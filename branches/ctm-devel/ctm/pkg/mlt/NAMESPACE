@@ -5,6 +5,7 @@ import("basefun")
 import("variables")
 importFrom("Matrix", "Matrix", "colSums", "rowSums", "crossprod", "bdiag")
 import("numDeriv") ### needed by BB???
+import("mvtnorm")
 importFrom("BB", "spg", "BBoptim")
 importFrom("alabama", "auglag")
 importFrom("nloptr", "nloptr")
@@ -15,7 +16,7 @@ importFrom("stats", "simulate", "variable.names", "model.matrix", "logLik",
            "runif", "stepfun", "weights", "approxfun", "xtabs", "resid",
            "complete.cases", "dexp", "pexp", "qexp",
            "approx", "optimise", "spline", "update",
-           "dcauchy", "pcauchy", "qcauchy")
+           "dcauchy", "pcauchy", "qcauchy", "rnorm")
 
 # importFrom("quadprog", "solve.QP")
 importFrom("coneproj", "qprog")
@@ -89,4 +90,14 @@ S3method("coef", "fmlt")
 S3method("Hessian", "fmlt")
 S3method("vcov", "fmlt")
 
-
+S3method("logLik", "mmlt")
+S3method("estfun", "mmlt")
+S3method("coef", "cmmlt")
+S3method("coef", "mmmlt")
+S3method("vcov", "mmlt")
+S3method("predict", "mmlt")
+S3method("summary", "mmlt")
+S3method("print", "mmlt")
+S3method("simulate", "mmlt")
+S3method("variable.names", "mmlt")
+S3method("mkgrid", "mmlt")

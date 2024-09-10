@@ -10,7 +10,7 @@ Description: Likelihood-based estimation of conditional transformation
   <DOI:10.18637/jss.v092.i01>.  
 Depends: basefun (>= 1.1-2), variables (>= 1.1-0)
 Imports: BB, alabama, stats, coneproj, graphics, methods, grDevices,
-        sandwich, numDeriv, survival, Matrix, nloptr
+         sandwich, numDeriv, survival, Matrix, nloptr, mvtnorm
 Suggests: MASS, nnet, TH.data, multcomp
 URL: http://ctm.R-forge.R-project.org
 License: GPL-2

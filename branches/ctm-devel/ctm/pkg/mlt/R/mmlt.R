@@ -574,9 +574,8 @@
     ret$formula <- formula
     ret$bx <- bx
     ret$parnames <- parnames
-    ret$parm <- function(par, fixed = NULL, flat = FALSE) {
-        if (!is.null(fixed)) 
-            par <- c(par, fixed)[parnames]
+    ret$parm <- function(par, flat = FALSE) {
+        par <- par[parnames]
         if (flat) return(par)
         return(c(models$parm(par), list(.Xparm(par))))
     }
@@ -603,7 +602,7 @@
     cls <- class(object)
     object[names(ret)] <- NULL
     object <- c(object, ret)
-    object$coef[] <- object$parm(ret$par, fixed = fixed) ### [] preserves names
+    object$coef <- ret$par
     object$fixed <- fixed
     object$theta <- theta ### starting value
     object$subset <- subset
@@ -618,7 +617,7 @@
 
 mmlt <- function(..., formula = ~ 1, data, conditional = FALSE, 
                  theta = NULL, fixed = NULL, scale = FALSE,
-                 optim = mmltoptim(), args = list(seed = 1, M = 1000), 
+                 optim = mltoptim(), args = list(seed = 1, M = 1000), 
                  dofit = TRUE, domargins = TRUE)
 {
   
@@ -648,9 +647,6 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
 }
 
 
-mmltoptim <- function(auglag = list(maxtry = 5), ...)
-    mltoptim(auglag = auglag, ...)
-
 .coef.mmlt <- function(object, newdata,
                        type = c("all", "Lambdapar", "Lambda", "Lambdainv", 
                                 "Precision", "PartialCorr", "Sigma", "Corr", 
@@ -659,9 +655,10 @@ mmltoptim <- function(auglag = list(maxtry = 5), ...)
 {
   
     type <- match.arg(type)
+    cf <- c(object$par, object$fixed)[object$parnames]
     if (type == "all") {
         if (!fixed) return(object$par)
-        return(object$parm(object$par, flat = TRUE))
+        return(cf)
     }
 
     if (type == "Spearman")
@@ -670,7 +667,7 @@ mmltoptim <- function(auglag = list(maxtry = 5), ...)
     if (type == "Kendall")
         return(2 * asin(coef(object, newdata = newdata, type = "Cor")) / pi)
 
-    prm <- object$parm(object$par)
+    prm <- object$parm(cf)
     prm <- prm[[length(prm)]]
 
     if (missing(newdata) || is.null(object$bx)) {
@@ -709,7 +706,9 @@ coef.cmmlt <- function(object, newdata,
 
     type <- match.arg(type)
     if (type == "conditional") {
-        prm <- object$parm(object$par)
+        cf <- c(object$par, object$fixed)[object$parnames]
+        if (!fixed) return(object$par)
+        prm <- object$parm(cf)
         return(prm[-length(prm)])
     }
     return(.coef.mmlt(object = object, newdata = newdata, type = type, 
@@ -726,7 +725,9 @@ coef.mmmlt <- function(object, newdata,
 
     type <- match.arg(type)
     if (type == "marginal") {
-        prm <- object$parm(object$par)
+        cf <- c(object$par, object$fixed)[object$parnames]
+        if (!fixed) return(object$par)
+        prm <- object$parm(cf)
         return(prm[-length(prm)])
     }
     return(.coef.mmlt(object = object, newdata = newdata, type = type, 
@@ -760,51 +761,39 @@ vcov.mmlt <- function(object, ...) {
     ret
 }
 
-logLik.mmlt <- function (object, parm = coef(object), newdata = NULL, ...) 
+logLik.mmlt <- function (object, parm = coef(object), w = NULL, newdata = NULL, ...) 
 {
     args <- list(...)
     if (length(args) > 0) 
         warning("Arguments ", names(args), " are ignored")
-    ret <- -object$ll(parm, newdata = newdata)
+    if (is.null(w))
+        w <- weights(object)
+    ret <- -object$ll(parm, newdata = newdata, weights = w)
     attr(ret, "df") <- length(object$par)
     class(ret) <- "logLik"
     ret
 }
 
 estfun.mmlt <- function(x, parm = coef(x, type = "all"), 
-                        newdata = NULL, ...) {
+                        w = NULL, newdata = NULL, ...) {
     args <- list(...)
     if (length(args) > 0)
         warning("Arguments ", names(args), " are ignored")
-    return(x$score(parm, newdata = newdata, scores = TRUE))
+    if (is.null(w))
+        w <- weights(x)
+    return(x$score(parm, newdata = newdata, weights = w, scores = TRUE))
 }
 
 summary.mmlt <- function(object, ...) {
-    ret <- list(call = object$call,
-                #                tram = object$tram,
-                test = cftest(object, 
-                              parm = names(coef(object, with_baseline = FALSE))),
-                ll = logLik(object))
-    class(ret) <- "summary.mmlt"
-    ret
-}
 
-print.summary.mmlt <- function(x, digits = max(3L, getOption("digits") - 3L), 
-                               ...) {
-    cat("\n", x$mmlt, "\n")
-    cat("\nCall:\n")
-    print(x$call)
-    cat("\nCoefficients:\n")
-    pq <- x$test$test
-    mtests <- cbind(pq$coefficients, pq$sigma, pq$tstat, pq$pvalues)
-    colnames(mtests) <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)")
-    sig <- .Machine$double.eps
-    printCoefmat(mtests, digits = digits, has.Pvalue = TRUE, 
-                 P.values = TRUE, eps.Pvalue = sig)
-    cat("\nLog-Likelihood:\n ", x$ll, " (df = ", attr(x$ll, "df"), 
-          ")", sep = "")
-    cat("\n\n")
-    invisible(x)
+    ret <- list(call = object$call,
+                convergence = object$convergence,
+                type = paste(description(object), collapse = "\n\t"),
+                logLik = logLik(object),
+#                AIC = AIC(object),
+                coef = coef(object))
+    class(ret) <- "summary.mlt"
+    ret
 }
 
 print.mmlt <- function(x, ...) {
@@ -815,7 +804,6 @@ print.mmlt <- function(x, ...) {
     print(coef(x))
     invisible(x)
 }
-
 
 predict.mmlt <- function (object, newdata, margins = 1:J, 
     type = c("trafo", "distribution", "survivor", "density", "hazard"), 
@@ -980,8 +968,8 @@ simulate.mmlt <- function(object, nsim = 1L, seed = NULL, newdata, K = 50,
             pr <- predict(tmp, newdata = newdata, type = "trafo", q = q)
             if (!is.matrix(pr)) 
                 pr <- matrix(pr, nrow = length(pr), ncol = NROW(newdata))
-            ret[,j] <- as.double(mlt:::.invf(tmp, f = t(pr), q = q, 
-                                             z = t(Ztilde[j,,drop = FALSE])))
+            ret[,j] <- as.double(.invf(tmp, f = t(pr), q = q, 
+                                       z = t(Ztilde[j,,drop = FALSE])))
         }
     } else {
         Ztilde <- pnorm(Ztilde, log.p = TRUE)
@@ -998,8 +986,8 @@ simulate.mmlt <- function(object, nsim = 1L, seed = NULL, newdata, K = 50,
             pr <- predict(tmp, newdata = newdata, type = "logdistribution", q = q)
             if (!is.matrix(pr)) 
                 pr <- matrix(pr, nrow = length(pr), ncol = NROW(newdata))
-            ret[,j] <- as.double(mlt:::.invf(tmp, f = t(pr), q = q, 
-                                             z = t(Ztilde[j,,drop = FALSE])))
+            ret[,j] <- as.double(.invf(tmp, f = t(pr), q = q, 
+                                       z = t(Ztilde[j,,drop = FALSE])))
         }
     }
     colnames(ret) <- variable.names(object, response_only = TRUE)
@@ -1015,69 +1003,6 @@ variable.names.mmlt <- function(object, response_only = FALSE, ...) {
     return(vn)
 }
     
-confregion <- function(object, level = .95, ...)
-    UseMethod("confregion")
-
-confregion.mmlt <- function(object, level = .95, newdata, K = 250, ...) {
-
-    if (!missing(newdata)) stopifnot(nrow(newdata) == 1)
-
-    Linv <- coef(object, newdata = newdata, type = "Lambdainv")
-    Linv <- as.array(Linv)[,,1]
-    J <- nrow(Linv)
-
-    q <- qchisq(level, df = J)
-
-    if (J == 2) {
-        angle <- seq(0, 2 * pi, length = K)
-        x <- cbind(cos(angle), sin(angle))
-    } else {
-        x <- matrix(rnorm(K * J), nrow = K, ncol = J)
-        x <- x / sqrt(rowSums(x^2))
-    }
-    x <- sqrt(q) * x
-    a <- x %*% t(Linv)
-
-    nd <- if (missing(newdata)) data.frame(1) else newdata
-
-    ret <- lapply(1:J, function(j) {
-        tmp <- object$models$models[[j]]
-        prb <- tmp$todistr$p(a[,j])
-        cf <- coef(tmp)
-        cf[] <- object$models$parm(coef(object))[[j]]
-        coef(tmp) <- cf
-        predict(tmp, newdata = nd, type = "quantile", prob = prb)
-    })
-    
-    ret <- do.call("cbind", ret)
-    return(ret)
-}
-
-HDR <- function(object, level = .95, ...)
-    UseMethod("HDR")
-
-HDR.mmlt <- function(object, level = .95, newdata, nsim = 1000L, K = 25, ...) {
-
-    if (!missing(newdata)) {
-        stopifnot(nrow(newdata) == 1)
-    } else {
-        newdata <- data.frame(1)
-    }
-
-    ### https://doi.org/10.2307/2684423 Section 3.2
-    y <- simulate(object, newdata = newdata[rep(1, nsim),,drop = FALSE])
-    y <- cbind(y, newdata)
-    d <- predict(object, newdata = y, type = "density")
-
-    ret <- do.call("expand.grid", lapply(object$models$models, 
-                                         function(x) mkgrid(x, n = K)[[1L]]))
-    colnames(ret) <- variable.names(object, response_only = TRUE)
-    ret <- cbind(ret, newdata)
-    ret$density <- predict(object, newdata = ret, type = "density")
-    attr(ret, "cuts") <- quantile(d, prob = 1 - level)
-    ret
-}
-
 mkgrid.mmlt <- function(object, ...) {
 
     lx <- mkgrid(as.basis(object$formula, data = object$data), ...)
