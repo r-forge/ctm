@@ -1,0 +1,5 @@
+## Polishing
+- mkgrid() with smooth (n is obsolete for counts)
+
+## Checks
+- check mcotram-Ex.R tests

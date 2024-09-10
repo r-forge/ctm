@@ -1,0 +1,58 @@
+---
+layout: page
+permalink: "research/"
+---
+Scholarly papers describing the methodology
+========================================================
+
+```{r setup, include = FALSE, cache = FALSE}
+library("RefManageR")
+bib <- ReadBib("TH.bib", check = FALSE)
+BibOptions(check.entries = FALSE, style = "html",
+           cite.style = "authoryear", bib.style = "numeric", max.names = 6)
+```
+Transformation models have been around for more than 50 years, starting 
+with the seminal paper introducing "Box-Cox" power-transformations
+published by George Box and Sir David Cox in 1964. 
+Later developments focused on a semiparametric understanding
+of these models, most importantly the partial likelihood approach to
+parameter estimation in the Cox proportional hazards model.
+
+During the last decade, fully parametric versions of transformation models
+have been studied. Model inference is much simpler once all components of
+the models have been parametrised appropriately. Research on
+transformation models implemented in the 
+[mlt add-on package](https://CRAN.R-project.org/package=mlt) started with a
+gradient-boosting algorithm for conditional transformation models
+`r Citep(bib, "Hothorn_Kneib_Buehlmann_2014")`. This algorithm optimises the
+Brier score for model estimation. It turned out that maximum likelihood
+estimation is computationally and conceptionally much simpler and also helps
+to estimate models for discrete or censored data
+`r Citep(bib, "Hothorn_Moest_Buehlmann_2017")`. So-called most likely
+transformations are implemented in the
+[mlt add-on package](https://CRAN.R-project.org/package=mlt)
+`r Citep(bib, "Hothorn_2018_JSS")`. Special attention to count
+transformation models is given by `r Citet(bib, "Siegfried_Hothorn_2020")`.
+
+A generalisation of binary logistic regression models to continuous outcomes
+featuring parameters interpretable as log-odds ratios were described
+in `r Citet(bib, "Lohse_Rohrmann_Faeh_2017")`. Simple transformation models
+as well as more complex transformation models (for example transformation trees
+and forests) for body mass index distributions are discussed in
+`r Citet(bib, "Hothorn_2018")`. Transformation forests, and their underlying
+transformation tree algorithm, were established in `r Citet(bib, "Hothorn_Zeileis_2021")`, 
+providing a statistical learning approach for computing fully parametric
+predictive distributions. Two likelihood-based boosting methods for
+transformation models are introduced in `r Citet(bib, "Hothorn_2019")`.
+
+Multivariate transformation models, where the marginal distributions can be
+understood as univariate transformation models and their joint distribution
+is characterised by a (gaussian) copula, are described in `r Citet(bib,
+"Klein_Hothorn_Barbanti_2020")`.
+
+**References**
+
+```{r results = "asis", echo = FALSE}
+PrintBibliography(bib, .opts = list(check.entries = FALSE, sorting = "ynt"))
+```
+
