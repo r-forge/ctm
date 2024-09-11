@@ -94,7 +94,7 @@
         }
     }
 
-    .ofuns <- function(weights, subset = NULL, offset = NULL, 
+    .ofuns <- function(weights = NULL, subset = NULL, offset = NULL, 
                        perm = NULL, permutation = NULL, 
                        distr = todistr) ### <- 
                        ### change todistr via update(, distr =)
@@ -103,6 +103,11 @@
             offset <- rep(0, nrow(data))
             soffset <- rep(0, nrow(data))
         }
+        ### weight are only necessary for computing the hessian
+        ### as we only compute the weighted sum, not the 
+        ### individual (to be weighted) contributions to the Fisher info
+        if (is.null(weights))
+            weights <- rep(1, nrow(data))
 
         if (SCALE) {
             if (is.matrix(offset)) {
@@ -235,12 +240,12 @@
             names(ret) <- c("exY", "exYprime", "iYleft", "iYright")
             idx <- !Assign[2,] %in% "bscaling"
             if (!is.null(es$full_ex)) {
-                ret$exY <- exY[,idx,drop = FALSE] * exweights
-                ret$exYprime <- exYprime[,idx,drop = FALSE] * exweights
+                ret$exY <- exY[,idx,drop = FALSE]
+                ret$exYprime <- exYprime[,idx,drop = FALSE]
             }
             if (!is.null(es$full_nex)) {
-                ret$iYleft <- iYleft[,idx,drop = FALSE] * iweights
-                ret$iYright <- iYright[,idx,drop = FALSE] * iweights
+                ret$iYleft <- iYleft[,idx,drop = FALSE]
+                ret$iYright <- iYright[,idx,drop = FALSE]
             }
             if (!SCALE) return(ret)
 
@@ -426,7 +431,7 @@
                      offset = offset, ...)
 
         ### N contributions to the log-likelihood, UNWEIGHTED
-        logliki <- function(beta, weights)
+        logliki <- function(beta)
             of$ll(beta)
         ### NEGATIVE sum of log-likelihood contributions, WEIGHTED
         loglikfct <- function(beta, weights)  
@@ -463,15 +468,12 @@
             }
             return(ret[, !fix, drop = FALSE])
         }
-        ### N contributions to score function, WEIGHTED
-        score <- function(beta, weights, Xmult = TRUE)
-            weights * scorei(beta, Xmult = Xmult)
-        ### NEGATIVE score function, WEIGHTED
-        scorefct <- function(beta, weights) 
-            -colSums(score(beta, weights, Xmult = TRUE), na.rm = TRUE)
-        ### hessian of loglikfct (= negative log-lik), ALWAYS WEIGHTED
+        ### gradient of negative log-likelihood, WEIGHTED
+        scorefct <- function(beta, weights)
+            -colSums(weights * scorei(beta), na.rm = TRUE)
+        ### hessian of negative log-lik, ALWAYS WEIGHTED
         hessian <- function(beta, weights) 
-            of$he(beta)
+            .ofuns(weights = weights, offset = offset)$he(beta)
 
         if (scale) {
             Ytmp <- Y
@@ -520,10 +522,6 @@
         ### </FIXME>
         if (scale) ret$par <- ret$par * sc
 
-        ### NOTE: this overwrites the functions taking the possibly updated
-        ### offset into account
-        ret$score <- score
-        wfit <- weights
         if (SCALE) {
             ret$hessian <- function(beta, weights) {
                 # warning("Analytical Hessian not available, using numerical approximation")
@@ -534,8 +532,23 @@
         } else {
             ret$hessian <- hessian
         }
-        ret$loglik <- loglikfct
+
         ret$logliki <- logliki
+
+        ### sum of log-likelihood contributions, WEIGHTED
+        ret$loglik <- function(beta, weights)  
+            sum(weights * ret$logliki(beta))
+
+        ret$scorei <- scorei
+
+        ### N contributions to score function, WEIGHTED
+        ret$score <- function(beta, weights, Xmult = TRUE)
+            weights * ret$scorei(beta, Xmult = Xmult)
+
+        ### FIXME: remove weight arguments (needed in tram::mmlt)
+        ret$trafo <- function(beta, weights) of$trafo(beta)
+        ret$trafoprime <- function(beta, weights) of$trafoprime(beta)
+
         if (scale) ret$parsc <- sc
 
         return(ret)
@@ -554,20 +567,6 @@
     ret$offset <- offset
     ret$todistr <- todistr
     ret$optimfct <- optimfct
-
-    ret$trafo <- function(beta, weights)
-        .ofuns(weights = weights, offset = offset)$trafo(beta)
-    ret$trafoprime <- function(beta, weights)
-        .ofuns(weights = weights, offset = offset)$trafoprime(beta)
-    ret$loglik <- function(beta, weights)  
-        -sum(weights * .ofuns(weights = weights, offset = offset)$ll(beta))
-    ret$logliki <- function(beta, weights)
-        .ofuns(weights = weights, offset = offset)$ll(beta)
-    ret$score <- function(beta, weights, Xmult = TRUE) 
-        weights * .ofuns(weights = weights, offset = offset)$sc(beta, 
-                                                                Xmult = Xmult)
-    ret$hessian <- function(beta, weights) 
-        .ofuns(weights = weights, offset = offset)$he(beta)
 
     class(ret) <- c("mlt_setup", "mlt")
     return(ret)
