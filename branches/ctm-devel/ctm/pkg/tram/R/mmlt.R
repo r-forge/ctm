@@ -4,12 +4,14 @@ Mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
                  optim = mltoptim(auglag = list(maxtry = 5)), args = list(seed = 1, M = 1000), 
                  dofit = TRUE, domargins = TRUE, sequentialfit = FALSE)
 {
-  
+
+    call <- match.call()  
     ret <- mmlt(..., formula = formula, data = data, conditional = conditional, 
                 theta = theta, fixed = fixed, scale = scale,
                 optim = optim, args = args,
                 dofit = dofit, domargins = domargins)
                 ###, sequentialfit = FALSE)
+    ret$call <- call
     class(ret) <- c("Mmlt", class(ret))
     ret
 
