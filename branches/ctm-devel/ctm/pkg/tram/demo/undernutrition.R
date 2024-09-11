@@ -37,7 +37,7 @@ m_underweight <- as.mlt(BoxCox(underweight2 | cage ~ 1, data = dat,
 Bxlambda <- Bernstein_basis(numeric_var("cage", support = quantile(dat$cage, prob = c(.1, .9)),
                                         bounds = c(0, 100)), order = 6, extrapolate = TRUE)
 
-op <- Mmltoptim(trace = FALSE)
+op <- mltoptim(auglag = list(maxtry = 5), trace = FALSE)
 
 theta <- c(coef(m_stunting), coef(m_wasting), coef(m_underweight), rep(0, 7 * 3 * 2 / 2))
 
