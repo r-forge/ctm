@@ -553,8 +553,8 @@
     ret$logliki <- function(parm, newdata = NULL) ll(parm, newdata = newdata)
 
     ### sum of log-likelihood contributions, WEIGHTED
-    ret$loglik <- function(parm, weights, newdata = NULL) { 
-        if (missing(weights)) return(sum(ll(parm, newdata = newdata)))
+    ret$loglik <- function(parm, weights = NULL, newdata = NULL) { 
+        if (is.null(weights)) return(sum(ll(parm, newdata = newdata)))
         sum(weights * ll(parm, newdata = newdata))
     }
 
@@ -565,9 +565,9 @@
     }
 
     ### N contributions to score function, WEIGHTED
-    ret$score <- function(parm, weights, newdata = NULL, Xmult = TRUE) {
+    ret$score <- function(parm, weights = NULL, newdata = NULL, Xmult = TRUE) {
         if (!Xmult) stop("Xmult not implemented")
-        if (missing(weights)) return(sc(parm, newdata = newdata))
+        if (is.null(weights)) return(sc(parm, newdata = newdata))
         weights * sc(parm, newdata = newdata)
     }
 
@@ -588,7 +588,7 @@
     if (!missing(data))
         ret$data <- data
     ret$names <- models$names
-    class(ret) <- c("mmlt_setup", "mmlt")
+    class(ret) <- "mmlt_setup"
     ret
 }
 
@@ -623,7 +623,8 @@
 
 mmlt <- function(..., formula = ~ 1, data, conditional = FALSE, 
                  theta = NULL, fixed = NULL, scale = FALSE,
-                 optim = mltoptim(), args = list(seed = 1, M = 1000), 
+                 optim = mltoptim(auglag = list(maxtry = 5)),  ### provides hessian
+                 args = list(seed = 1, M = 1000), 
                  dofit = TRUE, domargins = TRUE)
 {
   
@@ -672,16 +673,24 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
         names(theta) <- ret$parnames
         mpar <- do.call("c", models$mcoef)
         theta[ret$parnames[1:length(mpar)]] <- mpar
+        mtheta <- theta
+        mfixed <- fixed
         if (!is.null(fixed))
             theta[names(fixed)] <- fixed
         nfixed <- unique(c(ret$parnames[1:length(mpar)], names(fixed)))
         fixed <- theta[nfixed]
         theta <- theta[!(names(theta) %in% nfixed)]
-        ret <- .mmlt_fit(ret, weights = models$weights, 
-                         subset = subset, fixed = fixed,  optim = optim, theta = theta)
-        class(ret) <- c(ifelse(conditional, "cmmlt", "mmmlt"), "mmlt")
-        ret$mmlt <- "Multivariate Conditional Transformation Model"
-        return(ret)
+        if (length(theta)) {
+            ret <- .mmlt_fit(ret, weights = models$weights, 
+                             subset = subset, fixed = fixed,  optim = optim, theta = theta)
+            class(ret) <- c(ifelse(conditional, "cmmlt", "mmmlt"), "mmlt")
+            ret$mmlt <- "Multivariate Conditional Transformation Model"
+            return(ret)
+        } else {
+            ### all parameters were fixed (= all lambda parameters)
+            theta <- mtheta
+            fixed <- mfixed
+        }       
     }
 
     ret <- .mmlt_fit(ret, weights = models$weights, subset = subset, optim = optim,
@@ -696,7 +705,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
                        type = c("all", "Lambdapar", "Lambda", "Lambdainv", 
                                 "Precision", "PartialCorr", "Sigma", "Corr", 
                                 "Spearman", "Kendall"), 
-                       fixed = FALSE, ...)
+                       fixed = TRUE, ...)
 {
   
     type <- match.arg(type)
@@ -745,7 +754,7 @@ coef.cmmlt <- function(object, newdata,
                        type = c("all", "conditional", "Lambdapar", "Lambda", 
                                 "Lambdainv", "Precision", "PartialCorr", 
                                 "Sigma", "Corr", "Spearman", "Kendall"), 
-                       fixed = FALSE,
+                       fixed = TRUE,
                        ...)
 {
 
@@ -764,7 +773,7 @@ coef.mmmlt <- function(object, newdata,
                        type = c("all", "marginal", "Lambdapar", "Lambda", 
                                 "Lambdainv", "Precision", "PartialCorr", 
                                 "Sigma", "Corr", "Spearman", "Kendall"), 
-                       fixed = FALSE,
+                       fixed = TRUE,
                        ...)
 {
 

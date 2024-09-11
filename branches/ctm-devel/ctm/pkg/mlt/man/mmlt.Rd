@@ -13,17 +13,17 @@
 }
 \usage{
 mmlt(..., formula = ~ 1, data, conditional = FALSE, theta = NULL, fixed = NULL,
-     scale = FALSE, optim = mltoptim(), args = list(seed = 1, M = 1000), 
+     scale = FALSE, optim = mltoptim(auglag = list(maxtry = 5)), args = list(seed = 1, M = 1000), 
      dofit = TRUE, domargins = TRUE)
 \method{coef}{cmmlt}(object, newdata, 
      type = c("all", "conditional", "Lambdapar", "Lambda", "Lambdainv", 
               "Precision", "PartialCorr", "Sigma", "Corr", 
-              "Spearman", "Kendall"), fixed = FALSE, 
+              "Spearman", "Kendall"), fixed = TRUE, 
      ...)
 \method{coef}{mmmlt}(object, newdata, 
      type = c("all", "marginal", "Lambdapar", "Lambda", "Lambdainv", 
               "Precision", "PartialCorr", "Sigma", "Corr", 
-              "Spearman", "Kendall"), fixed = FALSE,
+              "Spearman", "Kendall"), fixed = TRUE,
      ...)
 \method{predict}{mmlt}(object, newdata, margins = 1:J, 
         type = c("trafo", "distribution", "survivor", "density", "hazard"), 
