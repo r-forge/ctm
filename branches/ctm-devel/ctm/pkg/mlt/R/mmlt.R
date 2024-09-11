@@ -302,7 +302,7 @@
         } 
         lX <- model.matrix(bx, data = data)
         if (conditional)
-            warning("Conditional models with covariate-dependent",
+            warning("Conditional models with covariate-dependent", " ",
                     "correlations are order-dependent")
     }
 
