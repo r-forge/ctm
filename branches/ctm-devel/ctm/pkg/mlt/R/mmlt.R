@@ -550,23 +550,30 @@
     ret <- list(optimfct = optimfct)
 
     ### N contributions to the log-likelihood, UNWEIGHTED
-    ret$logliki <- function(parm, newdata) ll(parm, newdata = newdata)
+    ret$logliki <- function(parm, newdata = NULL) ll(parm, newdata = newdata)
 
     ### sum of log-likelihood contributions, WEIGHTED
-    ret$loglik <- function(parm, weights, newdata) 
+    ret$loglik <- function(parm, weights, newdata = NULL) { 
+        if (missing(weights)) return(sum(ll(parm, newdata = newdata)))
         sum(weights * ll(parm, newdata = newdata))
+    }
 
     ### N contributions to the score function, UNWEIGHTED
-    ret$scorei <- function(parm, newdata, Xmult = TRUE) {
+    ret$scorei <- function(parm, newdata = NULL, Xmult = TRUE) {
         if (!Xmult) stop("Xmult not implemented")
         sc(parm, newdata = newdata)
     }
 
     ### N contributions to score function, WEIGHTED
-    ret$score <- function(parm, weights, newdata, Xmult = TRUE) {
+    ret$score <- function(parm, weights, newdata = NULL, Xmult = TRUE) {
         if (!Xmult) stop("Xmult not implemented")
+        if (missing(weights)) return(sc(parm, newdata = newdata))
         weights * sc(parm, newdata = newdata)
     }
+
+    ### FIXME: old interface, deprecate
+    ret$ll <- ret$loglik
+    ret$sc <- function(...) colSums(ret$score(...))
    
     ret$args <- args
     ret$models <- models
