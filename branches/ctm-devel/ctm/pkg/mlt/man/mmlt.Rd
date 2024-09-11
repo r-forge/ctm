@@ -99,5 +99,7 @@ methods.
   Multivariate Conditional Transformation Models. \emph{Scandinavian Journal
   of Statistics}, \bold{49}, 116--142, \doi{10.1111/sjos.12501}.
 
+  Torsten Hothorn (2024), On Nonparanormal Likelihoods. \doi{10.48550/arXiv.2408.17346}.
+
 }
 \keyword{models}
