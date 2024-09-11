@@ -436,7 +436,7 @@
                 ### note: estfun() gives negative weighted gradient of loglik
                 scp[which(models$cont)] <- lapply(1:cJ, function(j) {
                     (mm[[j]]$exY * c(sc$obs[j,] + z[j,]) / 
-                        c(dnorm(z[j,])) * c(dz[j,])) - ef[[j]]
+                        c(dnorm(z[j,])) * c(dz[j,])) + ef[[j]]
                 })
             }
         }
@@ -894,7 +894,7 @@ predict.mmlt <- function (object, newdata, margins = 1:J,
         }
         type <- match.arg(type)
         tr <- predict(tmp, newdata = newdata, type = "trafo", ...) 
-        msd <- matrix(msd, nrow = nrow(tr), ncol = ncol(tr), byrow = TRUE)
+        msd <- matrix(msd, nrow = NROW(tr), ncol = NCOL(tr), byrow = TRUE)
         tr <- tr / msd
         switch(type, "trafo" = return(tr),
                      "distribution" = return(pnorm(tr, log.p = log)),
