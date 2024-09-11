@@ -6,6 +6,8 @@
 ###	by Torsten Hothorn
 ###
 
+set.seed(290875)
+
 pkgs <- c("openxlsx", "tram", "survival")
 req <- sapply(pkgs, require, char = TRUE)
 if (!all(req)){
@@ -48,6 +50,7 @@ mAFP <- BoxCox(AFPi ~ x | x,  data = HCC)
 ### joint estimation of marginal and Gaussian copula parameters, s = 2
 ### location-scale transformation discriminant analysis
 m <- Mmlt(mDKK, mOPN, mPIV, mAFP, data = HCC)
+logLik(m)
 ### marginal parameters
 coef(m, type = "marginal")
 ### copula parameter: Lambda
@@ -57,6 +60,11 @@ sqrt(diag(vcov(m)))
 
 ### convex approximations
 ## pseudo
-mm <- Mmlt(mDKK, mOPN, mPIV, mAFP, data = HCC, domargins = FALSE)
+mp <- Mmlt(mDKK, mOPN, mPIV, mAFP, data = HCC, fit = "pseudo")
+logLik(mp)
 ## sequential
-ms <- Mmlt(mDKK, mOPN, mPIV, mAFP, data = HCC, sequentialfit = TRUE)
+ms <- Mmlt(mDKK, mOPN, mPIV, mAFP, data = HCC, fit = "sequential")
+logLik(ms)
+## ACS
+ma <- Mmlt(mDKK, mOPN, mPIV, mAFP, data = HCC, fit = "ACS", ACSiter = 1)
+logLik(ma)

@@ -9,8 +9,10 @@
 }
 \usage{
 Mmlt(..., formula = ~ 1, data, conditional = FALSE, theta = NULL, fixed = NULL,
-     scale = FALSE, optim = mltoptim(auglag = list(maxtry = 5)), args = list(seed = 1, M = 1000), 
-     dofit = TRUE, domargins = TRUE, sequentialfit = FALSE)
+     scale = FALSE, optim = mltoptim(auglag = list(maxtry = 5)), 
+     args = list(seed = 1, type = c("MC", "ghalton"), M = 1000), 
+     fit = c("jointML", "pseudo", "ACS", "sequential", "none"),
+             ACSiter = 2)
 }
 \arguments{
   \item{\dots}{marginal transformation models, one for each response, for
@@ -40,16 +42,15 @@ or a logical (for \code{coef}) indicating to also return fixed parameters
   \item{optim}{a list of optimisers as returned by \code{\link[mlt]{mltoptim}}
 }
   \item{args}{a list of arguments for \code{\link[mvtnorm]{lpmvnorm}}.}
-  \item{dofit}{logical; parameters are fitted by default, otherwise a list
-               with log-likelihood and score function is returned.
+  \item{fit}{character vector describing how to fit the model. The default
+is joint likelihood estimation of all parameters, \code{pseudo} fixes the
+marginal parameters, \code{sequential} starts with a univariate model and
+sequentially adds models, keeping the parameters of previously added models
+fit. \code{ACS} implements Alternate Convex Search, starting with
+\code{pseudo} and, in a second step, fixing the marginal parameters. This is
+iterated for \code{ACSiter} iterations.
 }
-  \item{domargins}{logical; all model parameters are fitted by default, 
-                   including the parameters of marginal models.
-}
-  \item{sequentialfit}{logical; fit parameters sequentially by adding one
-       model at a time, keeping all parameters concerning previously added models
-       fixed. This does not lead to an optimal estimate but might provide
-       attractive starting values.
+  \item{ACSiter}{number of iterations for \code{fit = "ACS"}.
 }
 }
 \details{
@@ -68,6 +69,8 @@ methods.
   Nadja Klein, Torsten Hothorn, Luisa Barbanti, Thomas Kneib (2022),
   Multivariate Conditional Transformation Models. \emph{Scandinavian Journal
   of Statistics}, \bold{49}, 116--142, \doi{10.1111/sjos.12501}.
+
+  Torsten Hothorn (2024), On Nonparanormal Likelihoods. \doi{10.48550/arXiv.2408.17346}.
 
 }
 \examples{

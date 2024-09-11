@@ -1,20 +1,94 @@
 
 Mmlt <- function(..., formula = ~ 1, data, conditional = FALSE, 
                  theta = NULL, fixed = NULL, scale = FALSE,
-                 optim = mltoptim(auglag = list(maxtry = 5)), args = list(seed = 1, M = 1000), 
-                 dofit = TRUE, domargins = TRUE, sequentialfit = FALSE)
+                 optim = mltoptim(auglag = list(maxtry = 5)), 
+                 args = list(seed = 1, type = c("MC", "ghalton"), M = 1000), 
+                 fit = c("jointML", "pseudo", "ACS", "sequential", "none"),
+                 ACSiter = 2)
 {
 
     call <- match.call()  
-    ret <- mmlt(..., formula = formula, data = data, conditional = conditional, 
-                theta = theta, fixed = fixed, scale = scale,
-                optim = optim, args = args,
-                dofit = dofit, domargins = domargins)
-                ###, sequentialfit = FALSE)
-    ret$call <- call
-    class(ret) <- c("Mmlt", class(ret))
-    ret
+    fit <- match.arg(fit)
 
+    if (fit %in% c("none", "jointML", "pseudo")) {
+        ret <- switch(fit, 
+            "none" = mmlt(..., formula = formula, data = data, conditional = conditional, 
+                          theta = theta, fixed = fixed, scale = scale,
+                          optim = optim, args = args,
+                          dofit = FALSE),
+            "jointML" = mmlt(..., formula = formula, data = data, conditional = conditional, 
+                          theta = theta, fixed = fixed, scale = scale,
+                          optim = optim, args = args),
+            "pseudo" = mmlt(..., formula = formula, data = data, conditional = conditional, 
+                          theta = theta, fixed = fixed, scale = scale,
+                          optim = optim, args = args, domargins = FALSE))
+        ret$call <- call
+        class(ret) <- c("Mmlt", class(ret))
+        return(ret)
+    } 
+
+    if (fit == "sequential") {
+        m <- list(...)
+        if (!is.null(theta))
+            stop("Cannot perform sequential fit with starting values")
+        if (!is.null(fixed))
+            stop("Cannot perform sequential fit with fixed values")
+        mj <- as.mlt(m[[1]])
+        for (j in 2:length(m)) {
+            mc <- m[1:j]
+            mc$formula <- formula
+            mc$data <- data
+            mc$conditional <- conditional
+            mc$scale <- scale
+            mc$optim <- optim
+            mc$args <- args
+            if (!is.null(mc$args$w)) 
+                mc$args$w <- mc$args$w[1:(j - 1L),,drop = FALSE]
+            mc$dofit <- FALSE
+            ret <- do.call("mmlt", mc) ### only get names
+            cfj <- coef(mj, fixed = TRUE)
+            if (j == 2)
+                names(cfj) <- ret$parnames[1:length(cfj)]
+            ### fix coefs and estimate jth row of
+            ### lambda and jth marginal parameters only
+            mc$fixed <- cfj
+            mc$dofit <- TRUE
+            mj <- do.call("mmlt", mc)
+        }
+        mj$call <- call
+        class(mj) <- c("Mmlt", class(mj))
+        return(mj)
+    }
+
+    ### ACS: start with Lambda parameters, keep margins fix
+    ret <- mmlt(..., formula = formula, data = data, conditional = conditional, 
+               theta = theta, fixed = fixed, scale = scale,
+               optim = optim, args = args, domargins = FALSE)
+
+    cf <- coef(ret)
+    P <- length(cf)
+    pn <- names(cf)
+    cf <- ret$parm(cf)
+    nL <- length(cf[[length(cf)]])
+    nM <- P - nL
+    mn <- pn[1:nM]
+    Ln <- pn[-(1:nM)]
+    for (i in 1:ACSiter) {
+        ### update marginal parameters given Lambda
+        theta <- coef(ret)[mn]  ### marginal parameters
+        fixed <- coef(ret)[Ln]  ### Lambda parameters
+        ret <- mmlt(..., formula = formula, data = data, conditional = conditional, 
+                    theta = theta, fixed = fixed, scale = scale,
+                    optim = optim, args = args)
+        ### update Lambda given marginal parameters
+        theta <- coef(ret)[Ln]	### Lambda parameters
+        fixed <- coef(ret)[mn]  ### marginal parameters
+        ret <- mmlt(..., formula = formula, data = data, conditional = conditional, 
+                    theta = theta, fixed = fixed, scale = scale,
+                    optim = optim, args = args)
+    }
+    ret$call <- call
+    ret
 }
 
 summary.Mmlt <- function(object, ...) {
