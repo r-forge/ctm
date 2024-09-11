@@ -697,6 +697,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
                      theta = theta[!names(theta) %in% names(fixed)], fixed = fixed)
     class(ret) <- c(ifelse(conditional, "cmmlt", "mmmlt"), "mmlt")
     ret$mmlt <- "Multivariate Conditional Transformation Model"
+    ret$call <- call
     return(ret)
 }
 
