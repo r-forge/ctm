@@ -93,10 +93,10 @@ logLik.mlt <- function(object, parm = coef(object, fixed = FALSE),
     if (is.null(w))
         w <- weights(object)
     if (!is.null(object$subset)) {
-        ret <- sum(object$logliki(parm, weights = w)[object$subset] * 
+        ret <- sum(object$logliki(parm)[object$subset] * 
                    w[object$subset])
     } else {
-        ret <- -object$loglik(parm, weights = w)
+        ret <- object$loglik(parm, weights = w)
     }
     ###    attr(ret, "df") <- length(coef(object, fixed = FALSE))
     attr(ret, "df") <- object$df

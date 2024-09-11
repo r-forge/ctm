@@ -86,7 +86,7 @@
                 names = nm, fixed = fixed))
 }
 
-.mget <- function(models, j = 1, parm, newdata = NULL, weights = NULL,
+.mget <- function(models, j = 1, parm, newdata = NULL,
                   what = c("trafo", "dtrafo", "z", "zleft", 
                            "dzleft", "zright", "dzright", "zprime", 
                            "trafoprime", "estfun", "scale"), ...) {
@@ -95,7 +95,7 @@
 
     if (length(j) > 1) {
         ret <- lapply(j, .mget, models = models, parm = parm, 
-                      newdata = newdata, weights = weights, 
+                      newdata = newdata,
                       what = what, ...)
         return(ret)
     }
@@ -109,15 +109,14 @@
         prm <- prm[!names(prm) %in% names(models$fixed[[j]])]
     tmp <- as.mlt(models$models[[j]])
     if (!is.null(newdata)) {
-        tmp <- mlt(tmp$model, data = newdata, # weights = weights,
-                                              # offset = tmp$offset, 
+        tmp <- mlt(tmp$model, data = newdata,
                    fixed = tmp$fixed, theta = prm,
                    scale = tmp$scale, dofit = FALSE)
     }
 
 
     if (what == "trafoprime") {
-        ret <- models$models[[j]]$trafoprime(prm, weights)
+        ret <- models$models[[j]]$trafoprime(prm)
         if (models$cont[j])
             return(ret[c("exY", "exYprime")])
         ret$iYleft[!is.finite(ret$iYleft[,1])] <- 0
@@ -125,7 +124,7 @@
         return(ret[c("iYleft", "iYright")])
     }
 
-    ret <- tmp$trafo(prm, weights)
+    ret <- tmp$trafo(prm)
     ### extract both exact and interval (former might be needed for
     ### predictions)
     tr <- ret$trex
@@ -179,7 +178,7 @@
         return(trd / dnorm(qn))
     }
     if (what == "estfun") {
-        return(estfun(tmp, parm = prm))
+        return(tmp$scorei(prm, Xmult = TRUE))
     }
 }
 
@@ -339,7 +338,7 @@
     LAMBDA <- ltMatrices(matrix(0, nrow = Jp, ncol = nrow(lX)),
                          byrow = TRUE, diag = FALSE, names = models$names) #names(models$models))
 
-    ll <- function(parm, newdata = NULL, weights) {
+    ll <- function(parm, newdata = NULL) {
 
         if (!is.null(newdata) && !isTRUE(all.equal(formula, ~ 1))) 
             lX <- model.matrix(bx, data = newdata)
@@ -352,21 +351,18 @@
         ret <- 0
         if (cJ) {
             z <- .rbind(.mget(models, j = which(models$cont), parm = parm, what = "z", 
-                              newdata = newdata, weights = weights))
+                              newdata = newdata))
             rownames(z) <- models$names[which(models$cont)]
             zp <- .rbind(.mget(models, j = which(models$cont), parm = parm, 
-                               what = "zprime", newdata = newdata, 
-                               weights = weights))
+                               what = "zprime", newdata = newdata))
             ret <- colSums(.log(zp))
             if (!dJ) return(ret + llsc$logLik(obs = z, Lambda = Lambda))
         }
         if (dJ) {
             lower <- .rbind(.mget(models, j = which(!models$cont), parm = parm, 
-                                  what = "zleft", newdata = newdata, 
-                                  weights = weights))
+                                  what = "zleft", newdata = newdata))
             upper <- .rbind(.mget(models, j = which(!models$cont), parm = parm, 
-                                  what = "zright", newdata = newdata, 
-                                  weights = weights))
+                                  what = "zright", newdata = newdata))
             rownames(lower) <- rownames(upper) <- models$names[which(!models$cont)]
             if (!cJ)
                 return(llsc$logLik(lower = lower, upper = upper, 
@@ -376,7 +372,7 @@
                            Lambda = Lambda))
     }
 
-    sc <- function(parm, newdata = NULL, weights) {
+    sc <- function(parm, newdata = NULL) {
 
         if (!is.null(newdata) && !isTRUE(all.equal(formula, ~ 1))) 
             lX <- model.matrix(bx, data = newdata)
@@ -389,18 +385,16 @@
 
         if (cJ) {
             z <- .rbind(.mget(models, j = which(models$cont), parm = parm, what = "z", 
-                              newdata = newdata, weights = weights))
+                              newdata = newdata))
             rownames(z) <- models$names[which(models$cont)]
             if (!dJ)
                 sc <- llsc$score(obs = z, Lambda = Lambda)
         }
         if (dJ) {
             lower <- .rbind(.mget(models, j = which(!models$cont), parm = parm, 
-                                  what = "zleft", newdata = newdata, 
-                                  weights = weights))
+                                  what = "zleft", newdata = newdata))
             upper <- .rbind(.mget(models, j = which(!models$cont), parm = parm, 
-                                  what = "zright", newdata = newdata, 
-                                  weights = weights))
+                                  what = "zright", newdata = newdata))
             rownames(lower) <- rownames(upper) <- models$names[which(!models$cont)]
             if (!cJ)
                 sc <- llsc$score(lower = lower, upper = upper, 
@@ -423,27 +417,26 @@
         if (cJ) {
             mm <- lapply(which(models$cont), 
                 function(j) .mget(models, j = j, parm = parm, what = "trafoprime", 
-                                  newdata = newdata, weights = weights))
+                                  newdata = newdata))
             if (all(models$normal)) {
                 zp <- .rbind(.mget(models, j = which(models$cont), parm = parm, 
-                                   what = "zprime", newdata = newdata, 
-                                   weights = weights))
+                                   what = "zprime", newdata = newdata))
                 scp[which(models$cont)] <- lapply(1:cJ, function(j) {
                     mm[[j]]$exY * c(sc$obs[j,]) + 
                         mm[[j]]$exYprime / c(zp[j,])
                 })
             } else {
                 dz <- .rbind(.mget(models, j = which(models$cont), parm = parm, 
-                                   what = "dtrafo", newdata = newdata, 
-                                   weights = weights))
+                                   what = "dtrafo", newdata = newdata))
+                ### these are the unweighted score contributions
                 ef <- lapply(which(models$cont), 
                              function(j) 
                                  .mget(models, j = j, parm = parm, what = "estfun", 
-                                       newdata = newdata, weights = weights))
+                                       newdata = newdata))
                 ### note: estfun() gives negative weighted gradient of loglik
                 scp[which(models$cont)] <- lapply(1:cJ, function(j) {
                     (mm[[j]]$exY * c(sc$obs[j,] + z[j,]) / 
-                        c(dnorm(z[j,])) * c(dz[j,])) - (ef[[j]] / weights)
+                        c(dnorm(z[j,])) * c(dz[j,])) - ef[[j]]
                 })
             }
         }
@@ -451,7 +444,7 @@
         if (dJ) {
             mm <- lapply(which(!models$cont), 
                 function(j) .mget(models, j = j, parm = parm, what = "trafoprime", 
-                                  newdata = newdata, weights = weights))
+                                  newdata = newdata))
             if (all(models$normal)) {
                 scp[which(!models$cont)] <- lapply(1:dJ, function(j) {
                     mm[[j]]$iYleft * c(sc$lower[j,]) +
@@ -459,12 +452,10 @@
                 })
             } else {
                 dzl <- .rbind(.mget(models, j = which(!models$cont), parm = parm, 
-                                    what = "dzleft", newdata = newdata, 
-                                    weights = weights))
+                                    what = "dzleft", newdata = newdata))
                 dzl[!is.finite(dzl)] <- 0
                 dzr <- .rbind(.mget(models, j = which(!models$cont), parm = parm, 
-                                    what = "dzright", newdata = newdata, 
-                                    weights = weights))
+                                    what = "dzright", newdata = newdata))
                 dzr[!is.finite(dzr)] <- 0
                 scp[which(!models$cont)] <- lapply(1:dJ, function(j) {
                     return((mm[[j]]$iYleft * c(dzl[j,]) * c(sc$lower[j,])) +
@@ -499,6 +490,7 @@
             names(scl) <- parnames
         }
 
+        ### negative log-likelihood
         f <- function(par, scl, ...) {
             if (!is.null(fixed)) {
                 p <- par
@@ -506,10 +498,10 @@
                 p <- c(p, fixed)
                 par <- p[parnames]
             }
-            return(-sum(weights * ll(par * scl, weights = weights, ...)))
+            return(-sum(weights * ll(par * scl, ...)))
         }
 
-        ### note: x * weights was already computed
+        ### gradient of negative log-likelihood
         g <- function(par, scl, ...) {
             if (!is.null(fixed)) {
                 p <- par
@@ -517,10 +509,7 @@
                 p <- c(p, fixed)
                 par <- p[parnames]
             }
-            ### trafoprime etc multiply design matrix, we only weight and
-            ### sum-up over scores at the very end
-            w1 <- rep(1, length(weights))
-            ret <- - colSums(weights * sc(par * scl, weights = w1, ...) * scl)
+            ret <- - colSums(weights * sc(par * scl, ...) * scl)
             if (is.null(fixed)) return(ret)
             if (is.matrix(ret))
                 return(ret[, !parnames %in% names(fixed)])
@@ -559,13 +548,26 @@
     }
 
     ret <- list(optimfct = optimfct)
-    ret$ll <- function(..., weights) ll(..., weights = weights) * weights
-    ret$score <- function(..., weights) {
-        ### trafoprime etc multiply design matrix, we only weight and
-        ### sum-up over scores at the very end
-        w1 <- rep(1, length(weights))
-        sc(..., weights = w1) * weights
+
+    ### N contributions to the log-likelihood, UNWEIGHTED
+    ret$logliki <- function(parm, newdata) ll(parm, newdata = newdata)
+
+    ### sum of log-likelihood contributions, WEIGHTED
+    ret$loglik <- function(parm, weights, newdata) 
+        sum(weights * ll(parm, newdata = newdata))
+
+    ### N contributions to the score function, UNWEIGHTED
+    ret$scorei <- function(parm, newdata, Xmult = TRUE) {
+        if (!Xmult) stop("Xmult not implemented")
+        sc(parm, newdata = newdata)
     }
+
+    ### N contributions to score function, WEIGHTED
+    ret$score <- function(parm, weights, newdata, Xmult = TRUE) {
+        if (!Xmult) stop("Xmult not implemented")
+        weights * sc(parm, newdata = newdata)
+    }
+   
     ret$args <- args
     ret$models <- models
     ret$formula <- formula
@@ -777,7 +779,7 @@ vcov.mmlt <- function(object, ...) {
     H <- object$optim_hessian
     if (is.null(H)) {
         if (requireNamespace("numDeriv")) {
-            H <- numDeriv::hessian(function(par) sum(object$ll(par)), object$par)
+            H <- numDeriv::hessian(function(par) logLik(object, parm = par), object$par)
         } else {
             stop("Hessian not available")
         }
@@ -804,7 +806,7 @@ logLik.mmlt <- function (object, parm = coef(object, fixed = TRUE), w = NULL, ne
         warning("Arguments ", names(args), " are ignored")
     if (is.null(w))
         w <- weights(object)
-    ret <- sum(object$ll(parm, newdata = newdata, weights = w))
+    ret <- object$loglik(parm, newdata = newdata, weights = w)
     attr(ret, "df") <- length(object$par)
     class(ret) <- "logLik"
     ret
@@ -817,7 +819,7 @@ estfun.mmlt <- function(x, parm = coef(x, fixed = TRUE),
         warning("Arguments ", names(args), " are ignored")
     if (is.null(w))
         w <- weights(x)
-    return(x$score(parm, newdata = newdata, weights = w))
+    return(-x$score(parm, newdata = newdata, weights = w))
 }
 
 summary.mmlt <- function(object, ...) {
