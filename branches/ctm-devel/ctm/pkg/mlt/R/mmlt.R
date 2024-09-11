@@ -182,7 +182,7 @@
     }
 }
 
-.MCw <- function(J, M, seed) {
+.MCw <- function(J, M, seed, type = c("MC", "ghalton")) {
 
     ### from stats:::simulate.lm
     if (!exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)) 
@@ -196,6 +196,13 @@
         on.exit(assign(".Random.seed", R.seed, envir = .GlobalEnv))
     }
 
+    type <- match.arg(type)
+    if (type == "ghalton") {
+        if (requireNamespace("qrng", quietly = TRUE))
+            return(t(qrng::ghalton(d = J - 1, n = M)))
+        warning("package qrng is not available for ghalton(); using type = MC")
+        type <- "MC"
+    }
     return(matrix(runif((J - 1) * M), ncol = M))
 }
 
@@ -320,7 +327,8 @@
 
     if (dJ > 1L) {
         if (is.null(args$w)) {
-            args$w <- .MCw(J = dJ, M = args$M, seed = args$seed)
+            args$w <- .MCw(J = dJ, M = args$M, seed = args$seed, args$type)
+            args$type <- NULL
         } else {
             if (!is.matrix(args$w)) args$w <- matrix(args$w, nrow = 1)
             if (nrow(args$w) < dJ - 1) stop("incorrect dimension of w")
@@ -328,6 +336,8 @@
                 ### make sure only dJ - 1 columns are present
                 args$w <- args$w[-(dJ:nrow(args$w)),,drop = FALSE]
         }
+    } else {
+        args$type <- NULL
     }
 
     .Xparm <- function(parm) {
@@ -789,6 +799,14 @@ coef.mmmlt <- function(object, newdata,
                       fixed = fixed, ...))
 }
 
+"coef<-.mmlt" <- function(object, value) {
+    cf <- coef(object, fixed = TRUE)
+    stopifnot(length(cf) == length(value))
+    if (!is.null(names(value)))
+        stopifnot(all.equal(names(cf), names(value)))
+    object$par <- object$parm(value, flat = TRUE)
+    object
+}
 
 vcov.mmlt <- function(object, ...) {
     step <- 0
