@@ -1,10 +1,5 @@
 \name{Mmlt}
 \alias{Mmlt}
-\alias{Mmltoptim}
-\alias{coef.cMmlt}
-\alias{coef.mMmlt}
-\alias{predict.Mmlt}
-\alias{simulate.Mmlt}
 \title{
   Multivariate Conditional Transformation Models
 }
@@ -14,23 +9,8 @@
 }
 \usage{
 Mmlt(..., formula = ~ 1, data, conditional = FALSE, theta = NULL, fixed = NULL,
-     scale = FALSE, optim = Mmltoptim(), args = list(seed = 1, M = 1000), 
+     scale = FALSE, optim = mltoptim(auglag = list(maxtry = 5)), args = list(seed = 1, M = 1000), 
      dofit = TRUE, domargins = TRUE, sequentialfit = FALSE)
-Mmltoptim(auglag = list(maxtry = 5), ...)
-\method{coef}{cMmlt}(object, newdata, 
-     type = c("all", "conditional", "Lambdapar", "Lambda", "Lambdainv", 
-              "Precision", "PartialCorr", "Sigma", "Corr", 
-              "Spearman", "Kendall"), fixed = FALSE, 
-     ...)
-\method{coef}{mMmlt}(object, newdata, 
-     type = c("all", "marginal", "Lambdapar", "Lambda", "Lambdainv", 
-              "Precision", "PartialCorr", "Sigma", "Corr", 
-              "Spearman", "Kendall"), fixed = FALSE,
-     ...)
-\method{predict}{Mmlt}(object, newdata, margins = 1:J, 
-        type = c("trafo", "distribution", "survivor", "density", "hazard"), 
-                 log = FALSE, args = object$args, ...)
-\method{simulate}{Mmlt}(object, nsim = 1L, seed = NULL, newdata, K = 50, ...)
 }
 \arguments{
   \item{\dots}{marginal transformation models, one for each response, for
@@ -57,7 +37,7 @@ or a logical (for \code{coef}) indicating to also return fixed parameters
   \item{scale}{a logical indicating if (internal) scaling shall be applied
           to the model coefficients.
 }
-  \item{optim}{a list of optimisers as returned by \code{\link{Mmltoptim}}
+  \item{optim}{a list of optimisers as returned by \code{\link[mlt]{mltoptim}}
 }
   \item{args}{a list of arguments for \code{\link[mvtnorm]{lpmvnorm}}.}
   \item{dofit}{logical; parameters are fitted by default, otherwise a list
@@ -71,25 +51,6 @@ or a logical (for \code{coef}) indicating to also return fixed parameters
        fixed. This does not lead to an optimal estimate but might provide
        attractive starting values.
 }
-\item{auglag}{a list of arguments to \code{\link[alabama]{auglag}} ensuring
-              a numerically determined Hessian is returned.}
-  \item{object}{an object of class \code{Mmlt}.
-}
-  \item{newdata}{an optional data.frame coefficients and predictions shall
-                 be computed for.
-}
-  \item{type}{type of coefficient or prediction to be returned.
-}
-  \item{margins}{indices defining marginal models to be evaluated. Can be
-single integers giving the marginal distribution of the corresponding
-variable, or multiple integers (currently only \code{1:j} implemented).
-}
-  \item{log}{logical; return log-probabilities or log-densities if
-\code{TRUE}.
-}
-  \item{nsim}{number of samples to generate.}
-  \item{seed}{optional seed for the random number generator.}
-  \item{K}{number of grid points to generate.}
 }
 \details{
   The function implements multivariate conditional transformation models

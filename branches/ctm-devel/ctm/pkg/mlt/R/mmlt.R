@@ -588,7 +588,7 @@
     if (!missing(data))
         ret$data <- data
     ret$names <- models$names
-    class(ret) <- "mmlt_setup"
+    class(ret) <- c("mmlt_setup", "mmlt")
     ret
 }
 

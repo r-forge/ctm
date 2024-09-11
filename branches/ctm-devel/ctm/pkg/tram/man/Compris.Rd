@@ -14,7 +14,7 @@ Compris(formula, data, subset, weights, na.action, offset,
                                     Colr = "loglogistic", 
                                     BoxCox = "lognormal"), 
         NPlogLik = FALSE,
-        optim = Mmltoptim(), args = list(seed = 1, M = 1000), 
+        optim = mltoptim(auglag = list(maxtry = 5)), args = list(seed = 1, M = 1000), 
         scale = FALSE, tol = 0.001, ...)
 }
 \arguments{
