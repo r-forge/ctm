@@ -13,8 +13,8 @@
 }
 \usage{
 mmlt(..., formula = ~ 1, data, conditional = FALSE, theta = NULL, fixed = NULL,
-     scale = FALSE, optim = mltoptim(auglag = list(maxtry = 5)), args = list(seed = 1, M = 1000), 
-     dofit = TRUE, domargins = TRUE)
+     scale = FALSE, optim = mltoptim(auglag = list(maxtry = 5)), 
+     args = list(seed = 1, M = 1000), dofit = TRUE, domargins = TRUE)
 \method{coef}{cmmlt}(object, newdata, 
      type = c("all", "conditional", "Lambdapar", "Lambda", "Lambdainv", 
               "Precision", "PartialCorr", "Sigma", "Corr", 
