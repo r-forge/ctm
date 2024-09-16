@@ -14,8 +14,9 @@ Compris(formula, data, subset, weights, na.action, offset,
                                     Colr = "loglogistic", 
                                     BoxCox = "lognormal"), 
         NPlogLik = FALSE, theta = NULL,
-        optim = mltoptim(auglag = list(maxtry = 5)), args = list(seed = 1, M = 1000), 
-        scale = FALSE, tol = 0.001, ...)
+        optim = mltoptim(auglag = list(maxtry = 5)),
+        args = list(seed = 1, type = c("MC", "ghalton"), M = 1000),
+        scale = FALSE, ...)
 }
 \arguments{
   \item{formula}{an object of class \code{"formula"}: a symbolic description 
@@ -63,9 +64,8 @@ remaining competing events.
                be scaled. Scaling is internally used for model estimation,
                rescaled coefficients are reported in model output.
 }
-  \item{tol}{a tolerance for faking interval censoring.
-}
-  \item{\dots}{addition arguments.
+  \item{\dots}{addition arguments passed to primary or competing model
+function.
 }
 }
 \details{

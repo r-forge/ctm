@@ -70,8 +70,9 @@ Compris <- function(formula, data, subset, weights, na.action, offset,
                                                 "Colr" = "loglogistic", 
                                                 "BoxCox" = "lognormal"),
                     NPlogLik = FALSE, theta = NULL,
-                    optim = mltoptim(auglag = list(maxtry = 5)), args = list(seed = 1, M = 1000), 
-                    scale = FALSE, tol = .001, ...)
+                    optim = mltoptim(auglag = list(maxtry = 5)), 
+                    args = list(seed = 1, type = c("MC", "ghalton"), M = 1000),
+                    scale = FALSE, ...)
 {
 
     call <- match.call()

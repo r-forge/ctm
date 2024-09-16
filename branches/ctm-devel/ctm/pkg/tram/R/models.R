@@ -1,4 +1,14 @@
 
+.mrightORmcounting <- function(object) {
+    if (!inherits(object, "Surv")) return(FALSE)
+    type <- attr(object, "type")
+    if (!(type %in% c("mright", "mcounting")))
+        return(FALSE)
+    st <- unclass(object)[, "status"]
+    if (all(unique(st) %in% c(0, 1))) return(FALSE)
+    return(TRUE)
+}
+
 Coxph <- function(formula, data, subset, weights, offset, cluster, na.action = na.omit, ...)
 {
     mf <- match.call(expand.dots = FALSE)
