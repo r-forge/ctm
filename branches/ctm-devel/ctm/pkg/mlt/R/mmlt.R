@@ -479,27 +479,73 @@
         return(ret)
     }
 
+
+    ret <- list()
+
+    ### N contributions to the log-likelihood, UNWEIGHTED
+    ret$logliki <- function(parm, newdata = NULL) ll(parm, newdata = newdata)
+
+    ### sum of log-likelihood contributions, WEIGHTED
+    ret$loglik <- function(parm, weights = NULL, newdata = NULL) { 
+        if (is.null(weights)) return(sum(ll(parm, newdata = newdata)))
+        sum(weights * ll(parm, newdata = newdata))
+    }
+
+    ### N contributions to the score function, UNWEIGHTED
+    ret$scorei <- function(parm, newdata = NULL, Xmult = TRUE) {
+        if (!Xmult) stop("Xmult not implemented")
+        sc(parm, newdata = newdata)
+    }
+
+    ### N contributions to score function, WEIGHTED
+    ret$score <- function(parm, weights = NULL, newdata = NULL, Xmult = TRUE) {
+        if (!Xmult) stop("Xmult not implemented")
+        if (is.null(weights)) return(sc(parm, newdata = newdata))
+        weights * sc(parm, newdata = newdata)
+    }
+
+    scl <- rep(apply(abs(lX), 2, max, na.rm = TRUE), times = Jp)
+    lt1 <- scl < 1.1
+    gt1 <- scl >= 1.1
+    scl[gt1] <- 1 / scl[gt1]
+    scl[lt1] <- 1
+        scl <- c(do.call("c", .mget(models, j = 1:J, parm = NULL, what = "scale")), 
+                          scl)
+    names(scl) <- parnames
+    ret$scl <- scl
+
+    ret$dofit <- dofit
+    ret$ui <- models$ui
+    ret$ci <- models$ci
+
+    ### FIXME: old interface, deprecate
+    ret$ll <- ret$loglik
+    ret$sc <- function(...) colSums(ret$score(...))
+   
+    ret$args <- args
+    ret$models <- models
+    ret$formula <- formula
+    ret$bx <- bx
+    ret$parnames <- parnames
+    ret$parm <- function(par, flat = FALSE) {
+        par <- par[parnames]
+        if (flat) return(par)
+        return(c(models$parm(par), list(.Xparm(par))))
+    }
+    if (!missing(data))
+        ret$data <- data
+    ret$names <- models$names
+    class(ret) <- c("mmlt_setup", "mmlt")
+    ret
+}
+
+.mmlt_optimfct <- function(loglik, score, scl, ui, ci, parnames, dofit) {
+
     optimfct <- function(theta, weights, subset, scale = FALSE, optim, fixed = NULL, ...) {
 
         eparnames <- parnames
         if (!is.null(fixed)) eparnames <- parnames[!(parnames %in% names(fixed))]
     
-        ### scale
-        if (scale) {
-            scl <- rep(apply(abs(lX), 2, max, na.rm = TRUE), times = Jp)
-            lt1 <- scl < 1.1
-            gt1 <- scl >= 1.1
-            scl[gt1] <- 1 / scl[gt1]
-            scl[lt1] <- 1
-            scl <- c(do.call("c", .mget(models, j = 1:J, parm = NULL, what = "scale")), 
-                                  scl)
-            names(scl) <- parnames
-        } else {
-            scl <- numeric(length(parnames))
-            scl[] <- 1
-            names(scl) <- parnames
-        }
-
         ### negative log-likelihood
         f <- function(par, scl, ...) {
             if (!is.null(fixed)) {
@@ -508,7 +554,7 @@
                 p <- c(p, fixed)
                 par <- p[parnames]
             }
-            return(-sum(weights * ll(par * scl, ...)))
+            return(-loglik(par * scl, weights = weights, ...))
         }
 
         ### gradient of negative log-likelihood
@@ -519,22 +565,21 @@
                 p <- c(p, fixed)
                 par <- p[parnames]
             }
-            ret <- - colSums(weights * sc(par * scl, ...) * scl)
+            ret <- - colSums(score(par * scl, weights = weights, ...) * scl)
             if (is.null(fixed)) return(ret)
             if (is.matrix(ret))
                 return(ret[, !parnames %in% names(fixed)])
             return(ret[!parnames %in% names(fixed)])
         }
 
-        ui <- models$ui
         ui <- cbind(ui, matrix(0, nrow = nrow(ui), 
                                ncol = length(parnames) - ncol(ui)))
-        ci <- models$ci
         if (!is.null(fixed)) {
             d <- ui[, parnames %in% names(fixed), drop = FALSE] %*% fixed
             ui <- ui[, !parnames %in% names(fixed), drop = FALSE]
-            ci <- models$ci - d
+            ci <- ci - d
         }
+        if (!scale) scl[] <- 1
         start <- theta / scl[eparnames]
         ### check if any non-fixed parameters come with constraints
         if (any(abs(ui) > 0) && any(ci > -Inf)) {
@@ -561,53 +606,12 @@
         ret$par[eparnames] <- ret$par[eparnames] * scl[eparnames]
         return(ret)
     }
-
-    ret <- list(optimfct = optimfct)
-
-    ### N contributions to the log-likelihood, UNWEIGHTED
-    ret$logliki <- function(parm, newdata = NULL) ll(parm, newdata = newdata)
-
-    ### sum of log-likelihood contributions, WEIGHTED
-    ret$loglik <- function(parm, weights = NULL, newdata = NULL) { 
-        if (is.null(weights)) return(sum(ll(parm, newdata = newdata)))
-        sum(weights * ll(parm, newdata = newdata))
-    }
-
-    ### N contributions to the score function, UNWEIGHTED
-    ret$scorei <- function(parm, newdata = NULL, Xmult = TRUE) {
-        if (!Xmult) stop("Xmult not implemented")
-        sc(parm, newdata = newdata)
-    }
-
-    ### N contributions to score function, WEIGHTED
-    ret$score <- function(parm, weights = NULL, newdata = NULL, Xmult = TRUE) {
-        if (!Xmult) stop("Xmult not implemented")
-        if (is.null(weights)) return(sc(parm, newdata = newdata))
-        weights * sc(parm, newdata = newdata)
-    }
-
-    ### FIXME: old interface, deprecate
-    ret$ll <- ret$loglik
-    ret$sc <- function(...) colSums(ret$score(...))
-   
-    ret$args <- args
-    ret$models <- models
-    ret$formula <- formula
-    ret$bx <- bx
-    ret$parnames <- parnames
-    ret$parm <- function(par, flat = FALSE) {
-        par <- par[parnames]
-        if (flat) return(par)
-        return(c(models$parm(par), list(.Xparm(par))))
-    }
-    if (!missing(data))
-        ret$data <- data
-    ret$names <- models$names
-    class(ret) <- c("mmlt_setup", "mmlt")
-    ret
+    return(optimfct)
 }
 
-.mmlt_fit <- function(object, weights, subset = NULL, theta = NULL, scale = FALSE, optim, fixed = NULL, ...)
+
+.mmlt_fit <- function(object, weights, subset = NULL, theta = NULL, 
+                      scale = FALSE, optim, fixed = NULL, ...)
 {
 
     if (!is.null(fixed)) 
@@ -616,8 +620,13 @@
     if (is.null(theta))
         stop(sQuote("mlt"), "needs suitable starting values")
 
+    optimfct <- .mmlt_optimfct(loglik = object$loglik, 
+                               score = object$score, scl = object$scl, 
+                               ui = object$ui, ci = object$ci, parnames = object$parnames, 
+                               dofit = object$dofit)
+
     ### BBoptim issues a warning in case of unsuccessful convergence
-    ret <- try(object$optimfct(theta, weights = weights, fixed = fixed,
+    ret <- try(optimfct(theta, weights = weights, fixed = fixed,
         subset = subset, scale = scale, optim = optim, ...))
 
     cls <- class(object)
