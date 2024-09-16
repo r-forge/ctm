@@ -741,48 +741,51 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
         }
     } 
 
-    ### starting values for lambda
-    theta <- numeric(length(ret$parnames))
-    names(theta) <- ret$parnames
-    mpar <- do.call("c", models$mcoef)
-    theta[ret$parnames[1:length(mpar)]] <- mpar
-    ### if data is continuous for all models and
-    ### lambda is constant, compute starting values analytically without
-    ### paying attention to fixed parameters
-    if (nlevels(cdpat) == 1 && all(models$cont) && length(all.vars(formula)) == 0) {
-        J <- length(models$models)
-        Z <- do.call("cbind", .mget(models, j = 1:J, parm = mpar, what = "trafo"))
-        N <- NROW(Z)
-        S <- var(Z) * (N - 1) / N
-        L <- try(solve(t(chol(S))))
-        if (!inherits(L, "try-error")) {
-            L <- L %*% diag((1 / diag(L)))
-            Lambda <- ltMatrices(L[lower.tri(L, diag = FALSE)], byrow = FALSE, diag = FALSE)
-            Lambda <- ltMatrices(Lambda, byrow = TRUE)
-            ### starting values for the starting values computation ;-)
-            theta[-(1:length(mpar))] <- c(Lower_tri(Lambda, diag = FALSE))
-        }
-    } 
-    mtheta <- theta
-    mfixed <- fixed
-    if (!is.null(fixed))
-        theta[names(fixed)] <- fixed
-    nfixed <- unique(c(ret$parnames[1:length(mpar)], names(fixed)))
-    sfixed <- theta[nfixed]
-    stheta <- theta[!(names(theta) %in% nfixed)]
-    if (length(theta)) {
-        ret <- .mmlt_fit(ret, weights = models$weights, 
-                         subset = subset, fixed = sfixed,  optim = optim, theta = stheta)
-        class(ret) <- c(ifelse(conditional, "cmmlt", "mmmlt"), "mmlt")
-        ret$mmlt <- "Multivariate Conditional Transformation Model"
-        ret$call <- call
-        if (!domargins) return(ret)
-        theta <- coef(ret, fixed = TRUE)
-    } else {
-        ### all parameters were fixed (= all lambda parameters)
-        theta <- mtheta
-        fixed <- mfixed
-    }       
+    if (is.null(theta) || !domargins) {
+        ### starting values for lambda
+        if (is.null(theta))
+            theta <- numeric(length(ret$parnames))
+        names(theta) <- ret$parnames
+        mpar <- do.call("c", models$mcoef)
+        theta[ret$parnames[1:length(mpar)]] <- mpar
+        ### if data is continuous for all models and
+        ### lambda is constant, compute starting values analytically without
+        ### paying attention to fixed parameters
+        if (nlevels(cdpat) == 1 && all(models$cont) && length(all.vars(formula)) == 0) {
+            J <- length(models$models)
+            Z <- do.call("cbind", .mget(models, j = 1:J, parm = mpar, what = "trafo"))
+            N <- NROW(Z)
+            S <- var(Z) * (N - 1) / N
+            L <- try(solve(t(chol(S))))
+            if (!inherits(L, "try-error")) {
+                L <- L %*% diag((1 / diag(L)))
+                Lambda <- ltMatrices(L[lower.tri(L, diag = FALSE)], byrow = FALSE, diag = FALSE)
+                Lambda <- ltMatrices(Lambda, byrow = TRUE)
+                ### starting values for the starting values computation ;-)
+                theta[-(1:length(mpar))] <- c(Lower_tri(Lambda, diag = FALSE))
+            }
+        } 
+        mtheta <- theta
+        mfixed <- fixed
+        if (!is.null(fixed))
+            theta[names(fixed)] <- fixed
+        nfixed <- unique(c(ret$parnames[1:length(mpar)], names(fixed)))
+        sfixed <- theta[nfixed]
+        stheta <- theta[!(names(theta) %in% nfixed)]
+        if (length(theta)) {
+            ret <- .mmlt_fit(ret, weights = models$weights, 
+                             subset = subset, fixed = sfixed,  optim = optim, theta = stheta)
+            class(ret) <- c(ifelse(conditional, "cmmlt", "mmmlt"), "mmlt")
+            ret$mmlt <- "Multivariate Conditional Transformation Model"
+            ret$call <- call
+            if (!domargins) return(ret)
+            theta <- coef(ret, fixed = TRUE)
+        } else {
+            ### all parameters were fixed (= all lambda parameters)
+            theta <- mtheta
+            fixed <- mfixed
+        }       
+    }
 
     ret <- .mmlt_fit(ret, weights = models$weights, subset = subset, optim = optim,
                      theta = theta[!names(theta) %in% names(fixed)], fixed = fixed)
