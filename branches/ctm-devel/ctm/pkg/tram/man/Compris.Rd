@@ -13,7 +13,7 @@ Compris(formula, data, subset, weights, na.action, offset,
         competing = switch(primary, Coxph = "weibull", 
                                     Colr = "loglogistic", 
                                     BoxCox = "lognormal"), 
-        NPlogLik = FALSE,
+        NPlogLik = FALSE, theta = NULL,
         optim = mltoptim(auglag = list(maxtry = 5)), args = list(seed = 1, M = 1000), 
         scale = FALSE, tol = 0.001, ...)
 }
@@ -54,6 +54,7 @@ remaining competing events.
 }
   \item{NPlogLik}{logical, optimise nonparametric likelihood defined in
                   terms of multivariate probabilities.}
+  \item{theta}{optional starting values.}
   \item{optim}{see \code{Mmlt}.
 }
  \item{args}{a list of arguments for \code{\link[mvtnorm]{lpmvnorm}}.
@@ -122,14 +123,35 @@ distributions for the primary event of interest and all competing events.
     ## Fit a Gaussian Copula-based Cox Proportional Hazards Model with
     ##   a marginal "Coxph" model for the primary event of interest and 
     ##   a Weibull "Survreg" model for dependent censoring
-    ## (don't test as it takes too long for CRAN)
-    \donttest{m <- Compris(y ~ ch + age + hgb + clinstg, data = follic, log_first = TRUE)
-  
-    summary(m)
-    
+    ## Use very informative starting values to keep CRAN happy
+    cf <-
+        c(`Event_relapse.Event_relapse.Bs1(Event_relapse)` = -1.879,
+          `Event_relapse.Event_relapse.Bs2(Event_relapse)` = -1.649,
+          `Event_relapse.Event_relapse.Bs3(Event_relapse)` = -0.530,
+          `Event_relapse.Event_relapse.Bs4(Event_relapse)` = -0.530,
+          `Event_relapse.Event_relapse.Bs5(Event_relapse)` = -0.059,
+          `Event_relapse.Event_relapse.Bs6(Event_relapse)` =  0.540,
+          `Event_relapse.Event_relapse.Bs7(Event_relapse)` =  0.699,
+          `Event_relapse.Event_relapse.chCMTRT`            = -0.280,
+          `Event_relapse.Event_relapse.age`                =  0.440, 
+          `Event_relapse.Event_relapse.hgb`                =  0.029,
+          `Event_relapse.Event_relapse.clinstgI`           = -0.550,
+          `Event_death.Event_death.(Intercept)`            = -2.029,
+          `Event_death.Event_death.log(Event_death)`       =  0.930,
+          `Event_death.Event_death.chCMTRT`                =  0.250, 
+          `Event_death.Event_death.age`                    = -0.609,
+          `Event_death.Event_death.hgb`                    = -0.020, 
+          `Event_death.Event_death.clinstgI`               =  0.569,
+          `Event_death.Event_relapse.(Intercept)`          = -4.549
+         )
+    m <- Compris(y ~ ch + age + hgb + clinstg, data = follic, 
+                 theta = cf, log_first = TRUE, optim = mltoptim())
+
+    ### marginal parameters
+    coef(m, type = "marginal")    
     ## Kendall's tau
     coef(m, type = "Kendall")
-    }
+
     ## Similar to Table 4 of Deresa & Van Keilegom (2023),
     ## but using a Gaussian copula instead of a Gumbel copula.
   }
