@@ -534,9 +534,14 @@
             d <- ui[, parnames %in% names(fixed), drop = FALSE] %*% fixed
             ui <- ui[, !parnames %in% names(fixed), drop = FALSE]
             ci <- models$ci - d
-        } 
+        }
         start <- theta / scl[eparnames]
-        ui <- t(t(ui) * scl[eparnames])
+        ### check if any non-fixed parameters come with constraints
+        if (any(abs(ui) > 0) && any(ci > -Inf)) {
+            ui <- t(t(ui) * scl[eparnames])
+        } else {
+            ui <- ci <- NULL
+        }
 
         if (dofit) {
             for (i in 1:length(optim)) {
