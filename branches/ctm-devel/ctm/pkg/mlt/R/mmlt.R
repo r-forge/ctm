@@ -319,6 +319,9 @@
         stop("Conditional models only available", 
              "for marginal probit-type models.")
 
+    ### check if contributions are either discrete or continuous
+    stopifnot(all(xor(models$cmod, models$dmod)))
+
     cJ <- sum(models$cont)
     dJ <- sum(!models$cont)
     J <- cJ + dJ
@@ -657,7 +660,62 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
     if (conditional && !domargins)
         stop("Conditional models must fit marginal and joint parameters.")
 
-    models <- .models(...)
+    models <- .models(..., strict = FALSE)
+    x <- numeric(models$nobs)
+    xb <- lapply(models$mm, function(m) {
+        if (is.null(m$iY)) return(x)
+        x[m$iY$which] <- 1
+        return(x)
+    })
+    cdpat <- do.call("interaction", xb)[,drop = TRUE]
+
+    if (nlevels(cdpat) > 1L) {
+        mm <- vector(mode = "list", length = nlevels(cdpat))
+        names(mm) <- levels(cdpat)
+        for (j in names(mm)) {
+            idx <- which(j == cdpat)
+            tmp <- data[idx,,drop = FALSE]
+            nm <- lapply(models$models, function(mod) {
+                mlt(mod$model, data = tmp, theta = coef(as.mlt(mod)), 
+                fixed = mod$fixed, scale = mod$scale, weights = mod$weights[idx],
+                offset = mod$offset[idx], dofit = FALSE)
+            })
+            sargs <- list(models = do.call(".models", nm))
+            sargs$formula <- formula
+            sargs$data <- tmp
+            sargs$conditional <- conditional
+            sargs$dofit <- dofit
+            sargs$args <- args
+            mm[[j]] <- do.call(".mmlt_setup", sargs)
+        }
+        idx <- do.call("c", split(1:length(cdpat), cdpat))
+        ret <- mm[[1L]]
+        ret$data <- data
+        ret$logliki <- function(parm, newdata = NULL) {
+            if (!is.null(newdata))
+                stop("newdata not implemented")
+            ll <- do.call("c", sapply(mm, function(m) m$logliki(parm)))
+            ll <- ll[idx]
+            return(ll)
+        }
+        ret$scorei <- function(parm, newdata = NULL) {
+            if (!is.null(newdata))
+                stop("newdata not implemented")
+            sc <- do.call("rbind", lapply(mm, function(m) m$scorei(parm)))
+            sc <- sc[idx,,drop = FALSE]
+            return(sc)
+        }
+        ret$loglik <- function(parm, weights, ...)
+            sum(weights * ret$logliki(parm, ...))
+        ret$score <- function(parm, weights, ...)
+            weights * ret$scorei(parm, ...)
+    } else {
+        ret <- .mmlt_setup(models = models, formula = formula, dofit = dofit,
+                           data = data, conditional = conditional, 
+                           args = args)
+    }
+
+    if (!dofit) return(ret)
 
     mfixed <- NULL
     if (!is.null(models$fixed)) {
@@ -668,12 +726,6 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
         stopifnot(all(!names(fixed) %in% names(mfixed)))
     }
     fixed <- c(mfixed, fixed)
-
-    ret <- .mmlt_setup(models = models, formula = formula, dofit = dofit,
-                       data = data, conditional = conditional, 
-                       args = args)
-
-    if (!dofit) return(ret)
 
     ### compute starting values for lambda
     if (is.null(theta) && domargins) {
