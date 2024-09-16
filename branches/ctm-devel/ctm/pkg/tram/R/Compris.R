@@ -207,7 +207,7 @@ Compris <- function(formula, data, subset, weights, na.action, offset,
         if (length(rc) > 0) ret <- ret + mm_rc$ll(parm)
         ret <- ret + mm_ei$ll(parm)
         ret <- ret + mm_ce$ll(ro(parm))
-        ret
+        -ret
     }
 
     sc <- function(parm) {
@@ -215,13 +215,15 @@ Compris <- function(formula, data, subset, weights, na.action, offset,
         if (length(rc) > 0) ret <- ret + mm_rc$sc(parm)
         ret <- ret + mm_ei$sc(parm)
         ret <- ret + ro(mm_ce$sc(ro(parm)), reverse = TRUE)
-        ret
+        -ret
     }
 
     theta <- c(coef(me), coef(mc), lambda = 0)
 
+    uici <- mlt:::.models(me, mc, strict = FALSE)
+
     for (i in 1:length(optim)) {
-        op <- try(optim[[i]](theta, ll, sc, mm_ei$ui, mm_ei$ci))
+        op <- try(optim[[i]](theta, ll, sc, ui = cbind(uici$ui, 0), ci = uici$ci))
         ## <FIXME> maybe add more informative error message </FIXME>
         if (inherits(op, "try-error")) op <- list(convergence = 1)
         if (op$convergence == 0) break()
@@ -233,6 +235,8 @@ Compris <- function(formula, data, subset, weights, na.action, offset,
     ret <- Mmlt(me_ei, mc_ei, data = d_ei, theta = op$par, 
                 dofit = FALSE)
     ret$optim_hessian <- NULL
+    ret$par <- op$par
+    ret$parnames <- names(theta)
     ret$logLik <- -op$value
     ret$ll <- function(parm, newdata = NULL) {
         if (!is.null(newdata)) warning("Argument newdata ignored")
@@ -247,6 +251,6 @@ Compris <- function(formula, data, subset, weights, na.action, offset,
     ret$call <- call
     ret$mmlt <- "Competing Risk Regression"
     ret$args <- args
-    class(ret) <- c("Compris", class(ret))
+    class(ret) <- c("Compris", "mmmlt", "mlt")
     ret
 }
