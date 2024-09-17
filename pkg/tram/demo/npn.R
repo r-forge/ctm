@@ -1,7 +1,4 @@
 
-### version 1.0-6 only
-mmlt <- Mmlt
-
 ###
 ### Fit models for HCC data presented in
 ### 
@@ -17,6 +14,9 @@ if (!all(req)){
 }
 if (!all(req)) 
   stop("cannot load dependencies")
+
+### tram version 1.0-6 only
+mmlt <- Mmlt
 
 ### Load data
 dat <- read.xlsx("https://datadryad.org/api/v2/files/44697/download", sheet = 1)

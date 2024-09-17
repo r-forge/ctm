@@ -6,6 +6,7 @@ library("latex2exp")
 
 ### version 1.0-6 only
 mmlt <- Mmlt
+mmltoptim <- Mmltoptim
 
 set.seed(42)
 par(ask = TRUE)

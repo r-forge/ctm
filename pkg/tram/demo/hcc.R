@@ -1,4 +1,5 @@
 
+library("tram")
 ### version 1.0-6 only
 mmlt <- Mmlt
 
