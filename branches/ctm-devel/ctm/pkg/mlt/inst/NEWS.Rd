@@ -2,7 +2,7 @@
 \name{NEWS}
 \title{NEWS file for the mlt package}
 
-\section{Changes in Version 1.5-3 (2024-08-30)}{
+\section{Changes in Version 1.6-0 (2024-09-17)}{
   \subsection{Bugfixes}{
     \itemize{
       \item{Allow interval censoring using \code{-Inf} and \code{Inf}.
@@ -13,6 +13,12 @@
   }
   \subsection{New features}{
     \itemize{
+      \item{\code{mmlt} moved from \pkg{tram} allowing arbitrary mixes of continuous
+          and discrete data, including exact and censored observations
+          for the same variable and thus also allowing for non-informative missings encoded as
+          \code{-Inf, Inf}, see below. Corresponding \code{logLik} and \code{estfun}
+          methods feature \code{newdata} and \code{weights} arguments, as the
+          methods for \code{mlt} always did.}
       \item{\code{R()} translates missing response values to  \code{-Inf} and \code{Inf} interval censoring.
             This means that missing values are allowed in response variables
             and the corresponding observations do

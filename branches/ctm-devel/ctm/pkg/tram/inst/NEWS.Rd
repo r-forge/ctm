@@ -2,8 +2,16 @@
 \name{NEWS}
 \title{NEWS file for the tram package}
 
-\section{Changes in Version 1.1-0 (2024-08-23)}{
+\section{Changes in Version 1.1-0 (2024-09-17)}{
   \itemize{
+    \item{\code{mmlt} moved to \pkg{mlt} 1.6-0.}
+    \item{New \code{Mmlt} allowing arbitrary mixes of continuous
+          and discrete data, including exact and censored observations
+          for the same variable; implementing three (potentially) convex
+          approximations; allowing for non-informative missings encoded as
+          \code{-Inf, Inf}.}
+    \item{\code{Compris} now also uses the parametric likelihood for
+          the competing risk case.}
     \item{Allow density predictions for all continuous variables (regardless
           of censoring in training data).}
   }
