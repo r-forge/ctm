@@ -692,7 +692,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
         ret$logliki <- function(parm, newdata = NULL) {
             if (!is.null(newdata))
                 stop("newdata not implemented")
-            ll <- do.call("c", sapply(mm, function(m) m$logliki(parm)))
+            ll <- do.call("c", lapply(mm, function(m) m$logliki(parm)))
             ll <- ll[idx]
             return(ll)
         }
