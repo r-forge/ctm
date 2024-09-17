@@ -10631,9 +10631,9 @@ m_s1 <- cotram(Saeger ~ tvar1 + tvar2 + tvar3 + tvar4 + tvar5 + tvar6 + Jahr,
                order = ord, data = aquabirds, method = "probit", add = c(-1, 300))
 
 ### multi-species transformation model: M-Lambda, discrete approximation
-m_disc3_const <- mcotram(m_h1, m_k1, m_s1, data = aquabirds, M = 250)
+m_disc3_const <- mmlt(m_h1, m_k1, m_s1, data = aquabirds, M = 250)
 ### multi-species transformation model: M-Lambda(x), discrete approximation
-m_disc3 <- mcotram(m_h1, m_k1, m_s1, formula = fm, data = aquabirds, M = 250)
+m_disc3 <- mmlt(m_h1, m_k1, m_s1, formula = fm, data = aquabirds, M = 250)
 
 ### Measures of dependence, M-Lambda, discrete approximation
 (lambda3_d <- coef(m_disc3_const, newdata = nd, type = "Lambda")[1, ])
@@ -10825,26 +10825,26 @@ Lambda <- coef(m_disc3, type = "Lambda", newdata = aquabirds) ## need for sim. d
 ############# SIMULATION PARAMETERS ############# 
 Nrepeat <- 50  ## repeat *all* steps Nrepeat times
 Nday <- 1000   ## for each day, sample Nday observations
-Nsim <- 1      ## how many new data sets to draw from mcotram model
+Nsim <- 1      ## how many new data sets to draw from mmlt model
 
 idx_year <- which(aquabirds$Jahr == 2015)
 aquabirds1 <- aquabirds[idx_year, ]  ## subset with only year 2015
 # idx_firstday <- intersect(which(aquabirds$Tag == 1), which(aquabirds$Jahr == 2015))
 
-## constant correlations from mcotram models refitted on sampled data
-corr_mcotram <- lambdas_mcotram <- matrix(0, nrow = Nrepeat, ncol = 3)
+## constant correlations from mmlt models refitted on sampled data
+corr_mmlt <- lambdas_mmlt <- matrix(0, nrow = Nrepeat, ncol = 3)
 # corr_mars1 <- corr_mars2 <- 
 OmegaCor_const <- vector(mode = "list", length = Nrepeat)
 OmegaCor_var <- vector(mode = "list", length = Nrepeat)
-models_mcotram_const <- models_mcotram_var <- vector(mode = "list", length = Nrepeat)
-rhos_mcotram_var <- vector(mode = "list", length = Nrepeat)
+models_mmlt_const <- models_mmlt_var <- vector(mode = "list", length = Nrepeat)
+rhos_mmlt_var <- vector(mode = "list", length = Nrepeat)
 
 idx_x <- c("Jahr", "tvar1", "tvar2", "tvar3", "tvar4", "tvar5", "tvar6")
 idx_bird <- c("Haubentaucher", "Kormoran", "Saeger")
 
 ############# CONSTANT LAMBDAS ############# 
-## mcotram
-time_mcotram_const <- system.time(
+## mmlt
+time_mmlt_const <- system.time(
   if (FALSE) {
     
     set.seed(270161)
@@ -10872,26 +10872,26 @@ time_mcotram_const <- system.time(
       # s_i <- sample(1:nrow(d_sampled), 2000, replace = FALSE)
       # d_sampled <- d_sampled[s_i, ]
       
-      ## refit mcotram to sampled data
+      ## refit mmlt to sampled data
       m_h1r <- cotram(Haubentaucher ~ tvar1 + tvar2 + tvar3 + tvar4 + tvar5 + tvar6 + Jahr,
                       order = ord, data = d_sampled, method = "probit", add = c(-1, 300))
       m_k1r <- cotram(Kormoran ~ tvar1 + tvar2 + tvar3 + tvar4 + tvar5 + tvar6 + Jahr,
                       order = ord, data = d_sampled, method = "probit", add = c(-1, 300))
       m_s1r <- cotram(Saeger ~ tvar1 + tvar2 + tvar3 + tvar4 + tvar5 + tvar6 + Jahr,
                       order = ord, data = d_sampled, method = "probit", add = c(-1, 300))
-      m_disc3_const_r <- mcotram(m_h1r, m_k1r, m_s1r, data = d_sampled)
+      m_disc3_const_r <- mmlt(m_h1r, m_k1r, m_s1r, data = d_sampled)
       
       ## save computed constant correlations
-      corr_mcotram[i, ] <- coef(m_disc3_const_r, newdata = d_sampled[1, ], type = "Corr")
-      lambdas_mcotram[i, ] <- coef(m_disc3_const_r, newdata = d_sampled[1, ], type = "Lambda")
+      corr_mmlt[i, ] <- coef(m_disc3_const_r, newdata = d_sampled[1, ], type = "Corr")
+      lambdas_mmlt[i, ] <- coef(m_disc3_const_r, newdata = d_sampled[1, ], type = "Lambda")
       
-      ## save mcotram models
-      models_mcotram_const[[i]] <- m_disc3_const_r
+      ## save mmlt models
+      models_mmlt_const[[i]] <- m_disc3_const_r
     }
     
-    save(corr_mcotram, file = "corr_mcotram.RData")
-    # save(lambdas_mcotram, file = "lambdas_mcotram.RData")
-    save(models_mcotram_const, file = "models_mcotram_const.RData")
+    save(corr_mmlt, file = "corr_mmlt.RData")
+    # save(lambdas_mmlt, file = "lambdas_mmlt.RData")
+    save(models_mmlt_const, file = "models_mmlt_const.RData")
   }  
 )
 ## Hmsc
@@ -10948,8 +10948,8 @@ time_hmsc_const <- system.time(
 )
 ############# TIME-VARYING LAMBDAS ############# 
 
-## mcotram
-time_mcotram_var <- system.time(
+## mmlt
+time_mmlt_var <- system.time(
   if (FALSE) {
     set.seed(270161)
     for (i in 1:Nrepeat) {
@@ -10984,23 +10984,23 @@ time_mcotram_var <- system.time(
       d_sampled <- do.call("rbind", lapply(1:Nsim, \(x) aquabirds))
       d_sampled[, idx_bird] <- Yd
       
-      ## refit mcotram to sampled data
+      ## refit mmlt to sampled data
       m_h1r <- cotram(Haubentaucher ~ tvar1 + tvar2 + tvar3 + tvar4 + tvar5 + tvar6 + Jahr,
                       order = ord, data = d_sampled, method = "probit", add = c(-1, 300))
       m_k1r <- cotram(Kormoran ~ tvar1 + tvar2 + tvar3 + tvar4 + tvar5 + tvar6 + Jahr,
                       order = ord, data = d_sampled, method = "probit", add = c(-1, 300))
       m_s1r <- cotram(Saeger ~ tvar1 + tvar2 + tvar3 + tvar4 + tvar5 + tvar6 + Jahr,
                       order = ord, data = d_sampled, method = "probit", add = c(-1, 300))
-      m_disc3_r <- mcotram(m_h1r, m_k1r, m_s1r, formula = fm, data = d_sampled)
+      m_disc3_r <- mmlt(m_h1r, m_k1r, m_s1r, formula = fm, data = d_sampled)
       
-      ## save mcotram models
-      # models_mcotram_var[[i]] <- m_disc3_r
+      ## save mmlt models
+      # models_mmlt_var[[i]] <- m_disc3_r
       
       ## save correlations predicted on newdata = nd
-      rhos_mcotram_var[[i]] <-  coef(m_disc3_r, type = "Corr", newdata = nd)
+      rhos_mmlt_var[[i]] <-  coef(m_disc3_r, type = "Corr", newdata = nd)
     }
-    # save(models_mcotram_var, file = "models_mcotram_var.RData")
-    save(rhos_mcotram_var, file = "rhos_mcotram_var.RData")
+    # save(models_mmlt_var, file = "models_mmlt_var.RData")
+    save(rhos_mmlt_var, file = "rhos_mmlt_var.RData")
   }
 )
 ## Hmsc
@@ -11071,8 +11071,8 @@ time_hmsc_var <- system.time(
 )
 
 
-time_mcotram_const
-time_mcotram_var
+time_mmlt_const
+time_mmlt_var
 time_hmsc_const
 # time_hmsc_var
 
@@ -11094,7 +11094,7 @@ boxplot(omegas[, 1:3], boxfill = NA, border = NA, ylim = c(0, 1),
         ylab = "Measure of association's value")
 boxplot(omegas, xaxt = "n", add = TRUE, boxfill = 2, 
         boxwex = 0.25, at = 1:ncol(omegas) - 0.30)
-boxplot(s_rho(corr_mcotram), xaxt = "n", add = TRUE, boxfill = 4, 
+boxplot(s_rho(corr_mmlt), xaxt = "n", add = TRUE, boxfill = 4, 
         boxwex = 0.25)
 points(c(1.22, 2.22, 3.22), s_rho(truecor), 
        col = rgb(.1, .1, .1, .7), pch = 20)
@@ -11122,9 +11122,9 @@ xtick1 <- c(10, cumsum(c(1, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31))[-c(
 xtick <- cumsum(c(1, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31))
 xlabs <- c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep",
            "Oct", "Nov", "Dec", "Jan")
-RhoS <- rhos_mcotram_var
+RhoS <- rhos_mmlt_var
 
-## mcotram
+## mmlt
 ### Figure S5
 par(mfrow = c(3, 1))
 ## Haubentaucher - Kormoran
@@ -11171,7 +11171,7 @@ lines(s_rho(Rho[, 3]), col = "red")
 ##     pmax(.Machine$double.eps^(1/2), x)
 ## 
 ##   ## exact log-likelihood
-##    ## needs a mmlt or mcotram model as input
+##    ## needs a mmlt or mmlt model as input
 ##    ll_orig <- function(mm, data){
 ## 
 ##      ret <- c()
@@ -11322,8 +11322,8 @@ lines(s_rho(Rho[, 3]), col = "red")
 ##      cret["cont"] <- mmlt(m_h2, m_k2, m_s2, data = tmpc, dofit = FALSE)$ll(coef(m_cont1))
 ##      dret["cont"] <- mmlt(m_h2, m_k2, m_s2, data = tmpd, dofit = FALSE)$ll(coef(m_disc1))
 ## 
-##      dret["disc"] <- mcotram(m_h1, m_k1, m_s1, data = tmpd, dofit = FALSE)$ll(coef(m_disc1))
-##      cret["disc"] <- mcotram(m_h1, m_k1, m_s1, data = tmpc, dofit = FALSE)$ll(coef(m_cont1))
+##      dret["disc"] <- mmlt(m_h1, m_k1, m_s1, data = tmpd, dofit = FALSE)$ll(coef(m_disc1))
+##      cret["disc"] <- mmlt(m_h1, m_k1, m_s1, data = tmpc, dofit = FALSE)$ll(coef(m_cont1))
 ## 
 ##      dret["orig"] <- ll_orig(m_disc1, tmpd)
 ##      cret["orig"] <- ll_orig(m_cont1, tmpc)
