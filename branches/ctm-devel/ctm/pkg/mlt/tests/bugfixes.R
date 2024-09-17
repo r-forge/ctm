@@ -1,190 +1,139 @@
 
-R version 4.4.1 (2024-06-14) -- "Race for Your Life"
-Copyright (C) 2024 The R Foundation for Statistical Computing
-Platform: x86_64-pc-linux-gnu
+library("mlt")
+library("sandwich")
+set.seed(29)
+options(digits = 5)
 
-R is free software and comes with ABSOLUTELY NO WARRANTY.
-You are welcome to redistribute it under certain conditions.
-Type 'license()' or 'licence()' for distribution details.
+### Nadja Klein
+dat <- data.frame(matrix(rnorm(300),ncol=3))
+names(dat) <- c("y","x1","x2")
+### set-up conditional transformation model for conditional
+y <- numeric_var("y", support = c(min(dat$y), max(dat$y)), bounds = c(-Inf, Inf))
+x1 <- numeric_var("x1", support = c(min(dat$x1), max(dat$x1)), bounds = c(-Inf, Inf)) 
+x2 <- numeric_var("x2", support = c(min(dat$x2), max(dat$x2)), bounds = c(-Inf, Inf)) 
+ctmm2 <- ctm(response = Bernstein_basis(y, order = 4, ui = "increasing"),
+              interacting = c(x1=Bernstein_basis(x1, order = 3),
+                              x2=Bernstein_basis(x2, order= 3)))
+### fit model
+mltm2 <- mlt(ctmm2, data = dat, scale = TRUE)
+round(p <- predict(mltm2, newdata = data.frame(x1=0, x2 = 0), q = mkgrid(mltm2, n = 10)[["y"]]), 2)
+### plot data
+plot(mltm2,newdata=expand.grid(x1=0:1, x2 = 0:1))
 
-R is a collaborative project with many contributors.
-Type 'contributors()' for more information and
-'citation()' on how to cite R or R packages in publications.
+### check update
+dist <- numeric_var("dist", support = c(2.0, 100), bounds = c(0, Inf))
+speed <- numeric_var("speed", support = c(5.0, 23), bounds = c(0, Inf)) 
+ctmm <- ctm(response = Bernstein_basis(dist, order = 4, ui = "increasing"),
+            interacting = Bernstein_basis(speed, order = 3))
 
-Type 'demo()' for some demos, 'help()' for on-line help, or
-'help.start()' for an HTML browser interface to help.
-Type 'q()' to quit R.
+m <- mlt(ctmm, data = cars)
+e <- estfun(m)
+w <- runif(nrow(cars)) < .8
+m1 <- update(m, weights = w, theta = coef(m))
+e1 <- estfun(m1, parm = coef(m))
+stopifnot(max(abs(e * w - e1)) < .Machine$double.eps)
+e1 <- estfun(m1)
+m2 <- mlt(ctmm, data = cars[w > 0,], theta = coef(m))
+stopifnot(isTRUE(all.equal(logLik(m1), logLik(m2))))
+stopifnot(isTRUE(all.equal(logLik(m1, coef(m2)), logLik(m2, coef(m1)))))
+e2 <- estfun(m2, parm = coef(m1))
+stopifnot(max(abs(e1[w > 0,] - e2)) < .Machine$double.eps)
 
-> 
-> library("mlt")
-Loading required package: basefun
-Loading required package: variables
-> library("sandwich")
-> set.seed(29)
-> options(digits = 5)
-> 
-> ### Nadja Klein
-> dat <- data.frame(matrix(rnorm(300),ncol=3))
-> names(dat) <- c("y","x1","x2")
-> ### set-up conditional transformation model for conditional
-> y <- numeric_var("y", support = c(min(dat$y), max(dat$y)), bounds = c(-Inf, Inf))
-> x1 <- numeric_var("x1", support = c(min(dat$x1), max(dat$x1)), bounds = c(-Inf, Inf)) 
-> x2 <- numeric_var("x2", support = c(min(dat$x2), max(dat$x2)), bounds = c(-Inf, Inf)) 
-> ctmm2 <- ctm(response = Bernstein_basis(y, order = 4, ui = "increasing"),
-+               interacting = c(x1=Bernstein_basis(x1, order = 3),
-+                               x2=Bernstein_basis(x2, order= 3)))
-> ### fit model
-> mltm2 <- mlt(ctmm2, data = dat, scale = TRUE)
-> round(p <- predict(mltm2, newdata = data.frame(x1=0, x2 = 0), q = mkgrid(mltm2, n = 10)[["y"]]), 2)
-        
-y         [,1]
-  -2.43  -2.43
-  -1.92  -1.78
-   -1.4  -1.17
-  -0.89  -0.61
-  -0.375 -0.11
-  0.139   0.33
-  0.654   0.75
-   1.17   1.19
-   1.68   1.71
-    2.2   2.41
-> ### plot data
-> plot(mltm2,newdata=expand.grid(x1=0:1, x2 = 0:1))
-> 
-> ### check update
-> dist <- numeric_var("dist", support = c(2.0, 100), bounds = c(0, Inf))
-> speed <- numeric_var("speed", support = c(5.0, 23), bounds = c(0, Inf)) 
-> ctmm <- ctm(response = Bernstein_basis(dist, order = 4, ui = "increasing"),
-+             interacting = Bernstein_basis(speed, order = 3))
-> 
-> m <- mlt(ctmm, data = cars)
-> e <- estfun(m)
-> w <- runif(nrow(cars)) < .8
-> m1 <- update(m, weights = w, theta = coef(m))
-> e1 <- estfun(m1, parm = coef(m))
-> stopifnot(max(abs(e * w - e1)) < .Machine$double.eps)
-> e1 <- estfun(m1)
-> m2 <- mlt(ctmm, data = cars[w > 0,], theta = coef(m))
-> stopifnot(isTRUE(all.equal(logLik(m1), logLik(m2))))
-> stopifnot(isTRUE(all.equal(logLik(m1, coef(m2)), logLik(m2, coef(m1)))))
-> e2 <- estfun(m2, parm = coef(m1))
-> stopifnot(max(abs(e1[w > 0,] - e2)) < .Machine$double.eps)
-> 
-> ### Muriel Buri
-> data("bodyfat", package = "TH.data")
-> set.seed(29)
-> 
-> y <- numeric_var("DEXfat", support = c(15, 45), bounds = c(10, 64))
-> basis_y <- Bernstein_basis(y, order = 2, ui = "incre")
-> x <- names(bodyfat)[-2]
-> xfm <- as.formula(paste("~", x, collapse = "+"))
-> m <- ctm(basis_y, shift = xfm, data = bodyfat)
-> mod <- mlt(m, data = bodyfat, scale = TRUE)
-> summary(mod)
+### Muriel Buri
+data("bodyfat", package = "TH.data")
+set.seed(29)
 
-Call:
-mlt(model = m, data = bodyfat, scale = TRUE)
+y <- numeric_var("DEXfat", support = c(15, 45), bounds = c(10, 64))
+basis_y <- Bernstein_basis(y, order = 2, ui = "incre")
+x <- names(bodyfat)[-2]
+xfm <- as.formula(paste("~", x, collapse = "+"))
+m <- ctm(basis_y, shift = xfm, data = bodyfat)
+mod <- mlt(m, data = bodyfat, scale = TRUE)
+summary(mod)
 
-Type:  continuous linear transformation model (transformed normal distribution)
-Log-Likelihood: -171.14 (df = 12)
+### parm can be a matrix with subject-specific parameters
+parm <- matrix(coef(mod), nrow = 1L)
+parm <- parm[rep(1, NROW(bodyfat)),]
+all.equal(logLik(mod), logLik(mod, parm = parm))
+all.equal(estfun(mod), estfun(mod, parm = parm))
 
-Coefficients: 30.951 38.885 42.523 -0.01508 -0.058906 -0.12136 -0.054061 -0.47698 -0.34424 -2.4143 -1.1319 0.36928
+### check for only left/right censoring before fitting
+y <- bodyfat$DEXfat
+sF <- rep(FALSE, length(y))
+library("survival")
+bodyfat$DEXfat <- Surv(y, sF)
+mod <- mlt(m, data = bodyfat, scale = TRUE)
+mod$convergence
 
-> 
-> ### parm can be a matrix with subject-specific parameters
-> parm <- matrix(coef(mod), nrow = 1L)
-> parm <- parm[rep(1, NROW(bodyfat)),]
-> all.equal(logLik(mod), logLik(mod, parm = parm))
-[1] TRUE
-> all.equal(estfun(mod), estfun(mod, parm = parm))
-[1] TRUE
-> 
-> ### check for only left/right censoring before fitting
-> y <- bodyfat$DEXfat
-> sF <- rep(FALSE, length(y))
-> library("survival")
-> bodyfat$DEXfat <- Surv(y, sF)
-> mod <- mlt(m, data = bodyfat, scale = TRUE)
-> mod$convergence
-[1] 1
-> 
-> 
-> ### just in case: check for new intercept_basis (basefun 0.0-39)
-> d <- data.frame(y = rnorm(100, mean = 2, sd = .25))
-> m <- ctm(as.basis(~ y, data = d, remove_intercept = TRUE, ui = matrix(1), ci = 0), 
-+          shifting = intercept_basis(), todistr = "Normal")
-> f <- mlt(m, data = d, scale = TRUE)
-> 
-> m2 <- ctm(as.basis(~ y, data = d, ui = matrix(c(0, 1), nr = 1), ci = 0), todistr = "Normal")
-> f2 <- mlt(m2, data = d, scale = TRUE)
-> stopifnot(all.equal(coef(f), coef(f2)[2:1], check.attributes = FALSE))
-> stopifnot(all.equal(logLik(f), logLik(f2)))
-> stopifnot(all.equal(estfun(f), estfun(f2)[,2:1], check.attributes = FALSE))
-> 
-> ### new shortcut
-> x <- rnorm(100)
-> stopifnot(all.equal(mlt:::.Normal()$dd2d(x), 
-+                     mlt:::.Normal()$dd(x) / mlt:::.Normal()$d(x)))
-> stopifnot(all.equal(mlt:::.Logistic()$dd2d(x), 
-+                     mlt:::.Logistic()$dd(x) / mlt:::.Logistic()$d(x)))
-> stopifnot(all.equal(mlt:::.MinExtrVal()$dd2d(x), 
-+                     mlt:::.MinExtrVal()$dd(x) / mlt:::.MinExtrVal()$d(x)))
-> 
-> ### multiple fixed parameters
-> y <- rnorm(100)
-> x <- runif(100)
-> d <- data.frame(y = y, x = x)
-> m <- ctm(as.basis(~ y, data = d, ui = matrix(c(0, 1), nr = 1), ci = 0),
-+          shifting = ~ x, data = d)
-> cf <- coef(mlt(m, data = d, fixed = c("x" = 1, "(Intercept)" = .5)))
-> stopifnot(all.equal(cf[c("(Intercept)", "x")], 
-+                     c("(Intercept)" = .5, "x" = 1)))
-> 
-> ### by Balint Tamasi
-> exact <- c(1, NA, NA)
-> cleft <- c(NA, 2, -Inf)
-> cright <- c(NA, Inf, 3)
-> (resp <- R(exact, cleft = cleft, cright = cright))
-[1]  1          (   2, Inf] (-Inf,   3]
-> ### was not the same
-> (surv <- as.Surv(resp))
-[1] 1  2+ 3-
-> 
-> ### fixed but increasing parameters
-> ### was always right in mlt() but test was missing
-> dist <- numeric_var("dist", support = c(2.0, 100), bounds = c(0, Inf))
-> speed <- numeric_var("speed", support = c(5.0, 23), bounds = c(0, Inf)) 
-> ctmm <- ctm(response = Bernstein_basis(dist, order = 6, ui = "increasing"))
-> m1 <- mlt(ctmm, data = cars)
-> m2 <- mlt(ctmm, data = cars, fixed = coef(m1)[4])
-> all.equal(c(logLik(m1)), c(logLik(m2)))
-[1] TRUE
-> 
-> ### mix of left / right censoring with missing values coded as -Inf, Inf
-> N <- 50
-> xl <- runif(N)
-> xr <- xl + 1
-> lc <- 1:5
-> xl[lc] <- -Inf
-> rc <- 6:10
-> xr[rc] <- Inf
-> ic <- 11:15
-> xl[ic] <- -Inf
-> xr[ic] <- Inf
-> 
-> d <- data.frame(1:N)
-> d$y <- R(cleft = xl, cright = xr)
-> m <- mlt(ctm(response = Bernstein_basis(numeric_var("y", bounds = c(0, 1)), order = 1)),
-+              data = d, theta = c(-1, 1))
-> mi <- mlt(ctm(response = Bernstein_basis(numeric_var("y", bounds = c(0, 1)), order = 1)),
-+               data = d[-ic,,drop = FALSE], theta = c(-1, 1))
-> all.equal(logLik(m), logLik(mi))
-[1] TRUE
-> 
-> 
-> 
-> 
-> 
-> proc.time()
-   user  system elapsed 
-  0.810   0.059   0.874 
+
+### just in case: check for new intercept_basis (basefun 0.0-39)
+d <- data.frame(y = rnorm(100, mean = 2, sd = .25))
+m <- ctm(as.basis(~ y, data = d, remove_intercept = TRUE, ui = matrix(1), ci = 0), 
+         shifting = intercept_basis(), todistr = "Normal")
+f <- mlt(m, data = d, scale = TRUE)
+
+m2 <- ctm(as.basis(~ y, data = d, ui = matrix(c(0, 1), nr = 1), ci = 0), todistr = "Normal")
+f2 <- mlt(m2, data = d, scale = TRUE)
+stopifnot(all.equal(coef(f), coef(f2)[2:1], check.attributes = FALSE))
+stopifnot(all.equal(logLik(f), logLik(f2)))
+stopifnot(all.equal(estfun(f), estfun(f2)[,2:1], check.attributes = FALSE))
+
+### new shortcut
+x <- rnorm(100)
+stopifnot(all.equal(mlt:::.Normal()$dd2d(x), 
+                    mlt:::.Normal()$dd(x) / mlt:::.Normal()$d(x)))
+stopifnot(all.equal(mlt:::.Logistic()$dd2d(x), 
+                    mlt:::.Logistic()$dd(x) / mlt:::.Logistic()$d(x)))
+stopifnot(all.equal(mlt:::.MinExtrVal()$dd2d(x), 
+                    mlt:::.MinExtrVal()$dd(x) / mlt:::.MinExtrVal()$d(x)))
+
+### multiple fixed parameters
+y <- rnorm(100)
+x <- runif(100)
+d <- data.frame(y = y, x = x)
+m <- ctm(as.basis(~ y, data = d, ui = matrix(c(0, 1), nr = 1), ci = 0),
+         shifting = ~ x, data = d)
+cf <- coef(mlt(m, data = d, fixed = c("x" = 1, "(Intercept)" = .5)))
+stopifnot(all.equal(cf[c("(Intercept)", "x")], 
+                    c("(Intercept)" = .5, "x" = 1)))
+
+### by Balint Tamasi
+exact <- c(1, NA, NA)
+cleft <- c(NA, 2, -Inf)
+cright <- c(NA, Inf, 3)
+(resp <- R(exact, cleft = cleft, cright = cright))
+### was not the same
+(surv <- as.Surv(resp))
+
+### fixed but increasing parameters
+### was always right in mlt() but test was missing
+dist <- numeric_var("dist", support = c(2.0, 100), bounds = c(0, Inf))
+speed <- numeric_var("speed", support = c(5.0, 23), bounds = c(0, Inf)) 
+ctmm <- ctm(response = Bernstein_basis(dist, order = 6, ui = "increasing"))
+m1 <- mlt(ctmm, data = cars)
+m2 <- mlt(ctmm, data = cars, fixed = coef(m1)[4])
+all.equal(c(logLik(m1)), c(logLik(m2)))
+
+### mix of left / right censoring with missing values coded as -Inf, Inf
+N <- 50
+xl <- runif(N)
+xr <- xl + 1
+lc <- 1:5
+xl[lc] <- -Inf
+rc <- 6:10
+xr[rc] <- Inf
+ic <- 11:15
+xl[ic] <- -Inf
+xr[ic] <- Inf
+
+d <- data.frame(1:N)
+d$y <- R(cleft = xl, cright = xr)
+m <- mlt(ctm(response = Bernstein_basis(numeric_var("y", bounds = c(0, 1)), order = 1)),
+             data = d, theta = c(-1, 1))
+mi <- mlt(ctm(response = Bernstein_basis(numeric_var("y", bounds = c(0, 1)), order = 1)),
+              data = d[-ic,,drop = FALSE], theta = c(-1, 1))
+all.equal(logLik(m), logLik(mi))
+
+
+
+
