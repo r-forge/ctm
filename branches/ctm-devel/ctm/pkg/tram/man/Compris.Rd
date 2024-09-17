@@ -144,8 +144,12 @@ distributions for the primary event of interest and all competing events.
           `Event_death.Event_death.clinstgI`               =  0.569,
           `Event_death.Event_relapse.(Intercept)`          = -4.549
          )
-    m <- Compris(y ~ ch + age + hgb + clinstg, data = follic, 
-                 theta = cf, log_first = TRUE, optim = mltoptim())
+    m <- Compris(y ~ ch + age + hgb + clinstg, data = follic, log_first = TRUE,
+                 ### arguments below speed-up example, don't use!
+                 theta = cf, 		### informativ starting values
+                 optim = mltoptim(),    ### no hessian
+                 args  = list(type = "ghalton", 
+                              M = 100))	### only 100 MC integration points
 
     ### marginal parameters
     coef(m, type = "marginal")    
