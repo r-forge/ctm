@@ -1,4 +1,7 @@
 
+### version 1.0-6 only
+mmlt <- Mmlt
+
 ###
 ### Fit models for HCC data presented in
 ### 

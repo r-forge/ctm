@@ -297,12 +297,12 @@
     return(start)
 }
 
-mmltoptim <- function(auglag = list(maxtry = 5), ...)
+Mmltoptim <- function(auglag = list(maxtry = 5), ...)
     mltoptim(auglag = auglag, ...)
 
-mmlt <- function(..., formula = ~ 1, data, conditional = FALSE, 
+Mmlt <- function(..., formula = ~ 1, data, conditional = FALSE, 
                  theta = NULL, fixed = NULL, scale = FALSE,
-                 optim = mmltoptim(), args = list(seed = 1, M = 1000), 
+                 optim = Mmltoptim(), args = list(seed = 1, M = 1000), 
                  dofit = TRUE, domargins = TRUE, sequentialfit = FALSE)
 {
   
@@ -350,7 +350,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
             ### fix coefs and estimate jth row of
             ### lambda and (if domargins) jth marginal parameters only
             mc$fixed <- cfj
-            mj <- do.call("mmlt", mc)
+            mj <- do.call("Mmlt", mc)
         }
         return(mj)
     }
@@ -374,7 +374,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
             theta <- coef(sm, type = "all", fixed = TRUE)
             if (conditional) {
                 ### theta are conditional parameters, scale with sigma
-                class(sm)[1] <- "cmmlt" ### do NOT standardize Lambda
+                class(sm)[1] <- "cMmlt" ### do NOT standardize Lambda
                 d <- rowMeans(mvtnorm::diagonals(coef(sm, newdata = data, 
                                                  type = "Sigma")))
                 theta[1:sum(m$nparm)] <- 
@@ -651,7 +651,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
             }
             names(op$par) <- names(lambdastart)
             ret <- c(start, op$par * scl[names(lambdastart)])
-            ### note: We throw away optim_hessian. vcov.mmlt
+            ### note: We throw away optim_hessian. vcov.Mmlt
             ### uses numDeriv::hessian INCLUDING marginal parameters
             ### (which is probably the right thing to do)
             ret <- list(par = ret, value = -op$value)
@@ -714,13 +714,13 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
         ret$data <- data
     ret$names <- m$names
     ret$call <- match.call()
-    class(ret) <- c(ifelse(conditional, "cmmlt", "mmmlt"), "mmlt")
-    ret$mmlt <- "Multivariate Conditional Transformation Model"
+    class(ret) <- c(ifelse(conditional, "cMmlt", "mMmlt"), "Mmlt")
+    ret$Mmlt <- "Multivariate Conditional Transformation Model"
     ret
 }
 
 
-.coef.mmlt <- function(object, newdata,
+.coef.Mmlt <- function(object, newdata,
                        type = c("all", "Lambdapar", "Lambda", "Lambdainv", 
                                 "Precision", "PartialCorr", "Sigma", "Corr", 
                                 "Spearman", "Kendall"), 
@@ -753,7 +753,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
                           names = object$names)
     }
 
-    if (inherits(object, "mmmlt")) {
+    if (inherits(object, "mMmlt")) {
         ret0 <- ret
         ret <- mvtnorm::standardize(invchol = ret)
     }
@@ -768,7 +768,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
     return(ret)
 }
 
-coef.cmmlt <- function(object, newdata,
+coef.cMmlt <- function(object, newdata,
                        type = c("all", "conditional", "Lambdapar", "Lambda", 
                                 "Lambdainv", "Precision", "PartialCorr", 
                                 "Sigma", "Corr", "Spearman", "Kendall"), 
@@ -781,11 +781,11 @@ coef.cmmlt <- function(object, newdata,
         prm <- object$parm(object$par)
         return(prm[-length(prm)])
     }
-    return(.coef.mmlt(object = object, newdata = newdata, type = type, 
+    return(.coef.Mmlt(object = object, newdata = newdata, type = type, 
                       fixed = fixed, ...))
 }
 
-coef.mmmlt <- function(object, newdata,
+coef.mMmlt <- function(object, newdata,
                        type = c("all", "marginal", "Lambdapar", "Lambda", 
                                 "Lambdainv", "Precision", "PartialCorr", 
                                 "Sigma", "Corr", "Spearman", "Kendall"), 
@@ -798,12 +798,12 @@ coef.mmmlt <- function(object, newdata,
         prm <- object$parm(object$par)
         return(prm[-length(prm)])
     }
-    return(.coef.mmlt(object = object, newdata = newdata, type = type, 
+    return(.coef.Mmlt(object = object, newdata = newdata, type = type, 
                       fixed = fixed, ...))
 }
 
 
-vcov.mmlt <- function(object, ...) {
+vcov.Mmlt <- function(object, ...) {
     step <- 0
     lam <- 1e-6
     H <- object$optim_hessian
@@ -829,7 +829,7 @@ vcov.mmlt <- function(object, ...) {
     ret
 }
 
-logLik.mmlt <- function (object, parm = coef(object), newdata = NULL, ...) 
+logLik.Mmlt <- function (object, parm = coef(object), newdata = NULL, ...) 
 {
     args <- list(...)
     if (length(args) > 0) 
@@ -840,7 +840,7 @@ logLik.mmlt <- function (object, parm = coef(object), newdata = NULL, ...)
     ret
 }
 
-estfun.mmlt <- function(x, parm = coef(x, type = "all"), 
+estfun.Mmlt <- function(x, parm = coef(x, type = "all"), 
                         newdata = NULL, ...) {
     args <- list(...)
     if (length(args) > 0)
@@ -848,19 +848,19 @@ estfun.mmlt <- function(x, parm = coef(x, type = "all"),
     return(x$score(parm, newdata = newdata, scores = TRUE))
 }
 
-summary.mmlt <- function(object, ...) {
+summary.Mmlt <- function(object, ...) {
     ret <- list(call = object$call,
                 #                tram = object$tram,
                 test = cftest(object, 
                               parm = names(coef(object, with_baseline = FALSE))),
                 ll = logLik(object))
-    class(ret) <- "summary.mmlt"
+    class(ret) <- "summary.Mmlt"
     ret
 }
 
-print.summary.mmlt <- function(x, digits = max(3L, getOption("digits") - 3L), 
+print.summary.Mmlt <- function(x, digits = max(3L, getOption("digits") - 3L), 
                                ...) {
-    cat("\n", x$mmlt, "\n")
+    cat("\n", x$Mmlt, "\n")
     cat("\nCall:\n")
     print(x$call)
     cat("\nCoefficients:\n")
@@ -876,7 +876,7 @@ print.summary.mmlt <- function(x, digits = max(3L, getOption("digits") - 3L),
     invisible(x)
 }
 
-print.mmlt <- function(x, ...) {
+print.Mmlt <- function(x, ...) {
     cat("\n", "Multivariate conditional transformation model", "\n")
     cat("\nCall:\n")
     print(x$call)
@@ -886,7 +886,7 @@ print.mmlt <- function(x, ...) {
 }
 
 
-predict.mmlt <- function (object, newdata, margins = 1:J, 
+predict.Mmlt <- function (object, newdata, margins = 1:J, 
     type = c("trafo", "distribution", "survivor", "density", "hazard"), 
     log = FALSE, args = object$args, ...) 
 {
@@ -905,7 +905,7 @@ predict.mmlt <- function (object, newdata, margins = 1:J,
         names(cf) <- ncf
         coef(tmp) <- cf
         ### marginal models
-        if (!inherits(object, "cmmlt")) {
+        if (!inherits(object, "cMmlt")) {
             ret <- predict(tmp, newdata = newdata, type = type, log = log, ...)
             return(ret)
         }
@@ -1000,7 +1000,7 @@ predict.mmlt <- function (object, newdata, margins = 1:J,
     return(exp(ret))
 }
 
-simulate.mmlt <- function(object, nsim = 1L, seed = NULL, newdata, K = 50, 
+simulate.Mmlt <- function(object, nsim = 1L, seed = NULL, newdata, K = 50, 
                           ...) {
 
     ### from stats:::simulate.lm
@@ -1035,7 +1035,7 @@ simulate.mmlt <- function(object, nsim = 1L, seed = NULL, newdata, K = 50,
 
     ret <- matrix(0.0, nrow = N, ncol = J)
 
-    if (inherits(object, "cmmlt")) {
+    if (inherits(object, "cMmlt")) {
         for (j in 1:J) {
             tmp <- object$models$models[[j]]
             q <- mkgrid(tmp, n = K)[[1L]]
@@ -1075,7 +1075,7 @@ simulate.mmlt <- function(object, nsim = 1L, seed = NULL, newdata, K = 50,
     return(ret)
 }
 
-variable.names.mmlt <- function(object, response_only = FALSE, ...) {
+variable.names.Mmlt <- function(object, response_only = FALSE, ...) {
 
     if (response_only)
         return(sapply(object$models$models, function(x) variable.names(x)[1L]))
@@ -1087,7 +1087,7 @@ variable.names.mmlt <- function(object, response_only = FALSE, ...) {
 confregion <- function(object, level = .95, ...)
     UseMethod("confregion")
 
-confregion.mmlt <- function(object, level = .95, newdata, K = 250, ...) {
+confregion.Mmlt <- function(object, level = .95, newdata, K = 250, ...) {
 
     if (!missing(newdata)) stopifnot(nrow(newdata) == 1)
 
@@ -1125,7 +1125,7 @@ confregion.mmlt <- function(object, level = .95, newdata, K = 250, ...) {
 HDR <- function(object, level = .95, ...)
     UseMethod("HDR")
 
-HDR.mmlt <- function(object, level = .95, newdata, nsim = 1000L, K = 25, ...) {
+HDR.Mmlt <- function(object, level = .95, newdata, nsim = 1000L, K = 25, ...) {
 
     if (!missing(newdata)) {
         stopifnot(nrow(newdata) == 1)
@@ -1147,7 +1147,7 @@ HDR.mmlt <- function(object, level = .95, newdata, nsim = 1000L, K = 25, ...) {
     ret
 }
 
-mkgrid.mmlt <- function(object, ...) {
+mkgrid.Mmlt <- function(object, ...) {
 
     lx <- mkgrid(as.basis(object$formula, data = object$data), ...)
     grd <- do.call("c", lapply(object$models$models, mkgrid, ...))

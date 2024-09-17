@@ -1,10 +1,10 @@
-\name{mmlt}
-\alias{mmlt}
-\alias{mmltoptim}
-\alias{coef.cmmlt}
-\alias{coef.mmmlt}
-\alias{predict.mmlt}
-\alias{simulate.mmlt}
+\name{Mmlt}
+\alias{Mmlt}
+\alias{Mmltoptim}
+\alias{coef.cMmlt}
+\alias{coef.mMmlt}
+\alias{predict.Mmlt}
+\alias{simulate.Mmlt}
 \title{
   Multivariate Conditional Transformation Models
 }
@@ -13,28 +13,28 @@
   or a mix of continuous and discrete outcomes
 }
 \usage{
-mmlt(..., formula = ~ 1, data, conditional = FALSE, theta = NULL, fixed = NULL,
-     scale = FALSE, optim = mmltoptim(), args = list(seed = 1, M = 1000), 
+Mmlt(..., formula = ~ 1, data, conditional = FALSE, theta = NULL, fixed = NULL,
+     scale = FALSE, optim = Mmltoptim(), args = list(seed = 1, M = 1000), 
      dofit = TRUE, domargins = TRUE, sequentialfit = FALSE)
-mmltoptim(auglag = list(maxtry = 5), ...)
-\method{coef}{cmmlt}(object, newdata, 
+Mmltoptim(auglag = list(maxtry = 5), ...)
+\method{coef}{cMmlt}(object, newdata, 
      type = c("all", "conditional", "Lambdapar", "Lambda", "Lambdainv", 
               "Precision", "PartialCorr", "Sigma", "Corr", 
               "Spearman", "Kendall"), fixed = FALSE, 
      ...)
-\method{coef}{mmmlt}(object, newdata, 
+\method{coef}{mMmlt}(object, newdata, 
      type = c("all", "marginal", "Lambdapar", "Lambda", "Lambdainv", 
               "Precision", "PartialCorr", "Sigma", "Corr", 
               "Spearman", "Kendall"), fixed = FALSE,
      ...)
-\method{predict}{mmlt}(object, newdata, margins = 1:J, 
+\method{predict}{Mmlt}(object, newdata, margins = 1:J, 
         type = c("trafo", "distribution", "survivor", "density", "hazard"), 
                  log = FALSE, args = object$args, ...)
-\method{simulate}{mmlt}(object, nsim = 1L, seed = NULL, newdata, K = 50, ...)
+\method{simulate}{Mmlt}(object, nsim = 1L, seed = NULL, newdata, K = 50, ...)
 }
 \arguments{
   \item{\dots}{marginal transformation models, one for each response, for
-\code{mmlt}. Additional arguments for the methods.
+\code{Mmlt}. Additional arguments for the methods.
 }
   \item{formula}{a model formula describing a model for the dependency
 structure via the lambda parameters. The default is set to \code{~ 1} for constant lambdas.
@@ -57,7 +57,7 @@ or a logical (for \code{coef}) indicating to also return fixed parameters
   \item{scale}{a logical indicating if (internal) scaling shall be applied
           to the model coefficients.
 }
-  \item{optim}{a list of optimisers as returned by \code{\link{mmltoptim}}
+  \item{optim}{a list of optimisers as returned by \code{\link{Mmltoptim}}
 }
   \item{args}{a list of arguments for \code{\link[mvtnorm]{lpmvnorm}}.}
   \item{dofit}{logical; parameters are fitted by default, otherwise a list
@@ -73,7 +73,7 @@ or a logical (for \code{coef}) indicating to also return fixed parameters
 }
 \item{auglag}{a list of arguments to \code{\link[alabama]{auglag}} ensuring
               a numerically determined Hessian is returned.}
-  \item{object}{an object of class \code{mmlt}.
+  \item{object}{an object of class \code{Mmlt}.
 }
   \item{newdata}{an optional data.frame coefficients and predictions shall
                  be computed for.
@@ -99,7 +99,7 @@ variable, or multiple integers (currently only \code{1:j} implemented).
   three-variate example.
 }
 \value{
-An object of class \code{mmlt} with \code{coef} and \code{predict}
+An object of class \code{Mmlt} with \code{coef} and \code{predict}
 methods.
 }
 \references{
@@ -121,7 +121,7 @@ methods.
                    add = c(-5, 5))
 
   ## fit multivariate unconditional transformation model
-  m_speed_dist <- mmlt(m_speed, m_dist, formula = ~ 1, data = cars)
+  m_speed_dist <- Mmlt(m_speed, m_dist, formula = ~ 1, data = cars)
 
   ## log-likelihood
   logLik(m_speed_dist)
@@ -137,7 +137,7 @@ methods.
 
   ## constrain lambda to zero and fit independence model
   ## => log-likelihood is the sum of the marginal log-likelihoods
-  mI <- mmlt(m_speed, m_dist, formula = ~1, data = cars, 
+  mI <- Mmlt(m_speed, m_dist, formula = ~1, data = cars, 
              fixed = c("dist.speed.(Intercept)" = 0))
   logLik(m_speed) + logLik(m_dist)
   logLik(mI)
