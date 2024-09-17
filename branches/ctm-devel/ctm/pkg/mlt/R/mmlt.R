@@ -35,7 +35,8 @@
         inherits(attr(x$model$bases$response, "variables"), 
                  "continuous_var"))
 
-    nobs <- unique(sapply(m, nobs))
+    ### nobs() gives length(weights[weights > 0])
+    nobs <- unique(sapply(m, function(x) NROW(x$data)))
     stopifnot(length(nobs) == 1L)
     nobs <- nobs[[1L]]
 
@@ -685,7 +686,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
             sargs$args <- args
             mm[[j]] <- do.call(".mmlt_setup", sargs)
         }
-        idx <- do.call("c", split(1:length(cdpat), cdpat))
+        idx <- match(1:length(cdpat), do.call("c", split(1:length(cdpat), cdpat)))
         ret <- mm[[1L]]
         ret$data <- data
         ret$logliki <- function(parm, newdata = NULL) {
@@ -858,7 +859,9 @@ coef.cmmlt <- function(object, newdata,
         cf <- c(object$par, object$fixed)[object$parnames]
         if (!fixed) return(object$par)
         prm <- object$parm(cf)
-        return(prm[-length(prm)])
+        ret <- prm[-length(prm)]
+        names(ret) <- object$names
+        return(ret)
     }
     return(.coef.mmlt(object = object, newdata = newdata, type = type, 
                       fixed = fixed, ...))
@@ -877,7 +880,9 @@ coef.mmmlt <- function(object, newdata,
         cf <- c(object$par, object$fixed)[object$parnames]
         if (!fixed) return(object$par)
         prm <- object$parm(cf)
-        return(prm[-length(prm)])
+        ret <- prm[-length(prm)]
+        names(ret) <- object$names
+        return(ret)
     }
     return(.coef.mmlt(object = object, newdata = newdata, type = type, 
                       fixed = fixed, ...))
@@ -923,7 +928,7 @@ logLik.mmlt <- function (object, parm = coef(object, fixed = TRUE), w = NULL, ne
     args <- list(...)
     if (length(args) > 0) 
         warning("Arguments ", names(args), " are ignored")
-    if (is.null(w))
+    if (is.null(w) && is.null(newdata))
         w <- weights(object)
     ret <- object$loglik(parm, newdata = newdata, weights = w)
     attr(ret, "df") <- length(object$par)
@@ -936,7 +941,7 @@ estfun.mmlt <- function(x, parm = coef(x, fixed = TRUE),
     args <- list(...)
     if (length(args) > 0)
         warning("Arguments ", names(args), " are ignored")
-    if (is.null(w))
+    if (is.null(w) && is.null(newdata))
         w <- weights(x)
     return(-x$score(parm, newdata = newdata, weights = w))
 }
