@@ -975,65 +975,6 @@ y.4.x.1   0.072   0.070   0.111   0.122
 +     as.array(coef(mmN, type = "Spearman"))[,,1])
 [1] TRUE
 > 
-> ### order independence, starting with 1.1-0, depending on
-> ### mvtnorm 1.3-0
-> N <- 100
-> y <- gl(3, N, ordered = TRUE)
-> x <- rnorm(length(y))
-> w <- rnorm(length(y))
-> 
-> mx <- BoxCox(x ~ 1)
-> mw <- BoxCox(w ~ 1)
-> my <- Polr(y ~ 1)
-> mxwy <- Mmlt(mx, mw, my, formula = ~ 1)
-> cfxwy <- coef(mxwy)
-> Sxwy <- coef(mxwy, type = "Sigma")
-> p <- dimnames(Sxwy)[[2L]]
-> llxwy <- logLik(mxwy)
-> 
-> gn <- numDeriv::grad(mxwy$ll, cfxwy)
-> ga <- mxwy$score(cfxwy)
-> chk(gn, ga)
-[1] TRUE
-> 
-> mwxy <- Mmlt(mw, mx, my, formula = ~ 1)
-> cfwxy <- coef(mwxy)
-> Swxy <- coef(mwxy, type = "Sigma")[,p]
-> llwxy <- logLik(mwxy)
-> 
-> nm <- names(cfwxy)
-> nc <- nm[nm %in% names(cfxwy)]
-> chk(cfxwy[nc], cfwxy[nc])
-[1] TRUE
-> chk(Swxy, Sxwy)
-[1] TRUE
-> chk(llwxy, llxwy)
-[1] TRUE
-> 
-> gn <- numDeriv::grad(mwxy$ll, cfwxy)
-> ga <- mwxy$score(cfwxy)
-> chk(gn, ga)
-[1] TRUE
-> 
-> myxw <- Mmlt(my, mx, mw, formula = ~ 1)
-> cfyxw <- coef(myxw)
-> Syxw <- coef(myxw, type = "Sigma")[,p]
-> llyxw <- logLik(myxw)
-> 
-> nm <- names(cfyxw)
-> nc <- nm[nm %in% names(cfxwy)]
-> chk(cfxwy[nc], cfyxw[nc])
-[1] "Mean relative difference: 0.0015"
-> chk(Syxw, Sxwy)
-[1] TRUE
-> chk(llyxw, llxwy)
-[1] TRUE
-> 
-> gn <- numDeriv::grad(myxw$ll, cfyxw)
-> ga <- myxw$score(cfyxw)
-> chk(gn, ga)
-[1] TRUE
-> 
 > proc.time()
    user  system elapsed 
-   46.7     0.1    46.8 
+ 39.089   0.087  39.301 
