@@ -2,7 +2,7 @@
 \name{NEWS}
 \title{NEWS file for the cotram package}
 
-\section{Changes in Version 0.5-2 (2024-09-17)}{
+\section{Changes in Version 0.5-2 (2024-09-18)}{
   \itemize{
     \item{Remove \code{mcotram} temporarily.}
   }
