@@ -646,9 +646,9 @@
             p <- parm
             names(p) <- object$eparnames
             p <- c(p, fixed)
-            par <- p[object$parnames]
+            parm <- p[object$parnames]
         }
-        ll(parm = par, ...)
+        ll(parm = parm, ...)
     }
     sc <- object$score
     object$score <- function(parm, ...) {
@@ -656,9 +656,9 @@
             p <- parm
             names(p) <- object$eparnames
             p <- c(p, fixed)
-            par <- p[object$parnames]
+            parm <- p[object$parnames]
         }
-        sc(parm = par, ...)
+        sc(parm = parm, ...)
     }
     class(object) <- c("mmlt_fit", cls)
 
