@@ -798,13 +798,13 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
         sfixed <- theta[nfixed]
         stheta <- theta[!(names(theta) %in% nfixed)]
         if (length(theta)) {
-            ret <- .mmlt_fit(ret, weights = models$weights, 
+            mret <- .mmlt_fit(ret, weights = models$weights, 
                              subset = subset, fixed = sfixed,  optim = optim, theta = stheta)
-            class(ret) <- c(ifelse(conditional, "cmmlt", "mmmlt"), "mmlt")
-            ret$mmlt <- "Multivariate Conditional Transformation Model"
-            ret$call <- call
-            if (!domargins) return(ret)
-            theta <- coef(ret, fixed = TRUE)
+            class(mret) <- c(ifelse(conditional, "cmmlt", "mmmlt"), "mmlt")
+            mret$mmlt <- "Multivariate Conditional Transformation Model"
+            mret$call <- call
+            if (!domargins) return(mret)
+            theta <- coef(mret, fixed = TRUE)
         } else {
             ### all parameters were fixed (= all lambda parameters)
             theta <- mtheta
