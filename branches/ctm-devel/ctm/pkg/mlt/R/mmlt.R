@@ -752,7 +752,11 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
         ### if data is continuous for all models and
         ### lambda is constant, compute starting values analytically without
         ### paying attention to fixed parameters
-        if (nlevels(cdpat) == 1 && all(models$cont) && length(all.vars(formula)) == 0) {
+        av <- 1
+        if (inherits(formula, "formula"))
+            av <- length(all.vars(formula))
+        if (nlevels(cdpat) == 1 && all(models$cont) 
+            && av == 0L) {
             J <- length(models$models)
             Z <- do.call("cbind", .mget(models, j = 1:J, parm = mpar, what = "trafo"))
             N <- NROW(Z)
