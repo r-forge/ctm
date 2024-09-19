@@ -101,8 +101,13 @@
         return(ret)
     }
 
-    if (what == "scale")
-        return(models$models[[j]]$parsc)
+    if (what == "scale") {
+        cf <- coef(models$models[[j]], fixed = TRUE)
+        parsc <- models$models[[j]]$parsc
+        cf[] <- 1
+        cf[names(parsc)] <- parsc
+        return(cf)
+    }
 
     prm <- models$parm(parm)[[j]]
     ### remove marginally fix parameters
@@ -510,8 +515,8 @@
     gt1 <- scl >= 1.1
     scl[gt1] <- 1 / scl[gt1]
     scl[lt1] <- 1
-        scl <- c(do.call("c", .mget(models, j = 1:J, parm = NULL, what = "scale")), 
-                          scl)
+    scl <- c(do.call("c", .mget(models, j = 1:J, parm = NULL, what = "scale")), 
+             scl)
     names(scl) <- parnames
     ret$scl <- scl
 
