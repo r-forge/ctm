@@ -83,11 +83,9 @@ variable, or multiple integers (currently only \code{1:j} implemented).
   \item{K}{number of grid points to generate.}
 }
 \details{
-  The function implements multivariate conditional transformation models
+  The function implements core functionality for fitting 
+  multivariate conditional transformation models
   as described by Klein et al (2020). 
-  Below is a simple example for an unconditional bivariate distribution.
-  See \code{demo("undernutrition", package = "tram")} for a conditional
-  three-variate example.
 }
 \value{
 An object of class \code{mmlt} with \code{coef} and \code{predict}
