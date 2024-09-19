@@ -17,7 +17,7 @@
 \usage{
 \method{weights}{mmlt}(object, ...)
 \method{logLik}{mmlt}(object, parm = coef(object, fixed = FALSE), w = NULL, newdata = NULL, ...)
-\method{vcov}{mmlt}(object, ...)
+\method{vcov}{mmlt}(object, parm = coef(object, fixed = FALSE), complete = FALSE, ...)
 \method{Hessian}{mmlt}(object, parm = coef(object, fixed = FALSE), ...)
 \method{Gradient}{mmlt}(object, parm = coef(object, fixed = FALSE), ...)
 \method{estfun}{mmlt}(x, parm = coef(x, fixed = FALSE),
@@ -39,6 +39,7 @@
                  model \code{object} on these new observations. The
                  parameters \code{parm} and \code{w} are ignored in this situation.}
   \item{response_only}{only return the names of the response variables}
+  \item{complete}{currently ignored}
   \item{\dots}{additional arguments}
 }
 \details{

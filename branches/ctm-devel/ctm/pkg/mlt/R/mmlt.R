@@ -643,8 +643,9 @@
     ll <- object$loglik
     object$loglik <- function(parm, ...) {
         if (!is.null(fixed)) {
+            eparnames <- object$parnames[!object$parnames %in% names(fixed)]
             p <- parm
-            names(p) <- object$eparnames
+            names(p) <- eparnames
             p <- c(p, fixed)
             parm <- p[object$parnames]
         }
@@ -653,8 +654,9 @@
     sc <- object$score
     object$score <- function(parm, ...) {
         if (!is.null(fixed)) {
+            eparnames <- object$parnames[!object$parnames %in% names(fixed)]
             p <- parm
-            names(p) <- object$eparnames
+            names(p) <- eparnames
             p <- c(p, fixed)
             parm <- p[object$parnames]
         }
@@ -926,7 +928,7 @@ Hessian.mmlt <- function(object, parm = coef(object, fixed = FALSE), ...) {
     if (length(args) > 0)
         warning("Arguments ", names(args), " are ignored")
     H <- object$optim_hessian
-    if (is.null(H)) {
+    if (is.null(H) || !isTRUE(all.equal(parm, coef(object, fixed = FALSE)))) {
         if (requireNamespace("numDeriv")) {
             H <- numDeriv::hessian(function(par) -logLik(object, parm = par), parm)
         } else {
@@ -938,11 +940,14 @@ Hessian.mmlt <- function(object, parm = coef(object, fixed = FALSE), ...) {
 
 Gradient.mmlt <- Gradient.mlt
 
-vcov.mmlt <- function(object, ...) {
+vcov.mmlt <- function(object, parm = coef(object, fixed = FALSE), 
+                      complete = FALSE, ...) {
     step <- 0
     lam <- 1e-6
 
-    H <- Hessian(object, ...)
+    if (complete) stop("argument complete not implemented")
+
+    H <- Hessian(object, parm = parm, ...)
 
     ### <NOTE> add an option to compute vcov for selected 
     ### parameters (eg marginal effects) only and use Schur
