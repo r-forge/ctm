@@ -1,7 +1,7 @@
 
 import("mlt")
 importFrom("numDeriv", "grad", "hessian")
-importFrom("stats", "coef", "weights")
+importFrom("stats", "coef", "weights", "logLik")
 
 importFrom("eha", "phreg")
 importFrom("flexsurv", "flexsurvreg")

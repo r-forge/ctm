@@ -7,10 +7,11 @@
   Check analytic gradient and hessian against their numerical approximation
 }
 \usage{
-checkGH(object)
+checkGH(object, tol)
 }
 \arguments{
   \item{object}{an object of class \code{mlt} as returned by \code{\link[mlt]{mlt}}}
+  \item{tol}{tolerance, passed to \code{all.equal}.}
 }
 \details{
   Computes the gradient and hessian analytically and numerically and compares the
