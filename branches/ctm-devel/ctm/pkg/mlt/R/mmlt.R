@@ -640,6 +640,26 @@
     object$scale <- scale ### scaling yes/no
     object$weights <- weights
     object$optim <- optim
+    ll <- object$loglik
+    object$loglik <- function(parm, ...) {
+        if (!is.null(fixed)) {
+            p <- parm
+            names(p) <- object$eparnames
+            p <- c(p, fixed)
+            par <- p[object$parnames]
+        }
+        ll(parm = par, ...)
+    }
+    sc <- object$score
+    object$score <- function(parm, ...) {
+        if (!is.null(fixed)) {
+            p <- parm
+            names(p) <- object$eparnames
+            p <- c(p, fixed)
+            par <- p[object$parnames]
+        }
+        sc(parm = par, ...)
+    }
     class(object) <- c("mmlt_fit", cls)
 
     return(object)
@@ -901,17 +921,28 @@ coef.mmmlt <- function(object, newdata,
     object
 }
 
-vcov.mmlt <- function(object, ...) {
-    step <- 0
-    lam <- 1e-6
+Hessian.mmlt <- function(object, parm = coef(object, fixed = FALSE), ...) {
+    args <- list(...)
+    if (length(args) > 0)
+        warning("Arguments ", names(args), " are ignored")
     H <- object$optim_hessian
     if (is.null(H)) {
         if (requireNamespace("numDeriv")) {
-            H <- numDeriv::hessian(function(par) logLik(object, parm = par), object$par)
+            H <- numDeriv::hessian(function(par) -logLik(object, parm = par), parm)
         } else {
             stop("Hessian not available")
         }
     }
+    return(H)
+}
+
+Gradient.mmlt <- Gradient.mlt
+
+vcov.mmlt <- function(object, ...) {
+    step <- 0
+    lam <- 1e-6
+
+    H <- Hessian(object, ...)
 
     ### <NOTE> add an option to compute vcov for selected 
     ### parameters (eg marginal effects) only and use Schur
@@ -927,7 +958,7 @@ vcov.mmlt <- function(object, ...) {
     ret
 }
 
-logLik.mmlt <- function (object, parm = coef(object, fixed = TRUE), w = NULL, newdata = NULL, ...) 
+logLik.mmlt <- function (object, parm = coef(object, fixed = FALSE), w = NULL, newdata = NULL, ...) 
 {
     args <- list(...)
     if (length(args) > 0) 
@@ -940,7 +971,7 @@ logLik.mmlt <- function (object, parm = coef(object, fixed = TRUE), w = NULL, ne
     ret
 }
 
-estfun.mmlt <- function(x, parm = coef(x, fixed = TRUE), 
+estfun.mmlt <- function(x, parm = coef(x, fixed = FALSE), 
                         w = NULL, newdata = NULL, ...) {
     args <- list(...)
     if (length(args) > 0)
@@ -949,6 +980,8 @@ estfun.mmlt <- function(x, parm = coef(x, fixed = TRUE),
         w <- weights(x)
     return(-x$score(parm, newdata = newdata, weights = w))
 }
+
+weights.mmlt <- weights.mlt
 
 summary.mmlt <- function(object, ...) {
 
