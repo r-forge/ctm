@@ -2,7 +2,7 @@
 \name{NEWS}
 \title{NEWS file for the mlt package}
 
-\section{Changes in Version 1.6-0 (2024-09-17)}{
+\section{Changes in Version 1.6-0 (2024-09-19)}{
   \subsection{Bugfixes}{
     \itemize{
       \item{Allow interval censoring using \code{-Inf} and \code{Inf}.
