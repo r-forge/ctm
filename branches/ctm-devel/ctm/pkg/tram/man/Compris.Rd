@@ -151,13 +151,16 @@ distributions for the primary event of interest and all competing events.
                  args  = list(type = "ghalton", 
                               M = 100))	### only 100 MC integration points
 
-    ### marginal parameters
+    ### log-likelihood
+    logLik(m)
+
+    ## Similar to Table 4 of Deresa & Van Keilegom (2023),
+    ## but using a Gaussian copula instead of a Gumbel copula.
+    ## marginal parameters
     coef(m, type = "marginal")    
     ## Kendall's tau
     coef(m, type = "Kendall")
 
-    ## Similar to Table 4 of Deresa & Van Keilegom (2023),
-    ## but using a Gaussian copula instead of a Gumbel copula.
   }
 }
 
