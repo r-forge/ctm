@@ -1,5 +1,6 @@
 
 library("mlt")
+library("mlt.docreg")
 library("truncreg")
 ### make M1mac happy
 options(digits = 4)
@@ -34,11 +35,7 @@ c(-cf[1] / cf[2], -cf[3] / cf[2], 1 / cf[2])
 logLik(mltmod)
 vcov(mltmod)
 
-#library("numDeriv")
-
-solve(numDeriv::hessian(mltmod$loglik, coef(mltmod), 
-                        weights = weights(mltmod)))
-
+checkGH(mltmod)
 
 ## right-truncated
 
@@ -70,9 +67,5 @@ c(-cf[1] / cf[2], -cf[3] / cf[2], 1 / cf[2])
 logLik(mltmod)
 vcov(mltmod)
 
-#library("numDeriv")
-
-solve(numDeriv::hessian(mltmod$loglik, coef(mltmod), 
-                        weights = weights(mltmod)))
-
+checkGH(mltmod)
 
