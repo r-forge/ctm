@@ -649,6 +649,7 @@
     object$loglik <- function(parm, ...) {
         if (!is.null(fixed)) {
             eparnames <- object$parnames[!object$parnames %in% names(fixed)]
+            stopifnot(length(parm) == length(eparnames))
             p <- parm
             names(p) <- eparnames
             p <- c(p, fixed)
@@ -660,6 +661,7 @@
     object$score <- function(parm, ...) {
         if (!is.null(fixed)) {
             eparnames <- object$parnames[!object$parnames %in% names(fixed)]
+            stopifnot(length(parm) == length(eparnames))
             p <- parm
             names(p) <- eparnames
             p <- c(p, fixed)
@@ -701,9 +703,12 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
             idx <- which(j == cdpat)
             tmp <- data[idx,,drop = FALSE]
             nm <- lapply(models$models, function(mod) {
-                mlt(mod$model, data = tmp, theta = coef(as.mlt(mod)), 
-                fixed = mod$fixed, scale = mod$scale, weights = mod$weights[idx],
-                offset = mod$offset[idx], dofit = FALSE)
+                ### we need to fit these models because we need trafo() etc
+                ret <- mlt(mod$model, data = tmp, theta = coef(as.mlt(mod)), 
+                           fixed = mod$fixed, scale = mod$scale, weights = mod$weights[idx],
+                           offset = mod$offset[idx], dofit = TRUE)
+                coef(ret) <- coef(as.mlt(mod)) ### overwrite
+                ret
             })
             sargs <- list(models = do.call(".models", nm))
             sargs$formula <- formula
