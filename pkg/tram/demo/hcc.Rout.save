@@ -1,13 +1,11 @@
 
-R version 4.3.2 (2023-10-31) -- "Eye Holes"
-Copyright (C) 2023 The R Foundation for Statistical Computing
-Platform: x86_64-pc-linux-gnu (64-bit)
+R version 4.4.1 (2024-06-14) -- "Race for Your Life"
+Copyright (C) 2024 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
 Type 'license()' or 'licence()' for distribution details.
-
-  Natural language support but running in an English locale
 
 R is a collaborative project with many contributors.
 Type 'contributors()' for more information and
@@ -16,6 +14,8 @@ Type 'contributors()' for more information and
 Type 'demo()' for some demos, 'help()' for on-line help, or
 'help.start()' for an HTML browser interface to help.
 Type 'q()' to quit R.
+
+[Previously saved workspace restored]
 
 > 
 > ### Reproducibility material for
@@ -28,7 +28,7 @@ Type 'q()' to quit R.
 
 > pkgs <- c("openxlsx", "tram", "tramME", "mvtnorm", 
 +     "parallel", "xtable", "randomForest", "ggplot2", "pracma", 
-+     "qrng")
++     "qrng", "mgcv")
 
 > req <- sapply(pkgs, require, char = TRUE)
 Loading required package: openxlsx
@@ -57,6 +57,23 @@ The following object is masked from ‘package:variables’:
 
 Loading required package: pracma
 Loading required package: qrng
+Loading required package: mgcv
+Loading required package: nlme
+
+Attaching package: ‘nlme’
+
+The following object is masked from ‘package:mlt’:
+
+    coef<-
+
+This is mgcv 1.9-1. For overview type 'help("mgcv-package")'.
+
+Attaching package: ‘mgcv’
+
+The following object is masked from ‘package:pracma’:
+
+    magic
+
 
 > if (!all(req)) {
 +     sapply(pkgs[!req], install.packages)
@@ -77,7 +94,7 @@ Loading required package: qrng
 
 > n_reps <- 10
 
-> dat <- read.xlsx("https://datadryad.org/stash/downloads/file_stream/44697", 
+> dat <- read.xlsx("https://datadryad.org/api/v2/files/44697/download", 
 +     sheet = 1)
 
 > d <- with(dat, data.frame(id = 1:nrow(dat), D = HCC_studyGr, 
@@ -317,9 +334,9 @@ Loading required package: qrng
 > tb_cfs
                 Variable   Coefficient (95% CI)
 1         location.DKK-1 0.721 ( 0.515,  0.962)
-2           location.OPN 0.780 ( 0.518,  1.027)
+2           location.OPN 0.780 ( 0.518,  1.026)
 3      location.PIVKA-II 1.257 ( 0.956,  1.527)
-4           location.AFP 1.572 ( 1.241,  1.911)
+4           location.AFP 1.572 ( 1.241,  1.910)
 5            scale.DKK-1 0.499 ( 0.201,  0.790)
 6              scale.OPN 1.232 ( 0.958,  1.546)
 7         scale.PIVKA-II 0.694 ( 0.410,  0.996)
@@ -429,18 +446,18 @@ NULL
 
 > plot_gof(subset(dd, D == 0))
 $pvalmin
-[1] 0.2664517
+[1] 0.2662861
 
 $pvalprod
-[1] 0.1214408
+[1] 0.1210314
 
 
 > plot_gof(subset(dd, D == 1))
 $pvalmin
-[1] 0.004200534
+[1] 0.004183624
 
 $pvalprod
-[1] 0.00499267
+[1] 0.004969099
 
 
 > layout(mat = matrix(c(1, 0, 0, 2, 3, 0, 4, 5, 6), 
@@ -505,4 +522,4 @@ Warning messages:
 > 
 > proc.time()
     user   system  elapsed 
-1582.476    2.098  351.173 
+1661.984    2.353  378.604 

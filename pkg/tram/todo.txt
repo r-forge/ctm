@@ -2,13 +2,12 @@
 
 ## Features
 
-- implementation of perm_test for class "stram"
+- BoxCox(, data = d[rep(1:N, w),]) 
+  BoxCox(, data = d, weights = w) 
+  with expanded data and with weights comes with
+  different support, why?
 
-- move mmlt to mlt
-- implement tram::Mmlt with sequential, mixed variables etc
-  maybe we can omit domargins = FALSE and just used "fixed" on the marginal
-  parameters?
-- interface Compris to Mmlt
+- implementation of perm_test for class "stram"
 
 ## Checks / Fixes
 

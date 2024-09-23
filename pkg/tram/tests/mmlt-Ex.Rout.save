@@ -55,7 +55,9 @@ The following object is masked from 'package:MASS':
 +     BoxCox(as.formula(paste(i, "~ x")), data = d, bounds = c(0, 1), support = c(0, 1), order = OR))
 > m$data <- d
 > m$formula <- ~ 1
-> mm <- do.call("Mmlt", m)
+> ### conditional model
+> m$conditional <- TRUE
+> mm <- do.call("mmlt", m)
 > 
 > chk(c(logLik(mm)), sum(predict(mm, newdata = d, type = "density", log = TRUE)))
 [1] TRUE
@@ -67,12 +69,12 @@ The following object is masked from 'package:MASS':
 > chk(as.array(coef(mm, type = "Cor"))[,,1], cov2cor(tcrossprod(solve(L))))
 [1] TRUE
 > 
-> chk(colSums(estfun(mm)), mm$score(coef(mm, type = "all")))
+> chk(colSums(estfun(mm)), -colSums(mm$score(coef(mm, type = "all"))))
 [1] TRUE
 > 
 > ### marginal normal
 > m$conditional <- FALSE
-> mmN <- do.call("Mmlt", m)
+> mmN <- do.call("mmlt", m)
 > 
 > chk(logLik(mm), logLik(mmN))
 [1] TRUE
@@ -92,13 +94,10 @@ The following object is masked from 'package:MASS':
 > 
 > 
 > chk(as.array(coef(mm, type = "Lambda"))[,,1], 
-+     as.array(coef(mmN, type = "Lambda"))[,,1])
++     as.array(coef(mmN, type = "Lambdapar"))[,,1])
 [1] TRUE
-> chk(as.array(coef(mm, type = "Lambdainv"))[,,1], 
-+     as.array(coef(mmN, type = "Lambdainv"))[,,1])
-[1] TRUE
-> chk(as.array(coef(mm, type = "Sigma"))[,,1], 
-+     as.array(coef(mmN, type = "Sigma"))[,,1])
+> chk(as.array(coef(mm, type = "Cor"))[,,1], 
++     as.array(coef(mmN, type = "Cor"))[,,1])
 [1] TRUE
 > chk(as.array(coef(mm, type = "Spearman"))[,,1], 
 +     as.array(coef(mmN, type = "Spearman"))[,,1])
@@ -130,8 +129,8 @@ The following object is masked from 'package:MASS':
 > 
 > ### check marginal predictions
 > m1 <- m[[1]]
-> m2 <- do.call("Mmlt", m[-(3:4)])
-> m3 <- do.call("Mmlt", m[-4])
+> m2 <- do.call("mmlt", m[-(3:4)])
+> m3 <- do.call("mmlt", m[-4])
 > 
 > ### we expect differences here
 > if (FALSE) {
@@ -147,9 +146,12 @@ The following object is masked from 'package:MASS':
 +     predict(mmN, newdata = d, margins = 1:3, type = "distribution", log = TRUE))
 + }
 > 
+> ### marginal normal model
+> mm <- mmN
+> 
 > ### marginal normal, implemented differently
 > for (j in 1:J) m[[j]]$todistr$name <- "CarlFriedrich"
-> mmN <- do.call("Mmlt", m)
+> mmN <- do.call("mmlt", m)
 > 
 > chk(logLik(mm), logLik(mmN))
 [1] TRUE
@@ -209,7 +211,7 @@ The following object is masked from 'package:MASS':
 +     Colr(as.formula(paste(i, "~ x")), data = d, bounds = c(0, 1), support = c(0, 1), order = OR))
 > m$data <- d
 > m$formula <- ~ 1
-> mmC <- do.call("Mmlt", m)
+> mmC <- do.call("mmlt", m)
 > 
 > chk(c(logLik(mmC)), sum(predict(mmC, newdata = d, type = "density", log = TRUE)))
 [1] TRUE
@@ -221,7 +223,11 @@ The following object is masked from 'package:MASS':
 +     BoxCox(as.formula(paste(i, "~ x")), data = d, bounds = c(0, 1), support = c(0, 1), order = OR))
 > m$data <- d
 > m$formula <- ~ x
-> mm <- do.call("Mmlt", m)
+> m$conditional <- TRUE
+> mm <- do.call("mmlt", m)
+Warning message:
+In .mmlt_setup(models = models, formula = formula, dofit = dofit,  :
+  Conditional models with covariate-dependent correlations are order-dependent
 > 
 > chk(c(logLik(mm)), sum(predict(mm, newdata = d, type = "density", log = TRUE)))
 [1] TRUE
@@ -235,53 +241,44 @@ The following object is masked from 'package:MASS':
 > 
 > ### with marginal parameterisation
 > m$conditional <- FALSE
-> mmN <- do.call("Mmlt", m)
+> mmN <- do.call("mmlt", m)
 > 
-> chk(logLik(mm), logLik(mmN))
-[1] TRUE
-> chk(c(logLik(mmN)), sum(predict(mmN, newdata = d, type = "density", log = TRUE)))
-[1] TRUE
-> 
-> chk(as.array(coef(mm, newdata = d, type = "Lambda"))[,,1], 
-+     as.array(coef(mmN, newdata = d, type = "Lambda"))[,,1])
-[1] TRUE
-> chk(as.array(coef(mm, newdata = d, type = "Lambdainv"))[,,1], 
-+     as.array(coef(mmN, newdata = d, type = "Lambdainv"))[,,1])
-[1] TRUE
-> chk(as.array(coef(mm, newdata = d, type = "Sigma"))[,,1], 
-+     as.array(coef(mmN, newdata = d, type = "Sigma"))[,,1])
-[1] TRUE
-> chk(as.array(coef(mm, newdata = d, type = "Spearman"))[,,1], 
+> ### expect differences here
+> if (FALSE) {
++ chk(logLik(mm), logLik(mmN))
++ chk(c(logLik(mmN)), sum(predict(mmN, newdata = d, type = "density", log = TRUE)))
++ 
++ chk(as.array(coef(mm, newdata = d, type = "Lambda"))[,,1], 
++     as.array(coef(mmN, newdata = d, type = "Lambdapar"))[,,1])
++ chk(as.array(coef(mm, newdata = d, type = "Cor"))[,,1], 
++     as.array(coef(mmN, newdata = d, type = "Cor"))[,,1])
++ chk(as.array(coef(mm, newdata = d, type = "Spearman"))[,,1], 
 +     as.array(coef(mmN, newdata = d, type = "Spearman"))[,,1])
-[1] TRUE
-> 
-> chk(predict(mm, newdata = d, type = "density", log = TRUE), 
++ 
++ chk(predict(mm, newdata = d, type = "density", log = TRUE), 
 +     predict(mmN, newdata = d, type = "density", log = TRUE))
-[1] TRUE
-> chk(predict(mm, newdata = d, type = "distribution", log = TRUE), 
++ chk(predict(mm, newdata = d, type = "distribution", log = TRUE), 
 +     predict(mmN, newdata = d, type = "distribution", log = TRUE))
-[1] TRUE
-> 
-> chk(predict(mm, newdata = d, margins = 1:2, type = "density", log = TRUE), 
++ 
++ chk(predict(mm, newdata = d, margins = 1:2, type = "density", log = TRUE), 
 +     predict(mmN, newdata = d, margins = 1:2, type = "density", log = TRUE))
-[1] TRUE
-> chk(predict(mm, newdata = d, margins = 1:2, type = "distribution", log = TRUE), 
++ chk(predict(mm, newdata = d, margins = 1:2, type = "distribution", log = TRUE), 
 +     predict(mmN, newdata = d, margins = 1:2, type = "distribution", log = TRUE))
-[1] TRUE
-> chk(predict(mm, newdata = d, margins = 1:3, type = "density", log = TRUE), 
++ chk(predict(mm, newdata = d, margins = 1:3, type = "density", log = TRUE), 
 +     predict(mmN, newdata = d, margins = 1:3, type = "density", log = TRUE))
-[1] TRUE
-> chk(predict(mm, newdata = d, margins = 1:3, type = "distribution", log = TRUE), 
++ chk(predict(mm, newdata = d, margins = 1:3, type = "distribution", log = TRUE), 
 +     predict(mmN, newdata = d, margins = 1:3, type = "distribution", log = TRUE))
-[1] TRUE
-> 
-> chk(sapply(1:J, function(i) predict(mm, margins = i, newdata = d, type = "density", log = TRUE)),
++ 
++ chk(sapply(1:J, function(i) predict(mm, margins = i, newdata = d, type = "density", log = TRUE)),
 +     sapply(1:J, function(i) predict(mmN, margins = i, newdata = d, type = "density", log = TRUE)))
-[1] TRUE
++ }
+> 
+> ### marginal model
+> mm <- mmN
 > 
 > ### implemented differently
 > for (j in 1:J) m[[j]]$todistr$name <- "CarlFriedrich"
-> mmN <- do.call("Mmlt", m)
+> mmN <- do.call("mmlt", m)
 > 
 > chk(logLik(mm), logLik(mmN))
 [1] TRUE
@@ -330,7 +327,7 @@ The following object is masked from 'package:MASS':
 +     Colr(as.formula(paste(i, "~ x")), data = d, bounds = c(0, 1), support = c(0, 1), order = OR))
 > m$data <- d
 > m$formula <- ~ x
-> mmC <- do.call("Mmlt", m)
+> mmC <- do.call("mmlt", m)
 > 
 > chk(c(logLik(mmC)), sum(predict(mmC, newdata = d, type = "density", log = TRUE)))
 [1] TRUE
@@ -365,8 +362,8 @@ The following object is masked from 'package:MASS':
 > b2 <- as.mlt(Lm(Y2 ~ X1 + X2 + X3, data = d))
 > 
 > ## constant correlations. expect identical logliks and lambda parameters
-> mm01 <- Mmlt(b1, b2, formula = ~ 1, data = d)
-> mm02 <- Mmlt(b2, b1, formula = ~ 1, data = d)
+> mm01 <- mmlt(b1, b2, formula = ~ 1, data = d)
+> mm02 <- mmlt(b2, b1, formula = ~ 1, data = d)
 > 
 > chk(logLik(mm01), logLik(mm02))
 [1] TRUE
@@ -399,8 +396,8 @@ The following object is masked from 'package:MASS':
 > b1 <- as.mlt(Colr(Y1 ~ X1 + X2 + X3, data = d, order = OR))
 > b2 <- as.mlt(Lm(Y2 ~ X1 + X2 + X3, data = d))
 > 
-> mm01 <- Mmlt(b1, b2, formula = ~ 1, data = d)
-> mm02 <- Mmlt(b2, b1, formula = ~ 1, data = d)
+> mm01 <- mmlt(b1, b2, formula = ~ 1, data = d)
+> mm02 <- mmlt(b2, b1, formula = ~ 1, data = d)
 > 
 > chk(logLik(mm01), logLik(mm02))
 [1] TRUE
@@ -447,8 +444,8 @@ The following object is masked from 'package:MASS':
 > b2 <- as.mlt(Lm(Y2 ~ X1 + X2 + X3, data = d))
 > 
 > ## constant correlations. expect identical logliks and lambda parameters
-> mm01 <- Mmlt(b1, b2, formula = ~ 1, data = d)
-> mm02 <- Mmlt(b2, b1, formula = ~ 1, data = d)
+> mm01 <- mmlt(b1, b2, formula = ~ 1, data = d)
+> mm02 <- mmlt(b2, b1, formula = ~ 1, data = d)
 > 
 > chk(logLik(mm01), logLik(mm02))
 [1] TRUE
@@ -459,14 +456,14 @@ The following object is masked from 'package:MASS':
 > 
 > ## x-dependent correlations. expect slightly different logliks when
 > ## conditional = TRUE
-> mm1 <- Mmlt(b1, b2, formula = ~ X1 + X2 + X3, data = d, conditional = TRUE)
+> mm1 <- mmlt(b1, b2, formula = ~ X1 + X2 + X3, data = d, conditional = TRUE)
 Warning message:
-In Mmlt(b1, b2, formula = ~X1 + X2 + X3, data = d, conditional = TRUE) :
-  Conditional models with covariate-dependentcorrelations are order-dependent
-> mm2 <- Mmlt(b2, b1, formula = ~ X1 + X2 + X3, data = d, conditional = TRUE)
+In .mmlt_setup(models = models, formula = formula, dofit = dofit,  :
+  Conditional models with covariate-dependent correlations are order-dependent
+> mm2 <- mmlt(b2, b1, formula = ~ X1 + X2 + X3, data = d, conditional = TRUE)
 Warning message:
-In Mmlt(b2, b1, formula = ~X1 + X2 + X3, data = d, conditional = TRUE) :
-  Conditional models with covariate-dependentcorrelations are order-dependent
+In .mmlt_setup(models = models, formula = formula, dofit = dofit,  :
+  Conditional models with covariate-dependent correlations are order-dependent
 > 
 > logLik(mm1)
 'log Lik.' -266 (df=14)
@@ -474,8 +471,8 @@ In Mmlt(b2, b1, formula = ~X1 + X2 + X3, data = d, conditional = TRUE) :
 'log Lik.' -282 (df=14)
 > 
 > ### BUT: identical models when conditional = FALSE
-> mm1 <- Mmlt(b1, b2, formula = ~ X1 + X2 + X3, data = d, conditional = FALSE)
-> mm2 <- Mmlt(b2, b1, formula = ~ X1 + X2 + X3, data = d, conditional = FALSE)
+> mm1 <- mmlt(b1, b2, formula = ~ X1 + X2 + X3, data = d, conditional = FALSE)
+> mm2 <- mmlt(b2, b1, formula = ~ X1 + X2 + X3, data = d, conditional = FALSE)
 > 
 > chk(logLik(mm1), logLik(mm2))
 [1] TRUE
@@ -514,8 +511,8 @@ In Mmlt(b2, b1, formula = ~X1 + X2 + X3, data = d, conditional = TRUE) :
 > b1 <- as.mlt(Colr(Y1 ~ X1 + X2 + X3, data = d, order = OR))
 > b2 <- as.mlt(Lm(Y2 ~ X1 + X2 + X3, data = d))
 > 
-> mm01 <- Mmlt(b1, b2, formula = ~ 1, data = d)
-> mm02 <- Mmlt(b2, b1, formula = ~ 1, data = d)
+> mm01 <- mmlt(b1, b2, formula = ~ 1, data = d)
+> mm02 <- mmlt(b2, b1, formula = ~ 1, data = d)
 > 
 > chk(logLik(mm01), logLik(mm02))
 [1] TRUE
@@ -550,8 +547,8 @@ Bs1(Y1) Bs2(Y1)      X1      X2      X3
 [1] TRUE
 > 
 > ## covariate-dependent Lambda
-> mm1 <- Mmlt(b1, b2, formula = ~ X1 + X2 + X3, data = d)
-> mm2 <- Mmlt(b2, b1, formula = ~ X1 + X2 + X3, data = d)
+> mm1 <- mmlt(b1, b2, formula = ~ X1 + X2 + X3, data = d)
+> mm2 <- mmlt(b2, b1, formula = ~ X1 + X2 + X3, data = d)
 > logLik(mm1)
 'log Lik.' -88 (df=14)
 > logLik(mm2)
@@ -604,7 +601,7 @@ Bs1(Y1) Bs2(Y1)      X1      X2      X3
 > m4 <- Lm(y.4 ~ x.1 + x.2, data = d)
 > 
 > ## simple formula
-> mc01 <- Mmlt(m1, m2, m3, m4, formula = ~ 1, data = d, conditional = FALSE)
+> mc01 <- mmlt(m1, m2, m3, m4, formula = ~ 1, data = d, conditional = FALSE)
 > 
 > cf <- coef(mc01)
 > vr <- diag(vcov(mc01))
@@ -654,7 +651,7 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 	 Simultaneous Tests for General Linear Hypotheses
 
-Fit: Mmlt(m1, m2, m3, m4, formula = ~1, data = d, conditional = FALSE)
+Fit: mmlt(m1, m2, m3, m4, formula = ~1, data = d, conditional = FALSE)
 
 Linear Hypotheses:
              Estimate Std. Error z value Pr(>|z|)  
@@ -693,7 +690,7 @@ y.4.x.1   0.072   0.070   0.111   0.122
 > chk(c(d1), c(d2))
 [1] "Mean relative difference: 0.076"
 > 
-> chk(c(logLik(Mmlt(m1, m2, m3, m4, formula = ~ 1, data = d))),
+> chk(c(logLik(mmlt(m1, m2, m3, m4, formula = ~ 1, data = d))),
 +     c(logLik(mc01)))
 [1] TRUE
 > chk(c(logLik(mc01)),
@@ -721,6 +718,7 @@ y.4.x.1   0.072   0.070   0.111   0.122
 > N <- 100
 > J <- 5
 > 
+> set.seed(290875)
 > Y <- dgp(N = N, J = J)
 > 
 > m0 <- lapply(colnames(Y)[1:J], function(v) {
@@ -734,7 +732,7 @@ y.4.x.1   0.072   0.070   0.111   0.122
 > 
 > m0$data <- Y
 > m0$conditional <- TRUE
-> m1 <- do.call("Mmlt", m0)
+> m1 <- do.call("mmlt", m0)
 > theta <- coef(m1)
 > CR <- coef(m1, type = "Cor")
 > 
@@ -752,149 +750,155 @@ y.4.x.1   0.072   0.070   0.111   0.122
 +     m0$fixed <- NULL
 +     if (args$fixed[i])
 +         m0$fixed <- fx
-+     m1 <- try(do.call("Mmlt", m0))
-+     if (inherits(m1, "Mmlt")) {
++     m1 <- try(do.call("mmlt", m0))
++     if (!inherits(m1, "try-error")) {
 +         print(logLik(m1))
 +         print(isTRUE(chk(coef(m1, type = "Cor"), CR)))
-+     } else {
-+         print(m1$ll(theta))
 +     }
 + }
 [1] 1
-'log Lik.' -678 (df=18)
+'log Lik.' -675 (df=18)
 [1] FALSE
 [1] 2
-'log Lik.' -678 (df=18)
+'log Lik.' -675 (df=18)
 [1] FALSE
 [1] 3
-'log Lik.' -678 (df=18)
+'log Lik.' -675 (df=18)
 [1] FALSE
 [1] 4
-'log Lik.' -678 (df=18)
+'log Lik.' -675 (df=18)
 [1] FALSE
 [1] 5
-'log Lik.' -678 (df=18)
+'log Lik.' -675 (df=18)
 [1] FALSE
 [1] 6
-'log Lik.' -678 (df=18)
+'log Lik.' -675 (df=18)
 [1] FALSE
 [1] 7
-[1] 678
+'log Lik.' -675 (df=18)
+[1] FALSE
 [1] 8
-[1] 678
+'log Lik.' -675 (df=18)
+[1] FALSE
 [1] 9
-'log Lik.' -678 (df=20)
+'log Lik.' -673 (df=20)
 [1] TRUE
 [1] 10
-'log Lik.' -678 (df=20)
+'log Lik.' -673 (df=20)
 [1] TRUE
 [1] 11
-'log Lik.' -678 (df=20)
+'log Lik.' -673 (df=20)
 [1] TRUE
 [1] 12
-'log Lik.' -678 (df=20)
+'log Lik.' -673 (df=20)
 [1] TRUE
 [1] 13
-'log Lik.' -678 (df=20)
+'log Lik.' -673 (df=20)
 [1] TRUE
 [1] 14
-'log Lik.' -678 (df=20)
+'log Lik.' -673 (df=20)
 [1] TRUE
 [1] 15
-[1] 678
+'log Lik.' -673 (df=20)
+[1] TRUE
 [1] 16
-[1] 678
+'log Lik.' -673 (df=20)
+[1] TRUE
 [1] 17
-'log Lik.' -678 (df=18)
+'log Lik.' -675 (df=18)
 [1] FALSE
 [1] 18
-'log Lik.' -678 (df=18)
+'log Lik.' -675 (df=18)
 [1] FALSE
 [1] 19
-'log Lik.' -678 (df=18)
+'log Lik.' -675 (df=8)
 [1] FALSE
 [1] 20
-'log Lik.' -678 (df=18)
+'log Lik.' -675 (df=8)
 [1] FALSE
 [1] 21
-'log Lik.' -681 (df=18)
+'log Lik.' -679 (df=18)
 [1] FALSE
 [1] 22
-'log Lik.' -681 (df=18)
+'log Lik.' -679 (df=18)
 [1] FALSE
 [1] 23
-'log Lik.' -678 (df=18)
+'log Lik.' -675 (df=8)
 [1] FALSE
 [1] 24
-'log Lik.' -678 (df=18)
+'log Lik.' -675 (df=8)
 [1] FALSE
 [1] 25
-'log Lik.' -678 (df=18)
+'log Lik.' -675 (df=18)
 [1] FALSE
 [1] 26
-'log Lik.' -678 (df=18)
+'log Lik.' -675 (df=18)
 [1] FALSE
 [1] 27
-'log Lik.' -678 (df=18)
+'log Lik.' -675 (df=8)
 [1] FALSE
 [1] 28
-'log Lik.' -678 (df=18)
+'log Lik.' -675 (df=8)
 [1] FALSE
 [1] 29
-[1] 681
+'log Lik.' -675 (df=18)
+[1] FALSE
 [1] 30
-[1] 681
+'log Lik.' -675 (df=18)
+[1] FALSE
 [1] 31
-'log Lik.' -678 (df=18)
+'log Lik.' -675 (df=8)
 [1] FALSE
 [1] 32
-'log Lik.' -678 (df=18)
+'log Lik.' -675 (df=8)
 [1] FALSE
 [1] 33
-'log Lik.' -678 (df=20)
+'log Lik.' -673 (df=20)
 [1] TRUE
 [1] 34
-'log Lik.' -678 (df=20)
+'log Lik.' -673 (df=20)
 [1] TRUE
 [1] 35
-'log Lik.' -678 (df=20)
+'log Lik.' -673 (df=10)
 [1] TRUE
 [1] 36
-'log Lik.' -678 (df=20)
+'log Lik.' -673 (df=10)
 [1] TRUE
 [1] 37
-'log Lik.' -681 (df=20)
+'log Lik.' -676 (df=20)
 [1] TRUE
 [1] 38
-'log Lik.' -681 (df=20)
+'log Lik.' -676 (df=20)
 [1] TRUE
 [1] 39
-'log Lik.' -678 (df=20)
+'log Lik.' -673 (df=10)
 [1] TRUE
 [1] 40
-'log Lik.' -678 (df=20)
+'log Lik.' -673 (df=10)
 [1] TRUE
 [1] 41
-'log Lik.' -678 (df=20)
+'log Lik.' -673 (df=20)
 [1] TRUE
 [1] 42
-'log Lik.' -678 (df=20)
+'log Lik.' -673 (df=20)
 [1] TRUE
 [1] 43
-'log Lik.' -678 (df=20)
+'log Lik.' -673 (df=10)
 [1] TRUE
 [1] 44
-'log Lik.' -678 (df=20)
+'log Lik.' -673 (df=10)
 [1] TRUE
 [1] 45
-[1] 681
+'log Lik.' -673 (df=20)
+[1] TRUE
 [1] 46
-[1] 681
+'log Lik.' -673 (df=20)
+[1] TRUE
 [1] 47
-'log Lik.' -678 (df=20)
+'log Lik.' -673 (df=10)
 [1] TRUE
 [1] 48
-'log Lik.' -678 (df=20)
+'log Lik.' -673 (df=10)
 [1] TRUE
 > 
 > ### names
@@ -912,10 +916,10 @@ y.4.x.1   0.072   0.070   0.111   0.122
 > fx <- c("X3.X1.(Intercept)" = 0, "X4.X1.(Intercept)" = 0, "X5.X1.(Intercept)" = 0,
 +         "X3.X2.(Intercept)" = 0, "X4.X2.(Intercept)" = 0, "X5.X2.(Intercept)" = 0,
 +         "X5.X4.(Intercept)" = 0)
-> tmp <- do.call("Mmlt", c(mltargs, list(fixed = fx)))
+> tmp <- do.call("mmlt", c(mltargs, list(fixed = fx)))
 > 
 > mltargs$conditional <- TRUE
-> tmp <- do.call("Mmlt", c(mltargs, list(fixed = fx)))
+> tmp <- do.call("mmlt", c(mltargs, list(fixed = fx)))
 > 
 > cf <- coef(tmp)
 > cf <- cf[grep("Intercept", names(cf))]
@@ -940,7 +944,7 @@ y.4.x.1   0.072   0.070   0.111   0.122
 > m$data <- d
 > m$formula <- ~ 1
 > m$args <- list(seed = 1, M = 100)
-> mm <- do.call("Mmlt", m)
+> mm <- do.call("mmlt", m)
 > 
 > L <- as.array(coef(mm, type = "Lambda"))[,,1]
 > chk(as.array(coef(mm, type = "Lambdainv"))[,,1], solve(L))
@@ -949,12 +953,12 @@ y.4.x.1   0.072   0.070   0.111   0.122
 [1] TRUE
 > chk(as.array(coef(mm, type = "Cor"))[,,1], cov2cor(tcrossprod(solve(L))))
 [1] TRUE
-> chk(colSums(estfun(mm)), mm$score(coef(mm, type = "all")))
+> chk(colSums(estfun(mm)), -colSums(mm$score(coef(mm, type = "all"))))
 [1] TRUE
 > 
 > for (j in 1:J) m[[j]]$todistr$name <- "CarlFriedrich"
 > 
-> mmN <- do.call("Mmlt", m)
+> mmN <- do.call("mmlt", m)
 > 
 > chk(logLik(mm), logLik(mmN))
 [1] TRUE
@@ -975,6 +979,65 @@ y.4.x.1   0.072   0.070   0.111   0.122
 +     as.array(coef(mmN, type = "Spearman"))[,,1])
 [1] TRUE
 > 
+> ### order independence, starting with 1.1-0, depending on
+> ### mvtnorm 1.3-0
+> N <- 100
+> y <- gl(3, N, ordered = TRUE)
+> x <- rnorm(length(y))
+> w <- rnorm(length(y))
+> 
+> mx <- BoxCox(x ~ 1)
+> mw <- BoxCox(w ~ 1)
+> my <- Polr(y ~ 1)
+> mxwy <- mmlt(mx, mw, my, formula = ~ 1)
+> cfxwy <- coef(mxwy)
+> Sxwy <- coef(mxwy, type = "Sigma")
+> p <- dimnames(Sxwy)[[2L]]
+> llxwy <- logLik(mxwy)
+> 
+> gn <- numDeriv::grad(mxwy$ll, cfxwy)
+> ga <- colSums(mxwy$score(cfxwy))
+> chk(gn, ga)
+[1] TRUE
+> 
+> mwxy <- mmlt(mw, mx, my, formula = ~ 1)
+> cfwxy <- coef(mwxy)
+> Swxy <- coef(mwxy, type = "Sigma")[,p]
+> llwxy <- logLik(mwxy)
+> 
+> nm <- names(cfwxy)
+> nc <- nm[nm %in% names(cfxwy)]
+> chk(cfxwy[nc], cfwxy[nc])
+[1] TRUE
+> chk(Swxy, Sxwy)
+[1] TRUE
+> chk(llwxy, llxwy)
+[1] TRUE
+> 
+> gn <- numDeriv::grad(mwxy$ll, cfwxy)
+> ga <- colSums(mwxy$score(cfwxy))
+> chk(gn, ga)
+[1] TRUE
+> 
+> myxw <- mmlt(my, mx, mw, formula = ~ 1)
+> cfyxw <- coef(myxw)
+> Syxw <- coef(myxw, type = "Sigma")[,p]
+> llyxw <- logLik(myxw)
+> 
+> nm <- names(cfyxw)
+> nc <- nm[nm %in% names(cfxwy)]
+> chk(cfxwy[nc], cfyxw[nc])
+[1] TRUE
+> chk(Syxw, Sxwy)
+[1] TRUE
+> chk(llyxw, llxwy)
+[1] TRUE
+> 
+> gn <- numDeriv::grad(myxw$ll, cfyxw)
+> ga <- colSums(myxw$score(cfyxw))
+> chk(gn, ga)
+[1] TRUE
+> 
 > proc.time()
    user  system elapsed 
- 39.089   0.087  39.301 
+  31.54    0.12   31.69 

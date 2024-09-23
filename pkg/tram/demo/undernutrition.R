@@ -4,10 +4,6 @@ library("mvtnorm")
 library("colorspace")
 library("latex2exp")
 
-### version 1.0-6 only
-mmlt <- Mmlt
-mmltoptim <- Mmltoptim
-
 set.seed(42)
 par(ask = TRUE)
 
@@ -41,18 +37,18 @@ m_underweight <- as.mlt(BoxCox(underweight2 | cage ~ 1, data = dat,
 Bxlambda <- Bernstein_basis(numeric_var("cage", support = quantile(dat$cage, prob = c(.1, .9)),
                                         bounds = c(0, 100)), order = 6, extrapolate = TRUE)
 
-op <- mmltoptim(trace = FALSE)
+op <- mltoptim(auglag = list(maxtry = 5), trace = FALSE)
 
 theta <- c(coef(m_stunting), coef(m_wasting), coef(m_underweight), rep(0, 7 * 3 * 2 / 2))
 
 ### fitting joint model
-m_full <- mmlt(m_stunting, m_wasting, m_underweight, 
+m_full <- Mmlt(m_stunting, m_wasting, m_underweight, 
                conditional = TRUE, ### as in SJS paper
                theta = theta,      ### use simple starting values
                formula = Bxlambda, data = dat, optim = op["nloptr"])
 
 ### refit model to obtain Hessian
-m_full <- mmlt(m_stunting, m_wasting, m_underweight, 
+m_full <- Mmlt(m_stunting, m_wasting, m_underweight, 
                conditional = TRUE,        ### as in SJS paper
                theta = coef(m_full),      ### use nice starting values
                formula = Bxlambda, data = dat, optim = op)

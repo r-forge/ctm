@@ -24,7 +24,9 @@ m <- lapply(un, function(i)
     BoxCox(as.formula(paste(i, "~ x")), data = d, bounds = c(0, 1), support = c(0, 1), order = OR))
 m$data <- d
 m$formula <- ~ 1
-mm <- do.call("Mmlt", m)
+### conditional model
+m$conditional <- TRUE
+mm <- do.call("mmlt", m)
 
 chk(c(logLik(mm)), sum(predict(mm, newdata = d, type = "density", log = TRUE)))
 L <- as.array(coef(mm, type = "Lambda"))[,,1]
@@ -32,11 +34,11 @@ chk(as.array(coef(mm, type = "Lambdainv"))[,,1], solve(L))
 chk(as.array(coef(mm, type = "Sigma"))[,,1], tcrossprod(solve(L)))
 chk(as.array(coef(mm, type = "Cor"))[,,1], cov2cor(tcrossprod(solve(L))))
 
-chk(colSums(estfun(mm)), mm$score(coef(mm, type = "all")))
+chk(colSums(estfun(mm)), -colSums(mm$score(coef(mm, type = "all"))))
 
 ### marginal normal
 m$conditional <- FALSE
-mmN <- do.call("Mmlt", m)
+mmN <- do.call("mmlt", m)
 
 chk(logLik(mm), logLik(mmN))
 chk(c(logLik(mmN)), sum(predict(mmN, newdata = d, type = "density", log = TRUE)))
@@ -53,11 +55,9 @@ vcov(mmN)["V1.x", "V4.x"]
 
 
 chk(as.array(coef(mm, type = "Lambda"))[,,1], 
-    as.array(coef(mmN, type = "Lambda"))[,,1])
-chk(as.array(coef(mm, type = "Lambdainv"))[,,1], 
-    as.array(coef(mmN, type = "Lambdainv"))[,,1])
-chk(as.array(coef(mm, type = "Sigma"))[,,1], 
-    as.array(coef(mmN, type = "Sigma"))[,,1])
+    as.array(coef(mmN, type = "Lambdapar"))[,,1])
+chk(as.array(coef(mm, type = "Cor"))[,,1], 
+    as.array(coef(mmN, type = "Cor"))[,,1])
 chk(as.array(coef(mm, type = "Spearman"))[,,1], 
     as.array(coef(mmN, type = "Spearman"))[,,1])
 
@@ -80,8 +80,8 @@ chk(sapply(1:J, function(i) predict(mm, margins = i, newdata = d, type = "densit
 
 ### check marginal predictions
 m1 <- m[[1]]
-m2 <- do.call("Mmlt", m[-(3:4)])
-m3 <- do.call("Mmlt", m[-4])
+m2 <- do.call("mmlt", m[-(3:4)])
+m3 <- do.call("mmlt", m[-4])
 
 ### we expect differences here
 if (FALSE) {
@@ -97,9 +97,12 @@ chk(predict(m3, newdata = d, margins = 1:3, type = "distribution", log = TRUE),
     predict(mmN, newdata = d, margins = 1:3, type = "distribution", log = TRUE))
 }
 
+### marginal normal model
+mm <- mmN
+
 ### marginal normal, implemented differently
 for (j in 1:J) m[[j]]$todistr$name <- "CarlFriedrich"
-mmN <- do.call("Mmlt", m)
+mmN <- do.call("mmlt", m)
 
 chk(logLik(mm), logLik(mmN))
 chk(c(logLik(mmN)), sum(predict(mmN, newdata = d, type = "density", log = TRUE)))
@@ -145,7 +148,7 @@ m <- lapply(un, function(i)
     Colr(as.formula(paste(i, "~ x")), data = d, bounds = c(0, 1), support = c(0, 1), order = OR))
 m$data <- d
 m$formula <- ~ 1
-mmC <- do.call("Mmlt", m)
+mmC <- do.call("mmlt", m)
 
 chk(c(logLik(mmC)), sum(predict(mmC, newdata = d, type = "density", log = TRUE)))
 logLik(mmC)
@@ -155,7 +158,8 @@ m <- lapply(un, function(i)
     BoxCox(as.formula(paste(i, "~ x")), data = d, bounds = c(0, 1), support = c(0, 1), order = OR))
 m$data <- d
 m$formula <- ~ x
-mm <- do.call("Mmlt", m)
+m$conditional <- TRUE
+mm <- do.call("mmlt", m)
 
 chk(c(logLik(mm)), sum(predict(mm, newdata = d, type = "density", log = TRUE)))
 L <- as.array(coef(mm, newdata = d, type = "Lambda"))[,,1]
@@ -165,17 +169,17 @@ chk(as.array(coef(mm, newdata = d, type = "Cor"))[,,1], cov2cor(tcrossprod(solve
 
 ### with marginal parameterisation
 m$conditional <- FALSE
-mmN <- do.call("Mmlt", m)
+mmN <- do.call("mmlt", m)
 
+### expect differences here
+if (FALSE) {
 chk(logLik(mm), logLik(mmN))
 chk(c(logLik(mmN)), sum(predict(mmN, newdata = d, type = "density", log = TRUE)))
 
 chk(as.array(coef(mm, newdata = d, type = "Lambda"))[,,1], 
-    as.array(coef(mmN, newdata = d, type = "Lambda"))[,,1])
-chk(as.array(coef(mm, newdata = d, type = "Lambdainv"))[,,1], 
-    as.array(coef(mmN, newdata = d, type = "Lambdainv"))[,,1])
-chk(as.array(coef(mm, newdata = d, type = "Sigma"))[,,1], 
-    as.array(coef(mmN, newdata = d, type = "Sigma"))[,,1])
+    as.array(coef(mmN, newdata = d, type = "Lambdapar"))[,,1])
+chk(as.array(coef(mm, newdata = d, type = "Cor"))[,,1], 
+    as.array(coef(mmN, newdata = d, type = "Cor"))[,,1])
 chk(as.array(coef(mm, newdata = d, type = "Spearman"))[,,1], 
     as.array(coef(mmN, newdata = d, type = "Spearman"))[,,1])
 
@@ -195,10 +199,14 @@ chk(predict(mm, newdata = d, margins = 1:3, type = "distribution", log = TRUE),
 
 chk(sapply(1:J, function(i) predict(mm, margins = i, newdata = d, type = "density", log = TRUE)),
     sapply(1:J, function(i) predict(mmN, margins = i, newdata = d, type = "density", log = TRUE)))
+}
+
+### marginal model
+mm <- mmN
 
 ### implemented differently
 for (j in 1:J) m[[j]]$todistr$name <- "CarlFriedrich"
-mmN <- do.call("Mmlt", m)
+mmN <- do.call("mmlt", m)
 
 chk(logLik(mm), logLik(mmN))
 chk(c(logLik(mmN)), sum(predict(mmN, newdata = d, type = "density", log = TRUE)))
@@ -234,7 +242,7 @@ m <- lapply(un, function(i)
     Colr(as.formula(paste(i, "~ x")), data = d, bounds = c(0, 1), support = c(0, 1), order = OR))
 m$data <- d
 m$formula <- ~ x
-mmC <- do.call("Mmlt", m)
+mmC <- do.call("mmlt", m)
 
 chk(c(logLik(mmC)), sum(predict(mmC, newdata = d, type = "density", log = TRUE)))
 logLik(mmC)
@@ -267,8 +275,8 @@ b1 <- as.mlt(Lm(Y1 ~ X1 + X2 + X3, data = d))
 b2 <- as.mlt(Lm(Y2 ~ X1 + X2 + X3, data = d))
 
 ## constant correlations. expect identical logliks and lambda parameters
-mm01 <- Mmlt(b1, b2, formula = ~ 1, data = d)
-mm02 <- Mmlt(b2, b1, formula = ~ 1, data = d)
+mm01 <- mmlt(b1, b2, formula = ~ 1, data = d)
+mm02 <- mmlt(b2, b1, formula = ~ 1, data = d)
 
 chk(logLik(mm01), logLik(mm02))
 
@@ -296,8 +304,8 @@ d$Y1 <- (d$Y1 - min(d$Y1))/(max(d$Y1) - min(d$Y1))
 b1 <- as.mlt(Colr(Y1 ~ X1 + X2 + X3, data = d, order = OR))
 b2 <- as.mlt(Lm(Y2 ~ X1 + X2 + X3, data = d))
 
-mm01 <- Mmlt(b1, b2, formula = ~ 1, data = d)
-mm02 <- Mmlt(b2, b1, formula = ~ 1, data = d)
+mm01 <- mmlt(b1, b2, formula = ~ 1, data = d)
+mm02 <- mmlt(b2, b1, formula = ~ 1, data = d)
 
 chk(logLik(mm01), logLik(mm02))
 
@@ -340,8 +348,8 @@ b1 <- as.mlt(Lm(Y1 ~ X1 + X2 + X3, data = d))
 b2 <- as.mlt(Lm(Y2 ~ X1 + X2 + X3, data = d))
 
 ## constant correlations. expect identical logliks and lambda parameters
-mm01 <- Mmlt(b1, b2, formula = ~ 1, data = d)
-mm02 <- Mmlt(b2, b1, formula = ~ 1, data = d)
+mm01 <- mmlt(b1, b2, formula = ~ 1, data = d)
+mm02 <- mmlt(b2, b1, formula = ~ 1, data = d)
 
 chk(logLik(mm01), logLik(mm02))
 
@@ -350,15 +358,15 @@ chk(c(numDeriv::grad(mm01$ll, mm02$par)),c(mm01$sc(mm02$par)))
 
 ## x-dependent correlations. expect slightly different logliks when
 ## conditional = TRUE
-mm1 <- Mmlt(b1, b2, formula = ~ X1 + X2 + X3, data = d, conditional = TRUE)
-mm2 <- Mmlt(b2, b1, formula = ~ X1 + X2 + X3, data = d, conditional = TRUE)
+mm1 <- mmlt(b1, b2, formula = ~ X1 + X2 + X3, data = d, conditional = TRUE)
+mm2 <- mmlt(b2, b1, formula = ~ X1 + X2 + X3, data = d, conditional = TRUE)
 
 logLik(mm1)
 logLik(mm2)
 
 ### BUT: identical models when conditional = FALSE
-mm1 <- Mmlt(b1, b2, formula = ~ X1 + X2 + X3, data = d, conditional = FALSE)
-mm2 <- Mmlt(b2, b1, formula = ~ X1 + X2 + X3, data = d, conditional = FALSE)
+mm1 <- mmlt(b1, b2, formula = ~ X1 + X2 + X3, data = d, conditional = FALSE)
+mm2 <- mmlt(b2, b1, formula = ~ X1 + X2 + X3, data = d, conditional = FALSE)
 
 chk(logLik(mm1), logLik(mm2))
 
@@ -392,8 +400,8 @@ d$Y1 <- (d$Y1 - min(d$Y1))/(max(d$Y1) - min(d$Y1))
 b1 <- as.mlt(Colr(Y1 ~ X1 + X2 + X3, data = d, order = OR))
 b2 <- as.mlt(Lm(Y2 ~ X1 + X2 + X3, data = d))
 
-mm01 <- Mmlt(b1, b2, formula = ~ 1, data = d)
-mm02 <- Mmlt(b2, b1, formula = ~ 1, data = d)
+mm01 <- mmlt(b1, b2, formula = ~ 1, data = d)
+mm02 <- mmlt(b2, b1, formula = ~ 1, data = d)
 
 chk(logLik(mm01), logLik(mm02))
 
@@ -409,8 +417,8 @@ chk(c(numDeriv::grad(mm01$ll, coef(mm01))),c(mm01$sc(coef(mm01))))
 chk(c(numDeriv::grad(mm02$ll, coef(mm02))),c(mm02$sc(coef(mm02))))
 
 ## covariate-dependent Lambda
-mm1 <- Mmlt(b1, b2, formula = ~ X1 + X2 + X3, data = d)
-mm2 <- Mmlt(b2, b1, formula = ~ X1 + X2 + X3, data = d)
+mm1 <- mmlt(b1, b2, formula = ~ X1 + X2 + X3, data = d)
+mm2 <- mmlt(b2, b1, formula = ~ X1 + X2 + X3, data = d)
 logLik(mm1)
 logLik(mm2)
 
@@ -439,7 +447,7 @@ m3 <- Lm(y.3 ~ x.1 + x.2, data = d)
 m4 <- Lm(y.4 ~ x.1 + x.2, data = d)
 
 ## simple formula
-mc01 <- Mmlt(m1, m2, m3, m4, formula = ~ 1, data = d, conditional = FALSE)
+mc01 <- mmlt(m1, m2, m3, m4, formula = ~ 1, data = d, conditional = FALSE)
 
 cf <- coef(mc01)
 vr <- diag(vcov(mc01))
@@ -475,7 +483,7 @@ d2 <- predict(mc01, newdata = d, type = "density", log = TRUE)
 
 chk(c(d1), c(d2))
 
-chk(c(logLik(Mmlt(m1, m2, m3, m4, formula = ~ 1, data = d))),
+chk(c(logLik(mmlt(m1, m2, m3, m4, formula = ~ 1, data = d))),
     c(logLik(mc01)))
 chk(c(logLik(mc01)),
     sum(d2))
@@ -500,6 +508,7 @@ dgp <- function(N = 100, J = 5, lambda = 0.5773503) {
 N <- 100
 J <- 5
 
+set.seed(290875)
 Y <- dgp(N = N, J = J)
 
 m0 <- lapply(colnames(Y)[1:J], function(v) {
@@ -513,7 +522,7 @@ args <- subset(args, !(conditional & !domargins))
 
 m0$data <- Y
 m0$conditional <- TRUE
-m1 <- do.call("Mmlt", m0)
+m1 <- do.call("mmlt", m0)
 theta <- coef(m1)
 CR <- coef(m1, type = "Cor")
 
@@ -531,12 +540,10 @@ for (i in 1:nrow(args)) {
     m0$fixed <- NULL
     if (args$fixed[i])
         m0$fixed <- fx
-    m1 <- try(do.call("Mmlt", m0))
-    if (inherits(m1, "Mmlt")) {
+    m1 <- try(do.call("mmlt", m0))
+    if (!inherits(m1, "try-error")) {
         print(logLik(m1))
         print(isTRUE(chk(coef(m1, type = "Cor"), CR)))
-    } else {
-        print(m1$ll(theta))
     }
 }
 
@@ -555,10 +562,10 @@ mltargs$data <- df
 fx <- c("X3.X1.(Intercept)" = 0, "X4.X1.(Intercept)" = 0, "X5.X1.(Intercept)" = 0,
         "X3.X2.(Intercept)" = 0, "X4.X2.(Intercept)" = 0, "X5.X2.(Intercept)" = 0,
         "X5.X4.(Intercept)" = 0)
-tmp <- do.call("Mmlt", c(mltargs, list(fixed = fx)))
+tmp <- do.call("mmlt", c(mltargs, list(fixed = fx)))
 
 mltargs$conditional <- TRUE
-tmp <- do.call("Mmlt", c(mltargs, list(fixed = fx)))
+tmp <- do.call("mmlt", c(mltargs, list(fixed = fx)))
 
 cf <- coef(tmp)
 cf <- cf[grep("Intercept", names(cf))]
@@ -582,17 +589,17 @@ m <- lapply(un, function(i)
 m$data <- d
 m$formula <- ~ 1
 m$args <- list(seed = 1, M = 100)
-mm <- do.call("Mmlt", m)
+mm <- do.call("mmlt", m)
 
 L <- as.array(coef(mm, type = "Lambda"))[,,1]
 chk(as.array(coef(mm, type = "Lambdainv"))[,,1], solve(L))
 chk(as.array(coef(mm, type = "Sigma"))[,,1], tcrossprod(solve(L)))
 chk(as.array(coef(mm, type = "Cor"))[,,1], cov2cor(tcrossprod(solve(L))))
-chk(colSums(estfun(mm)), mm$score(coef(mm, type = "all")))
+chk(colSums(estfun(mm)), -colSums(mm$score(coef(mm, type = "all"))))
 
 for (j in 1:J) m[[j]]$todistr$name <- "CarlFriedrich"
 
-mmN <- do.call("Mmlt", m)
+mmN <- do.call("mmlt", m)
 
 chk(logLik(mm), logLik(mmN))
 chk(coef(mm), coef(mmN))
@@ -605,3 +612,53 @@ chk(as.array(coef(mm, type = "Sigma"))[,,1],
     as.array(coef(mmN, type = "Sigma"))[,,1])
 chk(as.array(coef(mm, type = "Spearman"))[,,1], 
     as.array(coef(mmN, type = "Spearman"))[,,1])
+
+### order independence, starting with 1.1-0, depending on
+### mvtnorm 1.3-0
+N <- 100
+y <- gl(3, N, ordered = TRUE)
+x <- rnorm(length(y))
+w <- rnorm(length(y))
+
+mx <- BoxCox(x ~ 1)
+mw <- BoxCox(w ~ 1)
+my <- Polr(y ~ 1)
+mxwy <- mmlt(mx, mw, my, formula = ~ 1)
+cfxwy <- coef(mxwy)
+Sxwy <- coef(mxwy, type = "Sigma")
+p <- dimnames(Sxwy)[[2L]]
+llxwy <- logLik(mxwy)
+
+gn <- numDeriv::grad(mxwy$ll, cfxwy)
+ga <- colSums(mxwy$score(cfxwy))
+chk(gn, ga)
+
+mwxy <- mmlt(mw, mx, my, formula = ~ 1)
+cfwxy <- coef(mwxy)
+Swxy <- coef(mwxy, type = "Sigma")[,p]
+llwxy <- logLik(mwxy)
+
+nm <- names(cfwxy)
+nc <- nm[nm %in% names(cfxwy)]
+chk(cfxwy[nc], cfwxy[nc])
+chk(Swxy, Sxwy)
+chk(llwxy, llxwy)
+
+gn <- numDeriv::grad(mwxy$ll, cfwxy)
+ga <- colSums(mwxy$score(cfwxy))
+chk(gn, ga)
+
+myxw <- mmlt(my, mx, mw, formula = ~ 1)
+cfyxw <- coef(myxw)
+Syxw <- coef(myxw, type = "Sigma")[,p]
+llyxw <- logLik(myxw)
+
+nm <- names(cfyxw)
+nc <- nm[nm %in% names(cfxwy)]
+chk(cfxwy[nc], cfyxw[nc])
+chk(Syxw, Sxwy)
+chk(llyxw, llxwy)
+
+gn <- numDeriv::grad(myxw$ll, cfyxw)
+ga <- colSums(myxw$score(cfyxw))
+chk(gn, ga)

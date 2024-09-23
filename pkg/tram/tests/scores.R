@@ -64,9 +64,9 @@ mlfun <- function(d, order = 1, formula = ~ x, args = NULL, probit = TRUE) {
     m$data <- d
     m$formula <- formula
     m$conditional <- conditional
-    m$optim <- Mmltoptim(spg = list(maxit = 10000, 
-                                    quiet = TRUE, 
-                                    checkGrad = TRUE))["spg"]
+    m$optim <- mltoptim(spg = list(maxit = 10000, 
+                                   quiet = TRUE, 
+                                   checkGrad = TRUE))["spg"]
     m$args <- args
     mm <- do.call("Mmlt", m)
     return(mm)

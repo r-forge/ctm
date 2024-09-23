@@ -6,6 +6,8 @@
 ###	by Torsten Hothorn
 ###
 
+set.seed(290875)
+
 pkgs <- c("openxlsx", "tram", "survival")
 req <- sapply(pkgs, require, char = TRUE)
 if (!all(req)){
@@ -14,9 +16,6 @@ if (!all(req)){
 }
 if (!all(req)) 
   stop("cannot load dependencies")
-
-### tram version 1.0-6 only
-mmlt <- Mmlt
 
 ### Load data
 dat <- read.xlsx("https://datadryad.org/api/v2/files/44697/download", sheet = 1)
@@ -50,7 +49,8 @@ mAFP <- BoxCox(AFPi ~ x | x,  data = HCC)
 
 ### joint estimation of marginal and Gaussian copula parameters, s = 2
 ### location-scale transformation discriminant analysis
-m <- mmlt(mDKK, mOPN, mPIV, mAFP, data = HCC)
+m <- Mmlt(mDKK, mOPN, mPIV, mAFP, data = HCC)
+logLik(m)
 ### marginal parameters
 coef(m, type = "marginal")
 ### copula parameter: Lambda
@@ -60,6 +60,11 @@ sqrt(diag(vcov(m)))
 
 ### convex approximations
 ## pseudo
-mm <- mmlt(mDKK, mOPN, mPIV, mAFP, data = HCC, domargins = FALSE)
+mp <- Mmlt(mDKK, mOPN, mPIV, mAFP, data = HCC, fit = "pseudo")
+logLik(mp)
 ## sequential
-ms <- mmlt(mDKK, mOPN, mPIV, mAFP, data = HCC, sequentialfit = TRUE)
+ms <- Mmlt(mDKK, mOPN, mPIV, mAFP, data = HCC, fit = "sequential")
+logLik(ms)
+## ACS
+ma <- Mmlt(mDKK, mOPN, mPIV, mAFP, data = HCC, fit = "ACS", ACSiter = 1)
+logLik(ma)

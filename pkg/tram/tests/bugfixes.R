@@ -189,14 +189,14 @@ m2 <- Lm(Sepal.Length ~ Petal.Length | Petal.Width, data = iris)
 m0 <- Mmlt(m1, m2, data = iris, formula = ~ 1, domargins = FALSE)
 cf <- coef(m0)
 m <- Mmlt(m1, m2, data = iris, formula = ~ 1, dofit = FALSE)
-stopifnot(isTRUE(all.equal(c(m$score(cf)), c(grad(m$ll, cf)), check.attributes = FALSE)))
+stopifnot(isTRUE(all.equal(c(-colSums(estfun(m, parm = cf))), c(grad(m$ll, cf)), check.attributes = FALSE)))
 
 m1 <- Lm(Sepal.Width ~ Petal.Length | Petal.Width, data = iris, scale_shift = TRUE)
 m2 <- Lm(Sepal.Length ~ Petal.Length | Petal.Width, data = iris, scale_shift = TRUE)
 m0 <- Mmlt(m1, m2, data = iris, formula = ~ 1, domargins = FALSE)
 cf <- coef(m0)
 m <- Mmlt(m1, m2, data = iris, formula = ~ 1, dofit = FALSE)
-stopifnot(isTRUE(all.equal(c(m$score(cf)), c(grad(m$ll, cf)), check.attributes = FALSE)))
+stopifnot(isTRUE(all.equal(c(-colSums(estfun(m, parm = cf))), c(grad(m$ll, cf)), check.attributes = FALSE)))
 
 ### tram didn't allow binary factors
 d <- data.frame(y = gl(2, 50), x = runif(100))
@@ -205,3 +205,30 @@ m1 <- Polr(y ~ x, data = d, method = "logistic")
 m2 <- glm(y ~ x, data = d, family = binomial())
 stopifnot(isTRUE(all.equal(c(logLik(m0)), c(logLik(m1)))))
 stopifnot(isTRUE(all.equal(c(logLik(m0)), c(logLik(m2)))))
+
+### requires mlt >= 1.5-3, which can handle missing values in the response
+chk <- function(x, y, tol = 1e-3) stopifnot(all.equal(x, y, tol = tol, 
+                                          check.attributes = FALSE))
+N <- 50
+d <- data.frame(y = rnorm(N), x = runif(N))
+ic <- 1:10
+d$y[ic] <- NA
+
+m1 <- BoxCox(y ~ 1, data = d, na.action = na.pass)
+m2 <- BoxCox(y ~ 1, data = d)
+m3 <- BoxCox(y ~ 1, data = d[-ic,,drop = FALSE])
+chk(logLik(m2), logLik(m1))
+chk(logLik(m3), logLik(m1))
+chk(nrow(m1$data), N)
+chk(nrow(m2$data), sum(!is.na(d$y)))
+
+m1 <- BoxCox(y ~ x, data = d, na.action = na.pass)
+m2 <- BoxCox(y ~ x, data = d)
+m3 <- BoxCox(y ~ x, data = d[-ic,,drop = FALSE])
+chk(logLik(m2), logLik(m1))
+chk(logLik(m3), logLik(m1))
+chk(nrow(m1$data), N)
+chk(nrow(m2$data), sum(!is.na(d$y)))
+chk(coef(m2), coef(m1), tol = 1e-2)
+chk(coef(m3), coef(m1), tol = 1e-2)
+

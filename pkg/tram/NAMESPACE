@@ -21,7 +21,7 @@ importFrom("survival", "survfit", "Surv", "coxph.control")
 importFrom("graphics", "plot", "lines", "polygon", "abline")
 
 export(tram, tram_data, Coxph, Aareg, Colr, Polr, Lm, BoxCox, Survreg, Lehmann, 
-       mtram, score_test, perm_test, Mmlt, Mmltoptim, PI, OVL, TV, L1, ROC, Compris)
+       mtram, score_test, perm_test, Mmlt, PI, OVL, TV, L1, ROC, Compris)
 
 S3method("as.mlt", "tram")
 S3method("model.matrix", "tram")
@@ -64,18 +64,8 @@ S3method("perm_test", "coxph")
 S3method("confint", "htest")
 S3method("confint", "htests")
 
-S3method("logLik", "Mmlt")
-S3method("estfun", "Mmlt")
-S3method("coef", "cMmlt")
-S3method("coef", "mMmlt")
-S3method("vcov", "Mmlt")
-S3method("predict", "Mmlt")
 S3method("summary", "Mmlt")
 S3method("print", "summary.Mmlt")
-S3method("print", "Mmlt")
-S3method("simulate", "Mmlt")
-S3method("variable.names", "Mmlt")
-S3method("mkgrid", "Mmlt")
 
 S3method("PI", "tram")
 S3method("PI", "stram")

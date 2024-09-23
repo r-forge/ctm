@@ -1,4 +1,15 @@
 
+.pmax <- function(x, y) {
+    y[y < x] <- x
+    return(y)
+}
+
+.log <- function(x) {
+    ret <- log(.pmax(.Machine$double.eps, x))
+    dim(ret) <- dim(x)
+    return(ret)
+}
+
 ### marginally interpretable linear transformation models for clustered
 ### observations
 

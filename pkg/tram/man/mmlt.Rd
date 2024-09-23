@@ -1,10 +1,5 @@
 \name{Mmlt}
 \alias{Mmlt}
-\alias{Mmltoptim}
-\alias{coef.cMmlt}
-\alias{coef.mMmlt}
-\alias{predict.Mmlt}
-\alias{simulate.Mmlt}
 \title{
   Multivariate Conditional Transformation Models
 }
@@ -14,23 +9,10 @@
 }
 \usage{
 Mmlt(..., formula = ~ 1, data, conditional = FALSE, theta = NULL, fixed = NULL,
-     scale = FALSE, optim = Mmltoptim(), args = list(seed = 1, M = 1000), 
-     dofit = TRUE, domargins = TRUE, sequentialfit = FALSE)
-Mmltoptim(auglag = list(maxtry = 5), ...)
-\method{coef}{cMmlt}(object, newdata, 
-     type = c("all", "conditional", "Lambdapar", "Lambda", "Lambdainv", 
-              "Precision", "PartialCorr", "Sigma", "Corr", 
-              "Spearman", "Kendall"), fixed = FALSE, 
-     ...)
-\method{coef}{mMmlt}(object, newdata, 
-     type = c("all", "marginal", "Lambdapar", "Lambda", "Lambdainv", 
-              "Precision", "PartialCorr", "Sigma", "Corr", 
-              "Spearman", "Kendall"), fixed = FALSE,
-     ...)
-\method{predict}{Mmlt}(object, newdata, margins = 1:J, 
-        type = c("trafo", "distribution", "survivor", "density", "hazard"), 
-                 log = FALSE, args = object$args, ...)
-\method{simulate}{Mmlt}(object, nsim = 1L, seed = NULL, newdata, K = 50, ...)
+     scale = FALSE, optim = mltoptim(auglag = list(maxtry = 5)), 
+     args = list(seed = 1, type = c("MC", "ghalton"), M = 1000), 
+     fit = c("jointML", "pseudo", "ACS", "sequential", "none"),
+             ACSiter = 2)
 }
 \arguments{
   \item{\dots}{marginal transformation models, one for each response, for
@@ -57,39 +39,19 @@ or a logical (for \code{coef}) indicating to also return fixed parameters
   \item{scale}{a logical indicating if (internal) scaling shall be applied
           to the model coefficients.
 }
-  \item{optim}{a list of optimisers as returned by \code{\link{Mmltoptim}}
+  \item{optim}{a list of optimisers as returned by \code{\link[mlt]{mltoptim}}
 }
   \item{args}{a list of arguments for \code{\link[mvtnorm]{lpmvnorm}}.}
-  \item{dofit}{logical; parameters are fitted by default, otherwise a list
-               with log-likelihood and score function is returned.
+  \item{fit}{character vector describing how to fit the model. The default
+is joint likelihood estimation of all parameters, \code{pseudo} fixes the
+marginal parameters, \code{sequential} starts with a univariate model and
+sequentially adds models, keeping the parameters of previously added models
+fit. \code{ACS} implements Alternate Convex Search, starting with
+\code{pseudo} and, in a second step, fixing the marginal parameters. This is
+iterated for \code{ACSiter} iterations.
 }
-  \item{domargins}{logical; all model parameters are fitted by default, 
-                   including the parameters of marginal models.
+  \item{ACSiter}{number of iterations for \code{fit = "ACS"}.
 }
-  \item{sequentialfit}{logical; fit parameters sequentially by adding one
-       model at a time, keeping all parameters concerning previously added models
-       fixed. This does not lead to an optimal estimate but might provide
-       attractive starting values.
-}
-\item{auglag}{a list of arguments to \code{\link[alabama]{auglag}} ensuring
-              a numerically determined Hessian is returned.}
-  \item{object}{an object of class \code{Mmlt}.
-}
-  \item{newdata}{an optional data.frame coefficients and predictions shall
-                 be computed for.
-}
-  \item{type}{type of coefficient or prediction to be returned.
-}
-  \item{margins}{indices defining marginal models to be evaluated. Can be
-single integers giving the marginal distribution of the corresponding
-variable, or multiple integers (currently only \code{1:j} implemented).
-}
-  \item{log}{logical; return log-probabilities or log-densities if
-\code{TRUE}.
-}
-  \item{nsim}{number of samples to generate.}
-  \item{seed}{optional seed for the random number generator.}
-  \item{K}{number of grid points to generate.}
 }
 \details{
   The function implements multivariate conditional transformation models
@@ -107,6 +69,8 @@ methods.
   Nadja Klein, Torsten Hothorn, Luisa Barbanti, Thomas Kneib (2022),
   Multivariate Conditional Transformation Models. \emph{Scandinavian Journal
   of Statistics}, \bold{49}, 116--142, \doi{10.1111/sjos.12501}.
+
+  Torsten Hothorn (2024), On Nonparanormal Likelihoods. \doi{10.48550/arXiv.2408.17346}.
 
 }
 \examples{
