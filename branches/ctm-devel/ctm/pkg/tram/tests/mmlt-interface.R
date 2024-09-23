@@ -222,3 +222,32 @@ chk(l3w, l3)
 chk(L1w, L1)
 chk(L2w, L2)
 chk(L3w, L2)
+
+### simulation from fitted / unfitted models
+data("iris")
+
+m1 <- BoxCox(Sepal.Length ~ Species, data = iris)
+m2 <- BoxCox(Petal.Length ~ Species, data = iris)
+
+### fit model
+m <- mmlt(m1, m2, data = iris)
+cf <- coef(m)
+
+### resample data
+s1 <- as.data.frame(simulate(m, newdata = iris, seed = 290875))
+
+### change coeffcient (to zero correlation)
+cf[length(cf)] <- 0
+coef(m) <- cf
+
+s2 <- as.data.frame(simulate(m, newdata = iris, seed = 290875))
+
+### expect _different_ results
+stopifnot(!isTRUE(all.equal(s1, s2)))
+
+### set-up model shell
+m0 <- mmlt(m1, m2, data = iris, theta = cf, dofit = FALSE)
+
+s3 <- as.data.frame(simulate(m, newdata = iris, seed = 290875))
+### these are identical
+chk(s2, s3)
