@@ -2,7 +2,7 @@
 \name{NEWS}
 \title{NEWS file for the tram package}
 
-\section{Changes in Version 1.1-0 (2024-09-23)}{
+\section{Changes in Version 1.1-0 (2024-09-24)}{
   \itemize{
     \item{\code{mmlt} moved to \pkg{mlt} 1.6-0.}
     \item{New \code{Mmlt} allowing arbitrary mixes of continuous
