@@ -965,7 +965,7 @@ vcov.mmlt <- function(object, parm = coef(object, fixed = FALSE),
         stop("Hessian is not invertible")
     if (step > 1)
         warning("Hessian is not invertible, an approximation is used")
-    rownames(ret) <- colnames(ret) <- names(coef(object))
+    rownames(ret) <- colnames(ret) <- names(parm)
     ret
 }
 
