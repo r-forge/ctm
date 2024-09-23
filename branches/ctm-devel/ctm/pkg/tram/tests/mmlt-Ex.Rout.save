@@ -751,11 +751,9 @@ y.4.x.1   0.072   0.070   0.111   0.122
 +     if (args$fixed[i])
 +         m0$fixed <- fx
 +     m1 <- try(do.call("mmlt", m0))
-+     if (!inherits(m1, "mmlt_setup")) {
++     if (!inherits(m1, "try-error")) {
 +         print(logLik(m1))
 +         print(isTRUE(chk(coef(m1, type = "Cor"), CR)))
-+     } else {
-+         print(m1$ll(theta))
 +     }
 + }
 [1] 1
@@ -765,9 +763,11 @@ y.4.x.1   0.072   0.070   0.111   0.122
 'log Lik.' -675 (df=18)
 [1] FALSE
 [1] 3
-[1] -673
+'log Lik.' -675 (df=18)
+[1] FALSE
 [1] 4
-[1] -673
+'log Lik.' -675 (df=18)
+[1] FALSE
 [1] 5
 'log Lik.' -675 (df=18)
 [1] FALSE
@@ -775,9 +775,11 @@ y.4.x.1   0.072   0.070   0.111   0.122
 'log Lik.' -675 (df=18)
 [1] FALSE
 [1] 7
-[1] -673
+'log Lik.' -675 (df=18)
+[1] FALSE
 [1] 8
-[1] -673
+'log Lik.' -675 (df=18)
+[1] FALSE
 [1] 9
 'log Lik.' -673 (df=20)
 [1] TRUE
@@ -785,9 +787,11 @@ y.4.x.1   0.072   0.070   0.111   0.122
 'log Lik.' -673 (df=20)
 [1] TRUE
 [1] 11
-[1] -673
+'log Lik.' -673 (df=20)
+[1] TRUE
 [1] 12
-[1] -673
+'log Lik.' -673 (df=20)
+[1] TRUE
 [1] 13
 'log Lik.' -673 (df=20)
 [1] TRUE
@@ -795,9 +799,11 @@ y.4.x.1   0.072   0.070   0.111   0.122
 'log Lik.' -673 (df=20)
 [1] TRUE
 [1] 15
-[1] -673
+'log Lik.' -673 (df=20)
+[1] TRUE
 [1] 16
-[1] -673
+'log Lik.' -673 (df=20)
+[1] TRUE
 [1] 17
 'log Lik.' -675 (df=18)
 [1] FALSE
@@ -811,13 +817,17 @@ y.4.x.1   0.072   0.070   0.111   0.122
 'log Lik.' -675 (df=8)
 [1] FALSE
 [1] 21
-[1] -676
+'log Lik.' -679 (df=18)
+[1] FALSE
 [1] 22
-[1] -676
+'log Lik.' -679 (df=18)
+[1] FALSE
 [1] 23
-[1] -676
+'log Lik.' -675 (df=8)
+[1] FALSE
 [1] 24
-[1] -676
+'log Lik.' -675 (df=8)
+[1] FALSE
 [1] 25
 'log Lik.' -675 (df=18)
 [1] FALSE
@@ -831,13 +841,17 @@ y.4.x.1   0.072   0.070   0.111   0.122
 'log Lik.' -675 (df=8)
 [1] FALSE
 [1] 29
-[1] -676
+'log Lik.' -675 (df=18)
+[1] FALSE
 [1] 30
-[1] -676
+'log Lik.' -675 (df=18)
+[1] FALSE
 [1] 31
-[1] -676
+'log Lik.' -675 (df=8)
+[1] FALSE
 [1] 32
-[1] -676
+'log Lik.' -675 (df=8)
+[1] FALSE
 [1] 33
 'log Lik.' -673 (df=20)
 [1] TRUE
@@ -851,13 +865,17 @@ y.4.x.1   0.072   0.070   0.111   0.122
 'log Lik.' -673 (df=10)
 [1] TRUE
 [1] 37
-[1] -676
+'log Lik.' -676 (df=20)
+[1] TRUE
 [1] 38
-[1] -676
+'log Lik.' -676 (df=20)
+[1] TRUE
 [1] 39
-[1] -676
+'log Lik.' -673 (df=10)
+[1] TRUE
 [1] 40
-[1] -676
+'log Lik.' -673 (df=10)
+[1] TRUE
 [1] 41
 'log Lik.' -673 (df=20)
 [1] TRUE
@@ -871,13 +889,17 @@ y.4.x.1   0.072   0.070   0.111   0.122
 'log Lik.' -673 (df=10)
 [1] TRUE
 [1] 45
-[1] -676
+'log Lik.' -673 (df=20)
+[1] TRUE
 [1] 46
-[1] -676
+'log Lik.' -673 (df=20)
+[1] TRUE
 [1] 47
-[1] -676
+'log Lik.' -673 (df=10)
+[1] TRUE
 [1] 48
-[1] -676
+'log Lik.' -673 (df=10)
+[1] TRUE
 > 
 > ### names
 > J <- 5
@@ -1018,4 +1040,4 @@ y.4.x.1   0.072   0.070   0.111   0.122
 > 
 > proc.time()
    user  system elapsed 
- 36.931   0.076  37.033 
+  31.54    0.12   31.69 

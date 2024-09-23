@@ -541,11 +541,9 @@ for (i in 1:nrow(args)) {
     if (args$fixed[i])
         m0$fixed <- fx
     m1 <- try(do.call("mmlt", m0))
-    if (!inherits(m1, "mmlt_setup")) {
+    if (!inherits(m1, "try-error")) {
         print(logLik(m1))
         print(isTRUE(chk(coef(m1, type = "Cor"), CR)))
-    } else {
-        print(m1$ll(theta))
     }
 }
 
