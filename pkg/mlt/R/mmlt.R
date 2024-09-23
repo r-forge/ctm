@@ -703,11 +703,9 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
             idx <- which(j == cdpat)
             tmp <- data[idx,,drop = FALSE]
             nm <- lapply(models$models, function(mod) {
-                ### we need to fit these models because we need trafo() etc
                 ret <- mlt(mod$model, data = tmp, theta = coef(as.mlt(mod)), 
                            fixed = mod$fixed, scale = mod$scale, weights = mod$weights[idx],
-                           offset = mod$offset[idx], dofit = TRUE)
-                coef(ret) <- coef(as.mlt(mod)) ### overwrite
+                           offset = mod$offset[idx], dofit = FALSE)
                 ret
             })
             sargs <- list(models = do.call(".models", nm))
@@ -744,8 +742,6 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
                            data = data, conditional = conditional, 
                            args = args)
     }
-
-    if (!dofit) return(ret)
 
     mfixed <- NULL
     if (!is.null(models$fixed)) {
