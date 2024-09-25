@@ -124,26 +124,26 @@ distributions for the primary event of interest and all competing events.
     ##   a marginal "Coxph" model for the primary event of interest and 
     ##   a Weibull "Survreg" model for dependent censoring
     ## Use very informative starting values to keep CRAN happy
-    cf <-
-        c(`Event_relapse.Event_relapse.Bs1(Event_relapse)` = -1.879,
-          `Event_relapse.Event_relapse.Bs2(Event_relapse)` = -1.649,
-          `Event_relapse.Event_relapse.Bs3(Event_relapse)` = -0.530,
-          `Event_relapse.Event_relapse.Bs4(Event_relapse)` = -0.530,
-          `Event_relapse.Event_relapse.Bs5(Event_relapse)` = -0.059,
-          `Event_relapse.Event_relapse.Bs6(Event_relapse)` =  0.540,
-          `Event_relapse.Event_relapse.Bs7(Event_relapse)` =  0.699,
-          `Event_relapse.Event_relapse.chCMTRT`            = -0.280,
-          `Event_relapse.Event_relapse.age`                =  0.440, 
-          `Event_relapse.Event_relapse.hgb`                =  0.029,
-          `Event_relapse.Event_relapse.clinstgI`           = -0.550,
-          `Event_death.Event_death.(Intercept)`            = -2.029,
-          `Event_death.Event_death.log(Event_death)`       =  0.930,
-          `Event_death.Event_death.chCMTRT`                =  0.250, 
-          `Event_death.Event_death.age`                    = -0.609,
-          `Event_death.Event_death.hgb`                    = -0.020, 
-          `Event_death.Event_death.clinstgI`               =  0.569,
-          `Event_death.Event_relapse.(Intercept)`          = -4.549
-         )
+    cf <- c(
+            "Event_relapse.Event_relapse.Bs1(Event_relapse)" = -1.89058, 
+            "Event_relapse.Event_relapse.Bs2(Event_relapse)" = -1.6566, 
+            "Event_relapse.Event_relapse.Bs3(Event_relapse)" = -0.50329, 
+            "Event_relapse.Event_relapse.Bs4(Event_relapse)" = -0.50329, 
+            "Event_relapse.Event_relapse.Bs5(Event_relapse)" = -0.07402, 
+            "Event_relapse.Event_relapse.Bs6(Event_relapse)" = 0.53156, 
+            "Event_relapse.Event_relapse.Bs7(Event_relapse)" = 0.67391, 
+            "Event_relapse.Event_relapse.chCMTRT" = -0.2861, 
+            "Event_relapse.Event_relapse.age" = 0.43178, 
+            "Event_relapse.Event_relapse.hgb" = 0.02913, 
+            "Event_relapse.Event_relapse.clinstgI" = -0.55601, 
+            "Event_death.Event_death.(Intercept)" = -2.20056, 
+            "Event_death.Event_death.log(Event_death)" = 0.98102, 
+            "Event_death.Event_death.chCMTRT" = 0.25012, 
+            "Event_death.Event_death.age" = -0.64826, 
+            "Event_death.Event_death.hgb" = -0.02312, 
+            "Event_death.Event_death.clinstgI" = 0.57684, 
+            "Event_death.Event_relapse.(Intercept)" = -3.48595
+           )
     m <- Compris(y ~ ch + age + hgb + clinstg, data = follic, log_first = TRUE,
                  ### arguments below speed-up example, don't use!
                  theta = cf, 		### informativ starting values
