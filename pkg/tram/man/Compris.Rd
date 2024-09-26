@@ -149,7 +149,7 @@ distributions for the primary event of interest and all competing events.
                  theta = cf, 		### informativ starting values
                  optim = mltoptim(),    ### no hessian
                  args  = list(type = "ghalton", 
-                              M = 100))	### only 100 MC integration points
+                              M = 80))	### only 80 MC integration points
 
     ### log-likelihood
     logLik(m)
