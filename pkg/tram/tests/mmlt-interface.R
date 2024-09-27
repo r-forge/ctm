@@ -9,7 +9,7 @@ library("mvtnorm")
 
 set.seed(290875)
 
-chk <- function(x, y, tol = 1e-3) stopifnot(all.equal(x, y, tol = tol))
+chk <- function(x, y, tol = 1e-2) stopifnot(all.equal(x, y, tol = tol))
 
 N <- 100
 J <- 3

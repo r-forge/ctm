@@ -144,6 +144,9 @@ distributions for the primary event of interest and all competing events.
             "Event_death.Event_death.clinstgI" = 0.57684, 
             "Event_death.Event_relapse.(Intercept)" = -3.48595
            )
+    ### gave up after multiple submissions to CRAN resulting
+    ### in 5.02 > 5 secs
+    \donttest{
     m <- Compris(y ~ ch + age + hgb + clinstg, data = follic, log_first = TRUE,
                  ### arguments below speed-up example, don't use!
                  theta = cf, 		### informativ starting values
@@ -160,6 +163,7 @@ distributions for the primary event of interest and all competing events.
     coef(m, type = "marginal")    
     ## Kendall's tau
     coef(m, type = "Kendall")
+    }
 
   }
 }
