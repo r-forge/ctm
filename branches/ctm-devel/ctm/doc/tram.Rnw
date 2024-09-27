@@ -1,1 +1,0 @@
-../pkg/tram/vignettes/tram.Rnw

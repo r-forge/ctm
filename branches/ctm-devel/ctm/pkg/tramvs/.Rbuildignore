@@ -1,6 +1,0 @@
-^.*\.Rproj$
-^\.Rproj\.user$
-Makefile
-cache
-figure
-ignore
