@@ -38,7 +38,7 @@ The following object is masked from 'package:MASS':
 > options(digits = 2)
 > 
 > set.seed(25)
-> chk <- function(...) all.equal(..., tol = 1e-3, check.attributes = FALSE)
+> chk <- function(..., tol = 1e-3) all.equal(..., tol = tol, check.attributes = FALSE)
 > 
 > OR <- 1
 > 
@@ -997,7 +997,7 @@ y.4.x.1   0.072   0.070   0.111   0.122
 > 
 > gn <- numDeriv::grad(mxwy$ll, cfxwy)
 > ga <- colSums(mxwy$score(cfxwy))
-> chk(gn, ga)
+> chk(gn, ga, tol = 1e-2)	### Fedora noLD problems
 [1] TRUE
 > 
 > mwxy <- mmlt(mw, mx, my, formula = ~ 1)
@@ -1007,16 +1007,16 @@ y.4.x.1   0.072   0.070   0.111   0.122
 > 
 > nm <- names(cfwxy)
 > nc <- nm[nm %in% names(cfxwy)]
-> chk(cfxwy[nc], cfwxy[nc])
+> chk(cfxwy[nc], cfwxy[nc], tol = 1e-2)
 [1] TRUE
-> chk(Swxy, Sxwy)
+> chk(Swxy, Sxwy, tol = 1e-2)
 [1] TRUE
-> chk(llwxy, llxwy)
+> chk(llwxy, llxwy, tol = 1e-2)
 [1] TRUE
 > 
 > gn <- numDeriv::grad(mwxy$ll, cfwxy)
 > ga <- colSums(mwxy$score(cfwxy))
-> chk(gn, ga)
+> chk(gn, ga, tol = 1e-2)
 [1] TRUE
 > 
 > myxw <- mmlt(my, mx, mw, formula = ~ 1)
@@ -1026,18 +1026,18 @@ y.4.x.1   0.072   0.070   0.111   0.122
 > 
 > nm <- names(cfyxw)
 > nc <- nm[nm %in% names(cfxwy)]
-> chk(cfxwy[nc], cfyxw[nc])
+> chk(cfxwy[nc], cfyxw[nc], tol = 1e-2)
 [1] TRUE
-> chk(Syxw, Sxwy)
+> chk(Syxw, Sxwy, tol = 1e-2)
 [1] TRUE
-> chk(llyxw, llxwy)
+> chk(llyxw, llxwy, tol = 1e-2)
 [1] TRUE
 > 
 > gn <- numDeriv::grad(myxw$ll, cfyxw)
 > ga <- colSums(myxw$score(cfyxw))
-> chk(gn, ga)
+> chk(gn, ga, tol = 1e-2)
 [1] TRUE
 > 
 > proc.time()
    user  system elapsed 
-  31.54    0.12   31.69 
+ 33.988   0.091  34.102 

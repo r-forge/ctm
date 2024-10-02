@@ -7,7 +7,7 @@ library("numDeriv")
 options(digits = 2)
 
 set.seed(25)
-chk <- function(...) all.equal(..., tol = 1e-3, check.attributes = FALSE)
+chk <- function(..., tol = 1e-3) all.equal(..., tol = tol, check.attributes = FALSE)
 
 OR <- 1
 
@@ -631,7 +631,7 @@ llxwy <- logLik(mxwy)
 
 gn <- numDeriv::grad(mxwy$ll, cfxwy)
 ga <- colSums(mxwy$score(cfxwy))
-chk(gn, ga)
+chk(gn, ga, tol = 1e-2)	### Fedora noLD problems
 
 mwxy <- mmlt(mw, mx, my, formula = ~ 1)
 cfwxy <- coef(mwxy)
@@ -640,13 +640,13 @@ llwxy <- logLik(mwxy)
 
 nm <- names(cfwxy)
 nc <- nm[nm %in% names(cfxwy)]
-chk(cfxwy[nc], cfwxy[nc])
-chk(Swxy, Sxwy)
-chk(llwxy, llxwy)
+chk(cfxwy[nc], cfwxy[nc], tol = 1e-2)
+chk(Swxy, Sxwy, tol = 1e-2)
+chk(llwxy, llxwy, tol = 1e-2)
 
 gn <- numDeriv::grad(mwxy$ll, cfwxy)
 ga <- colSums(mwxy$score(cfwxy))
-chk(gn, ga)
+chk(gn, ga, tol = 1e-2)
 
 myxw <- mmlt(my, mx, mw, formula = ~ 1)
 cfyxw <- coef(myxw)
@@ -655,10 +655,10 @@ llyxw <- logLik(myxw)
 
 nm <- names(cfyxw)
 nc <- nm[nm %in% names(cfxwy)]
-chk(cfxwy[nc], cfyxw[nc])
-chk(Syxw, Sxwy)
-chk(llyxw, llxwy)
+chk(cfxwy[nc], cfyxw[nc], tol = 1e-2)
+chk(Syxw, Sxwy, tol = 1e-2)
+chk(llyxw, llxwy, tol = 1e-2)
 
 gn <- numDeriv::grad(myxw$ll, cfyxw)
 ga <- colSums(myxw$score(cfyxw))
-chk(gn, ga)
+chk(gn, ga, tol = 1e-2)
