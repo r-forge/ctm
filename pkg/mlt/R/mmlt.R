@@ -149,17 +149,17 @@
     if (what == "z") {
         if (models$normal[j]) 
             return(tr)
-        return(qnorm(tmp$todistr$p(tr, log = TRUE), log.p = TRUE))
+        return(qnorm(tmp$todistr$p(tr, log.p = TRUE), log.p = TRUE))
     }
     if (what == "zleft") {
         if (models$normal[[j]])
             return(trl)
-        return(qnorm(tmp$todistr$p(trl, log = TRUE), log.p = TRUE))
+        return(qnorm(tmp$todistr$p(trl, log.p = TRUE), log.p = TRUE))
     }
     if (what == "dzleft") {
         if (models$normal[[j]])
             return(rep(1, length(trl)))
-        qn <- qnorm(tmp$todistr$p(trl, log = TRUE), log.p = TRUE)
+        qn <- qnorm(tmp$todistr$p(trl, log.p = TRUE), log.p = TRUE)
         dn <- dnorm(qn)
         dn[!is.finite(dn)] <- 1
         return(tmp$todistr$d(trl) / dn)
@@ -167,12 +167,12 @@
    if (what == "zright") {
         if (models$normal[[j]])
             return(trr)
-        return(qnorm(tmp$todistr$p(trr, log = TRUE), log.p = TRUE))
+        return(qnorm(tmp$todistr$p(trr, log.p = TRUE), log.p = TRUE))
     }
     if (what == "dzright") {
         if (models$normal[[j]])
             return(rep(1, length(trr)))
-        qn <- qnorm(tmp$todistr$p(trr, log = TRUE), log.p = TRUE)
+        qn <- qnorm(tmp$todistr$p(trr, log.p = TRUE), log.p = TRUE)
         dn <- dnorm(qn)
         dn[!is.finite(dn)] <- 1
         return(tmp$todistr$d(trr) / dn)
@@ -180,7 +180,7 @@
     if (what == "zprime") {
         if (models$normal[[j]])
             return(trp)
-        qn <- qnorm(tmp$todistr$p(tr, log = TRUE), log.p = TRUE)
+        qn <- qnorm(tmp$todistr$p(tr, log.p = TRUE), log.p = TRUE)
         return(trd / dnorm(qn))
     }
     if (what == "estfun") {

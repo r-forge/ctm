@@ -43,7 +43,7 @@ as.basis.formula <- function(object, data = NULL, remove_intercept = FALSE,
         if (!is.null(mf)) {
             mf <- model.frame(mt, data = data, xlev = xlevels)
             if(!is.null(cl <- attr(mt, "dataClasses"))) .checkMFClasses(cl, mf)
-            X <- mm(mt, mf, contrasts = contr)
+            X <- mm(mt, mf, contrasts.arg = contr)
         } else {
             mf <- model.frame(object, data)
             X <- mm(attr(mf, "terms"), data = mf, ...)
