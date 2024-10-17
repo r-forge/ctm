@@ -220,7 +220,7 @@
     ### fixed = FALSE?
     margin_par <- do.call("c", lapply(m$models, 
                                       function(mod) coef(as.mlt(mod))))
-    names(margin_par) <- paste(rep(Jnames, time = m$nparm), 
+    names(margin_par) <- paste(rep(Jnames, times = m$nparm), 
                                names(margin_par), sep = ".")
 
     rn <- rownames(unclass(ltMatrices(1:Jp, names = Jnames, byrow = TRUE)))
@@ -385,7 +385,7 @@
                                    Lambda = Lambda))
         }
         return(ret + llsc$logLik(obs = z, lower = lower, upper = upper, 
-                           Lambda = Lambda))
+                                 Lambda = Lambda))
     }
 
     sc <- function(parm, newdata = NULL) {
