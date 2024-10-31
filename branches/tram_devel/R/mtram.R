@@ -243,10 +243,10 @@ mtram <- function(object, formula, data,
                     zupper <- PF(lpupper[i])
                     sd <- 1
                 }
-                .Marsaglia_1963(zlower, zupper, mean = 0, V = V, 
-                                do_qnorm = FALSE, grd = grd)
+                lpRR(lower = zlower, upper = zupper, mean = 0, B = V, 
+                     Z = grd$nodes, w = grd$weights, log.p = TRUE)
             })
-            return(-sum(.log(ret)))
+            return(-sum(ret))
         }
         X <- iY$Yleft
     }            
