@@ -62,6 +62,24 @@ mtram(object, formula, data,
   ## or
   ## demo("mtram", package = "tram")
 
+  if (require("lme4")) {
+      ### linear mixed model
+      sleep_lmer <- lmer(Reaction ~ Days + (Days | Subject), 
+                         data = sleepstudy, REML = FALSE)
+
+      ### marginal transformation model
+      sleep_LM <- Lm(Reaction ~ Days, data = sleepstudy)
+      sleep_LMmer <- mtram(sleep_LM, ~ (Days | Subject), data = sleepstudy)
+
+      ### the same
+      logLik(sleep_lmer)
+      logLik(sleep_LMmer)
+
+      ### Lm / mtram estimate standardised effects
+      sdinv <- 1 / summary(sleep_lmer)$sigma
+      fixef(sleep_lmer) * c(-1, 1) * sdinv
+      coef(sleep_LMmer)[c("(Intercept)", "Days")]
+  }
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

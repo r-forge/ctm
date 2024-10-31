@@ -2,6 +2,12 @@
 \name{NEWS}
 \title{NEWS file for the tram package}
 
+\section{Changes in Version 1.1-3 (2024-11-01)}{
+  \itemize{
+    \item{Update \code{mtram} to internal interface changes.}
+  }
+}
+
 \section{Changes in Version 1.1-2 (2024-10-02)}{
   \itemize{
     \item{Gradient check failed on Fedora noLD.}
