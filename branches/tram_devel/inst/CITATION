@@ -1,0 +1,24 @@
+
+bibentry(bibtype="Article",
+         title = "Most Likely Transformations",
+         author = c(person("Torsten", "Hothorn"), person("Lisa", "Möst"), 
+                    person("Peter", "Bühlmann")),
+         journal      = "Scandinavian Journal of Statistics",
+         year         = "2018",
+         volume       = "45",
+         number       = "1",
+         pages        = "110--134",
+         mheader = "For theoretical issues cite:"
+)
+
+bibentry(bibtype="Article",
+         title = "Most Likely Transformations: The mlt Package",
+         author = person("Torsten Hothorn"),
+         journal      = "Journal of Statistical Software",
+         year         = "2020",
+         volume       = "92",
+         number       = "1",
+         pages        = "1--68",
+         doi          = "10.18637/jss.v092.i01",
+         mheader = "To cite tram in publications use:"
+)
