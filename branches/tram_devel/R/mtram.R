@@ -244,7 +244,7 @@ mtram <- function(object, formula, data,
                     sd <- 1
                 }
                 lpRR(lower = zlower, upper = zupper, mean = 0, B = V, 
-                     Z = grd$nodes, w = grd$weights, log.p = TRUE)
+                     Z = grd$nodes, weights = grd$weights, log.p = TRUE)
             })
             return(-sum(ret))
         }
@@ -315,56 +315,4 @@ vcov.mtram <- function(object, ...) {
     ret <- mlt:::vcov.mlt(object)
     colnames(ret) <- rownames(ret) <- names(coef(object))
     return(ret)
-}
-    
-.Marsaglia_1963 <- function(lower = rep(-Inf, nrow(V)), 
-                            upper = rep(Inf, nrow(V)), 
-                            mean = rep(0, nrow(V)), 
-                            V = diag(2), 
-                            grd = NULL,
-                            do_qnorm = TRUE,
-                            ...) {
-    
-    k <- nrow(V)
-    l <- ncol(V)
-    
-    if (is.null(grd)) {
-        stopifnot(do_qnorm)
-        grd <- SparseGrid::createSparseGrid(type = "KPU", dimension = ncol(V), k = 10)
-        ### Note: We expect t(nodes) below
-        grd$nodes <- t(grd$nodes)
-    }
-    
-    ### Note: The appendix describes the standardised version
-    ### in order to be compliant with the notation in Genz & Bretz (2009).
-    ### Standardisation of lower/upper and V AND division by diagonal
-    ### elements in the Marsaglia formula cancel out and are thus
-    ### left-out in the code
-    
-    lower <- lower - mean
-    upper <- upper - mean
-    
-    if (k == 1) {
-        VVt <- base::tcrossprod(V)
-        sd <- sqrt(base::diag(VVt) + 1)
-        return(pnorm(upper / sd) - pnorm(lower / sd))
-    }
-    
-    ### y = qnorm(x)
-    inner <- function(y) {
-        Vy <- V %*% y
-        ### this needs ~ 75% of the total runtime
-        #ret <- pnorm(upper - Vy) - pnorm(lower - Vy)
-        ### ~ 3x speed-up
-        ### ret <- .Call("pnormMRS", c(upper - Vy)) - .Call("pnormMRS", c(lower - Vy))
-        #if (nrow(Vy) == 1) return(ret)
-        #ret <- matrix(pmax(.Machine$double.eps, ret), nrow = nrow(Vy),
-        #              ncol = ncol(Vy))
-        #exp(colSums(log(ret)))
-        .Call("R_inner", upper - Vy, lower - Vy)
-    }
-    
-    if (do_qnorm) grd$nodes <- qnorm(grd$nodes)
-    ev <- inner(grd$nodes)
-    c(value = sum(grd$weights * ev))
 }
