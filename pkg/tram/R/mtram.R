@@ -107,7 +107,7 @@ mtram <- function(object, formula, data,
             DPFz <- c(D * PFz)
             
             if (NORMAL) {
-                ret <- -0.5 * (logdet + sum((Linv %*% DPFz)^2) - sum(DPFz^2)) -
+                ret <- -0.5 * (logdet + sum((Linv %*% DPFz)^2) - sum(DPFz^2)) +
                     object$loglik(theta, weights = w)
             } else {
                 ret <- -0.5 * (logdet + sum((Linv %*% DPFz)^2) - sum(PFz^2)) +
@@ -230,13 +230,12 @@ mtram <- function(object, formula, data,
             
             ## don't spend time on Matrix dispatch
             mLt <- t(as(Lambdat[wh, wh], "matrix"))
-            ONE <- matrix(1, nrow = NCOL(mLt))
             
             ret <- sapply(1:length(idx), function(i) {
                 V <- zt[[i]] %*% mLt  ### = U_i %*% Lambda(\varparm)
                 i <- idx[[i]]
-                if (standardise) {
-                    sd <- c(sqrt((V^2) %*% ONE + 1)) ### D(\varparm)
+                if (standardise && !NORMAL) {
+                    sd <- c(sqrt(rowSums(V^2) + 1)) ### D(\varparm)
                     zlower <- PF(lplower[i] / sd) * sd
                     zupper <- PF(lpupper[i] / sd) * sd
                 } else {
@@ -318,9 +317,9 @@ vcov.mtram <- function(object, ...) {
     return(ret)
 }
     
-.Marsaglia_1963 <- function(lower = rep(-Inf, nrow(sigma)), 
-                            upper = rep(Inf, nrow(sigma)), 
-                            mean = rep(0, nrow(sigma)), 
+.Marsaglia_1963 <- function(lower = rep(-Inf, nrow(V)), 
+                            upper = rep(Inf, nrow(V)), 
+                            mean = rep(0, nrow(V)), 
                             V = diag(2), 
                             grd = NULL,
                             do_qnorm = TRUE,
