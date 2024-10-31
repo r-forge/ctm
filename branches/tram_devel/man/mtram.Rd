@@ -10,7 +10,8 @@
 mtram(object, formula, data,
       grd = SparseGrid::createSparseGrid(type = "KPU", 
                 dimension = length(rt$cnms[[1]]), k = 10), 
-      Hessian = FALSE,  tol = .Machine$double.eps, ...)
+      tol = .Machine$double.eps, optim = mltoptim(auglag = list(maxtry = 5)),
+      ...)
 }
 \arguments{
   \item{object}{
@@ -25,10 +26,10 @@ mtram(object, formula, data,
   \item{grd}{
   A sparse grid used for numerical integration to get the likelihood.
 }
-  \item{Hessian}{
-  A logical, if \code{TRUE}, the hessian is computed and returned.
-}
   \item{tol}{numerical tolerance.}
+\item{optim}{
+a list of optimisers as returned by \code{\link[mlt]{mltoptim}}
+}
   \item{\dots}{
   Additional argument.
 }

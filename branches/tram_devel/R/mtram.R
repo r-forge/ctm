@@ -16,8 +16,8 @@
 mtram <- function(object, formula, data, 
                   grd = SparseGrid::createSparseGrid(type = "KPU", dimension = length(rt$cnms[[1]]), 
                                                      k = 10),
-                  Hessian = FALSE, tol = .Machine$double.eps,
-                  # standardise = FALSE,
+                  tol = .Machine$double.eps,
+                  optim = mltoptim(auglag = list(maxtry = 5)),
                   ...) {
 
     call <- match.call()
@@ -74,6 +74,8 @@ mtram <- function(object, formula, data,
         f <- object$todistr$d
         ### fprime() / f()
         fpf <- object$todistr$dd2d
+        dPF <- function(z)
+            f(z) / dnorm(PF(z))
     }
     
     gr <- NULL
@@ -95,7 +97,7 @@ mtram <- function(object, formula, data,
             # Sigma <- tcrossprod(LM)
             #            SigmaInv <- crossprod(Linv)
             D <- Dinv <- 1L
-            if(standardise) {
+            if(standardise) {		### <FIXME> check NORMAL </FIXME>
                 # D <- sqrt(diag(Sigma))
                 D <- sqrt(rowSums(LM^2))
                 Dinv <- 1/D
@@ -218,7 +220,8 @@ mtram <- function(object, formula, data,
             z <- mZtW[,i,drop = FALSE]
             t(z[base::rowSums(abs(z)) > 0,,drop = FALSE])
         })
-        
+
+        ### <FIXME> scale parameters if necessary </FIXME>
         ll <- function(parm) {
             theta <- parm[1:ncol(iY$Yleft)]
             gamma <- parm[-(1:ncol(iY$Yleft))]
@@ -249,6 +252,97 @@ mtram <- function(object, formula, data,
             return(-sum(ret))
         }
         X <- iY$Yleft
+
+        if (NORMAL) {
+            gr <- function(parm) {
+                theta <- parm[1:ncol(iY$Yleft)]
+                gamma <- parm[-(1:ncol(iY$Yleft))]
+                Lambdat@x[] <- mapping(gamma)
+                lplower <- c(iY$Yleft %*% theta + offset)
+                lplower[!is.finite(lplower)] <- -Inf
+                lpupper <- c(iY$Yright %*% theta + offset)
+                lpupper[!is.finite(lpupper)] <- Inf
+            
+                ## don't spend time on Matrix dispatch
+                mLt <- t(as(Lambdat[wh, wh], "matrix"))
+            
+                ret <- lapply(1:length(idx), function(i) {
+                    V <- (B <- zt[[i]]) %*% mLt  ### = U_i %*% Lambda(\varparm)
+                    i <- idx[[i]]
+                    if (standardise && !NORMAL) {
+                        sd <- c(sqrt(rowSums(V^2) + 1)) ### D(\varparm)
+                        zlower <- PF(lplower[i] / sd) * sd
+                        zupper <- PF(lpupper[i] / sd) * sd
+                    } else {
+                        zlower <- PF(lplower[i])
+                        zupper <- PF(lpupper[i])
+                        sd <- 1
+                    }
+                    ret <- slpRR(lower = zlower, upper = zupper, mean = 0, B = V, 
+                                 Z = grd$nodes, weights = grd$weights, log.p = TRUE)
+                    dtheta <- colSums(ret$lower * iY$Yleft[i,,drop = FALSE] + 
+                                      ret$upper * iY$Yright[i,,drop = FALSE])
+                    K <- ncol(V)
+                    ind <- matrix(1:(K^2), nrow = K, byrow = TRUE)
+                    dgamma <- as.vector(t(ret$B) %*% V)[ind[lower.tri(ind, diag = TRUE)]]
+                    return(c(dtheta, dgamma))
+                })
+                return(-Reduce("+", ret))
+            }
+        } else {
+            dsd <- function(gamma, B) {
+                L <- diag(ncol(B))
+                L[lower.tri(L, diag = TRUE)] <- gamma
+                sd <- sqrt(rowSums((A <- B %*% L)^2) + 1)
+                ret <- lapply(1:nrow(B), function(i)
+                    as.vector(A[i,] %*% t(B[i,])))
+                ret <- do.call("rbind", ret)
+                ret / sd
+            }
+
+            gr <- function(parm) {
+                theta <- parm[1:ncol(iY$Yleft)]
+                gamma <- parm[-(1:ncol(iY$Yleft))]
+                Lambdat@x[] <- mapping(gamma)
+                lplower <- c(iY$Yleft %*% theta + offset)
+                lplower[!is.finite(lplower)] <- -Inf
+                lpupper <- c(iY$Yright %*% theta + offset)
+                lpupper[!is.finite(lpupper)] <- Inf
+            
+                ## don't spend time on Matrix dispatch
+                mLt <- t(as(Lambdat[wh, wh], "matrix"))
+            
+                ret <- lapply(1:length(idx), function(i) {
+                    V <- (B <- zt[[i]]) %*% mLt  ### = U_i %*% Lambda(\varparm)
+                    i <- idx[[i]]
+                    if (standardise && !NORMAL) {
+                        sd <- c(sqrt(rowSums(V^2) + 1)) ### D(\varparm)
+                        zlower <- PF(lsd <- lplower[i] / sd) * sd
+                        zupper <- PF(usd <- lpupper[i] / sd) * sd
+                    } else {
+                        zlower <- PF(lplower[i])
+                        zupper <- PF(lpupper[i])
+                        sd <- 1
+                    }
+                    ret <- slpRR(lower = zlower, upper = zupper, mean = 0, B = V, 
+                                 Z = grd$nodes, weights = grd$weights, log.p = TRUE)
+                    dtheta <- colSums(ret$lower * dPF(lsd) * iY$Yleft[i,,drop = FALSE] + 
+                                      ret$upper * dPF(usd) * iY$Yright[i,,drop = FALSE])
+                    K <- ncol(V)
+                    dsdg <- dsd(gamma, B = B)
+                    dgamma <- colSums((ret$lower * (dPF(lsd) * (-lsd / sd) * sd +
+                                                    PF(lsd)) + 
+                                       ret$upper * (dPF(usd) * (-usd / sd) * sd +
+                                                    PF(usd))) * 
+                                      dsd(gamma, B = B))
+                    dgamma <- dgamma + as.vector(t(ret$B) %*% V)
+                    ind <- matrix(1:(K^2), nrow = K, byrow = TRUE)
+                    idx <- ind[lower.tri(ind, diag = TRUE)]
+                    return(c(dtheta, dgamma[idx]))
+                })
+                return(-Reduce("+", ret))
+            }
+        }
     }            
     
     ui <- attr(X, "constraint")$ui[, wf, drop = FALSE]
@@ -264,17 +358,21 @@ mtram <- function(object, formula, data,
                                hin.jac = function(par) ui,
                                control.outer = list(trace = FALSE))[c("par", "value", "gradient")]
     } else {
-        opt <- alabama::auglag(par = start, fn = ll, gr = gr,
-                               hin = function(par) ui %*% par - ci, 
-                               hin.jac = function(par) ui,
-                               control.outer = list(trace = FALSE))[c("par", "value", "gradient")]
+        for (i in 1:length(optim)) {
+            opt <- optim[[i]](theta = start, 
+                              f = ll,
+                              g = gr,
+                              ui = ui, ci = ci)
+            if (opt$convergence == 0) break()
+        }
+        if (opt$convergence != 0)
+            warning("Optimisation did not converge")
     }
 
     gamma <- opt$par[-(1:ncol(X))]
     names(opt$par)[-(1:ncol(X))] <- paste0("gamma", 1:length(gamma))
     Lambdat@x[] <- mapping(gamma)
     opt$G <- crossprod(Lambdat)[1:length(rt$cnms[[1]]),1:length(rt$cnms[[1]])]
-    if (Hessian) opt$Hessian <- numDeriv::hessian(ll, opt$par)
     opt$loglik <- ll
     if(!is.null(gr)) opt$gr <- gr
     opt$call <- call
@@ -298,12 +396,7 @@ coef.mtram <- function(object, ...)
     object$par
 
 Hessian.mtram <- function(object, ...) {
-    H <- object$Hessian
-    if (is.null(H)) {
-        call <- object$call
-        call$Hessian <- TRUE
-        H <- eval(call, parent.frame())$Hessian
-    }
+    H <- object$optim_hessian
     return(H)
 }
 
