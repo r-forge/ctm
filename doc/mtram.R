@@ -158,8 +158,7 @@ coef(sleep_LMmer)
 
 ## ----mtram-sleep_BoxCox, cache = FALSE----------------------------------------
 sleep_BC <- BoxCox(Reaction ~ Days, data = sleepstudy)
-sleep_BCmer <- mtram(sleep_BC, ~ (Days | Subject), data = sleepstudy, 
-                     Hessian = TRUE)
+sleep_BCmer <- mtram(sleep_BC, ~ (Days | Subject), data = sleepstudy)
 logLik(sleep_BCmer)
 
 
@@ -211,7 +210,7 @@ grey <- rgb(.75, .75, .75)
 nd <- ex
 plotfun("prob", ex, layout = c(5, 2), par.settings = simpleTheme(col=c(grey, col), lwd = 3),
   auto.key = list(text = c("Empirical cumulative distribution function", levels(nd$Method)), 
-                  points = FALSE, lines = TRUE))
+                  points = FALSE, lines = TRUE, space = "top"))
 
 
 ## ----mtram-sleep_corr---------------------------------------------------------
@@ -220,7 +219,7 @@ cov2cor(sleep_BCmer$G)
 
 ## ----mtram-sleep_vcov---------------------------------------------------------
 library("mvtnorm")
-VC <- solve(sleep_BCmer$Hessian)
+VC <- vcov(sleep_BCmer)
 idx <- (nrow(VC) - 2):nrow(VC)
 Rcoef <- rmvnorm(1000, mean = coef(sleep_BCmer), sigma = VC)[,idx]
 ret <- apply(Rcoef, 1, function(gamma) {
@@ -295,7 +294,7 @@ nd <- ex
 plotfun("prob", ex, layout = c(5, 2), par.settings = simpleTheme(col=c(grey, col, col[2]), lwd =
 3, lty = c(1, 1, 1, 3)),
   auto.key = list(text = c("Empirical cumulative distribution function", levels(nd$Method)), 
-                  points = FALSE, lines = TRUE))
+                  points = FALSE, lines = TRUE, space = "top"))
 
 
 ## ----mtram-toenail-plot, echo = FALSE, cache = FALSE--------------------------
@@ -341,14 +340,13 @@ m <- ctm(as.basis(~ outcome, data = toenail),
 toenail_probit <- mlt(m, data = toenail, 
                       fixed = c("outcomemoderate or severe" = 0))
 toenail_mtram_RI <- 
-    mtram(toenail_probit, ~ (1 | patientID), 
-          data = toenail, Hessian = TRUE)
+    mtram(toenail_probit, ~ (1 | patientID), data = toenail)
 coef(toenail_mtram_RI)
 
 
 ## ----mtram-toenail-hessian----------------------------------------------------
 vcov(toenail_glmer_RI_2)
-solve(toenail_mtram_RI$Hessian)[1:4, 1:4]
+vcov(toenail_mtram_RI)[1:4, 1:4]
 
 
 ## ----mtram-toenail-coef-------------------------------------------------------
@@ -401,7 +399,7 @@ m <- ctm(as.basis(~ outcome, data = toenail),
 toenail_logit <- mlt(m, data = toenail, 
                      fixed = c("outcomemoderate or severe" = 0))
 toenail_mtram_logit <- mtram(toenail_logit, ~ (1 | patientID), 
-                             data = toenail, Hessian = TRUE)
+                             data = toenail)
 
 
 ## ----mtram-toenail_logit-coef-------------------------------------------------
@@ -411,7 +409,7 @@ cf[2:4] / sqrt(1 + cf["gamma1"]^2)
 
 ## ----mtram-toenail-trt--------------------------------------------------------
 S <- rmvnorm(10000, mean = coef(toenail_mtram_logit), 
-             sigma = solve(toenail_mtram_logit$Hessian))
+             sigma = vcov(toenail_mtram_logit))
 (ci <- quantile(S[,"treatmentterbinafine:time"] / sqrt(1 + S[, "gamma1"]^2), 
                 prob = c(.025, .975)))
 
@@ -446,7 +444,7 @@ nd$odds <- exp(predict(tmp, newdata = nd, type = "trafo")[1,])
 ## ----mtram-toenail_OR_2, dev = "png", cache = FALSE, echo = FALSE, dpi = 300----
 X <- model.matrix(~ treatment * time, data = nd)
 rbeta <- rmvnorm(10000, mean = coef(toenail_mtram_logit), 
-                 sigma = solve(toenail_mtram_logit$Hessian))
+                 sigma = vcov(toenail_mtram_logit))
 s <- rbeta[,ncol(rbeta)]
 rbeta <- rbeta[,-ncol(rbeta)] / sqrt(s^2 + 1)
 odds <- exp(-X %*% t(rbeta))
@@ -492,7 +490,7 @@ xyplot(prob ~ time | model, data = nd2, group = treatment, ylim = c(0, 1),
        xlab = "Time", 
        par.settings = simpleTheme(col = col),
        auto.key = list(text = levels(nd2$treatment), 
-                       points = FALSE, lines = TRUE), 
+                       points = FALSE, lines = TRUE, space = "top"), 
        col = col, type = "l", ylab = "Probability (none or mild)")
 
 
@@ -552,8 +550,7 @@ m <- ctm(as.basis(~ outcome, data = toenail),
 toenail_probit <- mlt(m, data = toenail, 
                       fixed = c("outcomemoderate or severe" = 0))
 t4 <- system.time(toenail_mtram_RI <- 
-    mtram(toenail_probit, ~ (1 | patientID), 
-           data = toenail, Hessian = TRUE))
+    mtram(toenail_probit, ~ (1 | patientID), data = toenail))
 
 t5 <- system.time(toenail_glmer_RS <- 
     glmer(outcome ~ treatment * time + (1 + time | patientID),
@@ -684,8 +681,7 @@ exp(coef(neck_ColrME))
 neck_Colr <- Colr(vas ~ laser * time, data = pain_df, 
                   bounds = c(0, 1), support = c(0, 1),
                   extrapolate = TRUE)
-neck_Colrmer <- mtram(neck_Colr, ~ (1 | id), data = pain_df, 
-                      Hessian = TRUE)
+neck_Colrmer <- mtram(neck_Colr, ~ (1 | id), data = pain_df)
 
 
 ## ----mtram-neck_Colr_distr, echo = FALSE, fig.height = 4, fig.width = 7-------
@@ -707,7 +703,7 @@ p2 <- xyplot(prob ~ vas | time, data = nd2, groups = laser, type = "l",
              ylab = "Marginal distribution", 
              par.settings = simpleTheme(col=col),
              auto.key = list(text = levels(nd2$laser), 
-                             points = FALSE, lines = TRUE))
+                             points = FALSE, lines = TRUE, space = "top"))
 plot(p2)
 
 ## M1
@@ -732,12 +728,12 @@ plot(p2)
 #              ylab = "Marginal distribution", 
 #              par.settings = simpleTheme(col=col),
 #              auto.key = list(text = levels(nd2$laser), 
-#                              points = FALSE, lines = TRUE))
+#                              points = FALSE, lines = TRUE, space = "top"))
 # plot(p2)
 
 
 ## ----mtram-neck_Colr-CI, echo = TRUE, eval=TRUE-------------------------------
-S <- solve(neck_Colrmer$Hessian)
+S <- vcov(neck_Colrmer)
 rbeta <- rmvnorm(10000, mean = coef(neck_Colrmer), sigma = S)
 s <- rbeta[, ncol(rbeta)]
 rbeta <- rbeta[,-ncol(rbeta)] / sqrt(s^2 + 1)
@@ -801,7 +797,7 @@ xyplot(surv ~ time | strat_t + strat_n, data = nd, groups = randarm,
        xlab = "Time (in days)",
        par.settings = simpleTheme(col=col),
        auto.key = list(text = levels(nd$randarm), 
-                       points = FALSE, lines = TRUE))
+                       points = FALSE, lines = TRUE, space = "top"))
 
 
 ## ----mtram-CAO_DFS------------------------------------------------------------
@@ -816,15 +812,14 @@ CAOsurv$iDFS2 <- tmp
 
 ## ----mtram-CAO_SR, cache = TRUE-----------------------------------------------
 CAO_SR <- Survreg(iDFS2 ~ randarm, data = CAOsurv)
-CAO_SR_mtram <- mtram(CAO_SR, ~ (1 | Block), data = CAOsurv,
-                      Hessian = TRUE)
+CAO_SR_mtram <- mtram(CAO_SR, ~ (1 | Block), data = CAOsurv)
 logLik(CAO_SR_mtram)
 (cf <- coef(CAO_SR_mtram))
 (OR <- exp(-cf["randarm5-FU + Oxaliplatin"] / sqrt(cf["gamma1"]^2 + 1)))
 
 
 ## ----mtram-CAO-CI-------------------------------------------------------------
-S <- solve(CAO_SR_mtram$Hessian)
+S <- vcov(CAO_SR_mtram)
 # sqrt(diag(S))
 rbeta <- rmvnorm(10000, mean = coef(CAO_SR_mtram), 
                  sigma = S)
@@ -835,16 +830,14 @@ quantile(exp(-rbeta[, ncol(rbeta)]), prob = c(.025, .5, .975))
 
 ## ----mtram-CAO_SR_2, cache = TRUE---------------------------------------------
 CAO_SR_2 <- Survreg(iDFS2 | 0 + strat_n:strat_t ~ randarm, data = CAOsurv)
-CAO_SR_2_mtram <- mtram(CAO_SR_2, ~ (1 | Block), data = CAOsurv,
-                        Hessian  = TRUE)
+CAO_SR_2_mtram <- mtram(CAO_SR_2, ~ (1 | Block), data = CAOsurv)
 logLik(CAO_SR_2_mtram)
 (cf <- coef(CAO_SR_2_mtram))
 (OR_2 <- exp(-cf["randarm5-FU + Oxaliplatin"] / sqrt(cf["gamma1"]^2 + 1)))
 
 
 ## ----mtram-CAO-CI-2, echo = FALSE---------------------------------------------
-H <- CAO_SR_2_mtram$Hessian
-S <- solve(H + .01 * diag(nrow(H)))
+S <- vcov(CAO_SR_2_mtram)
 rbeta <- rmvnorm(10000, mean = coef(CAO_SR_2_mtram), 
                  sigma = S)
 s <- rbeta[, ncol(rbeta)]
@@ -856,15 +849,13 @@ quantile(exp(-rbeta[, ncol(rbeta)]), prob = c(.025, .5, .975))
 CAO_Cox_2 <- Coxph(iDFS2 | 0 + strat_n:strat_t ~ randarm, data = CAOsurv, 
                    support = c(1, 1700), log_first = TRUE, order = 4)
 logLik(CAO_Cox_2)
-CAO_Cox_2_mtram <- mtram(CAO_Cox_2, ~ (1 | Block), data = CAOsurv, 
-                         Hessian = TRUE)
+CAO_Cox_2_mtram <- mtram(CAO_Cox_2, ~ (1 | Block), data = CAOsurv)
 logLik(CAO_Cox_2_mtram)
 coef(CAO_Cox_2_mtram)
 
 
 ## ----mtram-CAO-CI-3, echo = FALSE---------------------------------------------
-H <- CAO_Cox_2_mtram$Hessian
-S <- solve(H + .1 * diag(nrow(H)))
+S <- vcov(CAO_Cox_2_mtram)
 rbeta <- rmvnorm(10000, mean = coef(CAO_Cox_2_mtram), 
                  sigma = S)
 s <- rbeta[,ncol(rbeta)]
