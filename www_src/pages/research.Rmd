@@ -50,6 +50,12 @@ understood as univariate transformation models and their joint distribution
 is characterised by a (gaussian) copula, are described in `r Citet(bib,
 "Klein_Hothorn_Barbanti_2020")`.
 
+Applications of transformation models to diagnostic testing `r Citep(bib,
+"Sewak_Hothorn_2023")`, location-scale regression `r Citep(bib, "Siegfried_Kook_Hothorn_2023")`
+or to mixed models `r Citep(bib, "Tamasi_Hothorn_2021",
+"Tamasi_Crowther_Puhan_2022")` and transformation models for correlated observations
+`r Citep(bib, "Barbanti_Hothorn_2023")` have been published in addition.
+
 **References**
 
 ```{r results = "asis", echo = FALSE}
