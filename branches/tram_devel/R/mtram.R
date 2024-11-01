@@ -22,7 +22,6 @@ mtram <- function(object, formula, data,
 
     call <- match.call()
     
-    standardise <- TRUE
     stopifnot(inherits(object, "mlt_fit"))
     
     bar.f <- lme4::findbars(formula)
@@ -97,7 +96,7 @@ mtram <- function(object, formula, data,
             # Sigma <- tcrossprod(LM)
             #            SigmaInv <- crossprod(Linv)
             D <- Dinv <- 1L
-            if(standardise) {		### <FIXME> check NORMAL </FIXME>
+            if (!NORMAL) {
                 # D <- sqrt(diag(Sigma))
                 D <- sqrt(rowSums(LM^2))
                 Dinv <- 1/D
@@ -237,14 +236,13 @@ mtram <- function(object, formula, data,
             ret <- sapply(1:length(idx), function(i) {
                 V <- zt[[i]] %*% mLt  ### = U_i %*% Lambda(\varparm)
                 i <- idx[[i]]
-                if (standardise && !NORMAL) {
+                if (!NORMAL) {
                     sd <- c(sqrt(rowSums(V^2) + 1)) ### D(\varparm)
                     zlower <- PF(lplower[i] / sd) * sd
                     zupper <- PF(lpupper[i] / sd) * sd
                 } else {
-                    zlower <- PF(lplower[i])
-                    zupper <- PF(lpupper[i])
-                    sd <- 1
+                    zlower <- lplower[i]
+                    zupper <- lpupper[i]
                 }
                 lpRR(lower = zlower, upper = zupper, mean = 0, B = V, 
                      Z = grd$nodes, weights = grd$weights, log.p = TRUE)
@@ -269,15 +267,8 @@ mtram <- function(object, formula, data,
                 ret <- lapply(1:length(idx), function(i) {
                     V <- (B <- zt[[i]]) %*% mLt  ### = U_i %*% Lambda(\varparm)
                     i <- idx[[i]]
-                    if (standardise && !NORMAL) {
-                        sd <- c(sqrt(rowSums(V^2) + 1)) ### D(\varparm)
-                        zlower <- PF(lplower[i] / sd) * sd
-                        zupper <- PF(lpupper[i] / sd) * sd
-                    } else {
-                        zlower <- PF(lplower[i])
-                        zupper <- PF(lpupper[i])
-                        sd <- 1
-                    }
+                    zlower <- PF(lplower[i])
+                    zupper <- PF(lpupper[i])
                     ret <- slpRR(lower = zlower, upper = zupper, mean = 0, B = V, 
                                  Z = grd$nodes, weights = grd$weights, log.p = TRUE)
                     dtheta <- colSums(ret$lower * iY$Yleft[i,,drop = FALSE], na.rm = TRUE) + 
@@ -315,15 +306,9 @@ mtram <- function(object, formula, data,
                 ret <- lapply(1:length(idx), function(i) {
                     V <- (B <- zt[[i]]) %*% mLt  ### = U_i %*% Lambda(\varparm)
                     i <- idx[[i]]
-                    if (standardise && !NORMAL) {
-                        sd <- c(sqrt(rowSums(V^2) + 1)) ### D(\varparm)
-                        zlower <- PF(lsd <- lplower[i] / sd) * sd
-                        zupper <- PF(usd <- lpupper[i] / sd) * sd
-                    } else {
-                        zlower <- PF(lplower[i])
-                        zupper <- PF(lpupper[i])
-                        sd <- 1
-                    }
+                    sd <- c(sqrt(rowSums(V^2) + 1)) ### D(\varparm)
+                    zlower <- PF(lsd <- lplower[i] / sd) * sd
+                    zupper <- PF(usd <- lpupper[i] / sd) * sd
                     ret <- slpRR(lower = zlower, upper = zupper, mean = 0, B = V, 
                                  Z = grd$nodes, weights = grd$weights, log.p = TRUE)
                     dtheta <- colSums(ret$lower * dPF(lsd) * iY$Yleft[i,,drop = FALSE], 
