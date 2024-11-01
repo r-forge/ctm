@@ -779,8 +779,7 @@ $\h(\ry) = \basisy(\ry)^\top \parm$ under suitable constraints
 \citep{Hothorn_Moest_Buehlmann_2017} are applied instead by
 <<mtram-sleep_BoxCox, cache = FALSE>>=
 sleep_BC <- BoxCox(Reaction ~ Days, data = sleepstudy)
-sleep_BCmer <- mtram(sleep_BC, ~ (Days | Subject), data = sleepstudy, 
-                     Hessian = TRUE)
+sleep_BCmer <- mtram(sleep_BC, ~ (Days | Subject), data = sleepstudy)
 logLik(sleep_BCmer)
 @
 %
@@ -873,7 +872,7 @@ grey <- rgb(.75, .75, .75)
 nd <- ex
 plotfun("prob", ex, layout = c(5, 2), par.settings = simpleTheme(col=c(grey, col), lwd = 3),
   auto.key = list(text = c("Empirical cumulative distribution function", levels(nd$Method)), 
-                  points = FALSE, lines = TRUE))
+                  points = FALSE, lines = TRUE, space = "top"))
 @
 \caption{Sleep deprivation: Marginal distribution of reaction times, separately for each day of
          study participation. The grey step-function corresponds to the
@@ -899,7 +898,7 @@ of the variance of the random intercept $\tilde{\alpha}$, the random slope
 $\tilde{\beta}$, and their correlation
 <<mtram-sleep_vcov>>=
 library("mvtnorm")
-VC <- solve(sleep_BCmer$Hessian)
+VC <- vcov(sleep_BCmer)
 idx <- (nrow(VC) - 2):nrow(VC)
 Rcoef <- rmvnorm(1000, mean = coef(sleep_BCmer), sigma = VC)[,idx]
 ret <- apply(Rcoef, 1, function(gamma) {
@@ -988,7 +987,7 @@ nd <- ex
 plotfun("prob", ex, layout = c(5, 2), par.settings = simpleTheme(col=c(grey, col, col[2]), lwd =
 3, lty = c(1, 1, 1, 3)),
   auto.key = list(text = c("Empirical cumulative distribution function", levels(nd$Method)), 
-                  points = FALSE, lines = TRUE))
+                  points = FALSE, lines = TRUE, space = "top"))
 @
 \caption{Sleep deprivation: Marginal distribution of reaction times, separately for each day of
          study participation. The grey step-function corresponds to the
@@ -1084,8 +1083,7 @@ m <- ctm(as.basis(~ outcome, data = toenail),
 toenail_probit <- mlt(m, data = toenail, 
                       fixed = c("outcomemoderate or severe" = 0))
 toenail_mtram_RI <- 
-    mtram(toenail_probit, ~ (1 | patientID), 
-          data = toenail, Hessian = TRUE)
+    mtram(toenail_probit, ~ (1 | patientID), data = toenail)
 coef(toenail_mtram_RI)
 @
 For this random intercept model, the exact likelihood is defined as a
@@ -1102,7 +1100,7 @@ obtained by AGQ (\pkg{lme4}) or \pkg{glmmTMB}, indicating a very good quality
 the various approximations used. We can also compare the corresponding covariances
 <<mtram-toenail-hessian>>=
 vcov(toenail_glmer_RI_2)
-solve(toenail_mtram_RI$Hessian)[1:4, 1:4]
+vcov(toenail_mtram_RI)[1:4, 1:4]
 @
 which are also in good agreement.
 
@@ -1172,7 +1170,7 @@ m <- ctm(as.basis(~ outcome, data = toenail),
 toenail_logit <- mlt(m, data = toenail, 
                      fixed = c("outcomemoderate or severe" = 0))
 toenail_mtram_logit <- mtram(toenail_logit, ~ (1 | patientID), 
-                             data = toenail, Hessian = TRUE)
+                             data = toenail)
 @
 It is important to note that this model is \emph{not} a logistic 
 mixed-effects model and thus we can't expect to obtain identical 
@@ -1186,7 +1184,7 @@ and an asymptotic confidence interval for the temporal treatment effect can be o
 from a small simulation
 <<mtram-toenail-trt>>=
 S <- rmvnorm(10000, mean = coef(toenail_mtram_logit), 
-             sigma = solve(toenail_mtram_logit$Hessian))
+             sigma = vcov(toenail_mtram_logit))
 (ci <- quantile(S[,"treatmentterbinafine:time"] / sqrt(1 + S[, "gamma1"]^2), 
                 prob = c(.025, .975)))
 @
@@ -1240,7 +1238,7 @@ estimators to obtain an idea about the uncertainty
 <<mtram-toenail_OR_2, dev = "png", cache = FALSE, echo = FALSE, dpi = 300>>=
 X <- model.matrix(~ treatment * time, data = nd)
 rbeta <- rmvnorm(10000, mean = coef(toenail_mtram_logit), 
-                 sigma = solve(toenail_mtram_logit$Hessian))
+                 sigma = vcov(toenail_mtram_logit))
 s <- rbeta[,ncol(rbeta)]
 rbeta <- rbeta[,-ncol(rbeta)] / sqrt(s^2 + 1)
 odds <- exp(-X %*% t(rbeta))
@@ -1296,7 +1294,7 @@ xyplot(prob ~ time | model, data = nd2, group = treatment, ylim = c(0, 1),
        xlab = "Time", 
        par.settings = simpleTheme(col = col),
        auto.key = list(text = levels(nd2$treatment), 
-                       points = FALSE, lines = TRUE), 
+                       points = FALSE, lines = TRUE, space = "top"), 
        col = col, type = "l", ylab = "Probability (none or mild)")
 @
 \caption{Toe nail data: Comparison of marginal probabilities obtained from
@@ -1394,8 +1392,7 @@ m <- ctm(as.basis(~ outcome, data = toenail),
 toenail_probit <- mlt(m, data = toenail, 
                       fixed = c("outcomemoderate or severe" = 0))
 t4 <- system.time(toenail_mtram_RI <- 
-    mtram(toenail_probit, ~ (1 | patientID), 
-           data = toenail, Hessian = TRUE))
+    mtram(toenail_probit, ~ (1 | patientID), data = toenail))
 
 t5 <- system.time(toenail_glmer_RS <- 
     glmer(outcome ~ treatment * time + (1 + time | patientID),
@@ -1591,8 +1588,7 @@ can be estimated by
 neck_Colr <- Colr(vas ~ laser * time, data = pain_df, 
                   bounds = c(0, 1), support = c(0, 1),
                   extrapolate = TRUE)
-neck_Colrmer <- mtram(neck_Colr, ~ (1 | id), data = pain_df, 
-                      Hessian = TRUE)
+neck_Colrmer <- mtram(neck_Colr, ~ (1 | id), data = pain_df)
 @
 Based on this model, it is possible to derive the marginal 
 distribution functions in the two groups, see Figure~\ref{fig:distr_pain}.
@@ -1617,7 +1613,7 @@ p2 <- xyplot(prob ~ vas | time, data = nd2, groups = laser, type = "l",
              ylab = "Marginal distribution", 
              par.settings = simpleTheme(col=col),
              auto.key = list(text = levels(nd2$laser), 
-                             points = FALSE, lines = TRUE))
+                             points = FALSE, lines = TRUE, space = "top"))
 plot(p2)
 
 ## M1
@@ -1642,7 +1638,7 @@ plot(p2)
 #              ylab = "Marginal distribution", 
 #              par.settings = simpleTheme(col=col),
 #              auto.key = list(text = levels(nd2$laser), 
-#                              points = FALSE, lines = TRUE))
+#                              points = FALSE, lines = TRUE, space = "top"))
 # plot(p2)
 @
 \caption{Neck pain: Marginal distribution functions of chronic neck pain
@@ -1657,7 +1653,7 @@ $\hat{\eparm}_1, \dots, \hat{\eparm}_7$, $\hat{\eshiftparm}_\text{Active},
 and compute confidence intervals for the marginal treatment
 effect after 7 and 12 weeks
 <<mtram-neck_Colr-CI, echo = TRUE, eval=TRUE>>=
-S <- solve(neck_Colrmer$Hessian)
+S <- vcov(neck_Colrmer)
 rbeta <- rmvnorm(10000, mean = coef(neck_Colrmer), sigma = S)
 s <- rbeta[, ncol(rbeta)]
 rbeta <- rbeta[,-ncol(rbeta)] / sqrt(s^2 + 1)
@@ -1768,7 +1764,7 @@ xyplot(surv ~ time | strat_t + strat_n, data = nd, groups = randarm,
        xlab = "Time (in days)",
        par.settings = simpleTheme(col=col),
        auto.key = list(text = levels(nd$randarm), 
-                       points = FALSE, lines = TRUE))
+                       points = FALSE, lines = TRUE, space = "top"))
 @
 \caption{Rectal cancer: Distribution of disease-free survival times for two
          treatments in the four strata defined by lymph node involvement
@@ -1802,8 +1798,7 @@ variance $\gamma_1^2$ of a block-specific (interaction of lymph node involvement
 tumor grading, and study center) random intercept:
 <<mtram-CAO_SR, cache = TRUE>>=
 CAO_SR <- Survreg(iDFS2 ~ randarm, data = CAOsurv)
-CAO_SR_mtram <- mtram(CAO_SR, ~ (1 | Block), data = CAOsurv,
-                      Hessian = TRUE)
+CAO_SR_mtram <- mtram(CAO_SR, ~ (1 | Block), data = CAOsurv)
 logLik(CAO_SR_mtram)
 (cf <- coef(CAO_SR_mtram))
 (OR <- exp(-cf["randarm5-FU + Oxaliplatin"] / sqrt(cf["gamma1"]^2 + 1)))
@@ -1820,7 +1815,7 @@ $\hat{\eparm}_1, \hat{\eparm}_2, \hat{\eshiftparm}_\text{5-FU + Ox},
 \hat{\gamma}_1$ and compute confidence intervals for the marginal treatment
 effect $\Sexpr{round(OR, 2)}$ as
 <<mtram-CAO-CI>>=
-S <- solve(CAO_SR_mtram$Hessian)
+S <- vcov(CAO_SR_mtram)
 # sqrt(diag(S))
 rbeta <- rmvnorm(10000, mean = coef(CAO_SR_mtram), 
                  sigma = S)
@@ -1834,8 +1829,7 @@ grading: For each of the four strata, the parameters $\eparm_1$ and
 $\eparm_2$ are estimated separately:
 <<mtram-CAO_SR_2, cache = TRUE>>=
 CAO_SR_2 <- Survreg(iDFS2 | 0 + strat_n:strat_t ~ randarm, data = CAOsurv)
-CAO_SR_2_mtram <- mtram(CAO_SR_2, ~ (1 | Block), data = CAOsurv,
-                        Hessian  = TRUE)
+CAO_SR_2_mtram <- mtram(CAO_SR_2, ~ (1 | Block), data = CAOsurv)
 logLik(CAO_SR_2_mtram)
 (cf <- coef(CAO_SR_2_mtram))
 (OR_2 <- exp(-cf["randarm5-FU + Oxaliplatin"] / sqrt(cf["gamma1"]^2 + 1)))
@@ -1843,8 +1837,7 @@ logLik(CAO_SR_2_mtram)
 The corresponding confidence interval for the marginal treatment effect is
 then
 <<mtram-CAO-CI-2, echo = FALSE>>=
-H <- CAO_SR_2_mtram$Hessian
-S <- solve(H + .01 * diag(nrow(H)))
+S <- vcov(CAO_SR_2_mtram)
 rbeta <- rmvnorm(10000, mean = coef(CAO_SR_2_mtram), 
                  sigma = S)
 s <- rbeta[, ncol(rbeta)]
@@ -1862,15 +1855,13 @@ We now relax the Weibull assumption in the Cox model
 CAO_Cox_2 <- Coxph(iDFS2 | 0 + strat_n:strat_t ~ randarm, data = CAOsurv, 
                    support = c(1, 1700), log_first = TRUE, order = 4)
 logLik(CAO_Cox_2)
-CAO_Cox_2_mtram <- mtram(CAO_Cox_2, ~ (1 | Block), data = CAOsurv, 
-                         Hessian = TRUE)
+CAO_Cox_2_mtram <- mtram(CAO_Cox_2, ~ (1 | Block), data = CAOsurv)
 logLik(CAO_Cox_2_mtram)
 coef(CAO_Cox_2_mtram)
 @
 with confidence interval
 <<mtram-CAO-CI-3, echo = FALSE>>=
-H <- CAO_Cox_2_mtram$Hessian
-S <- solve(H + .1 * diag(nrow(H)))
+S <- vcov(CAO_Cox_2_mtram)
 rbeta <- rmvnorm(10000, mean = coef(CAO_Cox_2_mtram), 
                  sigma = S)
 s <- rbeta[,ncol(rbeta)]
@@ -1946,6 +1937,21 @@ reproduced using
 source(system.file("simulations", "mtram_sim.R", package = "tram"), echo = TRUE)
 @
 (this takes quite some time).
+
+\section{Change Log}
+
+\begin{description}
+\item[1.2-0] \pkg{tram} utilises novel log-likelihood
+(\code{mvtnorm::lpRR()}) and score functions (\code{mvtnorm::slpRR()}) for
+reduced rank problems introduced in \pkg{mvtnorm} 1.3-2. The default
+optimiser is now \code{auglag::auglag()} with numerically approximated
+Hessians. Score functions are now available for both continuous and 
+discrete response (but there is little hope that score functions 
+for a mix of continuous and discrete responses will become available). Model
+fit is now faster and more accurate for models with discrete responses.
+Some parameter estimates and standard errors changed slightly, however,
+model interpretation was not affected.
+\end{description}
 
 \newpage
 
