@@ -33,9 +33,6 @@ Loading required package: Matrix
 > ## ----mtram-sleep_mtram, cache = FALSE-----------------------------------------
 > sleep_LM <- Lm(Reaction ~ Days, data = sleepstudy)
 > sleep_LMmer <- mtram(sleep_LM, ~ (Days | Subject), data = sleepstudy)
-Warning message:
-In .local(x, logarithm, ...) :
-  the default value of argument 'sqrt' of method 'determinant(<CHMfactor>, <logical>)' may change from TRUE to FALSE as soon as the next release of Matrix; set 'sqrt' when programming
 > 
 > 
 > ## ----mtram-sleep_cmp----------------------------------------------------------
@@ -110,14 +107,14 @@ Days         0.08132109 1.00000000
 > 
 > ## ----mtram-sleep-interval-results---------------------------------------------
 > logLik(sleep_LMmer_I)
-'log Lik.' -214.9663 (df=6)
+'log Lik.' -213.3648 (df=6)
 > coef(sleep_LMmer_I)
-(Intercept)  Reaction_I        Days      gamma1      gamma2      gamma3 
--9.78788778  0.03900261  0.41620117  0.83409026  0.07594894  0.19048189 
+ (Intercept)   Reaction_I         Days       gamma1       gamma2       gamma3 
+-10.55102439   0.04217345   0.42564321   1.02172120   0.05196121   0.22344583 
 > coef(sleep_LMmer)
 (Intercept)    Reaction        Days      gamma1      gamma2      gamma3 
 -9.82439168  0.03907741  0.40892652  0.92901066  0.01843056  0.22280431 
 > 
 > proc.time()
    user  system elapsed 
-  4.422   0.080   4.497 
+  4.641   0.063   4.700 
