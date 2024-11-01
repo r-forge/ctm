@@ -4,7 +4,10 @@
 
 \section{Changes in Version 1.2-0 (2024-11-01)}{
   \itemize{
-    \item{Start adding scores for discrete mtram models.}
+    \item{Adding scores for discrete \code{mtram} models.}
+    \item{Use \code{mltoptim} also in \code{mtram}.}
+    \item{Ship proper \code{mtram} vignette (so far only the rendered output
+          was supplied).}
   }
 }
 

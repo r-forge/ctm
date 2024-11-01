@@ -50,18 +50,17 @@ a list of optimisers as returned by \code{\link[mlt]{mltoptim}}
   An object of class \code{tram} with \code{coef()} and \code{logLik()}
   methods.
 }
+\seealso{
+  \code{vignette("mtram", package = "tram")}
+}
 \references{
 
-  Luisa Barbanti and Torsten Hothorn (2023). A Transformation Perspective on 
-  Marginal and Conditional Models, \emph{Biostatistics}, \doi{10.1093/biostatistics/kxac048}.
+  Luisa Barbanti and Torsten Hothorn (2024). A Transformation Perspective on 
+  Marginal and Conditional Models, \emph{Biostatistics}, \bold{25}(2),
+  402--428, \doi{10.1093/biostatistics/kxac048}.
 
 }
 \examples{
-
-  ### For illustrations see
-  ## vignette("mtram", package = "tram")
-  ## or
-  ## demo("mtram", package = "tram")
 
   if (require("lme4")) {
       ### linear mixed model
