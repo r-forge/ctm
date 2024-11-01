@@ -1,6 +1,6 @@
 
 %\VignetteEngine{knitr::knitr}
-%\VignetteIndexEntry{mlt}
+%\VignetteIndexEntry{Most Likely Transformations: The mlt Package}
 %\VignetteDepends{variables, basefun, mlt, survival, eha, prodlim, truncreg, lattice, gridExtra, MASS, nnet, HSAUR3, sandwich, flexsurv, grid, latticeExtra, colorspace, multcomp, Matrix, AER, coin, gamlss.data, mlbench, mgcv}
 
 \documentclass[article,nojss,shortnames]{jss}
