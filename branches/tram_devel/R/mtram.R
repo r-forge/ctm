@@ -92,7 +92,7 @@ mtram <- function(object, formula, data,
             L <- update(L, t(Lambdat %*% ZtW), mult = 1)
             LM <- as(L, "Matrix")
             Linv <- solve(LM)
-            logdet <- 2 * determinant(L, logarithm = TRUE)$modulus
+            logdet <- determinant(L, logarithm = TRUE, sqrt = FALSE)$modulus
             
             # Sigma <- tcrossprod(LM)
             #            SigmaInv <- crossprod(Linv)
@@ -280,11 +280,11 @@ mtram <- function(object, formula, data,
                     }
                     ret <- slpRR(lower = zlower, upper = zupper, mean = 0, B = V, 
                                  Z = grd$nodes, weights = grd$weights, log.p = TRUE)
-                    dtheta <- colSums(ret$lower * iY$Yleft[i,,drop = FALSE] + 
-                                      ret$upper * iY$Yright[i,,drop = FALSE])
+                    dtheta <- colSums(ret$lower * iY$Yleft[i,,drop = FALSE], na.rm = TRUE) + 
+                              colSums(ret$upper * iY$Yright[i,,drop = FALSE], na.rm = TRUE)
                     K <- ncol(V)
                     ind <- matrix(1:(K^2), nrow = K, byrow = TRUE)
-                    dgamma <- as.vector(t(ret$B) %*% V)[ind[lower.tri(ind, diag = TRUE)]]
+                    dgamma <- as.vector(t(ret$B) %*% B)[ind[lower.tri(ind, diag = TRUE)]]
                     return(c(dtheta, dgamma))
                 })
                 return(-Reduce("+", ret))
@@ -326,16 +326,17 @@ mtram <- function(object, formula, data,
                     }
                     ret <- slpRR(lower = zlower, upper = zupper, mean = 0, B = V, 
                                  Z = grd$nodes, weights = grd$weights, log.p = TRUE)
-                    dtheta <- colSums(ret$lower * dPF(lsd) * iY$Yleft[i,,drop = FALSE] + 
-                                      ret$upper * dPF(usd) * iY$Yright[i,,drop = FALSE])
+                    dtheta <- colSums(ret$lower * dPF(lsd) * iY$Yleft[i,,drop = FALSE], 
+                                      na.rm = TRUE) + 
+                              colSums(ret$upper * dPF(usd) * iY$Yright[i,,drop = FALSE], 
+                                      na.rm = TRUE)
                     K <- ncol(V)
                     dsdg <- dsd(gamma, B = B)
                     dgamma <- colSums((ret$lower * (dPF(lsd) * (-lsd / sd) * sd +
-                                                    PF(lsd)) + 
-                                       ret$upper * (dPF(usd) * (-usd / sd) * sd +
-                                                    PF(usd))) * 
-                                      dsd(gamma, B = B))
-                    dgamma <- dgamma + as.vector(t(ret$B) %*% V)
+                                                    PF(lsd))) * dsdg, na.rm = TRUE) + 
+                              colSums((ret$upper * (dPF(usd) * (-usd / sd) * sd +
+                                                    PF(usd))) * dsdg, na.rm = TRUE)
+                    dgamma <- dgamma + as.vector(t(ret$B) %*% B)
                     ind <- matrix(1:(K^2), nrow = K, byrow = TRUE)
                     idx <- ind[lower.tri(ind, diag = TRUE)]
                     return(c(dtheta, dgamma[idx]))
@@ -352,22 +353,15 @@ mtram <- function(object, formula, data,
     
     start <- c(coef(as.mlt(object), fixed = FALSE), theta)
     
-    if (is.null(gr)) {
-        opt <- alabama::auglag(par = start, fn = ll, 
-                               hin = function(par) ui %*% par - ci, 
-                               hin.jac = function(par) ui,
-                               control.outer = list(trace = FALSE))[c("par", "value", "gradient")]
-    } else {
-        for (i in 1:length(optim)) {
-            opt <- optim[[i]](theta = start, 
-                              f = ll,
-                              g = gr,
-                              ui = ui, ci = ci)
-            if (opt$convergence == 0) break()
-        }
-        if (opt$convergence != 0)
-            warning("Optimisation did not converge")
+    for (i in 1:length(optim)) {
+        opt <- optim[[i]](theta = start, 
+                          f = ll,
+                          g = gr,
+                          ui = ui, ci = ci)
+        if (opt$convergence == 0) break()
     }
+    if (opt$convergence != 0)
+        warning("Optimisation did not converge")
 
     gamma <- opt$par[-(1:ncol(X))]
     names(opt$par)[-(1:ncol(X))] <- paste0("gamma", 1:length(gamma))
@@ -407,5 +401,6 @@ vcov.mtram <- function(object, ...) {
     class(object) <- c("mtram", "mlt")
     ret <- mlt:::vcov.mlt(object)
     colnames(ret) <- rownames(ret) <- names(coef(object))
+    ret <- (ret + t(ret)) / 2
     return(ret)
 }
