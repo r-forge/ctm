@@ -17,7 +17,7 @@ xlab <- "Time (in days)"
 lxlab <- paste0(xlab, " on log-scale")
 ylabS <- "Probability of survival"
 ylablHaz <- "Log-cumulative hazard"
-ylabcumHR <- expression(Lambda[1](t)*Lambda[0](t)^{-1})
+ylabcumHR <- expression(Lambda[1](t)/Lambda[0](t))
 ylimS <- c(0, 1)
 ylimHR <- c(0, 1.6)
 q <- 0:2204
@@ -94,15 +94,14 @@ lslevs <- gsub("cT4", "cT4    ", lslevs)
 ## id
 CAOsurv$id <- factor(1:nrow(CAOsurv))
 
-
 ## ----pars, include = FALSE----------------------------------------------------
 par_main <- expression(par(mgp = c(2.5, 1, 0), mar = c(4, 4, 1.5, 4), las = 1))
 par_surv <- expression(par(mgp = c(2.5, 1, 0), mar = c(6, 6, .5, 4), las = 1))
 
 
+
 ## ----packages, echo = FALSE---------------------------------------------------
 library("tram")
-
 
 ## ----risk-tab-----------------------------------------------------------------
 risktab <- function(ti, st) { ## time-index and survival time
@@ -121,7 +120,6 @@ mtext(risktab(ti, CAOsurv[CAOsurv$randarm == levs[2], tvar]),
   side = 1, line = 5, at = ti, cex = cex)
 }
 
-
 ## ----surv-OS------------------------------------------------------------------
 surv_OS <- survfit(OS ~ randarm, data = CAOsurv) ## KM
 
@@ -130,9 +128,14 @@ surv_OS <- survfit(OS ~ randarm, data = CAOsurv) ## KM
 surv_iDFS <- survfit(iDFS ~ randarm, data = CAOsurv) ## Turnbull
 
 
+
+
+
+
 ## ----CAO-table, results = 'hide'----------------------------------------------
 tab <- xtabs( ~ strat + randarm, data = CAOsurv)
 tab <- rbind(tab, "Total" = colSums(tab))
+
 
 
 ## ----surv-iDFS-plot-----------------------------------------------------------
@@ -164,6 +167,7 @@ perm_test(mw)
 # plot(as.mlt(mw), type = "survivor", newdata = nd1, col = col)
 
 
+
 ## ----COX-model-fit, echo = FALSE, cache = TRUE--------------------------------
 mc <-
 Coxph(iDFS ~ randarm, data = CAOsurv, log_first = TRUE)
@@ -174,6 +178,7 @@ summary(mc)
 score_test(mc)
 perm_test(mc)
 # plot(as.mlt(mc), type = "survivor", newdata = nd1, col = col)
+
 
 
 ## ----COX-lHaz, echo = FALSE---------------------------------------------------
@@ -200,7 +205,6 @@ cb <- confint(multcomp::glht(multcomp::parm(coef(object),
         "calpha"))$confint
 cb <- cbind(q, cb)
 
-
 ## ----COX-lHaz-plot------------------------------------------------------------
 eval(par_main)
 plot(cb[, "q"], cb[, "Estimate"], log = "x", type = "n",
@@ -210,6 +214,7 @@ plot(cb[, "q"], cb[, "Estimate"], log = "x", type = "n",
 polygon(c(cb[, "q"], rev(cb[, "q"])), c(cb[, "lwr"], rev(cb[, "upr"])),
   border = NA, col = rgb(.1, .1, .1, .1))
 lines(cb[, "q"], cb[, "Estimate"], lwd = lwd)
+
 
 
 ## ----STRAT-model-fit, cache = TRUE--------------------------------------------
@@ -230,6 +235,8 @@ plot(as.mlt(mcst), newdata = nd2, q = q, type = "trafo", log = "x",
 
 legend("bottomright", legend = lslevs, title = "Stratum", 
   lty = lty, lwd = lwd, col = 1, bty = "n")
+
+
 
 
 ## ----SCOX-model-fit, cache = TRUE---------------------------------------------
@@ -255,10 +262,11 @@ abline(h = exp(coef(mc)), lty = 2, lwd = 1) ## constant HR
 abline(h = 1, lty = 3) ## HR = 1
 
 
+
+
 ## ----TCOX-model-fit, cache = TRUE---------------------------------------------
 mcv <- 
 Coxph(iDFS | randarm ~ 1, data = CAOsurv, log_first = TRUE)
-
 
 ## ----TCOX-summary, cache = TRUE, results = "hide", fig.show = 'hide'----------
 logLik(mcv)
@@ -267,8 +275,8 @@ logLik(mcv)
 ## ----TCOX-HR, cache = TRUE----------------------------------------------------
 mcv <- as.mlt(mcv)
 
-## grid
-s <- mkgrid(mcv, 500)
+## grid (was n = 500, qmvnorm failed)
+s <- mkgrid(mcv, 40)
 s$iDFS <- s$iDFS[s$iDFS >= min(xlimHR) & s$iDFS <= max(xlimHR)]
 nd3 <- expand.grid(s)
 
@@ -282,7 +290,6 @@ coxy <- s$iDFS
 
 ## confint for constant HR
 ci2 <- exp(confint(mc))
-
 
 ## ----TCOX-HR-plot-------------------------------------------------------------
 plot(coxy, ci[, "Estimate"], ylim = ylimHR, type = "n",
@@ -327,6 +334,8 @@ tab <- xtabs(~ nDepCevent + randarm, data = CAOsurv)
 tab
 
 
+
+
 ## ----DEPCENS-model-fit, cache = TRUE------------------------------------------
 md <- 
 Coxph(Surv(OStime, event = DepCevent) ~ randarm, data = CAOsurv)
@@ -346,14 +355,18 @@ confint(md)
 library("tramME")
 
 
+
 ## ----COXME-model-fit, cache = TRUE--------------------------------------------
 mcME <- 
-CoxphME(iDFS ~ randarm + (1 | Block), data = CAOsurv, log_first = TRUE)
+CoxphME(iDFS ~ randarm + (1 | Block), data = CAOsurv,
+  log_first = TRUE)
 
 
 ## ----COXME-summary, cache = TRUE, results = "hide", fig.show = 'hide'---------
 summary(mcME)
 confint(mcME)
+
+
 
 
 ## ----COXME-margsurv, eval = FALSE---------------------------------------------
@@ -413,6 +426,7 @@ mtram(Coxph(iDFS2 ~ randarm, data = CAOsurv, log_first = TRUE),
 
 ## ----MCOX-FUN-----------------------------------------------------------------
 ## marginal HR from "mtram"
+## <FIXME> reset seed on.exit </FIXME>
 mHR.mtram <- function(object, with_confint = FALSE, seed = 1) {
   stopifnot(inherits(object, "mtram"))
   cf <- coef(object)
@@ -421,20 +435,17 @@ mHR.mtram <- function(object, with_confint = FALSE, seed = 1) {
   mlHR <- cf[1] / sqrt(1 + cf["gamma1"]^2)
   ret <- mHR <- exp(mlHR)
   if (with_confint) {
-  set.seed(seed)
-  object <- update(object, Hessian = TRUE)
-  H <- object$Hessian
-  S <- solve(H + .1 * diag(nrow(H)))
-  rbeta <- rmvnorm(10000, mean = coef(object), sigma = S)
-  s <- rbeta[,ncol(rbeta)]
-  rbeta <- rbeta[,-ncol(rbeta)] / sqrt(s^2 + 1)
-  ci <- quantile(exp(rbeta[, ncol(rbeta)]), prob = c(.025, .975))
-  ret <- c(mHR, ci)
-  ret <- as.array(t(ret))
+    set.seed(seed)
+    S <- vcov(object)
+    rbeta <- rmvnorm(10000, mean = coef(object), sigma = S)
+    s <- rbeta[,ncol(rbeta)]
+    rbeta <- rbeta[,-ncol(rbeta)] / sqrt(s^2 + 1)
+    ci <- quantile(exp(rbeta[, ncol(rbeta)]), prob = c(.025, .975))
+    ret <- c(mHR, ci)
+    ret <- as.array(t(ret))
   }
   return(ret)
 }
-
 
 ## ----MCOX-summary, cache = TRUE, results = "hide", fig.show = 'hide'----------
 coef(mmc)
@@ -442,15 +453,16 @@ sqrt(diag(vcov(mmc)))
 (ci_MCOX <- mHR.mtram(mmc, with_confint = TRUE))
 
 
+
 ## ----HTECOX-model-fit, cache = TRUE-------------------------------------------
 ma <- 
-CoxphME(iDFS ~ randarm + s(age, by = as.ordered(randarm), fx = TRUE, k = 6),
-  data = CAOsurv, log_first = TRUE)
+CoxphME(iDFS ~ randarm + s(age, by = as.ordered(randarm),
+    fx = TRUE, k = 6), data = CAOsurv, log_first = TRUE)
 nd <- model.frame(ma)[rep(2, 100), ]
 nd$age <- seq(min(CAOsurv$age), max(CAOsurv$age), length.out = 100)
 xx <- model.matrix(ma, data = nd, type = "X", keep_sign = FALSE)$X
 ip <- grep("randarm", names(bb <- coef(ma, with_baseline = TRUE)))
-vc <- vcov(ma, parm = ip)
+vc <- vcov(ma, parm = names(bb)[ip])
 bb <- bb[ip]
 
 ## NOTE: unadjusted
@@ -497,6 +509,7 @@ plot(rotate(tr), tp_args = list(newdata = nd1, type = "survivor", col = col, lwd
   terminal_panel = trtf:::node_mlt)
 
 
+
 ## ----FRAILTY-model-fit, cache = TRUE------------------------------------------
 mf <- 
 Coxph(iDFS ~ randarm, data = CAOsurv, log_first = TRUE, frailty = "Gamma")
@@ -507,6 +520,7 @@ logLik(mf)
 coef(mf)[trt]
 coef(mf, addparm = TRUE)
 confint(mf, parm = c(trt, "logrho"))
+
 
 
 ## ----LOGIT-model-fit----------------------------------------------------------
@@ -530,6 +544,7 @@ if (length(ix) > 0) {install.packages(pkgs[ix], repos = "https://stat.ethz.ch/CR
 ## ----pkgs-setup---------------------------------------------------------------
 `coef<-` <- mlt::`coef<-` ## masked by pkg rstpm2
 Surv <- survival::Surv ## masked by eha
+
 
 
 ## ----result-summary, include = FALSE------------------------------------------
@@ -632,11 +647,14 @@ print.results <- function(objects) {
 }
 
 
+
+
 ## ----WEI-iDFS-fit, cache = TRUE-----------------------------------------------
 mwi1 <- tram::Survreg(iDFS ~ randarm, data = CAOsurv, dist = "weibull")
 mwi2 <- icenReg::ic_par(iDFS ~ randarm, data = CAOsurv, dist = "weibull",
   model = "ph")
-mwi3 <- flexsurv::flexsurvreg(iDFS ~ randarm, data = CAOsurv, dist = "weibullPH")
+mwi3 <- flexsurv::flexsurvreg(iDFS ~ randarm, data = CAOsurv,
+  dist = "weibullPH")
 mwi4 <- survival::survreg(iDFS ~ randarm, data = CAOsurv, dist = "weibull")
 mwi5 <- icenReg::ic_par(iDFS ~ randarm, data = CAOsurv, dist = "weibull",
   model = "aft") 
@@ -658,14 +676,16 @@ with(CAOsurv, all.equal(Surv(time = iDFStime, time2 = iDFStime2, event = iDFSeve
 
 ## ----Cox-iDFS-fit, echo = FALSE, cache = TRUE---------------------------------
 mci1 <- tram::Coxph(iDFS ~ randarm, data = CAOsurv, log_first = TRUE)
-mci2 <- rstpm2::stpm2(Surv(time = iDFStime, time2 = iDFStime2, event = iDFSevent,
-    type = "interval") ~ randarm, data = CAOsurv)
+mci2 <- rstpm2::stpm2(Surv(time = iDFStime, time2 = iDFStime2,
+  event = iDFSevent, type = "interval") ~ randarm, data = CAOsurv)
 mci3 <- flexsurv::flexsurvspline(iDFS ~ randarm, data = CAOsurv, k = 3)
 mci4 <- icenReg::ic_sp(iDFS ~ randarm, data = CAOsurv, model = "ph")
 
 
 ## ----Cox-iDFS-tab-print-------------------------------------------------------
 print.results(list(mci1, mci2, mci3, mci4))
+
+
 
 
 ## ----Cox-DFS-fit, echo = FALSE, cache = TRUE----------------------------------
@@ -678,16 +698,24 @@ mc3 <- rms::cph(DFS ~ randarm, data = CAOsurv)
 print.results(list(mc1, mc2, mc3))
 
 
+
+
+
+
+
+
 ## ----STRAT-iDFS-fit, cache = TRUE---------------------------------------------
 mstci1 <- tram::Coxph(iDFS | strat ~ randarm, data = CAOsurv, log_first = TRUE)
 mstci2 <- rstpm2::stpm2(Surv(time = iDFStime, time2 = iDFStime2, event = iDFSevent,
     type = "interval") ~ randarm + strata(strat), data = CAOsurv)
 mstci3 <- flexsurv::flexsurvspline(iDFS ~ randarm + gamma1(strat) + gamma2(strat),
   data = CAOsurv, k = 3)
+## COMMENT: "flexsurv" package: look at plot(model)
 
 
 ## ----STRAT-iDFS-results-------------------------------------------------------
 print.results(list(mstci1, mstci2, mstci3))
+
 
 
 ## ----STRAT-DFS-fit, cache = TRUE----------------------------------------------
@@ -700,6 +728,7 @@ mstc3 <- rms::cph(DFS ~ randarm + strat(strat), data = CAOsurv)
 print.results(list(mstc1, mstc2, mstc3))
 
 
+
 ## ----STRAT-Wei-iDFS-fit, echo = FALSE, cache = TRUE---------------------------
 mstw1 <- tram::Survreg(DFS | strat ~ randarm, data = CAOsurv)
 mstw2 <- eha::phreg(DFS ~ randarm + strata(strat), data = CAOsurv)
@@ -708,6 +737,8 @@ mstw3 <- survival::survreg(DFS ~ randarm + strata(strat), data = CAOsurv)
 
 ## ----STRAT-Wei-iDFS-results---------------------------------------------------
 print.results(list(mstw1, mstw2, mstw3))
+
+
 
 
 ## ----LS-iDFS-Wei-fit, cache = TRUE--------------------------------------------
@@ -720,23 +751,31 @@ mswi2 <- gamlss::gamlss(formula = iDFS ~ randarm, sigma.fo = ~ randarm,
   data = tmp, control = gamlss.control(n.cyc = 300, trace = FALSE))
 
 
+
 ## ----LS-iDFS-results----------------------------------------------------------
 print.results(list(mswi1, mswi2))
 
 
+
+
 ## ----LS-DFS-fit, echo = FALSE, cache = TRUE-----------------------------------
-msw1 <- tram::Survreg(DFS ~ randarm | randarm, data = CAOsurv, remove_intercept = FALSE)
+msw1 <- tram::Survreg(DFS ~ randarm | randarm, data = CAOsurv,
+  remove_intercept = FALSE)
 msw2 <- mpr::mpr(DFS ~ list(~ randarm, ~ randarm), data = CAOsurv)
+
 
 
 ## ----LS-DFS-results-----------------------------------------------------------
 print.results(list(msw1, msw2))
 
 
+
+
 ## ----TVAR-iDFS-fit, cache = TRUE----------------------------------------------
 mcvi1 <- tram::Coxph(iDFS | randarm ~ 1, data = CAOsurv)
 mcvi2 <- flexsurv::flexsurvspline(iDFS ~ randarm +
     gamma1(randarm) + gamma2(randarm), data = CAOsurv, k = 3)
+
 
 
 ## ----TVAR-iDFS-plot, fig.width = 6, fig.height = 3----------------------------
@@ -765,6 +804,7 @@ lines(ret$t, ret$cumhr, lty = 2, lwd = 2, col = col2 <- "darkgrey")
 legend("topright", lty = 1:2, lwd = 2, col = c("black", col2),
   legend = c(bquote("package:"~bold("tram")), bquote("package:"~bold("flexsurv"))),
   bty = "n")
+
 
 
 ## ----TVAR-DFS-fit, cache = TRUE-----------------------------------------------
@@ -801,6 +841,7 @@ legend("topright", lty = 1:2, lwd = 2, col = c("black", col2),
   bty = "n")
 
 
+
 ## ----MIXED-DFS-fit, cache = TRUE----------------------------------------------
 mcME1 <- tramME::CoxphME(DFS ~ randarm + (1 | Block), data = CAOsurv, log_first = TRUE)
 mcME2 <- rstpm2::stpm2(Surv(DFStime, DFSevent) ~ randarm, data = CAOsurv,
@@ -810,6 +851,8 @@ mcME3 <- coxme::coxme(DFS ~ randarm + (1 | Block), data = CAOsurv)
 
 ## ----MIXED-DFS-results--------------------------------------------------------
 print.results(list(mcME1, mcME2, mcME3))
+
+
 
 
 ## ----HTECOX-DFS-fit-----------------------------------------------------------
@@ -830,7 +873,7 @@ nd <- model.frame(ma1)[rep(2, 100), ]
 nd$age <- seq(min(CAOsurv$age), max(CAOsurv$age), length.out = 100)
 xx <- model.matrix(ma1, data = nd, type = "X", keep_sign = FALSE)$X
 ip <- grep("randarm", names(bb <- coef(ma1, with_baseline = TRUE)))
-vc <- vcov(ma1, parm = ip)
+vc <- vcov(ma1, parm = names(bb)[ip])
 bb <- bb[ip]
 
 cb1 <- exp(confint(multcomp::glht(multcomp::parm(bb, vc), linfct = xx),
@@ -870,6 +913,8 @@ mfc5 <- frailtypack::frailtyPenal(DFS ~ randarm + cluster(id), data = CAOsurv,
 print.results(list(mfc1, mfc2, mfc3, mfc4, mfc5))
 
 
+
+
 ## ----Colr-DFS-fit, cache = TRUE-----------------------------------------------
 mo1 <- tram::Colr(DFS ~ randarm, data = CAOsurv, log_first = TRUE)
 mo2 <- rstpm2::stpm2(Surv(DFStime, DFSevent) ~ randarm, data = CAOsurv, link.type = "PO")
@@ -883,5 +928,4 @@ print.results(list(mo1, mo2, mo3, mo4))
 
 ## ----session, results = "markup"----------------------------------------------
 sessionInfo()
-
 
