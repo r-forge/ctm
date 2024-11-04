@@ -708,15 +708,18 @@ print.results(list(mc1, mc2, mc3))
 mstci1 <- tram::Coxph(iDFS | strat ~ randarm, data = CAOsurv, log_first = TRUE)
 mstci2 <- rstpm2::stpm2(Surv(time = iDFStime, time2 = iDFStime2, event = iDFSevent,
     type = "interval") ~ randarm + strata(strat), data = CAOsurv)
-mstci3 <- flexsurv::flexsurvspline(iDFS ~ randarm + gamma1(strat) + gamma2(strat),
-  data = CAOsurv, k = 3, control=list(ndeps=rep(1e-09,12)))
+mstci3 <- NULL
+#mstci3 <- flexsurv::flexsurvspline(iDFS ~ randarm + gamma1(strat) + gamma2(strat),
+#  data = CAOsurv, k = 3, control=list(ndeps=rep(1e-09,12)))
 ## COMMENT: "flexsurv" package: look at plot(model)
 ## control: necessary for flexsurv 2.3; see email by Nov 4
 ##          by Chris Jackson
+##          however, the hessian is singular, so we exclude this model
+##          for the time being.
 
 
 ## ----STRAT-iDFS-results-------------------------------------------------------
-print.results(list(mstci1, mstci2, mstci3))
+print.results(list(mstci1, mstci2))##, mstci3))
 
 
 
