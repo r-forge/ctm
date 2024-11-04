@@ -1,0 +1,390 @@
+
+R version 4.4.2 (2024-10-31) -- "Pile of Leaves"
+Copyright (C) 2024 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> 
+> options(warn = -1L)
+> 
+> ###################################################
+> ### code chunk number 1: setup
+> ###################################################
+> 
+> library("trtf")
+Loading required package: mlt
+Loading required package: basefun
+Loading required package: variables
+Loading required package: partykit
+Loading required package: grid
+
+Attaching package: ‘grid’
+
+The following object is masked from ‘package:variables’:
+
+    unit
+
+Loading required package: libcoin
+Loading required package: mvtnorm
+Loading required package: tram
+> library("quantregForest")
+Loading required package: randomForest
+randomForest 4.7-1.2
+Type rfNews() to see new features/changes/bug fixes.
+Loading required package: RColorBrewer
+> 
+> nmax <- Inf
+> 
+> pdf("applications.pdf", width = 12, height = 8)
+> 
+> data("abalone", package = "AppliedPredictiveModeling")
+> response <- "Rings"
+> abalone[[response]] <- as.numeric(abalone[[response]])
+> 
+> ns <- 100
+> fm <- Rings ~ Type + LongestShell + Diameter + Height + WholeWeight + ShuckedWeight + 
++         VisceraWeight + ShellWeight
+> mtry <- ceiling(length(all.vars(fm[[3]])) / 3)
+> var_m <- numeric_var("Rings", support = quantile(abalone[[response]], prob = c(.1, .9)), 
++                      add = range(abalone[[response]]) - quantile(abalone[[response]], prob = c(.1, .9)), 
++                      bounds = c(0, Inf))
+> 
+> B_m <- Bernstein_basis(var_m, order = 4, ui = "increasing")
+> uc_ctm_AB <- ctm(B_m, data = abalone, todistr = "Normal")
+> uc_mlt_AB <- mlt(uc_ctm_AB, data = abalone, scale = FALSE)
+> 
+> c_ctm_AB <- ctm(B_m, data = abalone, todistr = "Normal", shift = fm[c(1, 3)])
+> c_mlt_AB <- mlt(c_ctm_AB, data = abalone, scale = TRUE)
+> 
+> tt_AB <- trafotree(uc_ctm_AB, formula = fm, data = abalone, 
++                 control = ctree_control(mincriterion = .95, minsplit = ns*2, minbucket = ns, nmax = nmax),
++                 mltargs = list(scale = TRUE))
+> 
+> if (FALSE) {
++ tf_AB <- traforest(uc_ctm_AB, formula = fm, data = abalone, ntree = 100, trace = TRUE, 
++                   mltargs = list(scale = TRUE),
++                   control = ctree_control(mincriterion = 0, minsplit = ns*2, minbucket = ns, nmax = nmax),
++                                           mtry = mtry)
++ 
++ qrf_AB <- quantregForest(x = abalone[, all.vars(fm[[3]])], y = abalone[, all.vars(fm[[2]])], nodesize = ns,
++                                        mtry = mtry, ntree = 100, keep.inbag = TRUE)
++ }
+> 
+> data("BostonHousing2", package = "mlbench")
+> response <- "cmedv"
+> BostonHousing2[[response]] <- as.numeric(BostonHousing2[[response]])
+> 
+> ns <- 40
+> fm <- cmedv ~ crim + zn + indus + chas + nox + rm + age + dis + rad + tax + ptratio + b + lstat
+> mtry <- ceiling(length(all.vars(fm[[3]])) / 3)
+> var_m <- numeric_var("cmedv", support = quantile(BostonHousing2[[response]], prob = c(.1, .9)), 
++                      add = range(BostonHousing2[[response]]) - quantile(BostonHousing2[[response]], prob = c(.1, .9)), 
++                      bounds = c(0, Inf))
+> 
+> B_m <- Bernstein_basis(var_m, order = 4, ui = "increasing")
+> uc_ctm_BH <- ctm(B_m, data = BostonHousing2, todistr = "Normal")
+> uc_mlt_BH <- mlt(uc_ctm_BH, data = BostonHousing2, scale = FALSE)
+> 
+> c_ctm_BH <- ctm(B_m, data = BostonHousing2, todistr = "Normal", shift = fm[c(1, 3)])
+> c_mlt_BH <- mlt(c_ctm_BH, data = BostonHousing2, scale = TRUE)
+> 
+> tt_BH <- trafotree(uc_ctm_BH, formula = fm, data = BostonHousing2, 
++                 control = ctree_control(mincriterion = .95, minsplit = 2*ns, minbucket = ns, nmax = nmax),
++                 mltargs = list(scale = TRUE))
+> 
+> if (FALSE) {
++ tf_BH <- traforest(uc_ctm_BH, formula = fm, data = BostonHousing2, ntree = 100, 
++                   control = ctree_control(mincriterion = 0, minsplit = 2*ns, minbucket = ns,
++                                           nmax = nmax), mtry = mtry, 
++                   trace = TRUE, mltargs = list(scale = TRUE))
++ 
++ qrf_BH <- quantregForest(x = BostonHousing2[, all.vars(fm[[3]])], y = BostonHousing2[, all.vars(fm[[2]])], 
++                                        nodesize = ns, mtry = mtry, ntree = 100, keep.inbag = TRUE)
++ }
+> 
+> if (FALSE) { ### alr3 was archived on CRAN
++ data("BigMac2003", package = "alr3")
++ response <- "BigMac"
++ BigMac2003[[response]] <- as.numeric(BigMac2003[[response]])
++ 
++ ns <- 20
++ fm <- BigMac ~ Bread + Rice + FoodIndex + Bus + Apt + TeachGI + 
++         TeachNI + TaxRate + TeachHours
++ mtry <- ceiling(length(all.vars(fm[[3]])) / 3)
++ var_m <- numeric_var("BigMac", support = quantile(BigMac2003[[response]], prob = c(.1, .9)),
++                      add = range(BigMac2003[[response]]) - quantile(BigMac2003[[response]], prob = c(.1, .9)), 
++                      bounds = c(0, Inf))
++ 
++ B_m <- Bernstein_basis(var_m, order = 4, ui = "increasing")
++ uc_ctm_BM <- ctm(B_m, data = BigMac2003, todistr = "Normal")
++ uc_mlt_BM <- mlt(uc_ctm_BM, data = BigMac2003, scale = FALSE)
++ 
++ c_ctm_BM <- ctm(B_m, data = BigMac2003, todistr = "Normal", shift = fm[c(1, 3)])
++ c_mlt_BM <- mlt(c_ctm_BM, data = BigMac2003, scale = TRUE)
++ 
++ tt_BM <- trafotree(uc_ctm_BM, formula = fm, data = BigMac2003, 
++                 control = ctree_control(mincriterion = .95, minsplit = 2 * ns, minbucket = ns, nmax = nmax),
++                 mltargs = list(scale = TRUE))
++ 
++ if (FALSE) {
++ tf_BM <- traforest(uc_ctm_BM, formula = fm, data = BigMac2003, ntree = 100, 
++                   control = ctree_control(mincriterion = 0, minsplit = 2*ns, minbucket = ns, 
++                   nmax = nmax), mltargs = list(scale = TRUE),
++                   trace = TRUE, mtry = mtry)
++ 
++ qrf_BM <- quantregForest(x = BigMac2003[, all.vars(fm[[3]])], 
++     y = BigMac2003[, all.vars(fm[[2]])], nodesize = ns, mtry = mtry, ntree = 100, keep.inbag = TRUE)
++ }
++ 
++ }
+> data("Ozone", package = "mlbench")
+> Ozone <- subset(Ozone, complete.cases(Ozone))
+> Ozone <- as.data.frame(lapply(Ozone, function(x) {
++     x <- x[, drop = TRUE]
++     if (is.factor(x)) return(as.ordered(x))
++     x
++ }))
+> response <- "V4"
+> Ozone[[response]] <- as.numeric(Ozone[[response]])
+> 
+> ns <- 20
+> fm <- V4 ~ V1 + V2 + V3 + V5 + V6 + V7 + V8 + V9 + V10 + V11 + V12 + V13
+> mtry <- ceiling(length(all.vars(fm[[3]])) / 3)
+> var_m <- numeric_var("V4", support = quantile(Ozone[[response]], prob = c(.1, .9)), 
++                      add = range(Ozone[[response]]) - quantile(Ozone[[response]], prob = c(.1, .9)), 
++                      bounds = c(0, Inf))
+> 
+> B_m <- Bernstein_basis(var_m, order = 4, ui = "increasing")
+> uc_ctm_Ozone <- ctm(B_m, data = Ozone, todistr = "Normal")
+> uc_mlt_Ozone <- mlt(uc_ctm_Ozone, data = Ozone, scale = FALSE)
+> 
+> c_ctm_Ozone <- ctm(B_m, data = Ozone, todistr = "Normal", shift = fm[c(1, 3)])
+> c_mlt_Ozone <- mlt(c_ctm_Ozone, data = Ozone, scale = TRUE)
+> 
+> tt_Ozone <- trafotree(uc_ctm_Ozone, formula = fm, data = Ozone, 
++                 control = ctree_control(mincriterion = .95, minsplit = 2*ns, minbucket = ns, nmax = nmax),
++                 mltargs = list(scale = TRUE))
+> 
+> tf_Ozone <- traforest(uc_ctm_Ozone, formula = fm, data = Ozone, ntree = 100, 
++                   control = ctree_control(mincriterion = 0, minsplit = 2*ns,
++                   minbucket = ns, nmax = nmax), trace = TRUE, mtry = mtry, 
++                   mltargs = list(scale = TRUE))
+  |                                                                              |                                                                      |   0%  |                                                                              |=                                                                     |   1%  |                                                                              |=                                                                     |   2%  |                                                                              |==                                                                    |   3%  |                                                                              |===                                                                   |   4%  |                                                                              |====                                                                  |   5%  |                                                                              |====                                                                  |   6%  |                                                                              |=====                                                                 |   7%  |                                                                              |======                                                                |   8%  |                                                                              |======                                                                |   9%  |                                                                              |=======                                                               |  10%  |                                                                              |========                                                              |  11%  |                                                                              |========                                                              |  12%  |                                                                              |=========                                                             |  13%  |                                                                              |==========                                                            |  14%  |                                                                              |==========                                                            |  15%  |                                                                              |===========                                                           |  16%  |                                                                              |============                                                          |  17%  |                                                                              |=============                                                         |  18%  |                                                                              |=============                                                         |  19%  |                                                                              |==============                                                        |  20%  |                                                                              |===============                                                       |  21%  |                                                                              |===============                                                       |  22%  |                                                                              |================                                                      |  23%  |                                                                              |=================                                                     |  24%  |                                                                              |==================                                                    |  25%  |                                                                              |==================                                                    |  26%  |                                                                              |===================                                                   |  27%  |                                                                              |====================                                                  |  28%  |                                                                              |====================                                                  |  29%  |                                                                              |=====================                                                 |  30%  |                                                                              |======================                                                |  31%  |                                                                              |======================                                                |  32%  |                                                                              |=======================                                               |  33%  |                                                                              |========================                                              |  34%  |                                                                              |========================                                              |  35%  |                                                                              |=========================                                             |  36%  |                                                                              |==========================                                            |  37%  |                                                                              |===========================                                           |  38%  |                                                                              |===========================                                           |  39%  |                                                                              |============================                                          |  40%  |                                                                              |=============================                                         |  41%  |                                                                              |=============================                                         |  42%  |                                                                              |==============================                                        |  43%  |                                                                              |===============================                                       |  44%  |                                                                              |================================                                      |  45%  |                                                                              |================================                                      |  46%  |                                                                              |=================================                                     |  47%  |                                                                              |==================================                                    |  48%  |                                                                              |==================================                                    |  49%  |                                                                              |===================================                                   |  50%  |                                                                              |====================================                                  |  51%  |                                                                              |====================================                                  |  52%  |                                                                              |=====================================                                 |  53%  |                                                                              |======================================                                |  54%  |                                                                              |======================================                                |  55%  |                                                                              |=======================================                               |  56%  |                                                                              |========================================                              |  57%  |                                                                              |=========================================                             |  58%  |                                                                              |=========================================                             |  59%  |                                                                              |==========================================                            |  60%  |                                                                              |===========================================                           |  61%  |                                                                              |===========================================                           |  62%  |                                                                              |============================================                          |  63%  |                                                                              |=============================================                         |  64%  |                                                                              |==============================================                        |  65%  |                                                                              |==============================================                        |  66%  |                                                                              |===============================================                       |  67%  |                                                                              |================================================                      |  68%  |                                                                              |================================================                      |  69%  |                                                                              |=================================================                     |  70%  |                                                                              |==================================================                    |  71%  |                                                                              |==================================================                    |  72%  |                                                                              |===================================================                   |  73%  |                                                                              |====================================================                  |  74%  |                                                                              |====================================================                  |  75%  |                                                                              |=====================================================                 |  76%  |                                                                              |======================================================                |  77%  |                                                                              |=======================================================               |  78%  |                                                                              |=======================================================               |  79%  |                                                                              |========================================================              |  80%  |                                                                              |=========================================================             |  81%  |                                                                              |=========================================================             |  82%  |                                                                              |==========================================================            |  83%  |                                                                              |===========================================================           |  84%  |                                                                              |============================================================          |  85%  |                                                                              |============================================================          |  86%  |                                                                              |=============================================================         |  87%  |                                                                              |==============================================================        |  88%  |                                                                              |==============================================================        |  89%  |                                                                              |===============================================================       |  90%  |                                                                              |================================================================      |  91%  |                                                                              |================================================================      |  92%  |                                                                              |=================================================================     |  93%  |                                                                              |==================================================================    |  94%  |                                                                              |==================================================================    |  95%  |                                                                              |===================================================================   |  96%  |                                                                              |====================================================================  |  97%  |                                                                              |===================================================================== |  98%  |                                                                              |===================================================================== |  99%  |                                                                              |======================================================================| 100%
+> 
+> qrf_Ozone <- quantregForest(x = Ozone[, all.vars(fm[[3]])], y = Ozone[, all.vars(fm[[2]])], 
++                                           nodesize = ns, mtry = mtry, ntree = 100, keep.inbag = TRUE)
+> 
+> 
+> library("lattice")
+> lwd <- 1.5
+> col <- rgb(.1, .1, .1, .05)
+> colR <- rgb(.75, 0, 0, .8)
+> colB <- rgb(0, 0, 0.5, .8)
+> trellis.par.set(list(plot.symbol = list(col="blue",pch=18, cex=0.5),
++                      box.rectangle = list(col=1),
++                      box.umbrella = list(lty=1, col=1),
++                      strip.background = list(col = "white")))
+> ltheme <- canonical.theme(color = FALSE)     ## in-built B&W theme
+> ltheme$strip.background$col <- "transparent" ## change strip bg
+> lattice.options(default.theme = ltheme)
+> bpch <- 18
+> bfill <- FALSE
+> 
+> ###################################################
+> ### code chunk number 4: Ozone-uctm
+> ###################################################
+> q <- mkgrid(uc_mlt_Ozone, n = 100)[[1]]
+> d <- predict(uc_mlt_Ozone, newdata = Ozone, q = q, type="density")
+> plot(d ~ q, type = "l", ylab = "Density", xlab = "Daily Maximum One-hour-average Ozone Reading")
+> rug(Ozone$V4, col = rgb(.1, .1, .1, .1), lwd = 2)
+> 
+> 
+> ###################################################
+> ### code chunk number 5: Ozone-ltm
+> ###################################################
+> q <- mkgrid(uc_mlt_Ozone, n = 100)[[1]]
+> 
+> d <- predict(c_mlt_Ozone, newdata = Ozone, q = q, type="distribution")
+> lp <- c(predict(c_mlt_Ozone, newdata = Ozone, q = 1, terms = "bshift"))
+> nd <- expand.grid(q = q, lp = -lp)
+> nd$d <- c(d)
+> pfun <- function(x, y, z, subscripts, at, ...) {
++     panel.contourplot(x, y, z, subscripts, at = 1:9/10, ...)
++     panel.xyplot(x = -lp, y = Ozone$V4, pch = 19, cex = 1.5,
++                  col = rgb(.1, .1, .1, .1), ...)
++ }
+> print(contourplot(d ~ lp + q, data = nd, panel = pfun, xlab = "Linear Predictor", 
++                   ylab = "Observed", ylim = c(0, 40)))
+> 
+> 
+> ###################################################
+> ### code chunk number 6: Ozone-trtree
+> ###################################################
+> plot(tt_Ozone, tp_args = list(type = "density", id = FALSE, ylines = 0, K = 100))
+> 
+> 
+> ###################################################
+> ### code chunk number 8: Ozone-forest
+> ###################################################
+> nx <- lapply(Ozone, function(x) {
++     if (is.factor(x))
++         return(factor(levels(x)[which.max(table(x))], levels = levels(x), ordered = is.ordered(x)))
++     return(median(x))
++ })
+> 
+> nx$V8 <- 20:100
+> nx <- expand.grid(nx)
+> 
+> q1 <- predict(qrf_Ozone, newdata = nx, what = c(.2, .5, .8))
+> 
+> q2 <- predict(tf_Ozone, newdata = nx, K = 100, type = "quantile", p = c(.2, .5,.8))
+> q2 <- do.call("rbind", q2)
+> 
+> nx <- rbind(cbind(nx["V8"], q = q1[,1], p = "0.2", model = "QRF", stringsAsFactors = FALSE),
++             cbind(nx["V8"], q = q1[,2], p = "0.5", model = "QRF", stringsAsFactors = FALSE),
++             cbind(nx["V8"], q = q1[,3], p = "0.8", model = "QRF", stringsAsFactors = FALSE),
++             cbind(nx["V8"], q = q2[,1], p = "0.2", model = "Forest", stringsAsFactors = FALSE),
++             cbind(nx["V8"], q = q2[,2], p = "0.5", model = "Forest", stringsAsFactors = FALSE),
++             cbind(nx["V8"], q = q2[,3], p = "0.8", model = "Forest", stringsAsFactors = FALSE))
+> nx$model <- factor(as.character(nx$model), levels = c("QRF", "Forest"), labels = c("QRF", "Forest"))
+> 
+> print(xyplot(q ~ V8 | model, data = nx, groups = p, type = "l", lty = 1:3, col = "black",
++              xlab = "Sandburg, CA, Temperature in Fahrenheit",
++              ylab = "Daily Maximum One-hour-average Ozone Reading"))
+> 
+> varimp(tf_Ozone)
+         V1          V2          V5          V6          V7          V8 
+  5.7468132  -0.4231162  82.5333319  -2.3640889  31.5113845 403.3742084 
+         V9         V10         V11         V12         V13 
+387.3937604 253.8019323  63.3323647 805.6894845 191.3262316 
+> 
+> ###################################################
+> ### code chunk number 2: abalone-ltm
+> ###################################################
+> q <- mkgrid(uc_mlt_AB, n = 100)[[1]]
+> 
+> d <- predict(c_mlt_AB, newdata = abalone, q = q, type="distribution")
+> lp <- c(predict(c_mlt_AB, newdata = abalone, q = 1, terms = "bshift"))
+> nd <- expand.grid(q = q, lp = -lp)
+> nd$d <- c(d)
+> pfun <- function(x, y, z, subscripts, at, ...) {
++     panel.contourplot(x, y, z, subscripts, at = 1:9/10, ...)
++     panel.xyplot(x = -lp, y = abalone$Rings, pch = 19, cex = 1.5,
++                  col = rgb(.1, .1, .1, .1), ...)
++ }
+> print(contourplot(d ~ lp + q, data = nd, panel = pfun, xlab = "Linear Predictor",
++                   ylab = "Observed"))
+> 
+> 
+> ###################################################
+> ### code chunk number 3: abalone-trtree
+> ###################################################
+> plot(tt_AB, tp_args = list(type = "density", id = FALSE, ylines = 0, K = 100))
+> 
+> 
+> ###################################################
+> ### code chunk number 6: BigMac-ltm
+> ###################################################
+> if (FALSE) {
++ q <- mkgrid(uc_mlt_BM, n = 100)[[1]]
++ 
++ d <- predict(c_mlt_BM, newdata = BigMac2003, q = q, type="distribution")
++ lp <- c(predict(c_mlt_BM, newdata = BigMac2003, q = 1, terms = "bshift"))
++ nd <- expand.grid(q = q, lp = -lp)
++ nd$d <- c(d)
++ pfun <- function(x, y, z, subscripts, at, ...) {
++     panel.contourplot(x, y, z, subscripts, at = 1:9/10, ...)
++     panel.xyplot(x = -lp, y = BigMac2003$BigMac, pch = 19, cex = 1.5,
++                  col = rgb(.1, .1, .1, .1), ...)
++ }
++ print(contourplot(d ~ lp + q, data = nd, panel = pfun, xlab = "Linear Predictor",
++                   ylab = "Observed"))
++ 
++ 
++ ###################################################
++ ### code chunk number 7: BigMac-trtree
++ ###################################################
++ plot(tt_BM, tp_args = list(type = "density", id = FALSE, ylines = 0, K = 100))
++ }
+> 
+> ###################################################
+> ### code chunk number 10: BH-ltm
+> ###################################################
+> q <- mkgrid(uc_mlt_BH, n = 100)[[1]]
+> 
+> d <- predict(c_mlt_BH, newdata = BostonHousing2, q = q, type="distribution")
+> lp <- c(predict(c_mlt_BH, newdata = BostonHousing2, q = 1, terms = "bshift"))
+> nd <- expand.grid(q = q, lp = -lp)
+> nd$d <- c(d)
+> pfun <- function(x, y, z, subscripts, at, ...) {
++     panel.contourplot(x, y, z, subscripts, at = 1:9/10, ...)
++     panel.xyplot(x = -lp, y = BostonHousing2$cmedv, pch = 19, cex = 1.5,
++                  col = rgb(.1, .1, .1, .1), ...)
++ }
+> print(contourplot(d ~ lp + q, data = nd, panel = pfun, xlab = "Linear Predictor",
++                   ylab = "Observed"))
+> 
+> 
+> ###################################################
+> ### code chunk number 11: BH-trtree
+> ###################################################
+> plot(tt_BH, tp_args = list(type = "density", id = FALSE, ylines = 0, K = 100))
+> 
+> dev.off()
+null device 
+          1 
+> 
+> sessionInfo()
+R version 4.4.2 (2024-10-31)
+Platform: x86_64-pc-linux-gnu
+Running under: Debian GNU/Linux 12 (bookworm)
+
+Matrix products: default
+BLAS:   /usr/local/lib/R/lib/libRblas.so 
+LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.11.0
+
+locale:
+ [1] LC_CTYPE=en_GB.UTF-8       LC_NUMERIC=C              
+ [3] LC_TIME=en_GB.UTF-8        LC_COLLATE=en_GB.UTF-8    
+ [5] LC_MONETARY=en_GB.UTF-8    LC_MESSAGES=en_GB.UTF-8   
+ [7] LC_PAPER=en_GB.UTF-8       LC_NAME=C                 
+ [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+[11] LC_MEASUREMENT=en_GB.UTF-8 LC_IDENTIFICATION=C       
+
+time zone: Europe/Berlin
+tzcode source: system (glibc)
+
+attached base packages:
+[1] grid      stats     graphics  grDevices utils     datasets  methods  
+[8] base     
+
+other attached packages:
+ [1] lattice_0.22-6         quantregForest_1.3-7.1 RColorBrewer_1.1-3    
+ [4] randomForest_4.7-1.2   trtf_0.4-2             tram_1.2-0            
+ [7] partykit_1.2-22        mvtnorm_1.3-2          libcoin_1.0-10        
+[10] mlt_1.6-1              basefun_1.2-0          variables_1.1-1       
+
+loaded via a namespace (and not attached):
+ [1] TH.data_1.1-2        Formula_1.2-5        BB_2019.10-1        
+ [4] zoo_1.8-12           quadprog_1.5-8       MASS_7.3-61         
+ [7] numDeriv_2016.8-1.1  compiler_4.4.2       multcomp_1.4-26     
+[10] codetools_0.2-20     sandwich_3.1-1       Rcpp_1.0.13-1       
+[13] alabama_2023.1.0     nloptr_2.1.1         polynom_1.4-1       
+[16] splines_4.4.2        inum_1.0-5           coneproj_1.19       
+[19] rpart_4.1.23         Matrix_1.7-1         tools_4.4.2         
+[22] orthopolynom_1.0-6.1 survival_3.7-0      
+> 
+> proc.time()
+   user  system elapsed 
+ 12.716   0.141  12.908 

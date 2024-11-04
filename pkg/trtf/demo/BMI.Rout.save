@@ -1,0 +1,720 @@
+
+R version 4.4.2 (2024-10-31) -- "Pile of Leaves"
+Copyright (C) 2024 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> ## ----setup, echo = FALSE, results = "hide", message = FALSE, warning = FALSE----
+> ### from CRAN
+> library("lattice")
+> library("latticeExtra")
+> library("multcomp")
+Loading required package: mvtnorm
+Loading required package: survival
+Loading required package: TH.data
+Loading required package: MASS
+
+Attaching package: ‘TH.data’
+
+The following object is masked from ‘package:MASS’:
+
+    geyser
+
+> library("memisc")
+
+Attaching package: ‘memisc’
+
+The following objects are masked from ‘package:stats’:
+
+    contr.sum, contr.treatment, contrasts
+
+The following object is masked from ‘package:base’:
+
+    as.array
+
+> library("Matrix")
+> options(Matrix.warn = FALSE)
+> library("colorspace")
+> library("grid")
+> 
+> library("libcoin")
+> library("inum")
+> library("partykit")
+> library("ATR")
+> library("trtf")
+Loading required package: mlt
+Loading required package: basefun
+Loading required package: variables
+
+Attaching package: ‘variables’
+
+The following object is masked from ‘package:grid’:
+
+    unit
+
+Loading required package: tram
+> library("mlt")
+> 
+> pdf("BMI.pdf", width = 12, height = 8)
+> 
+> col <- diverge_hcl(2, h = c(246, 40), c = 120, l = c(65, 90), alpha = .75)
+> trellis.par.set(list(plot.symbol = list(col="blue",pch=18, cex=0.5),
++                      box.rectangle = list(col=1),
++                      box.umbrella = list(lty=1, col=1),
++                      strip.background = list(col = "white")))
+> ltheme <- canonical.theme(color = FALSE)     ## in-built B&W theme
+> ltheme$strip.background$col <- "transparent" ## change strip bg
+> lattice.options(default.theme = ltheme)
+> 
+> set.seed(290875)
+> 
+> ### original SGB data may NOT be distributed.
+> ### We use a simulated dataset. BMI values were simulated
+> ### from the transformation forest. All explanatory
+> ### variables (except sex and smoking) were permuted.
+> ### Results will differ from what is printed in the manuscript.
+> frda <- system.file("BMI_artificial.rda", package = "trtf")
+> load(frda)
+> xvars <- c("age40", "edu", "swiss", "frveg", "physcat", "agramtag", "regl2")
+> 
+> # learn$age <- as.double(learn$age)
+> vn <- c(age = "Age", 
++         agramtag = "Alcohol intake", 
++         frveg = "Fruit and vegetables", 
++         physcat = "Physical activity", 
++         edu = "Education", 
++         swiss = "Nationality", 
++         regl2 = "Region",
++         sex = "Sex",
++         smoking = "Smoking")
+> learn$wght <- with(learn, wght / sum(wght) * nrow(learn))
+> 
+> order <- 5
+> d2c <- function(x) formatC(round(x, 2), digits = 2, format = "f")
+> 
+> ## ----ss-ecdf, fig = "pdf", echo = FALSE, fig.height = 5------------------
+> myprepanel <- function (x, y, f.value = NULL, ...) 
++ {
++     ans <- prepanel.default.qqmath(x, f.value = f.value, distribution = qunif)
++     with(ans, list(xlim = ylim, ylim = c(0, 1), dx = dy, dy = dx))
++ }
+> 
+> 
+> mypanel <- function (x, y, f.value = NULL, type = "s", groups = NULL, qtype = 7, 
++     ref = TRUE, ...) 
++ {
++     if (ref) {
++         reference.line <- trellis.par.get("reference.line")
++         do.call(panel.abline, c(list(h = c(0, 1)), reference.line))
++     }
++     x <- as.numeric(x)
++     distribution <- qunif
++     nobs <- sum(!is.na(x))
++     if (!is.null(groups)) {
++         panel.superpose(x, y = NULL, f.value = f.value, type = type, 
++             distribution = distribution, qtype = qtype, groups = groups, 
++             panel.groups = panel.ecdfplot, ...)
++     }
++     else if (nobs) {
++         if (is.null(f.value)) {
++             panel.xyplot(x = sort(x), y = cumsum(y[order(x)]) / sum(y),
++                 type = type, ...)
++         }
++         else {
++             p <- if (is.numeric(f.value)) 
++                 f.value
++             else f.value(nobs)
++             panel.xyplot(x = quantile(x, p, names = FALSE, type = qtype, 
++                 na.rm = TRUE), y = distribution(p), type = type, 
++                 ...)
++         }
++     }
++ }
+> 
+> #library("latticeExtra")
+> xyplot(wght~bmi | smoking + sex, data = learn, col = col[1], lwd = 3, xlab = "BMI", 
++        panel = mypanel, prepanel = myprepanel, ylab = "Empirical CDF")
+> # ecdfplot(~ bmi | smoking + sex, data = learn, col = col[1], lwd = 3, xlab = "BMI")
+> 
+> ## ----ss1, echo = FALSE---------------------------------------------------
+> ### lm; cell-means model
+> lm_ss1 <- lm(bmi ~ smoking:sex - 1, data = learn, weights = learn$wght)
+> ll_ss1 <- logLik(lm_ss1)
+> sd_ss1 <- summary(lm_ss1)$sigma
+> 
+> ## ----ss1-tab, echo = FALSE, results = "asis"-----------------------------
+> ci <- d2c(confint(lm_ss1))
+> tb <- paste(d2c(coef(lm_ss1)), paste(" (", ci[,1], "--",  ci[,2], sep = ""), ")", sep = "")
+> tb <- matrix(tb, ncol = 2)
+> attr(tb, "row.vars") <- list(Smoking = levels(learn$smoking))
+> attr(tb, "col.vars") <- list(Sex = levels(learn$sex))
+> class(tb) <- "ftable"
+> toLatex(tb, digits = 3, useDcolum = FALSE)
+\begin{tabular}{llrr}
+\toprule
+ && \multicolumn{2}{c}{Sex}\\
+\cmidrule{3-3}\cmidrule{4-4}
+Smoking && \multicolumn{1}{c}{Female}&\multicolumn{1}{c}{Male}\\
+\midrule
+Never  && 23.38 (23.20--23.57) & 25.42 (25.20--25.64)\\
+Former && 23.55 (23.25--23.86) & 25.86 (25.57--26.15)\\
+Light  && 23.40 (22.94--23.86) & 25.37 (24.86--25.89)\\
+Medium && 23.67 (23.19--24.15) & 25.73 (25.23--26.24)\\
+Heavy  && 23.02 (22.40--23.63) & 25.67 (25.21--26.13)\\
+\bottomrule
+\end{tabular}
+> 
+> ## ----ss1-plot, fig = "pdf", echo = FALSE, fig.height = 5-----------------
+> ### set-up grid
+> b <- 150:400 / 10
+> sm <- sort(unique(learn$smoking))
+> se <- sort(unique(learn$sex))
+> nd <- expand.grid(bmi = b, smoking = sm, sex = se)
+> 
+> ### compute normal probabilities
+> nd$mean <- predict(lm_ss1, newdata = nd)
+> nd$sd <- summary(lm_ss1)$sigma
+> nd$prob1 <- pnorm(nd$bmi, mean = nd$mean, sd = nd$sd)
+> 
+> 
+> plotfun <- function(prob, data, ...) {
++     fm <- as.formula(paste(prob, "~ bmi | smoking + sex"))
++     xyplot(fm, data = data, type = "l", 
++         panel = function(x, y, subscripts, ...) {
++             tmp <- subset(learn, sex == unique(nd[subscripts, "sex"]) & 
++                                      smoking == unique(nd[subscripts, "smoking"]))
++             mypanel(tmp$bmi, tmp$wght, lwd = 3, col = col[1])
++             panel.xyplot(x, y, ...)
++     }, col = col[2],  xlab = "BMI", ylab = "CDF", lwd = 2, ...)
++ }
+> plotfun("prob1", nd)#, main = "lm constant var")
+> 
+> ## ----ss2, echo = FALSE---------------------------------------------------
+> ### varying variances
+> sd_ss2 <- c(tapply(resid(lm_ss1), iss <- with(learn, interaction(smoking, sex)), sd))
+> ll_ss2 <- sum(learn$wght * dnorm(learn$bmi, mean = coef(lm_ss1)[iss], sd = sd_ss2[iss], log = TRUE))
+> 
+> ## ----ss2-plot, fig = "pdf", echo = FALSE, fig.height = 5-----------------
+> nd$sd2 <- rep(sd_ss2, each = length(b))
+> nd$prob2 <- pnorm(nd$bmi, mean = nd$mean, sd = nd$sd2)
+> plotfun("prob2", nd)# , main = "lm varying var")
+> 
+> ## ----ss3, echo = FALSE, cache = TRUE, message = FALSE, warning = FALSE, results = "hide"----
+> bSMK <- as.basis(~ smoking - 1, data = learn)
+> bSEX <- as.basis(~ sex - 1, data = learn)
+> vBMI <- numeric_var("bmi", bounds = c(0, Inf),
++     support = quantile(learn$bmi, prob = c(.01, .99), na.rm = TRUE),
++     add = c(-5, 5))
+> bBMI <- Bernstein_basis(vBMI, order = order, ui = "increasing")
+> ctm_ss3 <- ctm(bBMI, interacting = b(sm = bSMK, sex = bSEX),
++                data = learn, todistr = "Normal")
+> mlt_ss3 <- mlt(ctm_ss3, data = learn, scale = TRUE, weights = learn$wght)
+> ll_ss3 <- logLik(mlt_ss3)
+> 
+> ## ----ss3-plot, fig = "pdf", echo = FALSE, message = FALSE, warning = FALSE, results = "hide", fig.height = 5----
+> nd$prob3 <- predict(mlt_ss3, newdata = nd, type = "distribution")
+> plotfun("prob3", nd)#, main = "nonlin mlt | smoking + sex")
+> 
+> ## ----ss3-trafo-plot, fig = "pdf", echo = FALSE, message = FALSE, warning = FALSE, results = "hide", fig.height = 5----
+> nd3 <- nd
+> nd3$trafo3 <- predict(mlt_ss3, newdata = nd, type = "trafo")
+> bBMIlin <- as.basis(~ bmi, data = learn)
+> ctm_ss3a <- ctm(bBMIlin, interacting = b(sm = bSMK, sex = bSEX),
++                data = learn, todistr = "Normal")
+> mlt_ss3a <- mlt(ctm_ss3a, data = learn, scale = TRUE, weights = learn$wght)
+> ll_ss3a <- logLik(mlt_ss3a)
+> nd3a <- nd
+> nd3a$trafo3 <- predict(mlt_ss3a, newdata = nd, type = "trafo")
+> nd3$type <- "Non-normal"
+> nd3a$type <- "Normal"
+> ndd <- rbind(nd3, nd3a)
+> xyplot(trafo3 ~ bmi | smoking + sex, data = ndd, type = "l", groups = type,
++        col = col, lwd = 3, xlab = "BMI", ylab = expression(paste("Transformation Function ", h)))
+> # plotfun("trafo3", nd)#, main = "nonlin mlt | smoking + sex")
+> 
+> ## ----ss3-plot-density, fig = "pdf", echo = FALSE, message = FALSE, warning = FALSE, results = "hide", fig.height = 5----
+> nd$density <- predict(mlt_ss3, newdata = nd, type = "density")
+> xyplot(density ~ bmi | smoking + sex, data = nd, type = "l", 
++        col = col[2],  xlab = "BMI", ylab = "Density", lwd = 2)
+> 
+> ## ----ss4, echo = FALSE, cache = TRUE, message = FALSE, warning = FALSE, results = "hide"----
+> bSEXtrt <- as.basis(~ sex, data = learn)
+> bSMKtrt <- as.basis(~ smoking, data = learn, remove_intercept = TRUE, negative = TRUE)
+> ### non-normal transformation model, conditional on sex with sex-specific smoking shift
+> ctm_ss4 <- ctm(bBMI, interacting = bSEX,
++                shifting = b(smktrt = bSMKtrt, sextrt = bSEXtrt), todistr = "Normal")
+Warning message:
+In c.bases(binteracting = list(iresponse = function (data, deriv = 0L,  :
+  more than one basis contains an intercept term
+> mlt_ss4 <- mlt(ctm_ss4, data = learn, scale = TRUE, weights = learn$wght)
+> ll_ss4 <- logLik(mlt_ss4)
+> 
+> ## ----ss4-plot, fig = "pdf", echo = FALSE, message = FALSE, warning = FALSE, results = "hide", fig.height = 5----
+> nd$prob4 <- predict(mlt_ss4, newdata = nd, type = "distribution")
+> plotfun("prob4", nd)#, main = "ninlin mlt | sex - smoking(sex)")
+> 
+> ## ----ss5, echo = FALSE, cache = TRUE, message = FALSE, warning = FALSE, results = "hide"----
+> ### non-normal transformation model, conditional on sex with sex-specific smoking shift
+> ctm_ss5 <- ctm(bBMI, interacting = bSEX,
++                shifting = b(smktrt = bSMKtrt, sextrt = bSEXtrt), todistr = "Logistic")
+Warning message:
+In c.bases(binteracting = list(iresponse = function (data, deriv = 0L,  :
+  more than one basis contains an intercept term
+> mlt_ss5 <- mlt(ctm_ss5, data = learn, scale = TRUE, weights = learn$wght)
+> ll_ss5 <- logLik(mlt_ss5)
+> 
+> ## ----ss5-tab, echo = FALSE, results = "asis", warning = FALSE------------
+> K <- glht(lm(bmi ~ smoking, data = learn), linfct = mcp(smoking = "Dunnett"))$linfct[, -1]
+> X <- model.matrix(b(smktrt = bSMKtrt, sextrt = bSEXtrt), data = expand.grid(smoking = sm, sex = se))
+> ### bSMKtrt has negative = TRUE, but we need -X %*% beta here!
+> X <- X * (-1)
+> K <- contrMat(table(learn$smoking), "Dunnett")
+> class(K) <- "matrix"
+> K <- as(K, "Matrix")
+> K2 <- as(bdiag(K, K), "matrix")
+> rownames(K2) <- c(paste("Female", rownames(K), sep = ":"), paste("Male", rownames(K), sep = ":"))
+> cf <- coef(mlt_ss5)
+> ci <- confint(glht(mlt_ss5, vcov. = vcov, linfct = K2 %*% cbind(matrix(0, ncol = length(cf) - ncol(X), nrow = nrow(X)), X)), 
++               calpha = univariate_calpha())
+> tb <- paste(d2c(exp(ci$confint[,1])), paste(" (", d2c(exp(ci$confint[,2])), "--",
++ d2c(exp(ci$confint[,3])), sep = ""), ")", sep = "")
+> tb <- rbind(c(1, 1), matrix(tb, ncol = 2))
+> attr(tb, "row.vars") <- list(Smoking = levels(learn$smoking))
+> attr(tb, "col.vars") <- list(Sex = levels(learn$sex))
+> class(tb) <- "ftable"
+> toLatex(tb, digits = 3, useDcolum = FALSE)
+\begin{tabular}{llrr}
+\toprule
+ && \multicolumn{2}{c}{Sex}\\
+\cmidrule{3-3}\cmidrule{4-4}
+Smoking && \multicolumn{1}{c}{Female}&\multicolumn{1}{c}{Male}\\
+\midrule
+Never  &&                 1 &                 1\\
+Former && 1.06 (0.89--1.25) & 1.21 (1.02--1.43)\\
+Light  && 1.05 (0.83--1.32) & 0.92 (0.71--1.21)\\
+Medium && 1.11 (0.87--1.41) & 1.16 (0.90--1.50)\\
+Heavy  && 0.84 (0.62--1.14) & 1.09 (0.86--1.38)\\
+\bottomrule
+\end{tabular}
+> 
+> ## ----ss6, echo = FALSE, cache = TRUE, message = FALSE, warning = FALSE, results = "hide"----
+> ### non-normal transformation model, conditional on sex with smoking shift
+> ctm_ss6 <- ctm(bBMI, interacting = bSEX,
++                shifting = bSMKtrt, todistr = "Logistic")
+> mlt_ss6 <- mlt(ctm_ss6, data = learn, scale = TRUE, weights = learn$wght)
+> ll_ss6 <- logLik(mlt_ss6)
+> 
+> ## ----cmpx_tree, echo = FALSE, cache = TRUE-------------------------------
+> mod0 <- ctm(bBMI, todistr = "Logistic")
+> mtmp <- mlt(mod0, data = learn)
+> xvars2 <- xvars
+> xvars2[xvars2 == "age40"] <- "age"
+> fm <- as.formula(paste("bmi ~ sex + smoking + ", 
++                        paste(xvars2, collapse = "+")))
+> ctrl <- ctree_control(maxdepth = 4, nmax = 100, 
++                       alpha = 1 / 10000)
+> tlearn <- learn
+> levels(tlearn$edu) <- c("I", "II", "III")
+> levels(tlearn$smoking) <- c("N", "F", "L", "M", "H")
+> tlearn$smoking <- ordered(as.character(tlearn$smoking), 
++                           levels = c("N", "F", "L", "M", "H"),
++                           labels = c("N", "F", "L", "M", "H"))
+> levels(tlearn$physcat) <- c(">2", "1-2", "0")
+> tlearn$physcat <- ordered(as.character(tlearn$physcat),
++                           levels = c("0", "1-2", ">2"),
++                           labels = c("0", "1-2", ">2"))
+> iw <- tlearn$wght
+> iw[iw < .5] <- 1
+> iw <- as.integer(round(iw))
+> trtr <- trafotree(mod0, formula = fm, data = tlearn,
++                   control = ctrl, weights = iw)
+> ### needs newdata to compute logLik for unbinned data
+> ll_cmpx_tree <- logLik(trtr, newdata = tlearn)
+> 
+> ## ----cmpx-tree-plot, echo = FALSE, fig = "pdf", fig.width = 13, fig.height = 8----
+> ### plot(trtr, tp_args = list(type = "density", id = FALSE, ylines = 0, K = 100, fill = col[1]))
+> 
+> node_BMI <- function(obj, col = "black", bg = "white", fill = "transparent",
++                      ylines = 2, id = TRUE, mainlab = NULL, gp = gpar(), K = 20,
++                      type = c("trafo", "distribution", "survivor",  
++                               "density", "logdensity", "hazard",    
++                               "loghazard", "cumhazard", "quantile"),
++                      flip = FALSE, axes = TRUE, xaxis = NULL, ...)
++ {
++     mod <- obj$model
++     q <- mkgrid(mod, n = K)[[mod$response]]
++     type <- match.arg(type)
++ 
++     if (type %in% c("distribution", "survivor")) {
++         yscale <- c(0, 1)
++     } else {
++         pr <- trtf:::predict.trafotree(obj, q = q, type = type, ...)
++         yscale <- range(pr) * c(1, 1.05)
++     }
++     xscale <- range(q)
++     axes <- rep_len(axes, 2)
++ 
++     ### panel function for ecdf in nodes
++     rval <- function(node) {
++ 
++         nid <- id_node(node)
++         dat <- data_party(obj, nid)
++         wn <- dat[["(weights)"]]   
++ 
++         cf <- obj$coef[as.character(nid),]
++         coef(mod) <- cf
++         y <- as.vector(predict(mod, newdata = data.frame(1), q = q, type = type))
++ 
++         ## set up plot
++         q <- q - xscale[1]
++         q <- q / diff(xscale)
++         y <- y - yscale[1]
++         y <- y / diff(yscale)
++ 
++         top_vp <- viewport(layout = grid.layout(nrow = 1, ncol = 2,
++                            widths = grid::unit(c(1, ylines), c("null", "lines")),
++                            heights = grid::unit(1, "null")),
++                            width = grid::unit(1, "npc"),
++                            height = grid::unit(1, "npc"), # - unit(2, "lines"),
++                            name = paste("node_mlt", nid, sep = ""), gp = gp)
++ 
++         pushViewport(top_vp)
++         grid.rect(gp = gpar(fill = bg, col = 0))
++ 
++         plot <- viewport(layout.pos.col=1, layout.pos.row=1,
++                          xscale = if(flip) yscale else xscale,
++                          yscale = if(flip) xscale else yscale,
++                          name = paste0("node_mlt", nid, "plot"),
++                          clip = FALSE)
++ 
++         pushViewport(plot)
++         if(axes[1]) {
++             if (is.null(xaxis)) {
++                  grid.xaxis()
++             } else {
++                  if (nid == xaxis)
++                      grid.xaxis()
++             }
++         }
++         if(axes[2]) grid.yaxis(main = FALSE)
++         grid.rect(gp = gpar(fill = "transparent"))
++         grid.clip()
++         if(flip) {
++           if(fill != "transparent") {
++             grid.polygon(c(min(y), y, min(y)), c(q[1], q, q[K]), gp = gpar(col = col, fill = fill))
++           } else {
++             grid.lines(y, q, gp = gpar(col = col))
++           }
++         } else {
++           if(fill != "transparent") {
++             grid.polygon(c(q[1], q, q[K]), c(min(y), y, min(y)), gp = gpar(col = col, fill = fill))
++           } else {
++             grid.lines(q, y, gp = gpar(col = col))
++           }
++         }
++         upViewport(2)
++     }
++ 
++     return(rval)
++ }
+> class(node_BMI) <- "grapcon_generator"
+> 
+> nid <- min(nodeids(trtr, terminal = TRUE))
+> 
+> ### weights are caseweights for ctree but not for this application
+> tmp <- unclass(trtr)
+> tmp$data[["(weights)"]] <- 1L
+> tmp$fitted[["(weights)"]] <- 1L
+> class(tmp) <- class(trtr)
+> plot(rotate(tmp), terminal_panel = node_BMI, nobs.loc='top',
++      tp_args = list(type = "density", id = FALSE, ylines = 3, K = 100, fill = col[1], xaxis = nid))
+> 
+> 
+> ## ----cmpx_forest, echo = FALSE, cache = TRUE, results = "hide", message = FALSE, warning = FALSE----
+> trtf <- traforest(mod0, formula = fm, data = learn, weights = learn$wght,
++                   control = ctree_control(nmax = 100, mincriterion = 0, minsplit = 500), 
++                   ntree = 100, mtry = 9, trace = TRUE)
+  |                                                                              |                                                                      |   0%  |                                                                              |=                                                                     |   1%  |                                                                              |=                                                                     |   2%  |                                                                              |==                                                                    |   3%  |                                                                              |===                                                                   |   4%  |                                                                              |====                                                                  |   5%  |                                                                              |====                                                                  |   6%  |                                                                              |=====                                                                 |   7%  |                                                                              |======                                                                |   8%  |                                                                              |======                                                                |   9%  |                                                                              |=======                                                               |  10%  |                                                                              |========                                                              |  11%  |                                                                              |========                                                              |  12%  |                                                                              |=========                                                             |  13%  |                                                                              |==========                                                            |  14%  |                                                                              |==========                                                            |  15%  |                                                                              |===========                                                           |  16%  |                                                                              |============                                                          |  17%  |                                                                              |=============                                                         |  18%  |                                                                              |=============                                                         |  19%  |                                                                              |==============                                                        |  20%  |                                                                              |===============                                                       |  21%  |                                                                              |===============                                                       |  22%  |                                                                              |================                                                      |  23%  |                                                                              |=================                                                     |  24%  |                                                                              |==================                                                    |  25%  |                                                                              |==================                                                    |  26%  |                                                                              |===================                                                   |  27%  |                                                                              |====================                                                  |  28%  |                                                                              |====================                                                  |  29%  |                                                                              |=====================                                                 |  30%  |                                                                              |======================                                                |  31%  |                                                                              |======================                                                |  32%  |                                                                              |=======================                                               |  33%  |                                                                              |========================                                              |  34%  |                                                                              |========================                                              |  35%  |                                                                              |=========================                                             |  36%  |                                                                              |==========================                                            |  37%  |                                                                              |===========================                                           |  38%  |                                                                              |===========================                                           |  39%  |                                                                              |============================                                          |  40%  |                                                                              |=============================                                         |  41%  |                                                                              |=============================                                         |  42%  |                                                                              |==============================                                        |  43%  |                                                                              |===============================                                       |  44%  |                                                                              |================================                                      |  45%  |                                                                              |================================                                      |  46%  |                                                                              |=================================                                     |  47%  |                                                                              |==================================                                    |  48%  |                                                                              |==================================                                    |  49%  |                                                                              |===================================                                   |  50%  |                                                                              |====================================                                  |  51%  |                                                                              |====================================                                  |  52%  |                                                                              |=====================================                                 |  53%  |                                                                              |======================================                                |  54%  |                                                                              |======================================                                |  55%  |                                                                              |=======================================                               |  56%  |                                                                              |========================================                              |  57%  |                                                                              |=========================================                             |  58%  |                                                                              |=========================================                             |  59%  |                                                                              |==========================================                            |  60%  |                                                                              |===========================================                           |  61%  |                                                                              |===========================================                           |  62%  |                                                                              |============================================                          |  63%  |                                                                              |=============================================                         |  64%  |                                                                              |==============================================                        |  65%  |                                                                              |==============================================                        |  66%  |                                                                              |===============================================                       |  67%  |                                                                              |================================================                      |  68%  |                                                                              |================================================                      |  69%  |                                                                              |=================================================                     |  70%  |                                                                              |==================================================                    |  71%  |                                                                              |==================================================                    |  72%  |                                                                              |===================================================                   |  73%  |                                                                              |====================================================                  |  74%  |                                                                              |====================================================                  |  75%  |                                                                              |=====================================================                 |  76%  |                                                                              |======================================================                |  77%  |                                                                              |=======================================================               |  78%  |                                                                              |=======================================================               |  79%  |                                                                              |========================================================              |  80%  |                                                                              |=========================================================             |  81%  |                                                                              |=========================================================             |  82%  |                                                                              |==========================================================            |  83%  |                                                                              |===========================================================           |  84%  |                                                                              |============================================================          |  85%  |                                                                              |============================================================          |  86%  |                                                                              |=============================================================         |  87%  |                                                                              |==============================================================        |  88%  |                                                                              |==============================================================        |  89%  |                                                                              |===============================================================       |  90%  |                                                                              |================================================================      |  91%  |                                                                              |================================================================      |  92%  |                                                                              |=================================================================     |  93%  |                                                                              |==================================================================    |  94%  |                                                                              |==================================================================    |  95%  |                                                                              |===================================================================   |  96%  |                                                                              |====================================================================  |  97%  |                                                                              |===================================================================== |  98%  |                                                                              |===================================================================== |  99%  |                                                                              |======================================================================| 100%
+> 
+> ## ----cmpx_vi, echo = FALSE, cache = TRUE---------------------------------
+> vi <- varimp(trtf)
+> 
+> ## ----cmpx_ll, echo = FALSE, cache = TRUE---------------------------------
+> set.seed(290875)
+> n <- nrow(learn)
+> cf <- predict(trtf, newdata = learn, type = "coef")
+> i <- which(sapply(cf, function(x) any(abs(x) > 10)))
+> if (length(i) > 0) 
++     cf[i] <- predict(trtf, newdata = learn[i,], type = "coef")
+> ll_cmpx_forest <- logLik(trtf, coef = cf)
+> 
+> ## ----cmpx_predict, echo = FALSE, cache = TRUE----------------------------
+> ### prepare figure
+> nd2 <- lapply(learn[,xvars2], function(x) {
++     if (is.factor(x)) return(sort(x)[1])
++     if (is.data.frame(x)) return(NULL)
++     median(x)
++ })
+> nd2$sex <- sort(unique(learn$sex))
+> nd2$smoking <- sort(unique(learn$smoking))
+> 
+> nd3 <- nd2
+> nd3$age <- 18:70
+> nd4 <- expand.grid(nd3)
+> bmi <- 15:40
+> 
+> p <- predict(trtf, newdata = nd4, type = "distribution", q = bmi)
+> 
+> ## ----cmpx-varimp-plot, echo = FALSE, fig = "pdf", fig.height = 5---------
+> vi <- vi[c("sex", "smoking", xvars2)]
+> vi[is.na(vi)] <- 0
+> # vi <- vi / sum(vi)
+> names(vi) <- vn[names(vi)]
+> vi <- vi[order(vi)]
+> barchart(~ vi, xlim = c(0, max(vi) * 1.1), xlab = "Mean Decrease
++ Log-Likelihood", col = col[1])
+> 
+> ## ----cmpx-age-plot, echo = FALSE, fig = "pdf", fig.height = 5------------
+> tmp <- expand.grid(c(list(bmi = bmi), nd3))
+> tmp$p <- unlist(p)
+> 
+> contourplot(p ~ age + bmi | smoking + sex, data = tmp, 
++             panel = function(x, y, z, ...) {
++                 panel.contourplot(x, y, z, ...)
++ #                 panel.rug(x, col = rgb(.1, .1, .1, .01))
++             },
++             at = 1:9/10, ylim = c(18, 34), xlab = "Age", ylab = "BMI",
++             labels = list(cex = .5))
+> 
+> ## ----cmpx-ctm, echo = FALSE, cache = TRUE, message = FALSE, warning = FALSE, results = "hide"----
+> bAGE <- Bernstein_basis(numeric_var("age", support = c(20, 70)), order = order)
+> xfm <- as.formula(paste("~", paste(xvars[xvars != "age40"], collapse = "+")))
+> ctm_ctm <- ctm(bBMI, interacting = b(sex = bSEX, age = bAGE),
++                shifting = c(sstrt = b(smktrt = bSMKtrt, sextrt = bSEX),
++                             lp = as.basis(xfm, data = learn, remove_intercept = TRUE, negative = TRUE)),
++              todistr = "Logistic")
+Warning message:
+In c.bases(binteracting = list(iresponse = function (data, deriv = 0L,  :
+  more than one basis contains an intercept term
+> mlt_ctm <- mlt(ctm_ctm, data = learn, scale = TRUE, weights = learn$wght)
+> ll_ctm <- logLik(mlt_ctm)
+> 
+> ## ----cmpx-ctm-plot, echo = FALSE, fig = "pdf", fig.height = 5------------
+> nd3 <- nd2
+> nd3$age <- 18:70
+> nd3$bmi <- 15:35
+> nd3 <- nd3[c("bmi", names(nd3)[names(nd3) != "bmi"])]
+> 
+> p <- predict(mlt_ctm, newdata = nd3, type = "distribution")
+> tmp <- do.call("expand.grid", nd3)
+> tmp$p <- c(p)
+> 
+> contourplot(p ~ age + bmi | smoking + sex, data = tmp,
++             at = 1:9/10, ylim = c(18, 34), xlab = "Age", ylab = "BMI",
++             labels = list(cex = .5))
+> 
+> ## ----dr, echo = FALSE, cache = TRUE, message = FALSE, warning = FALSE, results = "hide"----
+> bAGE <- as.basis(~ age, data = learn)
+> 
+> ### distribution regression | age 
+> ctm_dr <- ctm(bBMI, interacting = b(sex = bSEX, age = bAGE),
++             shifting = c(sstrt = b(smktrt = bSMKtrt, sextrt = bSEX),
++                             lp = as.basis(xfm, data = learn, remove_intercept = TRUE, negative = TRUE)),
++             todistr = "Logistic")
+Warning message:
+In c.bases(binteracting = list(iresponse = function (data, deriv = 0L,  :
+  more than one basis contains an intercept term
+> mlt_dr <- mlt(ctm_dr, data = learn, scale = TRUE, weights = learn$wght)
+> ll_dr <- logLik(mlt_dr)
+> 
+> ## ----dr-plot, echo = FALSE, fig = "pdf", fig.height = 5------------------
+> nd3 <- nd2
+> nd3$age <- 18:70
+> nd3$bmi <- 15:35
+> nd3 <- nd3[c("bmi", names(nd3)[names(nd3) != "bmi"])]
+> 
+> p <- predict(mlt_dr, newdata = nd3, type = "distribution")
+> tmp <- do.call("expand.grid", nd3)
+> tmp$p <- c(p)
+> 
+> contourplot(p ~ age + bmi | smoking + sex, data = tmp,
++             at = 1:9/10, ylim = c(18, 34), xlab = "Age", ylab = "BMI",
++             labels = list(cex = .5))
+> 
+> ## ----smpl, echo = FALSE, cache = TRUE, message = FALSE, warning = FALSE, results = "hide"----
+> bAGE <- as.basis(~ age - 1, data = learn, negative = TRUE)
+> ctm_smpl <- ctm(bBMI, interacting = bSEX,
++             shifting = c(sstrt = b(smktrt = bSMKtrt, sextrt = bSEX),
++                          sexage = b(sex = bSEX, age = bAGE),
++                          lp = as.basis(xfm, data = learn, remove_intercept = TRUE, negative = TRUE)),
++             todistr = "Logistic")
+Warning messages:
+1: In c.bases(sstrt = b(smktrt = bSMKtrt, sextrt = bSEX), sexage = b(sex = bSEX,  :
+  more than one basis contains an intercept term
+2: In c.bases(binteracting = list(iresponse = function (data, deriv = 0L,  :
+  more than one basis contains an intercept term
+> mlt_smpl <- mlt(ctm_smpl, data = learn, scale = TRUE, weights = learn$wght)
+> ll_smpl <- logLik(mlt_smpl)
+> 
+> ciMale <- confint(mlt_smpl)["sexMale:age",]
+> ciFemale <- confint(mlt_smpl)["sexFemale:age",]
+> 
+> ageMale <- paste("$", d2c(exp(coef(mlt_smpl))["sexMale:age"]), "$ ($", d2c(exp(ciMale)[1]),
++   "-", d2c(exp(ciMale)[2]), "$)", sep = "")
+> 
+> ageFemale <- paste("$", d2c(exp(coef(mlt_smpl))["sexFemale:age"]), "$ ($", d2c(exp(ciFemale)[1]),
++   "-", d2c(exp(ciFemale)[2]), "$)", sep = "")
+> 
+> 
+> 
+> ## ----summary-tab, echo = FALSE, results = "asis"-------------------------
+> cf_ctm <- coef(mlt_ctm)
+> cf_dr <- coef(mlt_dr)
+> cf_smpl <- coef(mlt_smpl)
+> 
+> xparm <- names(cf_ctm)[-grep("^Bs", names(cf_ctm))]
+> 
+> ci_ctm <- exp(confint(mlt_ctm)[xparm,])
+> ci_dr <- exp(confint(mlt_dr)[xparm,])
+> ci_smpl <- exp(confint(mlt_smpl)[xparm,])
+> 
+> tab <- cbind(paste(d2c(exp(cf_ctm[xparm])), " (", d2c(ci_ctm[,1]), "--", d2c(ci_ctm[,2]), ")", sep = ""),
++ paste(d2c(exp(cf_dr[xparm])), " (", d2c(ci_dr[,1]), "--", d2c(ci_dr[,2]), ")", sep = ""),
++ paste(d2c(exp(cf_smpl[xparm])), " (", d2c(ci_smpl[,1]), "--", d2c(ci_smpl[,2]), ")", sep = ""))
+> 
+> tab2 <- rbind(" ", rbind("$1$", tab))
+> rownames(tab2) <- 1:nrow(tab2)
+> rownames(tab2)[1:2] <- c("empty", "one")
+> rownames(tab2)[-(1:2)] <- xparm
+> 
+> tab2 <- tab2[c("empty", "one", "smokingFormer:sexFemale",
++                "smokingLight:sexFemale",
++                "smokingMedium:sexFemale",
++                "smokingHeavy:sexFemale",
++                "empty", "one", "smokingFormer:sexMale",
++                "smokingLight:sexMale",
++                "smokingMedium:sexMale",
++                "smokingHeavy:sexMale",
++                "agramtag", 
++                "empty", "one", "frvegLow", 
++                "empty", "one", "physcat1-2 d/w", "physcatnone",
++                "empty", "one", "eduSecondary II", "eduTertiary",
++                "empty", "one", "swissForeign", 
++                "empty", "one", "regl2French", "regl2Italian"),,drop = FALSE]
+> rownames(tab2) <- c("Smoking (Females)", "\\hspace{.4cm}Never", "\\hspace{.4cm}Former", "\\hspace{.4cm}Light", "\\hspace{.4cm}Medium", "\\hspace{.4cm}Heavy",
++                     "Smoking (Males)", "\\hspace{.4cm}Never", "\\hspace{.4cm}Former", "\\hspace{.4cm}Light", "\\hspace{.4cm}Medium", "\\hspace{.4cm}Heavy",
++                     "Alcohol intake (g/d)",
++                     "Fruit and vegetables", "\\hspace{.4cm}High", "\\hspace{.4cm}Low",
++                     "Physical activity", "\\hspace{.4cm}High", "\\hspace{.4cm}Moderate", "\\hspace{.4cm}Low",
++                     "Education", "\\hspace{.4cm}Mandatory (I)", "\\hspace{.4cm}Secondary (II)", "\\hspace{.4cm}Tertiary (III)",
++                     "Nationality", "\\hspace{.4cm}Swiss", "\\hspace{.4cm}Foreign",
++                     "Region", "\\hspace{.4cm}German speaking", "\\hspace{.4cm}French speaking", "\\hspace{.4cm}Italian speaking")
+> colnames(tab2) <- c("Model (\\ref{mod:ctm})", "Model (\\ref{mod:dr})", "Model (\\ref{mod:smpl})")
+> toLatex(tab2, digits = 3, useDcolum = FALSE)
+\begin{tabular}{lrrr}
+\toprule
+ & \multicolumn{1}{c}{Model (\ref{mod:ctm})} & \multicolumn{1}{c}{Model (\ref{mod:dr})} & \multicolumn{1}{c}{Model (\ref{mod:smpl})} \\
+\midrule
+Smoking (Females) &                   &                   &                   \\
+\hspace{.4cm}Never &               $1$ &               $1$ &               $1$ \\
+\hspace{.4cm}Former & 1.05 (0.88--1.24) & 1.06 (0.89--1.25) & 1.06 (0.89--1.25) \\
+\hspace{.4cm}Light & 1.02 (0.81--1.29) & 1.04 (0.83--1.32) & 1.05 (0.83--1.32) \\
+\hspace{.4cm}Medium & 1.06 (0.83--1.35) & 1.08 (0.84--1.37) & 1.08 (0.85--1.37) \\
+\hspace{.4cm}Heavy & 0.87 (0.64--1.17) & 0.87 (0.64--1.17) & 0.87 (0.64--1.17) \\
+Smoking (Males) &                   &                   &                   \\
+\hspace{.4cm}Never &               $1$ &               $1$ &               $1$ \\
+\hspace{.4cm}Former & 1.22 (1.03--1.45) & 1.24 (1.05--1.47) & 1.24 (1.05--1.47) \\
+\hspace{.4cm}Light & 0.98 (0.75--1.28) & 0.98 (0.75--1.28) & 0.98 (0.75--1.28) \\
+\hspace{.4cm}Medium & 1.18 (0.91--1.53) & 1.18 (0.91--1.52) & 1.18 (0.91--1.52) \\
+\hspace{.4cm}Heavy & 1.11 (0.87--1.41) & 1.11 (0.87--1.40) & 1.10 (0.87--1.40) \\
+Alcohol intake (g/d) & 1.00 (1.00--1.00) & 1.00 (1.00--1.00) & 1.00 (1.00--1.00) \\
+Fruit and vegetables &                   &                   &                   \\
+\hspace{.4cm}High &               $1$ &               $1$ &               $1$ \\
+\hspace{.4cm}Low & 1.00 (0.91--1.10) & 1.01 (0.92--1.11) & 1.01 (0.92--1.11) \\
+Physical activity &                   &                   &                   \\
+\hspace{.4cm}High &               $1$ &               $1$ &               $1$ \\
+\hspace{.4cm}Moderate & 1.09 (0.97--1.23) & 1.09 (0.97--1.23) & 1.09 (0.97--1.23) \\
+\hspace{.4cm}Low & 1.20 (1.06--1.36) & 1.19 (1.05--1.35) & 1.19 (1.05--1.35) \\
+Education &                   &                   &                   \\
+\hspace{.4cm}Mandatory (I) &               $1$ &               $1$ &               $1$ \\
+\hspace{.4cm}Secondary (II) & 0.70 (0.60--0.81) & 0.72 (0.61--0.83) & 0.72 (0.62--0.84) \\
+\hspace{.4cm}Tertiary (III) & 0.57 (0.49--0.67) & 0.59 (0.50--0.70) & 0.59 (0.50--0.70) \\
+Nationality &                   &                   &                   \\
+\hspace{.4cm}Swiss &               $1$ &               $1$ &               $1$ \\
+\hspace{.4cm}Foreign & 0.97 (0.85--1.10) & 0.96 (0.85--1.09) & 0.96 (0.84--1.09) \\
+Region &                   &                   &                   \\
+\hspace{.4cm}German speaking &               $1$ &               $1$ &               $1$ \\
+\hspace{.4cm}French speaking & 0.98 (0.88--1.10) & 0.98 (0.87--1.09) & 0.97 (0.87--1.09) \\
+\hspace{.4cm}Italian speaking & 1.10 (0.92--1.32) & 1.09 (0.92--1.31) & 1.09 (0.92--1.31) \\
+\bottomrule
+\end{tabular}
+> 
+> ## ----ss3-high, echo = FALSE, results = "hide", cache = TRUE--------------
+> bBMIh <- Bernstein_basis(vBMI, order = 2 * order, ui = "increasing")
+> ctm_ss3h <- ctm(bBMIh, interacting = b(sm = bSMK, sex = bSEX),
++                data = learn, todistr = "Normal")
+> mlt_ss3h <- mlt(ctm_ss3h, data = learn, scale = TRUE, weights = learn$wght)
+> ll_ss3h <- logLik(mlt_ss3h)
+> 
+> dev.off()
+null device 
+          1 
+> 
+> sessionInfo()
+R version 4.4.2 (2024-10-31)
+Platform: x86_64-pc-linux-gnu
+Running under: Debian GNU/Linux 12 (bookworm)
+
+Matrix products: default
+BLAS:   /usr/local/lib/R/lib/libRblas.so 
+LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.11.0
+
+locale:
+ [1] LC_CTYPE=en_GB.UTF-8       LC_NUMERIC=C              
+ [3] LC_TIME=en_GB.UTF-8        LC_COLLATE=en_GB.UTF-8    
+ [5] LC_MONETARY=en_GB.UTF-8    LC_MESSAGES=en_GB.UTF-8   
+ [7] LC_PAPER=en_GB.UTF-8       LC_NAME=C                 
+ [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+[11] LC_MEASUREMENT=en_GB.UTF-8 LC_IDENTIFICATION=C       
+
+time zone: Europe/Berlin
+tzcode source: system (glibc)
+
+attached base packages:
+[1] grid      stats     graphics  grDevices utils     datasets  methods  
+[8] base     
+
+other attached packages:
+ [1] trtf_0.4-2          tram_1.2-0          mlt_1.6-1          
+ [4] basefun_1.2-0       variables_1.1-1     ATR_0.1-1          
+ [7] partykit_1.2-22     inum_1.0-5          libcoin_1.0-10     
+[10] colorspace_2.1-1    Matrix_1.7-1        memisc_0.99.31.8.1 
+[13] multcomp_1.4-26     TH.data_1.1-2       MASS_7.3-61        
+[16] survival_3.7-0      mvtnorm_1.3-2       latticeExtra_0.6-30
+[19] lattice_0.22-6     
+
+loaded via a namespace (and not attached):
+ [1] jsonlite_1.8.9       coneproj_1.19        compiler_4.4.2      
+ [4] rpart_4.1.23         Rcpp_1.0.13-1        orthopolynom_1.0-6.1
+ [7] splines_4.4.2        png_0.1-8            yaml_2.3.10         
+[10] alabama_2023.1.0     deldir_2.0-4         Formula_1.2-5       
+[13] nloptr_2.1.1         car_3.1-3            interp_1.1-6        
+[16] RColorBrewer_1.1-3   BB_2019.10-1         quadprog_1.5-8      
+[19] polynom_1.4-1        sandwich_3.1-1       data.table_1.16.2   
+[22] numDeriv_2016.8-1.1  codetools_0.2-20     zoo_1.8-12          
+[25] abind_1.4-8          carData_3.0-5        jpeg_0.1-10         
+> 
+> proc.time()
+   user  system elapsed 
+109.997   0.434 110.498 

@@ -301,10 +301,10 @@ node_BMI <- function(obj, col = "black", bg = "white", fill = "transparent",
         y <- y / diff(yscale)
 
         top_vp <- viewport(layout = grid.layout(nrow = 1, ncol = 2,
-                           widths = unit(c(1, ylines), c("null", "lines")),
-                           heights = unit(1, "null")),
-                           width = unit(1, "npc"),
-                           height = unit(1, "npc"), # - unit(2, "lines"),
+                           widths = grid::unit(c(1, ylines), c("null", "lines")),
+                           heights = grid::unit(1, "null")),
+                           width = grid::unit(1, "npc"),
+                           height = grid::unit(1, "npc"), # - unit(2, "lines"),
                            name = paste("node_mlt", nid, sep = ""), gp = gp)
 
         pushViewport(top_vp)
@@ -537,3 +537,5 @@ mlt_ss3h <- mlt(ctm_ss3h, data = learn, scale = TRUE, weights = learn$wght)
 ll_ss3h <- logLik(mlt_ss3h)
 
 dev.off()
+
+sessionInfo()
