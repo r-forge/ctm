@@ -6,9 +6,9 @@
 run_all <- FALSE 
 
 ## required packages
-pkgs <- c("tram", "cotram", "trtf", "ATR", "tramvs", "survival", "coin",
+pkgs <- c("tram", "trtf", "ATR", "tramvs", "survival", "coin",
   "multcomp", "TH.data", "gamlss", "gamlss.cens", "mpr", "KONPsurv", "lattice",
-  "latticeExtra", "grid",  "gridExtra", "reshape2", "colorspace", "xtable")
+  "latticeExtra", "grid",  "gridExtra", "reshape2", "colorspace", "xtable", "cotram")
 
 ix <- which(!sapply(pkgs, require, char = TRUE))
 if (length(ix) > 0) {install.packages(pkgs[ix], repos = "https://stat.ethz.ch/CRAN/")
