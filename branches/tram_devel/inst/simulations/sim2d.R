@@ -71,7 +71,7 @@ run_mmlt <- function(i, o_marginal, o_lambda) {
   ptm <- system.time(m <- mmlt(m_y1, m_y2, formula = Bx_lambda, data = data_i))
   
   ### predict correlations
-  rho <- unclass(coef(m, newdata = data.frame(x = xseq), type = "Lambda"))
+  rho <- unclass(coef(m, newdata = data.frame(x = xseq), type = "Lambdapar"))
   ret <- list(rho = rho, ptm = ptm)
   return(ret)
 }
