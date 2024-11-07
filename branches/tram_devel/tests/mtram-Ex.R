@@ -1,6 +1,7 @@
 
 library("tram")
 require("lme4")
+options(digits = 3)
 
 ## ----mtram-sleep_lmer, cache = FALSE------------------------------------------
 sleep_lmer <- lmer(Reaction ~ Days + (Days | Subject), 
