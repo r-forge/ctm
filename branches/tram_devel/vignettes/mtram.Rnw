@@ -1,7 +1,7 @@
 
 %\VignetteEngine{knitr::knitr}
 %\VignetteIndexEntry{Marginally Interpretable Linear Transformation Models}
-%\VignetteDepends{variables, basefun, mlt, tram, survival, lme4, gridExtra, lattice, latticeExtra, colorspace, HSAUR3, mvtnorm, ordinalCont, tramME, glmmTMB}
+%\VignetteDepends{variables, basefun, mlt, tram, survival, lme4, gridExtra, lattice, latticeExtra, colorspace, HSAUR3, mvtnorm, ordinalCont, tramME, glmmTMB, geepack}
 
 \documentclass[article,nojss,shortnames]{jss}
 
