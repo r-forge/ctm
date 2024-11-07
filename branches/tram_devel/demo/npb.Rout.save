@@ -1,0 +1,934 @@
+
+R version 4.4.2 (2024-10-31) -- "Pile of Leaves"
+Copyright (C) 2024 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> 
+> ### Reproducibility material for
+> ###
+> ### Nonparanormal Modeling Framework for
+> ### Prognostic Biomarker Assessment
+> ###
+> ### ALS study
+> pdf("npb.pdf")
+> source("https://gitlab.com/asewak/npb/-/raw/main/als.R?ref_type=heads&inline=false", echo = TRUE)
+
+> pkgs <- c("survival", "tram", "tramME", "numDeriv", 
++     "ggplot2", "qrng", "parallel", "ggsci", "pracma", "data.table", 
++     "xtable")
+
+> req <- sapply(pkgs, require, char = TRUE)
+Loading required package: survival
+Loading required package: tram
+Loading required package: mlt
+Loading required package: basefun
+Loading required package: variables
+Loading required package: mvtnorm
+Loading required package: tramME
+Loading required package: numDeriv
+Loading required package: ggplot2
+
+Attaching package: ‘ggplot2’
+
+The following object is masked from ‘package:variables’:
+
+    unit
+
+Loading required package: qrng
+Loading required package: parallel
+Loading required package: ggsci
+Loading required package: pracma
+
+Attaching package: ‘pracma’
+
+The following objects are masked from ‘package:numDeriv’:
+
+    grad, hessian, jacobian
+
+Loading required package: data.table
+Loading required package: xtable
+
+> if (!all(req)) {
++     sapply(pkgs[!req], install.packages)
++     req[!req] <- sapply(pkgs[!req], require, char = TRUE)
++ }
+
+> if (!all(req)) stop("cannot load dependencies")
+
+> set.seed(100)
+
+> datT <- read.csv("https://datadryad.org/api/v2/files/317172/download")
+
+> datY <- read.csv("https://datadryad.org/api/v2/files/317173/download")
+
+> dat0 <- merge(datT, datY[datY$VisitNum == 1, ], by = "PID", 
++     all.x = TRUE)
+
+> nrow(dat0)
+[1] 260
+
+> dat0 <- dat0[dat0$Dx != "PLS", ]
+
+> nrow(dat0)
+[1] 240
+
+> dat0 <- dat0[dat0$Surv_mo > 0, ]
+
+> nrow(dat0)
+[1] 230
+
+> dat0 <- dat0[!is.na(dat0$V1_Age) & !is.na(dat0$Sex) & 
++     !is.na(dat0$V1_delFRS) & !is.na(dat0$ALSF), ]
+
+> nrow(dat0)
+[1] 218
+
+> dat0[dat0$PID == "N096", "delFRS"] <- 1e-05
+
+> dat0$Site <- fcase(dat0$BulbarOs == 1 & dat0$LimbOs == 
++     0, "Bulbar only", dat0$LimbOs == 1 & dat0$BulbarOs == 0, 
++     "Limb only", default = .... [TRUNCATED] 
+
+> dat0$Site <- factor(dat0$Site, levels = c("Limb only", 
++     "Bulbar only", "Other"))
+
+> dat0$Sex <- factor(dat0$Sex, levels = c("Male", "Female"))
+
+> dat0$C9[is.na(dat0$C9)] <- 0
+
+> dat0$C9 <- factor(dat0$C9, levels = c(0, 1), labels = c("Negative", 
++     "Positive"))
+
+> dat0$Stime <- with(dat0, Surv(Surv_mo, EndPt))
+
+> dat0$NFL <- dat0$NFL_S_SM1
+
+> dat0$Age <- as.numeric(dat0$V1_Age)
+
+> dat0$ALSF <- as.numeric(dat0$ALSF)
+
+> dat0$delFRS <- dat0$V1_delFRS
+
+> respY <- "NFL"
+
+> respT <- "Stime"
+
+> respTo <- "Surv_mo"
+
+> covs <- c("Age", "Sex", "C9", "delFRS", "ALSF", "Site")
+
+> mean(dat0$Age)
+[1] 60.1422
+
+> sd(dat0$Age)
+[1] 11.65411
+
+> table(dat0$Sex)
+
+  Male Female 
+   125     93 
+
+> prop.table(table(dat0$Sex))
+
+     Male    Female 
+0.5733945 0.4266055 
+
+> table(dat0$C9)
+
+Negative Positive 
+     194       24 
+
+> prop.table(table(dat0$C9))
+
+ Negative  Positive 
+0.8899083 0.1100917 
+
+> table(dat0$Site)
+
+  Limb only Bulbar only       Other 
+        154          42          22 
+
+> prop.table(table(dat0$Site))
+
+  Limb only Bulbar only       Other 
+  0.7064220   0.1926606   0.1009174 
+
+> summary(dat0$delFRS)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+ 0.0000  0.2800  0.4800  0.6021  0.7800  2.8900 
+
+> sd(dat0$delFRS)
+[1] 0.4652873
+
+> summary(dat0$ALSF)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  11.00   31.00   36.00   34.96   40.00   48.00 
+
+> sd(dat0$ALSF)
+[1] 7.092096
+
+> with(dat0, all.equal(ALSF, V1_FRS))
+[1] TRUE
+
+> dat0$m_delFRS <- with(dat0, (48 - V1_FRS)/(OsV1_yr * 
++     12))
+
+> with(subset(dat0, OsV1_yr != 0), all.equal(round(m_delFRS, 
++     2), V1_delFRS))
+[1] "Mean relative difference: 0.1439328"
+
+> M <- 2000
+
+> pmvargs <- list(M = M, w = t(ghalton(M, d = 1)))
+
+> n_boot <- 10
+
+> qs <- c(0.025, 0.975)
+
+> qz <- qnorm(1 - 0.05/2)
+
+> fpr <- function(ichl, hY, hT) {
++     lower <- upper <- matrix(0, nrow = 2, ncol = length(hY))
++     lower[1, ] <- hY
++     lower[2, ] <- hT
++     u .... [TRUNCATED] 
+
+> tprc <- function(ichl, hY, hT) {
++     lower <- upper <- matrix(0, nrow = 2, ncol = length(hY))
++     lower[1, ] <- hY
++     lower[2, ] <- -Inf
++    .... [TRUNCATED] 
+
+> tpri <- function(ichl, hY, hT) {
++     cd <- cond_mvnorm(invchol = ichl, which_given = 2, given = matrix(hT, 
++         nrow = 1))
++     tpri <- pno .... [TRUNCATED] 
+
+> m2roc <- function(mm, nd) {
++     nd$hY <- predict(mm, newdata = nd, margin = 1, type = "trafo")
++     nd$hT <- predict(mm, newdata = nd, margin = 2 .... [TRUNCATED] 
+
+> limY <- range(dat0[, respY], probs = c(0, 1))
+
+> limTp <- c(0, 50)
+
+> limTg <- c(min(dat0$Surv_mo), 25)
+
+> tf <- c(0.25, 0.5, 1, 2) * 12
+
+> ev <- which(dat0[, respT][, 2] == 1)
+
+> datE <- dat0[ev, ]
+
+> datC <- dat0[-ev, ]
+
+> op <- par(no.readonly = TRUE)
+
+> labY <- paste("Baseline serum, NfL (pg/mL)")
+
+> labT <- paste("Survival duration (months)")
+
+> layout(mat = matrix(c(0, 1, 2, 3), nrow = 2, byrow = TRUE), 
++     heights = c(0.5, 2), widths = c(1, 2))
+
+> par(mar = c(0, 0, 0, 0) + 0.1)
+
+> boxplot((dat0[, respY]), horizontal = TRUE, frame = FALSE, 
++     xaxt = "n", yaxt = "n", bty = "n", col = "white")
+
+> par(mar = c(5, 4, 0, 0) + 0.1)
+
+> km <- survfit(Stime ~ 1, dat = dat0)
+
+> plot(1 - km$surv, km$time, type = "s", ylim = limTp, 
++     xlim = c(0, 1), las = 1, xlab = "Survival probability", ylab = "Survival duration (month ..." ... [TRUNCATED] 
+
+> gS <- seq(0, 1, by = 0.2)
+
+> axis(1, at = gS, labels = rev(gS))
+
+> iC <- which(km$n.censor > 0)
+
+> cT <- km$time[iC]
+
+> cP <- 1 - km$surv[iC]
+
+> segments(x0 = cP - 0.005, y0 = cT, x1 = cP + 0.005, 
++     y1 = cT)
+
+> par(mar = c(5, 0, 0, 0) + 0.1)
+
+> plot((datE[, respY]), datE[, respT][, 1], yaxt = "n", 
++     xlim = limY, ylim = limTp, pch = 20, xlab = labY)
+
+> points((datC[, respY]), datC[, respT][, 1], pch = 3, 
++     cex = 0.7)
+
+> lg <- c("Right-censored", "Event")
+
+> legend("topright", lg, pch = c(3, 20), bty = "n")
+
+> layout(1)
+
+> par(op)
+
+> formYu <- as.formula(paste(respY, "~ 1"))
+
+> formTu <- as.formula(paste(respT, "~ 1"))
+
+> mYu <- BoxCox(formYu, data = dat0, log_first = TRUE, 
++     bounds = c(0, Inf), na.action = na.pass)
+
+> mTu <- BoxCox(formTu, data = dat0, bounds = c(0, Inf))
+
+> mmu <- mmlt(mYu, mTu, data = dat0)
+
+> gYc <- seq(2, 100, length.out = 100)
+
+> gTc <- seq(0, 70, by = 0.1)
+
+> ndu <- expand.grid(gYc, gTc)
+
+> names(ndu) <- c(respY, respT)
+
+> ndu$dens <- predict(mmu, newdata = ndu, type = "density", 
++     args = pmvargs)
+
+> nduc <- xtabs(dens ~ NFL + Stime, data = ndu)
+
+> axY <- seq(0, 100, by = 20)
+
+> axT <- seq(0, 80, by = 20)
+
+> filled.contour(gYc, gTc, nduc, las = 1, color.palette = function(n) hcl.colors(n, 
++     palette = "Blues 3", rev = TRUE), plot.title = {
++     titl .... [TRUNCATED] 
+
+> gYc <- seq(0, 100, length.out = 100)
+
+> gTc <- tf
+
+> ndut <- expand.grid(gYc, gTc)
+
+> names(ndut) <- c(respY, respT)
+
+> ndut_troc <- m2roc(mmu, ndut)
+
+> ndut_troc$Survf <- factor(ndut_troc$Stime, levels = tf)
+
+> colst <- c("#7FBFF5", "#005F8F", "#8C423D", "#F8A29E")
+
+> ggplot(ndut_troc, aes(x = fpr, y = tprc)) + geom_line(aes(color = Survf)) + 
++     scale_color_manual(values = colst) + theme_bw() + theme(panel.gri .... [TRUNCATED] 
+
+> cutoffs <- quantile(dat0$NFL, probs = seq(0, 1, length.out = 3 + 
++     1))
+
+> cutoffs[4] <- 110
+
+> lgnd_nfl <- levels(cut_number(dat0$NFL, 3))
+
+> plt_survu <- function(yl, yu, ...) {
++     gTc <- seq(0, 75, length.out = 100)
++     ndul <- expand.grid(yl, gTc)
++     nduu <- expand.grid(yu, gTc) .... [TRUNCATED] 
+
+> cols_hml <- pal_lancet("lanonc")(3)
+
+> gYc <- seq(2, 50, length.out = 100)
+
+> gTc <- seq(0.3, 100, length.out = 100)
+
+> ndmu <- expand.grid(gYc, gTc)
+
+> names(ndmu) <- c(respY, respT)
+
+> hY <- predict(mmu, newdata = ndmu, margin = 1, type = "trafo")
+
+> hT <- predict(mmu, newdata = ndmu, margin = 2, type = "trafo")
+
+> ichl <- coef(mmu, type = "Lambda")
+
+> cd <- cond_mvnorm(invchol = ichl, which_given = 1, 
++     given = matrix(hY, nrow = 1))
+
+> ndmu$cdfT <- pnorm(hT, mean = c(cd$mean), sd = sqrt(c(diagonals(invchol2cov(cd$invchol)))))
+
+> qns <- c(0.1, 0.25, 0.5, 0.75, 0.9)
+
+> cols_qu <- hcl.colors(length(qns), "Blue-Red 2", rev = TRUE)
+
+> cols_qu[3] <- "Black"
+
+> survq <- by(ndmu, list(ndmu$NFL), function(x) {
++     spmu <- spline(x = x$Stime, y = x$cdfT, n = 1000)
++     approx(x = spmu$y, y = spmu$x, xout =  .... [TRUNCATED] 
+
+> survq <- do.call(rbind, survq)
+
+> layout(mat = matrix(c(1, 2), nrow = 1, byrow = TRUE))
+
+> par(mar = c(3.75, 3, 4, 0.5) + 0.1, oma = c(0, 0, 
++     0, 0) + 0.1)
+
+> plot(NA, xlim = c(0, 75), ylim = c(0, 1), xlab = "", 
++     ylab = "")
+
+> mtext("Survival duration (months)", side = 1, line = 2)
+
+> mtext("Survival probability", side = 2, line = 2)
+
+> plt_survu(yl = cutoffs[1], yu = cutoffs[2], col = cols_hml[3])
+
+> plt_survu(yl = cutoffs[2], yu = cutoffs[3], col = cols_hml[1])
+
+> plt_survu(yl = cutoffs[3], yu = cutoffs[4], col = cols_hml[2])
+
+> legend("top", legend = lgnd_nfl, col = c(cols_hml[3], 
++     cols_hml[1], cols_hml[2]), lty = 1, cex = 0.8, bty = "n", 
++     inset = c(0, -0.3), ti .... [TRUNCATED] 
+
+> matplot(gYc, survq, type = "l", col = cols_qu, lty = 1, 
++     lwd = 1.2, ylab = "", xlab = "", ylim = c(0, 75), xlim = c(0, 
++         50))
+
+> mtext("Baseline serum NfL (pg/mL)", side = 1, line = 2)
+
+> mtext("Survival duration (months)", side = 2, line = 2)
+
+> legend("top", legend = qns, col = cols_qu, lty = 1, 
++     cex = 0.8, bty = "n", inset = c(0, -0.3), title = "Survival duration quantiles", 
++     x .... [TRUNCATED] 
+
+> layout(1)
+
+> par(op)
+
+> aucu <- by(ndut_troc, list(ndut_troc$Stime), function(x) pracma::trapz(1 - 
++     x$fpr, x$tprc), simplify = FALSE)
+
+> aucu <- do.call(c, aucu)
+
+> yiu <- by(ndut_troc, list(ndut_troc$Stim), function(x) max(x$tprc - 
++     x$fpr), simplify = FALSE)
+
+> yiu <- do.call(c, yiu)
+
+> optu <- by(ndut_troc, list(ndut_troc$Stime), function(x) x[which.max(x$tprc - 
++     x$fpr), respY], simplify = FALSE)
+
+> optu <- do.call(c, optu)
+
+> ndut_opt <- data.frame(optu, tf)
+
+> names(ndut_opt) <- c(respY, respT)
+
+> ssu <- m2roc(mmu, ndut_opt)
+
+> sensu <- ssu$tprc
+
+> specu <- 1 - ssu$fpr
+
+> sumu <- cbind(aucu, yiu, optu, sensu, specu)
+
+> cfu <- coef(mmu)
+
+> Vu <- vcov(mmu)
+
+> Vu <- (Vu + t(Vu))/2
+
+> Pu <- rmvnorm(n_boot, mean = cfu, sigma = Vu)
+
+> mslu <- list(mYu, mTu)
+
+> theta2sum <- function(theta) {
++     mms <- do.call(mmlt, c(mslu, theta = list(theta), data = list(dat0), 
++         dofit = FALSE))
++     nduts <-  .... [TRUNCATED] 
+
+> sums <- mclapply(1:nrow(Pu), function(j) theta2sum(Pu[j, 
++     ]), mc.cores = 6)
+
+> prtci <- function(x, y) paste0("(", x, ", ", y, ")")
+
+> sim2ci <- function(j) {
++     sumsj <- sapply(sums, function(x) x[[j]])
++     sej <- sqrt(rowMeans((sweep(sumsj, 2, sumu[, j], "-"))^2))
++     lwr < .... [TRUNCATED] 
+
+> sumu_ci <- sapply(1:ncol(sumu), function(j) sim2ci(j))
+
+> sumur <- format(round(sumu, 2))
+
+> tb_sumu <- sapply(1:ncol(sumu), function(j) paste(sumur[, 
++     j], sumu_ci[, j]))
+
+> tb_sumu <- cbind(tf, tb_sumu)
+
+> colnames(tb_sumu) <- c("Time", "AUC (95% CI)", "Youden index (95% CI)", 
++     "Optimal threshold (95% CI)", "Sensitivity (95% CI)", "Specificity (9 ..." ... [TRUNCATED] 
+
+> cap_sumu <- ""
+
+> print(xtable(tb_sumu, align = "lrrrrrr", caption = cap_sumu, 
++     label = "tab:sumu"), include.rownames = FALSE, booktabs = TRUE)
+% latex table generated in R 4.4.2 by xtable 1.8-4 package
+% Thu Nov  7 14:19:53 2024
+\begin{table}[ht]
+\centering
+\begin{tabular}{rrrrrr}
+  \toprule
+Time & AUC (95\% CI) & Youden index (95\% CI) & Optimal threshold (95\% CI) & Sensitivity (95\% CI) & Specificity (95\% CI) \\ 
+  \midrule
+3 &  0.78 (0.65, 0.92) &  0.42 (0.20, 0.63) & 23.23 (14.81, 31.66) &  0.73 (0.60, 0.85) &  0.69 (0.60, 0.79) \\ 
+  6 &  0.75 (0.65, 0.86) &  0.37 (0.21, 0.54) & 21.21 (14.65, 27.78) &  0.71 (0.60, 0.83) &  0.66 (0.60, 0.72) \\ 
+  12 &  0.71 (0.60, 0.82) &  0.31 (0.14, 0.48) & 19.19 (12.28, 26.11) &  0.66 (0.57, 0.76) &  0.65 (0.57, 0.72) \\ 
+  24 &  0.70 (0.59, 0.80) &  0.28 (0.12, 0.45) & 16.16 ( 7.60, 24.72) &  0.65 (0.54, 0.76) &  0.63 (0.57, 0.69) \\ 
+   \bottomrule
+\end{tabular}
+\caption{} 
+\label{tab:sumu}
+\end{table}
+
+> formY <- as.formula(paste(respY, "~", paste0(covs, 
++     collapse = "+")))
+
+> formT <- as.formula(paste(respT, "~", paste0(covs, 
++     collapse = "+")))
+
+> mY <- (BoxCox(formY, data = dat0, log_first = TRUE, 
++     bounds = c(0.01, Inf), na.action = na.pass))
+
+> mT <- (BoxCox(formT, data = dat0, bounds = c(0.01, 
++     Inf)))
+
+> set.seed(102)
+
+> mm <- mmlt(mY, mT, data = dat0)
+
+> V <- vcov(mm)
+
+> V <- (V + t(V))/2
+
+> cfs <- coef(mm)
+
+> tb_sum <- data.frame(est = cfs)
+
+> P <- rmvnorm(n_boot, mean = cfs, sigma = V)
+
+> se_cfs <- sqrt(colMeans((sweep(P, 2, cfs, "-"))^2))
+
+> tb_sum$lwr <- cfs - qz * se_cfs
+
+> tb_sum$upr <- cfs + qz * se_cfs
+
+> tb_sum[nrow(tb_sum), ] <- sapply(tb_sum[nrow(tb_sum), 
++     ], function(x) -x/sqrt(1 + x^2))
+
+> se_cfsu <- sqrt(colMeans((sweep(Pu, 2, cfu, "-"))^2))
+
+> tb_sumuc <- data.frame(est = cfu, lwr = cfu - qz * 
++     se_cfsu, upr = cfu + qz * se_cfsu)
+
+> tb_sumuc[nrow(tb_sumuc), ] <- sapply(tb_sumuc[nrow(tb_sumuc), 
++     ], function(x) -x/sqrt(1 + x^2))
+
+> tb_sum <- tb_sum[!grepl("\\.Bs[1-9]", rownames(tb_sum)), 
++     ]
+
+> idrY <- grepl("^NFL", rownames(tb_sum))
+
+> idrT <- grepl("^Stime(?!.*Intercept)", rownames(tb_sum), 
++     perl = TRUE)
+
+> tb_sum$est_ci <- sprintf("$%s%.3f \\, (%s%.3f, %s%.3f)$", 
++     ifelse(tb_sum$est >= 0, "\\phantom{+}", ""), tb_sum$est, 
++     ifelse(tb_sum$lwr > .... [TRUNCATED] 
+
+> tb_sumuc$est_ci <- sprintf("$%s%.3f \\, (%s%.3f, %s%.3f)$", 
++     ifelse(tb_sumuc$est >= 0, "\\phantom{+}", ""), tb_sumuc$est, 
++     ifelse(tb_sum .... [TRUNCATED] 
+
+> tb_sumo <- data.frame(name = rownames(tb_sum[idrY, 
++     ]), tb_sum[idrY, "est_ci"], tb_sum[idrT, "est_ci"])
+
+> tb_sumo$name <- c("Age", "Sex - Male", "C9orf72 - Positive", 
++     "$\\Delta$FRS", "Baseline ALSFRS-R", "Site - Bulbar only", 
++     "Site - Other" .... [TRUNCATED] 
+
+> tb_sumo$name <- paste("\\quad", tb_sumo$name)
+
+> cap_cfs <- "Estimated coefficients of the nonparanormal prognostic biomarker model along with their corresponding 95\\% confidence intervals (CI)."
+
+> print(xtable(tb_sumo, align = "lp{5cm}cc", caption = cap_cfs, 
++     label = "tab:coefs"), sanitize.text.function = function(x) x, 
++     include.ro .... [TRUNCATED] 
+% latex table generated in R 4.4.2 by xtable 1.8-4 package
+% Thu Nov  7 14:19:57 2024
+\begin{table}[ht]
+\centering
+\begin{tabular}{p{5cm}cc}
+  \toprule 
+ \multirow{2}{*}{Variable} & {NfL} & {Survival duration} \\
+ \cmidrule(lr){2-3} & \multicolumn{2}{c}{Coefficient (95\% CI)} \\
+ \midrule 
+  Unconditional correlation & \multicolumn{2}{c}{ $-0.429 \, (-0.257, -0.564)$ } \\
+ Conditional correlation & \multicolumn{2}{c}{ $-0.324 \, (-0.198, -0.434)$ } \\
+ {Covariates} $\beta_i$ & & \\
+\quad Age & $\phantom{+}0.020 \, (\phantom{+}0.009, \phantom{+}0.032)$ & $-0.021 \, (-0.034, -0.007)$ \\ 
+  \quad Sex - Male & $\phantom{+}0.565 \, (\phantom{+}0.240, \phantom{+}0.890)$ & $\phantom{+}0.141 \, (-0.319, \phantom{+}0.602)$ \\ 
+  \quad C9orf72 - Positive & $\phantom{+}0.389 \, (-0.033, \phantom{+}0.811)$ & $-0.542 \, (-1.184, \phantom{+}0.101)$ \\ 
+  \quad $\Delta$FRS & $\phantom{+}0.801 \, (\phantom{+}0.429, \phantom{+}1.174)$ & $-0.513 \, (-1.001, -0.025)$ \\ 
+  \quad Baseline ALSFRS-R & $\phantom{+}0.000 \, (-0.013, \phantom{+}0.014)$ & $\phantom{+}0.035 \, (\phantom{+}0.018, \phantom{+}0.051)$ \\ 
+  \quad Site - Bulbar only & $\phantom{+}0.700 \, (\phantom{+}0.314, \phantom{+}1.086)$ & $-0.282 \, (-0.861, \phantom{+}0.297)$ \\ 
+  \quad Site - Other & $\phantom{+}0.284 \, (-0.138, \phantom{+}0.707)$ & $\phantom{+}0.649 \, (\phantom{+}0.066, \phantom{+}1.232)$ \\ 
+   \bottomrule 
+\end{tabular}
+\caption{Estimated coefficients of the nonparanormal prognostic biomarker model along with their corresponding 95\% confidence intervals (CI).} 
+\label{tab:coefs}
+\end{table}
+
+> limY <- range(dat0[, respY], probs = c(0, 1))
+
+> gY <- seq(limY[1], limY[2], length.out = 100)
+
+> gYl <- seq(limY[1], limY[2], length.out = 1000)
+
+> gT <- seq(limTg[1], limTg[2], length.out = 100)
+
+> gAge <- c(40, 60, 80)
+
+> gAgec <- seq(40, 80, by = 1)
+
+> gSex <- sort(unique(dat0$Sex))
+
+> gC9 <- sort(unique(dat0$C9))
+
+> gdelFRS <- c(0.25, 0.5, 0.75)
+
+> gALSF <- c(30, 35, 40)
+
+> gSite <- sort(unique(dat0$Site))[-3]
+
+> mgT <- 6
+
+> mAge <- 60
+
+> mSex <- gSex[1]
+
+> mC9 <- gC9[1]
+
+> mdelFRS <- 0.6
+
+> mALSF <- 35
+
+> mSite <- gSite[1]
+
+> gYc <- seq(2, 80, length.out = 100)
+
+> gTc <- seq(0.01, 75, by = 0.1)
+
+> ndc <- expand.grid(gYc, gTc, mAge, mSex, mC9, mdelFRS, 
++     mALSF, gSite)
+
+> names(ndc) <- c(respY, respT, covs)
+
+> ind_limb <- with(ndc, Site == levels(gSite)[1] & delFRS == 
++     mdelFRS)
+
+> ind_bulb <- with(ndc, Site == levels(gSite)[2] & delFRS == 
++     mdelFRS)
+
+> ndc$dens <- predict(mm, newdata = ndc, type = "density", 
++     args = pmvargs)
+
+> ndcd_limb <- xtabs(dens ~ NFL + Stime, data = ndc[ind_limb, 
++     ])
+
+> ndcd_bulb <- xtabs(dens ~ NFL + Stime, data = ndc[ind_bulb, 
++     ])
+
+> layout(mat = matrix(c(1, 2), nrow = 1, byrow = TRUE))
+
+> par(mar = c(0, 0, 0, 0) + 0.1, oma = c(4, 4, 3, 0.5))
+
+> contour(gYc, gTc, ndcd_limb, las = 1)
+
+> mtext("Limb only", side = 3, line = 1, font = 2)
+
+> contour(gYc, gTc, ndcd_bulb, yaxt = "n")
+
+> mtext("Bulbar only", side = 3, line = 1, font = 2)
+
+> mtext(paste("Baseline serum NfL (pg/mL)"), side = 1, 
++     outer = TRUE, line = 2, cex = 0.9)
+
+> mtext("Survival duration (months)", side = 2, outer = TRUE, 
++     line = 2.5, cex = 0.9)
+
+> layout(1)
+
+> par(op)
+
+> ind_hY <- grep("^NFL\\.Bs", names(cfs))
+
+> ind_hT <- grep("^Stime\\.Bs", names(cfs))
+
+> cf_hY <- cfs[ind_hY]
+
+> cf_hT <- cfs[ind_hT]
+
+> suppY <- attr(mY$model$model$bresponse, "variables")$support
+
+> suppT <- attr(mT$model$model$bresponse, "variables")$support
+
+> gpf <- function(theta, j, resp, nd, supp, ord, ...) {
++     bf <- Bernstein_basis(numeric_var(resp, support = supp, bounds = c(1e-10, 
++         Inf .... [TRUNCATED] 
+
+> plot_trafo <- function(grd, resp, supp, ord = 6, cf, 
++     ind, alpha = 0.05, ...) {
++     ndh <- list(grd)
++     names(ndh) <- resp
++     bb <- Be .... [TRUNCATED] 
+
+> layout(mat = matrix(c(1, 2), nrow = 1, byrow = TRUE))
+
+> par(mar = c(5, 3.5, 0.5, 0.5) + 0.1, oma = c(0, 0, 
++     3, 0))
+
+> plot_trafo(grd = seq(0.1, 80, by = 0.1), resp = respY, 
++     supp = suppY, cf = cf_hY, ind = ind_hY, log_first = TRUE)
+
+> mtext("Baseline serum NfL (pg/mL)", side = 1, line = 2, 
++     font = 1)
+
+> mtext(expression(h[Y]), side = 2, line = 2.5, font = 1)
+
+> plot_trafo(grd = seq(0, 50, by = 0.1), resp = respT, 
++     supp = suppT, cf = cf_hT, ind = ind_hT)
+
+> mtext("Survival duration (months)", side = 1, line = 2, 
++     font = 1)
+
+> mtext(expression(h[T]), side = 2, line = 2, font = 1)
+
+> layout(1)
+
+> par(op)
+
+> gY <- seq(limY[1], limY[2], length.out = 50)
+
+> gT <- seq(limTg[1], limTg[2], length.out = 50)
+
+> grd_y <- expand.grid(gY, gT)
+
+> names(grd_y) <- c(respY, respT)
+
+> nd_cj <- merge(grd_y, dat0[, c("PID", covs)], by = NULL)
+
+> ndsum_cj <- merge(gT, dat0[, c("PID", covs)], by = NULL)
+
+> names(ndsum_cj)[1] <- respT
+
+> system.time(nd_cjr <- m2roc(mm, nd_cj))
+   user  system elapsed 
+120.302   0.016 120.321 
+
+> auc_cj <- by(nd_cjr, list(nd_cjr$Stime, nd_cjr$PID), 
++     function(x) pracma::trapz(1 - x$fpr, x$tprc), simplify = FALSE)
+
+> ndsum_cj$auc <- do.call(c, auc_cj)
+
+> col_sp <- alpha("gray70", alpha = 0.15)
+
+> gYc <- seq(limY[1], limY[2], length.out = 100)
+
+> gTc <- seq(limTg[1], limTg[2], length.out = 1000)
+
+> ndau <- expand.grid(gYc, gTc)
+
+> names(ndau) <- c(respY, respT)
+
+> ndaur <- m2roc(mmu, ndau)
+
+> auc_au <- by(ndaur, list(ndaur$Stime), function(x) pracma::trapz(1 - 
++     x$fpr, x$tprc), simplify = FALSE)
+
+> auc_au <- do.call(c, auc_au)
+
+> ggplot(ndsum_cj, aes(x = Stime, y = auc, group = PID)) + 
++     geom_line(aes(color = "Patient")) + geom_line(data = data.frame(time = gTc, 
++     a .... [TRUNCATED] 
+`geom_smooth()` using formula = 'y ~ x'
+
+> gY <- seq(limY[1], limY[2], length.out = 100)
+
+> gT <- seq(limTg[1], limTg[2], length.out = 100)
+
+> gAge <- seq(40, 80, by = 10)
+
+> nd_tr <- expand.grid(gY, tf, gAge, mSex, mC9, mdelFRS, 
++     mALSF, mSite)
+
+> names(nd_tr) <- c(respY, respT, covs)
+
+> nd_troc <- m2roc(mm, nd_tr)
+
+> nd_troc$Survf <- factor(nd_troc$Stime, levels = tf)
+
+> nd_troc$Agef <- factor(nd_troc$Age, levels = gAge)
+
+> colst <- (hcl.colors(length(gAge), "Blue-Red 2"))
+
+> lbl_tm <- labeller(Survf = function(x) paste0("Time: ", 
++     x))
+
+> ggplot(nd_troc, aes(x = fpr, y = tprc)) + geom_line(aes(color = Agef)) + 
++     facet_wrap(~Survf, nrow = 2, labeller = lbl_tm) + scale_color_manual .... [TRUNCATED] 
+
+> layout(1)
+
+> par(op)
+
+> gdelFRS <- seq(0, 1, length.out = 100)
+
+> gY <- seq(limY[1], limY[2], length.out = 100)
+
+> ndsum <- expand.grid(tf, mAge, mSex, gC9, gdelFRS, 
++     mALSF, mSite)
+
+> names(ndsum) <- c("Time", covs)
+
+> nd_ta <- expand.grid(gY, tf, mAge, mSex, gC9, gdelFRS, 
++     mALSF, mSite)
+
+> names(nd_ta) <- c(respY, respT, covs)
+
+> nd_tauc <- m2roc(mm, nd_ta)
+
+> aucc <- by(nd_tauc, list(nd_tauc$Stime, nd_tauc$C9, 
++     nd_tauc$delFRS), function(x) pracma::trapz(1 - x$fpr, x$tprc), 
++     simplify = FALSE)
+
+> aucc <- do.call(c, aucc)
+
+> ndsum$auc <- aucc
+
+> msl <- list(mY, mT)
+
+> theta2aucs <- function(theta) {
++     mms <- do.call(mmlt, c(msl, theta = list(theta), data = list(dat0), 
++         dofit = FALSE))
++     ndtas <-  .... [TRUNCATED] 
+
+> aucs <- mclapply(1:nrow(P), function(j) theta2aucs(P[j, 
++     ]), mc.cores = 6)
+
+> aucss <- do.call(rbind, aucs)
+
+> se_auc <- sqrt(colMeans((sweep(aucss, 2, aucc, "-"))^2))
+
+> qz <- qnorm(1 - 0.05/2)
+
+> ndsum$lwr <- aucc - qz * se_auc
+
+> ndsum$upr <- aucc + qz * se_auc
+
+> ggplot(ndsum, aes(x = delFRS, y = auc, fill = C9)) + 
++     geom_line(aes(color = C9)) + geom_ribbon(data = ndsum, aes(ymin = lwr, 
++     ymax = upr .... [TRUNCATED] 
+
+> formG <- as.formula(paste(respT, "~", "s(", respY, 
++     ", k = 20) + ", paste0(covs, collapse = "+")))
+
+> mg <- BoxCoxME(formG, data = dat0)
+
+> plot(smooth_terms(mg), ylab = "Spline term")
+
+> rug(dat0$NFL)
+Warning messages:
+1: In sweep(sumsj, 2, sumu[, j], "-") :
+  STATS does not recycle exactly across MARGIN
+2: In sweep(sumsj, 2, sumu[, j], "-") :
+  STATS does not recycle exactly across MARGIN
+3: In sweep(sumsj, 2, sumu[, j], "-") :
+  STATS does not recycle exactly across MARGIN
+4: In sweep(sumsj, 2, sumu[, j], "-") :
+  STATS does not recycle exactly across MARGIN
+5: In sweep(sumsj, 2, sumu[, j], "-") :
+  STATS does not recycle exactly across MARGIN
+6: In rug(dat0[, resp]) : some values will be clipped
+> dev.off()
+null device 
+          1 
+> ###
+> ### Simulation; takes a while
+> if (FALSE) 
++     source("https://gitlab.com/asewak/npb/-/raw/main/sim.R?ref_type=heads&inline=false", echo = TRUE)
+> 
+> sessionInfo()
+R version 4.4.2 (2024-10-31)
+Platform: x86_64-pc-linux-gnu
+Running under: Debian GNU/Linux 12 (bookworm)
+
+Matrix products: default
+BLAS:   /usr/local/lib/R/lib/libRblas.so 
+LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.11.0
+
+locale:
+ [1] LC_CTYPE=en_GB.UTF-8       LC_NUMERIC=C              
+ [3] LC_TIME=en_GB.UTF-8        LC_COLLATE=en_GB.UTF-8    
+ [5] LC_MONETARY=en_GB.UTF-8    LC_MESSAGES=en_GB.UTF-8   
+ [7] LC_PAPER=en_GB.UTF-8       LC_NAME=C                 
+ [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+[11] LC_MEASUREMENT=en_GB.UTF-8 LC_IDENTIFICATION=C       
+
+time zone: Europe/Berlin
+tzcode source: system (glibc)
+
+attached base packages:
+[1] parallel  stats     graphics  grDevices utils     datasets  methods  
+[8] base     
+
+other attached packages:
+ [1] xtable_1.8-4        data.table_1.16.2   pracma_2.4.4       
+ [4] ggsci_3.2.0         qrng_0.0-10         ggplot2_3.5.1      
+ [7] numDeriv_2016.8-1.1 tramME_1.0.6        tram_1.2-0         
+[10] mvtnorm_1.3-2       mlt_1.6-0           basefun_1.2-0      
+[13] variables_1.1-1     survival_3.7-0     
+
+loaded via a namespace (and not attached):
+ [1] sandwich_3.1-1       utf8_1.2.4           generics_0.1.3      
+ [4] lattice_0.22-6       magrittr_2.0.3       grid_4.4.2          
+ [7] Matrix_1.7-1         Formula_1.2-5        multcomp_1.4-26     
+[10] mgcv_1.9-1           fansi_1.0.6          scales_1.3.0        
+[13] TH.data_1.1-2        codetools_0.2-20     Rdpack_2.6.1        
+[16] reformulas_0.4.0     cli_3.6.3            rlang_1.1.4         
+[19] rbibutils_2.3        coneproj_1.19        munsell_0.5.1       
+[22] splines_4.4.2        withr_3.0.2          tools_4.4.2         
+[25] polynom_1.4-1        nloptr_2.1.1         dplyr_1.1.4         
+[28] colorspace_2.1-1     orthopolynom_1.0-6.1 vctrs_0.6.5         
+[31] R6_2.5.1             zoo_1.8-12           lifecycle_1.0.4     
+[34] MASS_7.3-61          pkgconfig_2.0.3      pillar_1.9.0        
+[37] gtable_0.3.6         glue_1.8.0           BB_2019.10-1        
+[40] Rcpp_1.0.13-1        tibble_3.2.1         tidyselect_1.2.1    
+[43] farver_2.1.2         nlme_3.1-166         labeling_0.4.3      
+[46] TMB_1.9.15           compiler_4.4.2       quadprog_1.5-8      
+[49] alabama_2023.1.0    
+> 
+> proc.time()
+   user  system elapsed 
+438.760   1.877 238.341 

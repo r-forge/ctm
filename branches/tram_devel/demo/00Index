@@ -6,3 +6,4 @@ stram	Location-Scale Transformation Models
 hcc	Hepatocellular Carcinoma Diagnostic Test
 survtram	Smooth Transformation Models for Survival Analysis
 npn	Nonparanormal Models
+nbp	Nonparanormal Modeling Framework for Prognostic Biomarker Assessment
