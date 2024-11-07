@@ -4,6 +4,7 @@ cleanup
 undernutrition.Rout.save
 stram.Rout.save
 SCI_ePolr.Rout.save
+tram.Rout.save
 mtram.Rout.save
 stram_plots.pdf
 undernutrition_plots.pdf
@@ -16,3 +17,6 @@ survtram_plots.pdf
 hcc_plots.pdf
 hcc.Rout.save
 npn.Rout.save
+npb.Rout.save
+npb.pdf.save
+
