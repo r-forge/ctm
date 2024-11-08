@@ -1,7 +1,7 @@
 
 library("tram")
 require("lme4")
-options(digits = 3)
+options(digits = 2)
 
 ## ----mtram-sleep_lmer, cache = FALSE------------------------------------------
 sleep_lmer <- lmer(Reaction ~ Days + (Days | Subject), 
@@ -53,5 +53,3 @@ sleep_LMmer_I <- mtram(sleep_LM_I, ~ (Days | Subject), data = sleepstudy)
 
 ## ----mtram-sleep-interval-results---------------------------------------------
 logLik(sleep_LMmer_I)
-coef(sleep_LMmer_I)
-coef(sleep_LMmer)
