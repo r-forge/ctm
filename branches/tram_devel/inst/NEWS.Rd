@@ -2,21 +2,16 @@
 \name{NEWS}
 \title{NEWS file for the tram package}
 
-\section{Changes in Version 1.2-0 (2024-11-01)}{
+\section{Changes in Version 1.2-0 (2024-11-08)}{
   \itemize{
     \item{Adding scores for discrete \code{mtram} models.}
+    \item{Update \code{mtram} to internal interface changes.}
     \item{Use \code{mltoptim} also in \code{mtram}.}
     \item{Ship proper \code{mtram} vignette (so far only the rendered output
           was supplied).}
+    \item{Make sure demos are in shape (again).}
   }
 }
-
-\section{Changes in Version 1.1-3 (2024-11-01)}{
-  \itemize{
-    \item{Update \code{mtram} to internal interface changes.}
-  }
-}
-
 
 \section{Changes in Version 1.1-2 (2024-10-02)}{
   \itemize{
