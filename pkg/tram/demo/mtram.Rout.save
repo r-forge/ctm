@@ -1,13 +1,11 @@
 
-R version 4.3.1 (2023-06-16) -- "Beagle Scouts"
-Copyright (C) 2023 The R Foundation for Statistical Computing
-Platform: x86_64-pc-linux-gnu (64-bit)
+R version 4.4.1 (2024-06-14) -- "Race for Your Life"
+Copyright (C) 2024 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
 Type 'license()' or 'licence()' for distribution details.
-
-  Natural language support but running in an English locale
 
 R is a collaborative project with many contributors.
 Type 'contributors()' for more information and
@@ -211,10 +209,12 @@ R>
 R> 
 R> ## ----mtram-sleep-interval-results---------------------------------------------
 R> logLik(sleep_LMmer_I)
-'log Lik.' -214.9675 (df=6)
+'log Lik.' -213.3648 (df=6)
 R> coef(sleep_LMmer_I)
-(Intercept)  Reaction_I        Days      gamma1      gamma2      gamma3 
--9.78770607  0.03900116  0.41633415  0.83398952  0.07584130  0.19038611 
+ (Intercept)   Reaction_I         Days       gamma1       gamma2 
+-10.55102439   0.04217345   0.42564321   1.02172120   0.05196121 
+      gamma3 
+  0.22344583 
 R> coef(sleep_LMmer)
 (Intercept)    Reaction        Days      gamma1      gamma2      gamma3 
 -9.82439168  0.03907741  0.40892652  0.92901066  0.01843056  0.22280431 
@@ -222,8 +222,7 @@ R>
 R> 
 R> ## ----mtram-sleep_BoxCox, cache = FALSE----------------------------------------
 R> sleep_BC <- BoxCox(Reaction ~ Days, data = sleepstudy)
-R> sleep_BCmer <- mtram(sleep_BC, ~ (Days | Subject), data = sleepstudy, 
-+                       Hessian = TRUE)
+R> sleep_BCmer <- mtram(sleep_BC, ~ (Days | Subject), data = sleepstudy)
 R> logLik(sleep_BCmer)
 'log Lik.' -859.5455 (df=11)
 R> 
@@ -276,7 +275,7 @@ R> grey <- rgb(.75, .75, .75)
 R> nd <- ex
 R> plotfun("prob", ex, layout = c(5, 2), par.settings = simpleTheme(col=c(grey, col), lwd = 3),
 +    auto.key = list(text = c("Empirical cumulative distribution function", levels(nd$Method)), 
-+                    points = FALSE, lines = TRUE))
++                    points = FALSE, lines = TRUE, space = "top"))
 R> 
 R> 
 R> ## ----mtram-sleep_corr---------------------------------------------------------
@@ -289,7 +288,7 @@ R>
 R> 
 R> ## ----mtram-sleep_vcov---------------------------------------------------------
 R> library("mvtnorm")
-R> VC <- solve(sleep_BCmer$Hessian)
+R> VC <- vcov(sleep_BCmer)
 R> idx <- (nrow(VC) - 2):nrow(VC)
 R> Rcoef <- rmvnorm(1000, mean = coef(sleep_BCmer), sigma = VC)[,idx]
 R> ret <- apply(Rcoef, 1, function(gamma) {
@@ -303,15 +302,15 @@ R> ## ----mtram-sleep_ci--------------------------------------------------------
 R> ### variance random intercept
 R> quantile(ret[1,], c(.025, .5, .975))
      2.5%       50%     97.5% 
-0.9127821 2.5713595 5.2493469 
+0.8232198 2.5746149 5.2175834 
 R> ### variance random slope
 R> quantile(ret[2,], c(.025, .5, .975))
       2.5%        50%      97.5% 
-0.01890987 0.05348231 0.10594879 
+0.01696463 0.05198217 0.11157233 
 R> ### correlation random intercept / random slope
 R> quantile(ret[3,], c(.025, .5, .975))
       2.5%        50%      97.5% 
--0.6193527 -0.1883314  0.4689778 
+-0.6380038 -0.1825544  0.4109880 
 R> 
 R> 
 R> ## ----mtram-sleep_Colr, cache = FALSE------------------------------------------
@@ -371,7 +370,7 @@ R> nd <- ex
 R> plotfun("prob", ex, layout = c(5, 2), par.settings = simpleTheme(col=c(grey, col, col[2]), lwd =
 +  3, lty = c(1, 1, 1, 3)),
 +    auto.key = list(text = c("Empirical cumulative distribution function", levels(nd$Method)), 
-+                    points = FALSE, lines = TRUE))
++                    points = FALSE, lines = TRUE, space = "top"))
 R> 
 R> 
 R> ## ----mtram-toenail-plot, echo = FALSE, cache = FALSE--------------------------
@@ -412,7 +411,7 @@ Number of obs: 1908, groups:  patientID, 294
 Fixed effects:
                           Estimate Std. Error z value Pr(>|z|)    
 (Intercept)               -3.39483    0.21921 -15.487   <2e-16 ***
-treatmentterbinafine      -0.02875    0.25202  -0.114   0.9092    
+treatmentterbinafine      -0.02874    0.25202  -0.114   0.9092    
 time                      -0.21797    0.02257  -9.657   <2e-16 ***
 treatmentterbinafine:time -0.07135    0.03425  -2.083   0.0372 *  
 ---
@@ -424,7 +423,7 @@ trtmnttrbnf -0.591
 time        -0.008  0.099       
 trtmnttrbn:  0.093 -0.141 -0.630
 R> toenail_glmer_RI_1@theta
-[1] 4.574859
+[1] 4.57486
 R> 
 R> ### Adaptive Gaussian Quadrature
 R> toenail_glmer_RI_2 <- 
@@ -504,49 +503,50 @@ R> m <- ctm(as.basis(~ outcome, data = toenail),
 +           data = toenail, todistr = "Normal", negative = TRUE)
 R> toenail_probit <- mlt(m, data = toenail, 
 +                        fixed = c("outcomemoderate or severe" = 0))
-Warning message:
-In R.factor(object = data[[response]]) : response is unordered factor;
-             results may depend on order of levels
 R> toenail_mtram_RI <- 
-+      mtram(toenail_probit, ~ (1 | patientID), 
-+            data = toenail, Hessian = TRUE)
++      mtram(toenail_probit, ~ (1 | patientID), data = toenail)
 R> coef(toenail_mtram_RI)
               (Intercept)      treatmentterbinafine 
-               0.90894173               -0.10839000 
+               0.91008159               -0.10710388 
                      time treatmentterbinafine:time 
-              -0.19113766               -0.06267262 
+              -0.19125241               -0.06331944 
                    gamma1 
-               2.11482023 
+               2.11701418 
 R> 
 R> 
 R> ## ----mtram-toenail-hessian----------------------------------------------------
 R> vcov(toenail_glmer_RI_2)
 4 x 4 Matrix of class "dpoMatrix"
-                           (Intercept) treatmentterbinafine          time
-(Intercept)                0.052347885         -0.045691072 -0.0008721340
-treatmentterbinafine      -0.045691072          0.094431279  0.0013398065
-time                      -0.000872134          0.001339806  0.0004236656
-treatmentterbinafine:time  0.001360056         -0.002716156 -0.0003893870
+                            (Intercept) treatmentterbinafine          time
+(Intercept)                0.0523476843         -0.045690768 -0.0008721303
+treatmentterbinafine      -0.0456907682          0.094430590  0.0013397965
+time                      -0.0008721303          0.001339797  0.0004236654
+treatmentterbinafine:time  0.0013600467         -0.002716134 -0.0003893867
                           treatmentterbinafine:time
-(Intercept)                            0.0013600559
-treatmentterbinafine                  -0.0027161555
-time                                  -0.0003893870
-treatmentterbinafine:time              0.0009595159
-R> solve(toenail_mtram_RI$Hessian)[1:4, 1:4]
-              [,1]         [,2]          [,3]          [,4]
-[1,]  0.0521524640  0.045580016  0.0008711728 -0.0013461178
-[2,]  0.0455800158  0.094251840  0.0013333648 -0.0026823090
-[3,]  0.0008711728  0.001333365  0.0004220717 -0.0003886723
-[4,] -0.0013461178 -0.002682309 -0.0003886723  0.0009473105
+(Intercept)                            0.0013600467
+treatmentterbinafine                  -0.0027161344
+time                                  -0.0003893867
+treatmentterbinafine:time              0.0009595152
+R> vcov(toenail_mtram_RI)[1:4, 1:4]
+                            (Intercept) treatmentterbinafine          time
+(Intercept)                0.0522671032          0.045693346  0.0008720032
+treatmentterbinafine       0.0456933463          0.094460326  0.0013347660
+time                       0.0008720032          0.001334766  0.0004235916
+treatmentterbinafine:time -0.0013559040         -0.002708974 -0.0003895272
+                          treatmentterbinafine:time
+(Intercept)                           -0.0013559040
+treatmentterbinafine                  -0.0027089745
+time                                  -0.0003895272
+treatmentterbinafine:time              0.0009597717
 R> 
 R> 
 R> ## ----mtram-toenail-coef-------------------------------------------------------
 R> cf <- coef(toenail_mtram_RI)
 R> cf[2:4] / sqrt(1 + cf["gamma1"]^2)
      treatmentterbinafine                      time 
-              -0.04633378               -0.08170616 
+              -0.04574521               -0.08168594 
 treatmentterbinafine:time 
-              -0.02679084 
+              -0.02704441 
 R> 
 R> 
 R> ## ----mtram-toenail-gee-probit-------------------------------------------------
@@ -568,9 +568,9 @@ R> cbind(mtram = cf[2:4] / sqrt(1 + cf["gamma1"]^2),
 +        excha = coef(gex)[-1],
 +        unstr = coef(gun)[-1])
                                 mtram       indep       excha       unstr
-treatmentterbinafine      -0.04633378 -0.01100164 -0.01476371  0.01635082
-time                      -0.08170616 -0.09278168 -0.09289552 -0.06893793
-treatmentterbinafine:time -0.02679084 -0.03198835 -0.03717801 -0.04468491
+treatmentterbinafine      -0.04574521 -0.01100164 -0.01476371  0.01635082
+time                      -0.08168594 -0.09278168 -0.09289552 -0.06893793
+treatmentterbinafine:time -0.02704441 -0.03198835 -0.03717801 -0.04468491
 R> 
 R> 
 R> ## ----mtram-toenail-gee-logit--------------------------------------------------
@@ -609,29 +609,26 @@ R> m <- ctm(as.basis(~ outcome, data = toenail),
 +           data = toenail, todistr = "Logistic", negative = TRUE)
 R> toenail_logit <- mlt(m, data = toenail, 
 +                       fixed = c("outcomemoderate or severe" = 0))
-Warning message:
-In R.factor(object = data[[response]]) : response is unordered factor;
-             results may depend on order of levels
 R> toenail_mtram_logit <- mtram(toenail_logit, ~ (1 | patientID), 
-+                               data = toenail, Hessian = TRUE)
++                               data = toenail)
 R> 
 R> 
 R> ## ----mtram-toenail_logit-coef-------------------------------------------------
 R> cf <- coef(toenail_mtram_logit)
 R> cf[2:4] / sqrt(1 + cf["gamma1"]^2)
      treatmentterbinafine                      time 
-              -0.06026026               -0.14915910 
+              -0.05943863               -0.14916330 
 treatmentterbinafine:time 
-              -0.05870216 
+              -0.05914692 
 R> 
 R> 
 R> ## ----mtram-toenail-trt--------------------------------------------------------
 R> S <- rmvnorm(10000, mean = coef(toenail_mtram_logit), 
-+               sigma = solve(toenail_mtram_logit$Hessian))
++               sigma = vcov(toenail_mtram_logit))
 R> (ci <- quantile(S[,"treatmentterbinafine:time"] / sqrt(1 + S[, "gamma1"]^2), 
 +                  prob = c(.025, .975)))
-        2.5%        97.5% 
--0.114030986 -0.007916931 
+       2.5%       97.5% 
+-0.11296704 -0.00630125 
 R> 
 R> 
 R> ## ----mtram-toenail-gee-logit-mcoef--------------------------------------------
@@ -640,9 +637,9 @@ R> cbind(mtram = cf[2:4] / sqrt(1 + cf["gamma1"]^2),
 +        excha = coef(gex)[-1],
 +        unstr = coef(gun)[-1])
                                 mtram         indep        excha
-treatmentterbinafine      -0.06026026 -0.0005816551  0.007180366
-time                      -0.14915910 -0.1703077912 -0.171280029
-treatmentterbinafine:time -0.05870216 -0.0672216238 -0.077733152
+treatmentterbinafine      -0.05943863 -0.0005816551  0.007180366
+time                      -0.14916330 -0.1703077912 -0.171280029
+treatmentterbinafine:time -0.05914692 -0.0672216238 -0.077733152
                                 unstr
 treatmentterbinafine       0.03730057
 time                      -0.13189562
@@ -673,7 +670,7 @@ R>
 R> ## ----mtram-toenail_OR_2, dev = "png", cache = FALSE, echo = FALSE, dpi = 300----
 R> X <- model.matrix(~ treatment * time, data = nd)
 R> rbeta <- rmvnorm(10000, mean = coef(toenail_mtram_logit), 
-+                   sigma = solve(toenail_mtram_logit$Hessian))
++                   sigma = vcov(toenail_mtram_logit))
 R> s <- rbeta[,ncol(rbeta)]
 R> rbeta <- rbeta[,-ncol(rbeta)] / sqrt(s^2 + 1)
 R> odds <- exp(-X %*% t(rbeta))
@@ -719,7 +716,7 @@ R> xyplot(prob ~ time | model, data = nd2, group = treatment, ylim = c(0, 1),
 +         xlab = "Time", 
 +         par.settings = simpleTheme(col = col),
 +         auto.key = list(text = levels(nd2$treatment), 
-+                         points = FALSE, lines = TRUE), 
++                         points = FALSE, lines = TRUE, space = "top"), 
 +         col = col, type = "l", ylab = "Probability (none or mild)")
 R> 
 R> 
@@ -757,9 +754,9 @@ Number of obs: 1903, groups:  patientID, 289
 
 Fixed effects:
                           Estimate Std. Error z value Pr(>|z|)    
-(Intercept)               -4.30120    0.26361 -16.316   <2e-16 ***
+(Intercept)               -4.30119    0.26361 -16.317   <2e-16 ***
 treatmentterbinafine       0.05419    0.34652   0.156   0.8757    
-time                      -0.06792    0.07847  -0.866   0.3867    
+time                      -0.06791    0.07846  -0.866   0.3867    
 treatmentterbinafine:time -0.23478    0.13885  -1.691   0.0909 .  
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
@@ -770,7 +767,7 @@ trtmnttrbnf -0.662
 time        -0.453  0.342       
 trtmnttrbn:  0.270 -0.438 -0.335
 R> toenail_glmer_RS@theta
-[1] 10.8826790 -1.6359589  0.7930842
+[1] 10.882696 -1.635963  0.793088
 R> 
 R> 
 R> ## ----mtram-toenail_glmmTMB_RS, cache = FALSE----------------------------------
@@ -809,23 +806,20 @@ R> m <- ctm(as.basis(~ outcome, data = toenail_gr1),
 +           data = toenail, todistr = "Normal", negative = TRUE)
 R> toenail_probit <- mlt(m, data = toenail_gr1, 
 +                        fixed = c("outcomemoderate or severe" = 0))
-Warning message:
-In R.factor(object = data[[response]]) : response is unordered factor;
-             results may depend on order of levels
 R> toenail_mtram_RS <- 
 +      mtram(toenail_probit, ~ (1 + time | patientID), 
 +            data = toenail_gr1)
 R> logLik(toenail_mtram_RS)
-'log Lik.' -545.1163 (df=7)
+'log Lik.' -545.1162 (df=7)
 R> coef(toenail_mtram_RS)
               (Intercept)      treatmentterbinafine 
-                1.5773582                 0.2680624 
+                1.5782656                 0.2685859 
                      time treatmentterbinafine:time 
-               -0.5336223                -0.1845193 
+               -0.5338050                -0.1845690 
                    gamma1                    gamma2 
-                5.2226345                -0.3726494 
+                5.2238567                -0.3726468 
                    gamma3 
-                0.5295844 
+                0.5297758 
 R> 
 R> 
 R> ## ----toenail-comparisons, cache = FALSE, echo = FALSE, results = "hide"-------
@@ -848,12 +842,8 @@ R> m <- ctm(as.basis(~ outcome, data = toenail),
 +           data = toenail, todistr = "Normal", negative = TRUE)
 R> toenail_probit <- mlt(m, data = toenail, 
 +                        fixed = c("outcomemoderate or severe" = 0))
-Warning message:
-In R.factor(object = data[[response]]) : response is unordered factor;
-             results may depend on order of levels
 R> t4 <- system.time(toenail_mtram_RI <- 
-+      mtram(toenail_probit, ~ (1 | patientID), 
-+             data = toenail, Hessian = TRUE))
++      mtram(toenail_probit, ~ (1 | patientID), data = toenail))
 R> 
 R> t5 <- system.time(toenail_glmer_RS <- 
 +      glmer(outcome ~ treatment * time + (1 + time | patientID),
@@ -868,9 +858,6 @@ R> m <- ctm(as.basis(~ outcome, data = toenail_gr1),
 +           data = toenail, todistr = "Normal", negative = TRUE)
 R> toenail_probit <- mlt(m, data = toenail_gr1, 
 +                        fixed = c("outcomemoderate or severe" = 0))
-Warning message:
-In R.factor(object = data[[response]]) : response is unordered factor;
-             results may depend on order of levels
 R> t7 <- system.time(toenail_mtram_RS <- 
 +      mtram(toenail_probit, ~ (1 + time | patientID), 
 +             data = toenail_gr1))
@@ -893,14 +880,14 @@ R> logLik(toenail_glmer_RI_2)
 R> logLik(toenail_glmmTMB_RI_3)
 'log Lik.' -644.0454 (df=5)
 R> logLik(toenail_mtram_RI)
-'log Lik.' -637.337 (df=5)
+'log Lik.' -637.2845 (df=5)
 R> 
 R> logLik(toenail_glmer_RS)
 'log Lik.' -485.8981 (df=7)
 R> logLik(toenail_glmmTMB_RS_1)
 'log Lik.' -473.9881 (df=7)
 R> logLik(toenail_mtram_RS)
-'log Lik.' -545.1163 (df=7)
+'log Lik.' -545.1162 (df=7)
 R> 
 R> ll <- c(
 +  ### logLik of transformation model for glmer (Laplace) parameters
@@ -957,15 +944,15 @@ $\eshiftparm_2$ & -0.22 & -0.19 & -0.19 & -0.19 & -0.07 & -0.07 & -0.53
 \\
 $\eshiftparm_3$ & -0.07 & -0.06 & -0.06 & -0.06 & -0.23 & -0.23 & -0.18
 \\
-$\gamma_1$ &  4.57 &  2.12 &  2.10 &  2.11 & 10.88 & 11.01 &  5.22
+$\gamma_1$ &  4.57 &  2.12 &  2.10 &  2.12 & 10.88 & 11.01 &  5.22
 \\
 $\gamma_2$ &  0.00 &  0.00 &  0.00 &  0.00 & -1.64 & -1.68 & -0.37
 \\
 $\gamma_3$ &  0.00 &  0.00 &  0.00 &  0.00 &  0.79 &  0.83 &  0.53
 \\
 \hline
-LogLik & -675.22&-637.34&-638.54&-637.34&-628.12&-630.65&-545.12 \\ 
-Time (sec)   &  5.80& 3.70& 1.50& 3.03&11.63& 2.62&13.88 \\ \hline
+LogLik & -675.12&-637.28&-638.49&-637.28&-628.11&-630.65&-545.12 \\ 
+Time (sec)   &  3.16& 1.94& 0.84& 1.69& 6.20& 1.20& 7.62 \\ \hline
 \end{tabular}
 R> 
 R> 
@@ -1060,17 +1047,16 @@ R>
 R> ## ----tramME-neck_ci-----------------------------------------------------------
 R> exp(coef(neck_ColrME))
              laserActive              time7 weeks             time12 weeks 
-               0.1040042                0.5184702                0.7806350 
+               0.1040042                0.5184702                0.7806349 
  laserActive:time7 weeks laserActive:time12 weeks 
-             130.6994904               41.9850828 
+             130.6995028               41.9850808 
 R> 
 R> 
 R> ## ----mtram-neck_Colr, cache = FALSE-------------------------------------------
 R> neck_Colr <- Colr(vas ~ laser * time, data = pain_df, 
 +                    bounds = c(0, 1), support = c(0, 1),
 +                    extrapolate = TRUE)
-R> neck_Colrmer <- mtram(neck_Colr, ~ (1 | id), data = pain_df, 
-+                        Hessian = TRUE)
+R> neck_Colrmer <- mtram(neck_Colr, ~ (1 | id), data = pain_df)
 R> 
 R> 
 R> ## ----mtram-neck_Colr_distr, echo = FALSE, fig.height = 4, fig.width = 7-------
@@ -1092,7 +1078,7 @@ R> p2 <- xyplot(prob ~ vas | time, data = nd2, groups = laser, type = "l",
 +               ylab = "Marginal distribution", 
 +               par.settings = simpleTheme(col=col),
 +               auto.key = list(text = levels(nd2$laser), 
-+                               points = FALSE, lines = TRUE))
++                               points = FALSE, lines = TRUE, space = "top"))
 R> plot(p2)
 R> 
 R> ## M1
@@ -1117,23 +1103,23 @@ R> #              xlab = "Neck pain (on visual analog scale)",
 R> #              ylab = "Marginal distribution", 
 R> #              par.settings = simpleTheme(col=col),
 R> #              auto.key = list(text = levels(nd2$laser), 
-R> #                              points = FALSE, lines = TRUE))
+R> #                              points = FALSE, lines = TRUE, space = "top"))
 R> # plot(p2)
 R> 
 R> 
 R> ## ----mtram-neck_Colr-CI, echo = TRUE, eval=TRUE-------------------------------
-R> S <- solve(neck_Colrmer$Hessian)
+R> S <- vcov(neck_Colrmer)
 R> rbeta <- rmvnorm(10000, mean = coef(neck_Colrmer), sigma = S)
 R> s <- rbeta[, ncol(rbeta)]
 R> rbeta <- rbeta[,-ncol(rbeta)] / sqrt(s^2 + 1)
 R> t(apply(rbeta[, 8:12], 2, function(x) {
 +    quantile(exp(x),prob = c(.025, .5, .975))}))
                               2.5%        50%      97.5%
-laserActive              0.1126589  0.2468169  0.5037629
-time7 weeks              0.4490773  0.6895826  1.0542314
-time12 weeks             0.5545526  0.8495724  1.2969043
-laserActive:time7 weeks  7.9513592 15.7011167 33.5790835
-laserActive:time12 weeks 4.4653904  8.4837448 17.0816646
+laserActive              0.1138852  0.2437873  0.5151531
+time7 weeks              0.4478864  0.6927490  1.0592329
+time12 weeks             0.5538802  0.8513957  1.3242572
+laserActive:time7 weeks  7.9119922 15.6279410 33.0135646
+laserActive:time12 weeks 4.4319385  8.5064591 16.9854712
 R> 
 R> 
 R> ## ----mtram-neck_Colr-std_beta-------------------------------------------------
@@ -1163,15 +1149,15 @@ R> ## ----mtram-neck_PImanual, eval=TRUE----------------------------------------
 R> (ci_emp <- t(apply(ctr_mat %*% t(rbeta[, 8:12]), 1, function(x) {
 +    quantile(x, prob = c(.025, .5, .975))})))
             2.5%        50%      97.5%
-[1,] -2.18339022 -1.3991085 -0.6856496
-[2,]  0.59251888  1.3474191  2.1561143
-[3,] -0.01605276  0.7350224  1.5193881
+[1,] -2.17256457 -1.4114592 -0.6632911
+[2,]  0.59801158  1.3374296  2.1401665
+[3,] -0.01467034  0.7338185  1.5155962
 R> 
 R> PI(-ci_emp, link = "logistic")
           2.5%       50%     97.5%
-[1,] 0.8145589 0.7189678 0.6125138
-[2,] 0.4023882 0.2881899 0.1883363
-[3,] 0.5026754 0.3796606 0.2647637
+[1,] 0.8134136 0.7206634 0.6089524
+[2,] 0.4015045 0.2895844 0.1900437
+[3,] 0.5024450 0.3798507 0.2652682
 R> 
 R> 
 R> ## ----neck_Colr-PI, echo = TRUE------------------------------------------------
@@ -1186,7 +1172,7 @@ R> (neck_Colr_PI <- PI(neck_Colr_marg, newdata = nd[1:3, ],
      Estimate       lwr       upr
 4-1 0.7205063 0.5840622 0.8277764
 5-2 0.2884774 0.1749461 0.4327285
-6-3 0.3803291 0.2446177 0.5354269
+6-3 0.3803291 0.2446177 0.5354270
 R> 
 R> 
 R> ## ----mtram-CAO, echo = FALSE--------------------------------------------------
@@ -1214,7 +1200,7 @@ R> xyplot(surv ~ time | strat_t + strat_n, data = nd, groups = randarm,
 +         xlab = "Time (in days)",
 +         par.settings = simpleTheme(col=col),
 +         auto.key = list(text = levels(nd$randarm), 
-+                         points = FALSE, lines = TRUE))
++                         points = FALSE, lines = TRUE, space = "top"))
 R> 
 R> 
 R> ## ----mtram-CAO_DFS------------------------------------------------------------
@@ -1229,22 +1215,21 @@ R>
 R> 
 R> ## ----mtram-CAO_SR, cache = TRUE-----------------------------------------------
 R> CAO_SR <- Survreg(iDFS2 ~ randarm, data = CAOsurv)
-R> CAO_SR_mtram <- mtram(CAO_SR, ~ (1 | Block), data = CAOsurv,
-+                        Hessian = TRUE)
+R> CAO_SR_mtram <- mtram(CAO_SR, ~ (1 | Block), data = CAOsurv)
 R> logLik(CAO_SR_mtram)
-'log Lik.' -2081.542 (df=4)
+'log Lik.' -2081.541 (df=4)
 R> (cf <- coef(CAO_SR_mtram))
               (Intercept)                log(iDFS2) 
-               -6.2990054                 0.7412855 
+               -6.3072093                 0.7423852 
 randarm5-FU + Oxaliplatin                    gamma1 
-                0.2328600                 0.1683613 
+                0.2331123                 0.1696021 
 R> (OR <- exp(-cf["randarm5-FU + Oxaliplatin"] / sqrt(cf["gamma1"]^2 + 1)))
 randarm5-FU + Oxaliplatin 
-                 0.794829 
+                0.7946685 
 R> 
 R> 
 R> ## ----mtram-CAO-CI-------------------------------------------------------------
-R> S <- solve(CAO_SR_mtram$Hessian)
+R> S <- vcov(CAO_SR_mtram)
 R> # sqrt(diag(S))
 R> rbeta <- rmvnorm(10000, mean = coef(CAO_SR_mtram), 
 +                   sigma = S)
@@ -1252,87 +1237,83 @@ R> s <- rbeta[, ncol(rbeta)]
 R> rbeta <- rbeta[, -ncol(rbeta)] / sqrt(s^2 + 1)
 R> quantile(exp(-rbeta[, ncol(rbeta)]), prob = c(.025, .5, .975))
      2.5%       50%     97.5% 
-0.6517265 0.7957980 0.9830835 
+0.6515827 0.7955655 0.9829231 
 R> 
 R> 
 R> ## ----mtram-CAO_SR_2, cache = TRUE---------------------------------------------
 R> CAO_SR_2 <- Survreg(iDFS2 | 0 + strat_n:strat_t ~ randarm, data = CAOsurv)
-R> CAO_SR_2_mtram <- mtram(CAO_SR_2, ~ (1 | Block), data = CAOsurv,
-+                          Hessian  = TRUE)
+R> CAO_SR_2_mtram <- mtram(CAO_SR_2, ~ (1 | Block), data = CAOsurv)
 R> logLik(CAO_SR_2_mtram)
-'log Lik.' -2067.797 (df=10)
+'log Lik.' -2067.794 (df=10)
 R> (cf <- coef(CAO_SR_2_mtram))
 (Intercept):strat_ncN0:strat_tcT1-3  log(iDFS2):strat_ncN0:strat_tcT1-3 
-                         -7.8833653                           0.9584499 
+                         -7.8971992                           0.9603570 
 (Intercept):strat_ncN+:strat_tcT1-3  log(iDFS2):strat_ncN+:strat_tcT1-3 
-                         -6.2225174                           0.7198965 
+                         -6.2305620                           0.7210083 
   (Intercept):strat_ncN0:strat_tcT4    log(iDFS2):strat_ncN0:strat_tcT4 
-                         -3.0467542                           0.3711277 
+                         -3.0492763                           0.3715057 
   (Intercept):strat_ncN+:strat_tcT4    log(iDFS2):strat_ncN+:strat_tcT4 
-                         -4.8207089                           0.6214653 
+                         -4.8260324                           0.6222421 
           randarm5-FU + Oxaliplatin                              gamma1 
-                          0.2240023                           0.1474685 
+                          0.2242823                           0.1490952 
 R> (OR_2 <- exp(-cf["randarm5-FU + Oxaliplatin"] / sqrt(cf["gamma1"]^2 + 1)))
 randarm5-FU + Oxaliplatin 
-                0.8012313 
+                0.8010513 
 R> 
 R> 
 R> ## ----mtram-CAO-CI-2, echo = FALSE---------------------------------------------
-R> H <- CAO_SR_2_mtram$Hessian
-R> S <- solve(H + .01 * diag(nrow(H)))
+R> S <- vcov(CAO_SR_2_mtram)
 R> rbeta <- rmvnorm(10000, mean = coef(CAO_SR_2_mtram), 
 +                   sigma = S)
 R> s <- rbeta[, ncol(rbeta)]
 R> rbeta <- rbeta[, -ncol(rbeta)] / sqrt(s^2 + 1)
 R> quantile(exp(-rbeta[, ncol(rbeta)]), prob = c(.025, .5, .975))
      2.5%       50%     97.5% 
-0.6539043 0.8040660 0.9921574 
+0.6538968 0.8021492 0.9797631 
 R> 
 R> 
 R> ## ----mtram-CAO_Cox_2, cache = TRUE--------------------------------------------
 R> CAO_Cox_2 <- Coxph(iDFS2 | 0 + strat_n:strat_t ~ randarm, data = CAOsurv, 
 +                     support = c(1, 1700), log_first = TRUE, order = 4)
 R> logLik(CAO_Cox_2)
-'log Lik.' -2021.878 (df=21)
-R> CAO_Cox_2_mtram <- mtram(CAO_Cox_2, ~ (1 | Block), data = CAOsurv, 
-+                           Hessian = TRUE)
+'log Lik.' -2021.876 (df=21)
+R> CAO_Cox_2_mtram <- mtram(CAO_Cox_2, ~ (1 | Block), data = CAOsurv)
 R> logLik(CAO_Cox_2_mtram)
-'log Lik.' -2021.627 (df=22)
+'log Lik.' -2021.634 (df=22)
 R> coef(CAO_Cox_2_mtram)
 Bs1(iDFS2):strat_ncN0:strat_tcT1-3 Bs2(iDFS2):strat_ncN0:strat_tcT1-3 
-                       -68.0278325                         -3.4294338 
+                       -67.7031748                         -3.4395772 
 Bs3(iDFS2):strat_ncN0:strat_tcT1-3 Bs4(iDFS2):strat_ncN0:strat_tcT1-3 
-                        -3.4293516                         -2.3236197 
+                        -3.4395772                         -2.3209567 
 Bs5(iDFS2):strat_ncN0:strat_tcT1-3 Bs1(iDFS2):strat_ncN+:strat_tcT1-3 
-                        -0.7867767                        -31.1740373 
+                        -0.7866677                        -31.2445945 
 Bs2(iDFS2):strat_ncN+:strat_tcT1-3 Bs3(iDFS2):strat_ncN+:strat_tcT1-3 
-                        -3.8737921                         -3.8737908 
+                        -3.8706215                         -3.8706184 
 Bs4(iDFS2):strat_ncN+:strat_tcT1-3 Bs5(iDFS2):strat_ncN+:strat_tcT1-3 
-                        -1.4402844                         -0.9325542 
+                        -1.4411872                         -0.9324884 
   Bs1(iDFS2):strat_ncN0:strat_tcT4   Bs2(iDFS2):strat_ncN0:strat_tcT4 
-                        -2.7904478                         -2.7904478 
+                        -2.7841935                         -2.7841935 
   Bs3(iDFS2):strat_ncN0:strat_tcT4   Bs4(iDFS2):strat_ncN0:strat_tcT4 
-                        -1.8168638                         -0.6365398 
+                        -1.8328949                         -0.6311553 
   Bs5(iDFS2):strat_ncN0:strat_tcT4   Bs1(iDFS2):strat_ncN+:strat_tcT4 
-                        -0.3163183                        -40.5748285 
+                        -0.3168195                        -40.6102909 
   Bs2(iDFS2):strat_ncN+:strat_tcT4   Bs3(iDFS2):strat_ncN+:strat_tcT4 
-                        -2.2374406                         -2.2374406 
+                        -2.2364240                         -2.2364240 
   Bs4(iDFS2):strat_ncN+:strat_tcT4   Bs5(iDFS2):strat_ncN+:strat_tcT4 
-                        -0.3387072                         -0.3345039 
+                        -0.3384528                         -0.3347601 
          randarm5-FU + Oxaliplatin                             gamma1 
-                        -0.2367282                          0.1609927 
+                        -0.2367070                          0.1610414 
 R> 
 R> 
 R> ## ----mtram-CAO-CI-3, echo = FALSE---------------------------------------------
-R> H <- CAO_Cox_2_mtram$Hessian
-R> S <- solve(H + .1 * diag(nrow(H)))
+R> S <- vcov(CAO_Cox_2_mtram)
 R> rbeta <- rmvnorm(10000, mean = coef(CAO_Cox_2_mtram), 
 +                   sigma = S)
 R> s <- rbeta[,ncol(rbeta)]
 R> rbeta <- rbeta[,-ncol(rbeta)] / sqrt(s^2 + 1)
 R> quantile(exp(rbeta[, ncol(rbeta)]), prob = c(.025, .5, .975))
      2.5%       50%     97.5% 
-0.6458568 0.7913500 0.9771021 
+0.6469710 0.7952639 0.9698179 
 R> 
 R> 
 R> ## ----mtram-CAO_PI-------------------------------------------------------------
@@ -1342,14 +1323,14 @@ R> tmp$coef <- coef(CAO_Cox_2_mtram)[-22] / sqrt(coef(CAO_Cox_2_mtram)[22]^2 + 1
 R> (CAO_Cox_PI <- PI(tmp, newdata = nd[2, ], reference = nd[1, ],
 +                    one2one = TRUE, conf.level = .95))[1, ]
  Estimate       lwr       upr 
-0.5581652 0.5061678 0.6089178 
+0.5581596 0.5061623 0.6089121 
 R> 
 R> 
 R> ## ----mtram-CAO_PI_man---------------------------------------------------------
 R> ci_man <- quantile(-rbeta[, ncol(rbeta)], prob = c(.025, .5, .975))
 R> (CAO_Cox_PIm <- PI(ci_man, link = "minimum extreme value"))
      2.5%       50%     97.5% 
-0.5057908 0.5582382 0.6075863 
+0.5076611 0.5570212 0.6071752 
 R> 
 R> 
 R> ## ----tramME-CAO_SR, cache = TRUE----------------------------------------------
@@ -1360,11 +1341,11 @@ R>
 R> ## ----tramME-CAO_SR-hr, cache = TRUE-------------------------------------------
 R> exp(coef(CAO_Cox_2_tramME))
 randarm5-FU + Oxaliplatin 
-                 0.790608 
+                0.7906085 
 R> exp(confint(CAO_Cox_2_tramME, parm = "randarm5-FU + Oxaliplatin", 
 +              estimate = TRUE))
-                                lwr       upr      est
-randarm5-FU + Oxaliplatin 0.6406387 0.9756841 0.790608
+                                lwr       upr       est
+randarm5-FU + Oxaliplatin 0.6406391 0.9756848 0.7906085
 R> 
 R> 
 R> ## ----echo=FALSE, eval=FALSE---------------------------------------------------
@@ -1386,23 +1367,23 @@ R>
 R> 
 R> ## ----mtram-sessionInfo, echo = FALSE, results = "hide"------------------------
 R> sessionInfo()
-R version 4.3.1 (2023-06-16)
-Platform: x86_64-pc-linux-gnu (64-bit)
-Running under: Ubuntu 22.04.2 LTS
+R version 4.4.1 (2024-06-14)
+Platform: x86_64-pc-linux-gnu
+Running under: Debian GNU/Linux 12 (bookworm)
 
 Matrix products: default
 BLAS:   /usr/local/lib/R/lib/libRblas.so 
-LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.10.0
+LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.11.0
 
 locale:
- [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
- [3] LC_TIME=de_CH.UTF-8        LC_COLLATE=en_US.UTF-8    
- [5] LC_MONETARY=de_CH.UTF-8    LC_MESSAGES=en_US.UTF-8   
- [7] LC_PAPER=de_CH.UTF-8       LC_NAME=C                 
+ [1] LC_CTYPE=en_GB.UTF-8       LC_NUMERIC=C              
+ [3] LC_TIME=en_GB.UTF-8        LC_COLLATE=en_GB.UTF-8    
+ [5] LC_MONETARY=en_GB.UTF-8    LC_MESSAGES=en_GB.UTF-8   
+ [7] LC_PAPER=en_GB.UTF-8       LC_NAME=C                 
  [9] LC_ADDRESS=C               LC_TELEPHONE=C            
-[11] LC_MEASUREMENT=de_CH.UTF-8 LC_IDENTIFICATION=C       
+[11] LC_MEASUREMENT=en_GB.UTF-8 LC_IDENTIFICATION=C       
 
-time zone: Europe/Zurich
+time zone: Europe/Berlin
 tzcode source: system (glibc)
 
 attached base packages:
@@ -1410,33 +1391,32 @@ attached base packages:
 [8] base     
 
 other attached packages:
- [1] tramME_1.0.4        ordinalCont_2.0.2   Deriv_4.1.3        
- [4] boot_1.3-28.1       geepack_1.3.9       glmmTMB_1.1.7      
- [7] survival_3.5-5      tram_1.0-0          mvtnorm_1.2-2      
-[10] mlt_1.4-8           basefun_1.1-4       variables_1.1-1    
-[13] lme4_1.1-33         Matrix_1.5-4        colorspace_2.1-0   
-[16] gridExtra_2.3       latticeExtra_0.6-30 lattice_0.21-8     
+ [1] tramME_1.0.6        ordinalCont_2.0.2   Deriv_4.1.6        
+ [4] boot_1.3-30         geepack_1.3.12      glmmTMB_1.1.10     
+ [7] survival_3.7-0      tram_1.2-0          mvtnorm_1.3-2      
+[10] mlt_1.6-1           basefun_1.2-0       variables_1.1-1    
+[13] lme4_1.1-35.5       Matrix_1.7-1        colorspace_2.1-1   
+[16] gridExtra_2.3       latticeExtra_0.6-30 lattice_0.22-6     
 
 loaded via a namespace (and not attached):
- [1] gtable_0.3.3         TMB_1.9.4            xfun_0.39           
- [4] numDeriv_2016.8-1.1  quadprog_1.5-8       vctrs_0.6.2         
- [7] tools_4.3.1          generics_0.1.3       SparseGrid_0.8.2    
-[10] sandwich_3.0-2       tibble_3.2.1         fansi_1.0.4         
-[13] coneproj_1.16        pkgconfig_2.0.3      RColorBrewer_1.1-3  
-[16] alabama_2022.4-1     lifecycle_1.0.3      compiler_4.3.1      
-[19] deldir_1.0-6         codetools_0.2-19     Formula_1.2-5       
-[22] tidyr_1.3.0          pillar_1.9.0         nloptr_2.0.3        
-[25] MASS_7.3-60          multcomp_1.4-25      nlme_3.1-162        
-[28] tidyselect_1.2.0     dplyr_1.1.2          purrr_1.0.1         
-[31] grid_4.3.1           cli_3.4.1            magrittr_2.0.3      
-[34] utf8_1.2.3           broom_1.0.4          orthopolynom_1.0-6.1
-[37] TH.data_1.1-2        backports_1.4.1      estimability_1.4.1  
-[40] emmeans_1.8.6        jpeg_0.1-10          interp_1.1-4        
+ [1] gtable_0.3.6         TMB_1.9.15           xfun_0.48           
+ [4] numDeriv_2016.8-1.1  quadprog_1.5-8       vctrs_0.6.5         
+ [7] tools_4.4.1          Rdpack_2.6.1         generics_0.1.3      
+[10] SparseGrid_0.8.2     sandwich_3.1-1       tibble_3.2.1        
+[13] fansi_1.0.6          coneproj_1.19        pkgconfig_2.0.3     
+[16] RColorBrewer_1.1-3   alabama_2023.1.0     lifecycle_1.0.4     
+[19] compiler_4.4.1       deldir_2.0-4         codetools_0.2-20    
+[22] Formula_1.2-5        tidyr_1.3.1          pillar_1.9.0        
+[25] nloptr_2.1.1         MASS_7.3-60.2        reformulas_0.3.0    
+[28] multcomp_1.4-26      nlme_3.1-164         tidyselect_1.2.1    
+[31] purrr_1.0.2          dplyr_1.1.4          grid_4.4.1          
+[34] cli_3.6.3            magrittr_2.0.3       utf8_1.2.4          
+[37] broom_1.0.7          orthopolynom_1.0-6.1 TH.data_1.1-2       
+[40] backports_1.5.0      jpeg_0.1-10          interp_1.1-6        
 [43] BB_2019.10-1         zoo_1.8-12           png_0.1-8           
-[46] coda_0.19-4          knitr_1.42           mgcv_1.8-42         
-[49] rlang_1.1.1          Rcpp_1.0.10          xtable_1.8-4        
-[52] glue_1.6.2           polynom_1.4-1        minqa_1.2.5         
-[55] R6_2.5.1            
+[46] knitr_1.48           rbibutils_2.3        mgcv_1.9-1          
+[49] rlang_1.1.4          Rcpp_1.0.13          glue_1.8.0          
+[52] polynom_1.4-1        minqa_1.2.8          R6_2.5.1            
 R> 
 R> 
 R> ## ----mtram-funs, echo = FALSE, results = "hide"-------------------------------
@@ -1466,9 +1446,9 @@ R> pkg <- function(pkg) {
 +  }
 R> 
 R> pkg("mlt")
-[1] "\\\\pkg{mlt} \\\\citep[version~1.4-8,][]{pkg:mlt}"
+[1] "\\\\pkg{mlt} \\\\citep[version~1.6-1,][]{pkg:mlt}"
 R> pkg("tram")
-[1] "\\\\pkg{tram} \\\\citep[version~1.0-0,][]{pkg:tram}"
+[1] "\\\\pkg{tram} \\\\citep[version~1.2-0,][]{pkg:tram}"
 R> pkg("SparseGrid")
 [1] "\\\\pkg{SparseGrid} \\\\citep[version~0.8.2,][]{pkg:SparseGrid}"
 R> cat(c("@Manual{vign:mlt.docreg,",
@@ -1482,4 +1462,4 @@ R>
 R> 
 > proc.time()
    user  system elapsed 
-254.496   0.496 255.067 
+116.549   0.467 117.097 

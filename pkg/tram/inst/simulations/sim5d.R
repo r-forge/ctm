@@ -109,7 +109,7 @@ run_mmlt <- function(i) {
   )
   
   ### predict correlations
-  rho <- unclass(coef(m, newdata = data.frame(x = xseq), type = "Lambda"))
+  rho <- unclass(coef(m, newdata = data.frame(x = xseq), type = "Lambdapar"))
   ret <- list(rho = rho, ptm = ptm[3])
   return(ret)
 }
@@ -125,7 +125,7 @@ res_all <- data.frame(x = rep(xseq, repl + 1),
                       repl = rep(1:(repl + 1), each = length(xseq)))
 dd <- c()
 for (i in 1:repl) {
-  dd <- rbind(dd, resMLT[[i]]$rho)
+  dd <- rbind(dd, t(resMLT[[i]]$rho))
 }
 dd <- rbind(dd, cbind(f21(xseq), f31(xseq), f32(xseq), 
                       matrix(0, nrow = length(xseq), ncol = (Jp - 3))))
@@ -142,7 +142,7 @@ colnames(res_all) <- c("x", "repl", id)
 
 fm <- as.formula(paste(paste(id, collapse = "+"), "~ x " ))
 
-# pdf("sim5d_lattice.pdf", height = 6, width = 12)
+pdf("sim5d.pdf", height = 6, width = 12)
 par(mar = c(5.5, 6.0, 3.5, 1.2) - 1)
 panel_f <- function(x, y, repl = 100) {
   xseq <- seq(-0.9, 0.9, by = 0.1)
@@ -172,7 +172,6 @@ xyplot(fm, group = repl, data = res_all, as.table = TRUE,
                                 expression(paste(lambda[54], "(x)", sep = "")))),
        scales = list(y = list(relation = "free"), x = list(relation = "free"),
                      alternating = 1))
-# dev.off()
 
 ### boxplot 
 logMSE <- vector(mode = "list", length = Jp)
@@ -181,18 +180,17 @@ for (i in 1:length(logMSE)) {
 }
 
 logMSE[[1]] <- unlist(lapply(1:repl, FUN = function(x){
-  log(sum((resMLT[[x]]$rho[, 1] - f21(xseq))^2/length(xseq)))}))
+  log(sum((resMLT[[x]]$rho[1,] - f21(xseq))^2/length(xseq)))}))
 logMSE[[2]] <- unlist(lapply(1:repl, FUN = function(x){
-  log(sum((resMLT[[x]]$rho[, 2] - f31(xseq))^2/length(xseq)))}))
+  log(sum((resMLT[[x]]$rho[2,] - f31(xseq))^2/length(xseq)))}))
 logMSE[[3]] <- unlist(lapply(1:repl, FUN = function(x){
-  log(sum((resMLT[[x]]$rho[, 3] - f32(xseq))^2/length(xseq)))}))
+  log(sum((resMLT[[x]]$rho[3,] - f32(xseq))^2/length(xseq)))}))
 for(i in 4:length(logMSE)) {
   logMSE[[i]] <- unlist(lapply(1:repl, FUN = function(x){
-    log(sum((resMLT[[x]]$rho[, i] - 0*(xseq))^2/length(xseq)))}))
+    log(sum((resMLT[[x]]$rho[i,] - 0*(xseq))^2/length(xseq)))}))
 }
 
 ### boxplot normal
-# postscript("sim5dMSE.pdf", paper = "special", height = 5, width = 10)
 par(mfrow = c(1, 1), mar = c(5.5, 6.0, 3.5, 1.2) - 1)
 boxplot(sqrt(exp(as.matrix(as.data.frame(logMSE)))), ylim = c(0, 0.2), main = "RMSE",
         names = c(expression(paste(lambda[21], "(x)", sep = "")),
@@ -207,4 +205,5 @@ boxplot(sqrt(exp(as.matrix(as.data.frame(logMSE)))), ylim = c(0, 0.2), main = "R
                   expression(paste(lambda[54], "(x)", sep = ""))),
         ylab = expression(paste("RMSE(", lambda[ij],"(x))", sep = "")),
         cex.axis = 1.75, cex.lab = 2, cex.main = 2)
-# dev.off()
+
+sessionInfo()

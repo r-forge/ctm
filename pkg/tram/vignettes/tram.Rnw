@@ -1,6 +1,6 @@
 
 %\VignetteEngine{knitr::knitr}
-%\VignetteIndexEntry{tram}
+%\VignetteIndexEntry{Transformation Models: The tram Package}
 %\VignetteDepends{tram, survival, MASS, mlbench, multcomp, ordinal, colorspace, quantreg, ATR}
 
 \documentclass[article,nojss,shortnames]{jss}

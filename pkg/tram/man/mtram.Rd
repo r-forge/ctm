@@ -10,7 +10,8 @@
 mtram(object, formula, data,
       grd = SparseGrid::createSparseGrid(type = "KPU", 
                 dimension = length(rt$cnms[[1]]), k = 10), 
-      Hessian = FALSE,  tol = .Machine$double.eps, ...)
+      tol = .Machine$double.eps, optim = mltoptim(auglag = list(maxtry = 5)),
+      ...)
 }
 \arguments{
   \item{object}{
@@ -25,10 +26,10 @@ mtram(object, formula, data,
   \item{grd}{
   A sparse grid used for numerical integration to get the likelihood.
 }
-  \item{Hessian}{
-  A logical, if \code{TRUE}, the hessian is computed and returned.
-}
   \item{tol}{numerical tolerance.}
+\item{optim}{
+a list of optimisers as returned by \code{\link[mlt]{mltoptim}}
+}
   \item{\dots}{
   Additional argument.
 }
@@ -49,18 +50,17 @@ mtram(object, formula, data,
   An object of class \code{tram} with \code{coef()} and \code{logLik()}
   methods.
 }
+\seealso{
+  \code{vignette("mtram", package = "tram")}
+}
 \references{
 
-  Luisa Barbanti and Torsten Hothorn (2023). A Transformation Perspective on 
-  Marginal and Conditional Models, \emph{Biostatistics}, \doi{10.1093/biostatistics/kxac048}.
+  Luisa Barbanti and Torsten Hothorn (2024). A Transformation Perspective on 
+  Marginal and Conditional Models, \emph{Biostatistics}, \bold{25}(2),
+  402--428, \doi{10.1093/biostatistics/kxac048}.
 
 }
 \examples{
-
-  ### For illustrations see
-  ## vignette("mtram", package = "tram")
-  ## or
-  ## demo("mtram", package = "tram")
 
   if (require("lme4")) {
       ### linear mixed model

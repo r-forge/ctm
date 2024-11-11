@@ -71,7 +71,7 @@ run_mmlt <- function(i, o_marginal, o_lambda) {
   ptm <- system.time(m <- mmlt(m_y1, m_y2, formula = Bx_lambda, data = data_i))
   
   ### predict correlations
-  rho <- unclass(coef(m, newdata = data.frame(x = xseq), type = "Lambda"))
+  rho <- unclass(coef(m, newdata = data.frame(x = xseq), type = "Lambdapar"))
   ret <- list(rho = rho, ptm = ptm)
   return(ret)
 }
@@ -215,7 +215,7 @@ res_all$MCTM63 <- tt2
 res_all$MCTM123 <- tt3
 
 
-# pdf("sim2d.pdf", paper = "special", height = 4, width = 12)
+pdf("sim2d.pdf", paper = "special", height = 4, width = 12)
 par(mar = c(5.5, 6.0, 3.5, 1.2) - 1)
 panel_f <- function(x, y, repl = 100) {
   xseq <- seq(-0.9, 0.9, by = 0.1)
@@ -254,4 +254,4 @@ boxplot(sqrt(exp(logMSE)), ylim = c(0, 0.2),
         main = "RMSE", ylab = expression(paste("RMSE(", lambda, "(x))", sep = "")),
         names = c("MCTM-6/6", "MCTM-6/3", "MCTM-12/3"), 
         cex.axis = 1.75, cex.lab = 2, cex.main = 2)
-# dev.off()
+dev.off()

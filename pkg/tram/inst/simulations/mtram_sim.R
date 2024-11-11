@@ -41,7 +41,7 @@ fits1 <- function(i) {
   cm <- ctm(as.basis(~ y, data = d), shifting = ~ X1 + X2 + X3,
             data = d, todistr = "Logistic", negative = TRUE)
   m <- mlt(cm, data = d, fixed = c("y1" = 0))
-  mt <- mtram(m, ~ (1 | cls), data = d, Hessian = TRUE)
+  mt <- mtram(m, ~ (1 | cls), data = d)
   
   cf <- coef(mt)
   
@@ -52,7 +52,7 @@ fits1 <- function(i) {
   # cfgee[i,] <- coef(gm)[-1L]
 
   ### compute confidence intervals for marginal odds ratios from mtram
-  Z <- rmvnorm(10000, mean = coef(mt)[-1L], sigma = solve(mt$Hessian)[-1,-1])
+  Z <- rmvnorm(10000, mean = coef(mt)[-1L], sigma = vcov(mt)[-1,-1])
   ci <- apply(Z[,-4] / sqrt(1 + Z[,4]^2), 2, quantile, prob = c(.025, .975))
   
   return(list(cfm = cf[c("X1", "X2", "X3")] / sqrt(1 + cf["gamma1"]^2),
@@ -69,12 +69,12 @@ fits2 <- function(i) {
   d <- dgp(dichotomize = FALSE, tau, S, Sigma, D, fct)
   
   m <- Colr(y ~ X1 + X2 + X3, data = d)
-  mt <- mtram(m, ~ (1 | cls), data = d, Hessian = TRUE)
+  mt <- mtram(m, ~ (1 | cls), data = d)
   
   cf <- coef(mt)
   
   Z <- rmvnorm(10000, mean = coef(mt)[c("X1", "X2", "X3", "gamma1")], 
-               sigma = solve(mt$Hessian)[-(1:7),-(1:7)])
+               sigma = vcov(mt)[-(1:7),-(1:7)])
   ci <- apply(Z[,-4] / sqrt(1 + Z[,4]^2), 2, quantile, prob = c(.025, .975))
   
   return(list(cfm = cf[c("X1", "X2", "X3")] / sqrt(1 + cf["gamma1"]^2),
@@ -287,7 +287,7 @@ f <- function(tau) {
   
   d <- dgp(dichotomize = FALSE, tau, S, Sigma, D, fct)
   m <- Colr(y ~ X1 + X2 + X3, data = d)
-  mtT <- mtram(m, ~ (1 | cls), data = d, Hessian = FALSE)
+  mtT <- mtram(m, ~ (1 | cls), data = d)
   mm <- ColrME(y ~ X1 + X2 + X3 + (1 | cls), data = d)
   mm_fe <- Colr(y ~ X1 + X2 + X3, data = d)
   mBC <- BoxCoxME(y ~ X1 + X2 + X3 + (1 | cls), data = d, order = 1)
