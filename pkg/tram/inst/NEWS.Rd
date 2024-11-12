@@ -2,7 +2,7 @@
 \name{NEWS}
 \title{NEWS file for the tram package}
 
-\section{Changes in Version 1.2-0 (2024-11-08)}{
+\section{Changes in Version 1.2-0 (2024-11-12)}{
   \itemize{
     \item{Adding scores for discrete \code{mtram} models.}
     \item{Update \code{mtram} to internal interface changes.}
