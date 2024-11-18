@@ -3,7 +3,7 @@ set.seed(290875)
 
 pkgs <- c("colorspace", "survival", "lme4", "tram", "gridExtra",
           "lattice", "latticeExtra", "mvtnorm", "ordinalCont", "tramME")
-pkgs <- pkgs %in% installed.packages()
+pkgs <- sapply(pkgs, require, character.only = TRUE)
 
 
 ## ----mtram-citation, echo = FALSE---------------------------------------------
