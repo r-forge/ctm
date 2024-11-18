@@ -84,9 +84,9 @@ An object of class \code{Coxph}, with corresponding \code{coef},
 
   (m2 <- Coxph(Surv(time, cens) ~ horTh, data = GBSG2))
 
-  ### McLain & Ghosh (2013)
-  (m3 <- Coxph(Surv(time, cens) ~ horTh, data = GBSG2, 
-               frailty = "Gamma"))
+  ### McLain & Ghosh (2013); takes too long on Windows
+  \dontrun{m3 <- Coxph(Surv(time, cens) ~ horTh, data = GBSG2, 
+               frailty = "Gamma")}
 
   ### Wald intervals
   confint(m1)
@@ -96,7 +96,7 @@ An object of class \code{Coxph}, with corresponding \code{coef},
   ### score interval
   confint(score_test(m2))
   ### permutation score interval; uses permutation distribution
-  ### see coin::independence_test
+  ### see coin::independence_test; takes too long on Windows
   \dontrun{confint(perm_test(m2))}
 
 }
