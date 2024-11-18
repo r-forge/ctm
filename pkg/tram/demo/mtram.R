@@ -89,8 +89,8 @@ col <- diverge_hcl(2, h = c(246, 40), c = 120, l = c(65, 90), alpha = .75)
 
 
 ## ----mtram-vignette, eval = FALSE---------------------------------------------
-## install.packages("tram")
-## demo("mtram", package = "tram")
+# install.packages("tram")
+# demo("mtram", package = "tram")
 
 
 ## ----mtram-sleep-plot, echo = FALSE-------------------------------------------
@@ -888,20 +888,20 @@ exp(confint(CAO_Cox_2_tramME, parm = "randarm5-FU + Oxaliplatin",
 
 
 ## ----echo=FALSE, eval=FALSE---------------------------------------------------
-## sqrt(VarCorr(CAO_Cox_2_tramME)$Block$var)
-## coef(CAO_Cox_2_mtram)["gamma1"]
+# sqrt(VarCorr(CAO_Cox_2_tramME)$Block$var)
+# coef(CAO_Cox_2_mtram)["gamma1"]
 
 
 ## ----mtram-CAO-coxme, echo = FALSE, eval = FALSE------------------------------
-## library("coxme")
-## m <- coxme(DFS ~ randarm + (1 | Block), data = CAOsurv)
-## summary(m)
-## sd <- sqrt(diag(vcov(m)))
-## exp(coef(m) + c(-1, 0, 1) * qnorm(.975) * sd)
+# library("coxme")
+# m <- coxme(DFS ~ randarm + (1 | Block), data = CAOsurv)
+# summary(m)
+# sd <- sqrt(diag(vcov(m)))
+# exp(coef(m) + c(-1, 0, 1) * qnorm(.975) * sd)
 
 
 ## ----sim, eval = FALSE--------------------------------------------------------
-## source(system.file("simulations", "mtram_sim.R", package = "tram"), echo = TRUE)
+# source(system.file("simulations", "mtram_sim.R", package = "tram"), echo = TRUE)
 
 
 ## ----mtram-sessionInfo, echo = FALSE, results = "hide"------------------------
