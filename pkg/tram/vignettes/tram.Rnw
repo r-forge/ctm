@@ -122,6 +122,11 @@ if (any(!pkgs)) {
         "\\end{document}\n"))
     knitr::knit_exit()
 }
+if (!interactive() && .Platform$OS.type != "unix")
+{
+    cat("Vignette only compiled under Unix alikes.")
+    knitr::knit_exit()
+}
 @
 
 \section{Introduction}

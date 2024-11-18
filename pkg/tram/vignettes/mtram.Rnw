@@ -524,13 +524,16 @@ if (any(!pkgs))
         "\\end{document}\n"))
     knitr::knit_exit()
 }
+if (!interactive() && .Platform$OS.type != "unix")
+{
+    cat("Vignette only compiled under Unix alikes.")
+    knitr::knit_exit()
+}
 @
 
 
+
 <<mtram-setup, echo = FALSE, results = "hide", message = FALSE, warning = FALSE>>=
-library("lattice")
-library("latticeExtra")
-library("gridExtra")
 trellis.par.set(list(plot.symbol = list(col=1,pch=20, cex=0.7),
                      box.rectangle = list(col=1),
                      box.umbrella = list(lty=1, col=1),
@@ -590,7 +593,6 @@ mypanel <- function (x, y, f.value = NULL, type = "s", groups = NULL, qtype = 7,
         }
     }
 }
-library("colorspace")
 col <- diverge_hcl(2, h = c(246, 40), c = 120, l = c(65, 90), alpha = .75)
 @
 
