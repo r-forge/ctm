@@ -70,13 +70,11 @@ gamma1 gamma2 gamma3
 > 
 > ## ----mtram-sleep_varcorr------------------------------------------------------
 > sleep_LMmer$G * (1 / sdinv)^2
-2 x 2 sparse Matrix of class "dsCMatrix"
-           
-[1,] 565 11
-[2,]  11 33
+     [,1] [,2]
+[1,]  565   11
+[2,]   11   33
 > cov2cor(sleep_LMmer$G * (1 / sdinv)^2)
-2 x 2 sparse Matrix of class "dsCMatrix"
-                
+      [,1]  [,2]
 [1,] 1.000 0.082
 [2,] 0.082 1.000
 > unclass(VarCorr(sleep_lmer))$Subject
@@ -111,4 +109,4 @@ Days              0.081 1.000
 > 
 > proc.time()
    user  system elapsed 
-   4.78    0.11    4.95 
+  4.688   0.059   4.745 

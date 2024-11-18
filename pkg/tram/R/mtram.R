@@ -351,7 +351,8 @@ mtram <- function(object, formula, data,
     gamma <- opt$par[-(1:ncol(X))]
     names(opt$par)[-(1:ncol(X))] <- paste0("gamma", 1:length(gamma))
     Lambdat@x[] <- mapping(gamma)
-    opt$G <- crossprod(Lambdat)[1:length(rt$cnms[[1]]),1:length(rt$cnms[[1]])]
+    opt$G <- as(crossprod(Lambdat)[1:length(rt$cnms[[1]]),
+                                   1:length(rt$cnms[[1]])], "matrix")
     opt$loglik <- ll
     if(!is.null(gr)) opt$gr <- gr
     opt$call <- call
