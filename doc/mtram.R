@@ -3,7 +3,7 @@ set.seed(290875)
 
 pkgs <- c("colorspace", "survival", "lme4", "tram", "gridExtra",
           "lattice", "latticeExtra", "mvtnorm", "ordinalCont", "tramME")
-pkgs <- pkgs %in% installed.packages()
+pkgs <- sapply(pkgs, require, character.only = TRUE)
 
 
 ## ----mtram-citation, echo = FALSE---------------------------------------------
@@ -19,12 +19,14 @@ if (any(!pkgs))
         "\\end{document}\n"))
     knitr::knit_exit()
 }
+if (!interactive() && .Platform$OS.type != "unix")
+{
+    cat("Vignette only compiled under Unix alikes.")
+    knitr::knit_exit()
+}
 
 
 ## ----mtram-setup, echo = FALSE, results = "hide", message = FALSE, warning = FALSE----
-library("lattice")
-library("latticeExtra")
-library("gridExtra")
 trellis.par.set(list(plot.symbol = list(col=1,pch=20, cex=0.7),
                      box.rectangle = list(col=1),
                      box.umbrella = list(lty=1, col=1),
@@ -84,13 +86,12 @@ mypanel <- function (x, y, f.value = NULL, type = "s", groups = NULL, qtype = 7,
         }
     }
 }
-library("colorspace")
 col <- diverge_hcl(2, h = c(246, 40), c = 120, l = c(65, 90), alpha = .75)
 
 
 ## ----mtram-vignette, eval = FALSE---------------------------------------------
-## install.packages("tram")
-## demo("mtram", package = "tram")
+# install.packages("tram")
+# demo("mtram", package = "tram")
 
 
 ## ----mtram-sleep-plot, echo = FALSE-------------------------------------------
@@ -888,20 +889,20 @@ exp(confint(CAO_Cox_2_tramME, parm = "randarm5-FU + Oxaliplatin",
 
 
 ## ----echo=FALSE, eval=FALSE---------------------------------------------------
-## sqrt(VarCorr(CAO_Cox_2_tramME)$Block$var)
-## coef(CAO_Cox_2_mtram)["gamma1"]
+# sqrt(VarCorr(CAO_Cox_2_tramME)$Block$var)
+# coef(CAO_Cox_2_mtram)["gamma1"]
 
 
 ## ----mtram-CAO-coxme, echo = FALSE, eval = FALSE------------------------------
-## library("coxme")
-## m <- coxme(DFS ~ randarm + (1 | Block), data = CAOsurv)
-## summary(m)
-## sd <- sqrt(diag(vcov(m)))
-## exp(coef(m) + c(-1, 0, 1) * qnorm(.975) * sd)
+# library("coxme")
+# m <- coxme(DFS ~ randarm + (1 | Block), data = CAOsurv)
+# summary(m)
+# sd <- sqrt(diag(vcov(m)))
+# exp(coef(m) + c(-1, 0, 1) * qnorm(.975) * sd)
 
 
 ## ----sim, eval = FALSE--------------------------------------------------------
-## source(system.file("simulations", "mtram_sim.R", package = "tram"), echo = TRUE)
+# source(system.file("simulations", "mtram_sim.R", package = "tram"), echo = TRUE)
 
 
 ## ----mtram-sessionInfo, echo = FALSE, results = "hide"------------------------
