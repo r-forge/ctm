@@ -335,6 +335,8 @@ mtram <- function(object, formula, data,
     ci <- attr(X, "constraint")$ci
     ui <- as(bdiag(ui, Diagonal(length(theta))), "matrix")
     ci <- c(ci, rt$lower)
+    ui <- as(ui[is.finite(ci),,drop = FALSE], "matrix")
+    ci <- ci[is.finite(ci)]
     
     start <- c(coef(as.mlt(object), fixed = FALSE), theta)
     
