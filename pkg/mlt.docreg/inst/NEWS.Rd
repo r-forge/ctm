@@ -3,11 +3,18 @@
 \title{NEWS file for the mlt.docreg package}
 
 
+\section{Changes in Version 1.1-10 (2024-11-19)}{
+  \itemize{
+    \item{Use logLik() method in tests, not the internal slots.}
+  }
+}
+
 \section{Changes in Version 1.1-9 (2024-09-19)}{
   \itemize{
     \item{Use logLik() method in tests, not the internal slots.}
   }
 }
+
 
 \section{Changes in Version 1.1-8 (2024-04-29)}{
   \itemize{
