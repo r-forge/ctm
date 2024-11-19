@@ -2,6 +2,12 @@
 \name{NEWS}
 \title{NEWS file for the tram package}
 
+\section{Changes in Version 1.2-1 (2024-11-19)}{
+  \itemize{
+    \item{Fix broken bib file.}
+  }
+}
+
 \section{Changes in Version 1.2-0 (2024-11-18)}{
   \itemize{
     \item{Adding scores for discrete \code{mtram} models.}
