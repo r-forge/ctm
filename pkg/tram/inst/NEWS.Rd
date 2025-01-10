@@ -2,6 +2,12 @@
 \name{NEWS}
 \title{NEWS file for the tram package}
 
+\section{Changes in Version 1.2-2 (2025-01-09)}{
+  \itemize{
+    \item{Make \code{model.matrix} more flexible for \code{tram} objects.}
+  }
+}
+
 \section{Changes in Version 1.2-1 (2024-11-19)}{
   \itemize{
     \item{Fix broken bib file.}
