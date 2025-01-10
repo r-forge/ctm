@@ -38,9 +38,10 @@
 \usage{
 \method{as.mlt}{tram}(object)
 \method{model.frame}{tram}(formula, ...)
-\method{model.matrix}{tram}(object, data = object$data, with_baseline = FALSE, ...) 
+\method{model.matrix}{tram}(object, data = object$data, with_baseline = FALSE, 
+       what = c("shifting", "interacting"), ...) 
 \method{model.matrix}{stram}(object, data = object$data, with_baseline = FALSE, 
-       what = c("shifting", "scaling"), ...) 
+       what = c("shifting", "scaling", "interacting"), ...) 
 \method{coef}{tram}(object, with_baseline = FALSE, ...) 
 \method{coef}{Lm}(object, as.lm = FALSE, ...)
 \method{coef}{Survreg}(object, as.survreg = FALSE, ...)

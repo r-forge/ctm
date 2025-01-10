@@ -21,19 +21,23 @@ terms.tram <- function(x, ...)
     terms(model.frame(x))
 
 model.matrix.tram <- function(object, data = object$data, 
-                              with_baseline = FALSE, ...) 
+                              with_baseline = FALSE, 
+                              what = c("shifting", "interacting"), ...) 
 {
     if (with_baseline) 
-        return(model.matrix(as.mlt(object), data = data, ...))
+        return(model.matrix(as.mlt(object)$model, data = data, ...))
     if (is.null(object$shiftcoef)) 
         return(NULL)
-    ret <- model.matrix(as.mlt(object)$model$model$bshifting, 
-                        data = data, ...)
-    ret
+    what <- match.arg(what)
+    switch(what,
+        "shifting" = model.matrix(as.mlt(object)$model$model$bshifting, 
+                                  data = data, ...),
+        "interacting" = model.matrix(as.mlt(object)$model$bases$interacting, 
+                                  data = data, ...))
 }	
 
 model.matrix.stram <- function(object, data = object$data, 
-    with_baseline = FALSE, what = c("shifting", "scaling"), ...) {
+    with_baseline = FALSE, what = c("shifting", "scaling", "interacting"), ...) {
     if (with_baseline)
         stop("no model.matrix method for class stram defined")
     what <- match.arg(what)
@@ -41,6 +45,8 @@ model.matrix.stram <- function(object, data = object$data,
         "shifting" = model.matrix.tram(object, data = data,
                                        with_baseline = with_baseline, ...),
         "scaling" = model.matrix(object$model$model$bscaling, data = data,
+                                       with_baseline = FALSE, ...),
+        "interacting" = model.matrix(object$model$bases$interacting, data = data,
                                        with_baseline = FALSE, ...))
 }
 

@@ -213,6 +213,7 @@ m <- Lm(Ozone ~ Solar.R + Wind + Temp + Month + Day | Solar.R + Wind + Temp + Mo
 lp1 <- predict(m, type = "lp", what = "shifting")
 lp2 <- predict(m, type = "lp", what = "scaling")
 
-X <- model.matrix(~ Solar.R + Wind + Temp + Month + Day, data = aq)[, -1L]
+X <- -model.matrix(m)
 stopifnot(identical(lp1, X %*% coef(m, with_baseline = FALSE)[m$shiftcoef]))
+X <- model.matrix(m, what = "scaling")
 stopifnot(identical(lp2, X %*% coef(m, with_baseline = FALSE)[m$scalecoef]))

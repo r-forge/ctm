@@ -226,3 +226,13 @@ chk(nrow(m2$data), sum(!is.na(d$y)))
 chk(coef(m2), coef(m1), tol = 1e-2)
 chk(coef(m3), coef(m1), tol = 1e-2)
 
+### allow to extract all relevant model matrix parts
+## tram
+m <- Coxph(Surv(time, cens) | horTh ~ age, data = GBSG2)
+model.matrix(m, data = GBSG2[1:10,], what = "shifting")
+model.matrix(m, data = GBSG2[1:10,], what = "interacting")
+## stram
+m <- Coxph(Surv(time, cens) | horTh ~ age | pnodes, data = GBSG2)
+model.matrix(m, data = GBSG2[1:10,], what = "shifting")
+model.matrix(m, data = GBSG2[1:10,], what = "scaling")
+model.matrix(m, data = GBSG2[1:10,], what = "interacting")

@@ -1,13 +1,11 @@
 
-R version 4.3.0 (2023-04-21) -- "Already Tomorrow"
-Copyright (C) 2023 The R Foundation for Statistical Computing
-Platform: x86_64-pc-linux-gnu (64-bit)
+R version 4.4.2 (2024-10-31) -- "Pile of Leaves"
+Copyright (C) 2024 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
 Type 'license()' or 'licence()' for distribution details.
-
-  Natural language support but running in an English locale
 
 R is a collaborative project with many contributors.
 Type 'contributors()' for more information and
@@ -22,6 +20,7 @@ Type 'q()' to quit R.
 Loading required package: mlt
 Loading required package: basefun
 Loading required package: variables
+Loading required package: mvtnorm
 > library("sandwich")
 > set.seed(29)
 > 
@@ -243,10 +242,11 @@ attr(,"achieved.conf.level")
 > lp1 <- predict(m, type = "lp", what = "shifting")
 > lp2 <- predict(m, type = "lp", what = "scaling")
 > 
-> X <- model.matrix(~ Solar.R + Wind + Temp + Month + Day, data = aq)[, -1L]
+> X <- -model.matrix(m)
 > stopifnot(identical(lp1, X %*% coef(m, with_baseline = FALSE)[m$shiftcoef]))
+> X <- model.matrix(m, what = "scaling")
 > stopifnot(identical(lp2, X %*% coef(m, with_baseline = FALSE)[m$scalecoef]))
 > 
 > proc.time()
    user  system elapsed 
-  6.629   0.144   6.758 
+  3.732   0.072   3.802 
