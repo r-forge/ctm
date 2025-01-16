@@ -12,7 +12,7 @@ importFrom("stats", "model.matrix", "coef", "vcov", "nobs", "predict", "quantile
            "printCoefmat", "qqline", "qqplot", "qunif", "variable.names", "pchisq",
            "model.frame", "pnorm", "qnorm", "sigma", "residuals", "qchisq", "approx", "spline",
            "confint", "relevel", "resid", "ecdf", "dnorm", "weights", "lm", "simulate", 
-           "plogis", "qlogis", "dist", "uniroot", "optim", "runif", "rnorm", "update")
+           "plogis", "qlogis", "dist", "uniroot", "optim", "runif", "rnorm", "update", "sd")
 importFrom("Matrix", "Matrix", "bdiag", "Diagonal", "Cholesky", "crossprod", 
            "update", "t", "determinant", "rowSums", "diag")
 importFrom("survival", "survfit", "Surv", "coxph.control")
