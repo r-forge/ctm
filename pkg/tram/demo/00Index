@@ -7,4 +7,4 @@ stram	Location-scale Transformation Models
 survtram	Transformation Models for Survival Analysis
 tram	Transformation Models: The tram package
 undernutrition	Multivariate Conditional Transformation Models
-AIM	Adjusted Marginal Inference under Non-collapsibility
+AMI	Adjusted Marginal Inference under Non-collapsibility
