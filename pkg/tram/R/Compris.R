@@ -72,6 +72,7 @@ Compris <- function(formula, data, subset, weights, na.action, offset,
                     NPlogLik = FALSE, theta = NULL,
                     optim = mltoptim(auglag = list(maxtry = 5)), 
                     args = list(seed = 1, type = c("MC", "ghalton"), M = 1000),
+                    fit = c("jointML", "none"),
                     scale = FALSE, ...)
 {
 
@@ -120,6 +121,7 @@ Compris <- function(formula, data, subset, weights, na.action, offset,
     m$theta <- theta
     m$scale <- scale
     m$args <- args
+    m$fit <- match.arg(fit)
     ret <- do.call("Mmlt", m)
     ret$call <- call
     class(ret) <- c("Compris", class(ret))
