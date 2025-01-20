@@ -6,6 +6,7 @@
   \itemize{
     \item{Make \code{model.matrix} more flexible for \code{tram} objects.}
     \item{New doubly robust score test added as \code{robust_score_test}.}
+    \item{Add \code{fit} argument to \code{Compris}.}
   }
 }
 
