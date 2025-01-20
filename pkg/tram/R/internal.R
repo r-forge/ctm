@@ -27,7 +27,10 @@ asvar.Surv <- function(object, name, prob = c(.1, .9), support = NULL, bounds = 
     if (is.null(bounds)) bounds <- c(0, Inf)
     if (is.null(support)) {
         support <- quantile(sf <- survfit(y ~ 1, data = data.frame(y = object)), prob = prob)$quantile
+        first <- min(sf$time[sf$n.event > 0])
         last <- max(sf$time[sf$n.event > 0])
+        if (is.na(support[1])) 
+            support[1] <- first
         if (is.na(support[2])) 
             support[2] <- last
         add <- c(0 - support[1], 0)
