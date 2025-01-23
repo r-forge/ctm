@@ -36,7 +36,7 @@ robust_score_test.tram <- function(
   rX <- .residualize(object, m, parm, ranger_args)
 
   ### Compute score statistic under H_0: b = alt
-  scfun <- \(alt) {
+  scfun <- function(alt) {
     names(alt) <- parm
     cf <- stats::coef(stats::update(m, fixed = alt))
     coef(m) <- cf
