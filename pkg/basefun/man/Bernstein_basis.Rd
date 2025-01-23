@@ -71,7 +71,7 @@ Bernstein_basis(var, order = 2, ui = c("none", "increasing", "decreasing",
   x <- seq(from = 0, to = pi, length.out = N)
   y <- rnorm(N, mean = -sin(x) + .5, sd = .5)
 
-  if (require("coneproj")) {
+  if (require("quadprog")) {
     prnt_est <- function(ui) {
       xv <- numeric_var("x", support = c(0, pi))
       xb <- Bernstein_basis(xv, order = 10, ui = ui)
@@ -79,8 +79,8 @@ Bernstein_basis(var, order = 2, ui = c("none", "increasing", "decreasing",
       uiM <- as(attr(X, "constraint")$ui, "matrix")
       ci <- attr(X, "constraint")$ci
       if (all(is.finite(ci)))
-        parm <- qprog(crossprod(X), crossprod(X, y), 
-                      uiM, ci, msg = FALSE)$thetahat
+        parm <- solve.QP(crossprod(X), crossprod(X, y), 
+                         t(uiM), ci)$solution
       else
         parm <- coef(lm(y ~ 0 + X))
       plot(x, y, main = ui)

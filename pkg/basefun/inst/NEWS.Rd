@@ -2,6 +2,19 @@
 \name{NEWS}
 \title{NEWS file for the basefun package}
 
+\section{Changes in Version 1.2-2 (2025-01-23)}{
+  \itemize{
+    \item{Switch from \pkg{coneproj} to \pkg{quadprog} in \code{?Bernstein_basis}.}
+  }
+}
+
+\section{Changes in Version 1.2-1 (2025-01-17)}{
+  \itemize{
+    \item{Allow to keep unused levels in \code{as.basis.formula}.}
+  }
+}
+
+
 \section{Changes in Version 1.2-0 (2024-05-21)}{
   \itemize{
     \item{New \code{cyclic_basis()} for modelling seasonal effects.}

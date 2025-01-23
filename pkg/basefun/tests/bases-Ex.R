@@ -25,17 +25,17 @@ stopifnot(isTRUE(all.equal(fitted(m1), fitted(m0))))
 stopifnot(isTRUE(all.equal(sum(coef(m1)) / length(coef(m1)), coef(m0)["(Intercept)"], 
                     check.attributes = FALSE)))
 
-if (require("coneproj")) {
+if (require("quadprog")) {
   ### check contraints fits
-  q1 <- qprog(crossprod(X1), crossprod(X1, y), 
-              amat = as(attr(X1, "constraint")$ui, "matrix"), b = attr(X1, "constraint")$ci)
-  q0 <- qprog(crossprod(cbind(1, X0)), crossprod(cbind(1, X0), y), 
-              amat = cbind(0, as(attr(X0, "constraint")$ui, "matrix")), b = attr(X0, "constraint")$ci)
-  stopifnot(isTRUE(all.equal(X1 %*% q1$thetahat, cbind(1, X0) %*% q0$thetahat)))
-  stopifnot(isTRUE(all.equal(sum(q1$thetahat) / length(q1$thetahat), q0$thetahat[1L])))
+  q1 <- solve.QP(crossprod(X1), crossprod(X1, y), 
+                 t(as(attr(X1, "constraint")$ui, "matrix")), attr(X1, "constraint")$ci)
+  q0 <- solve.QP(crossprod(cbind(1, X0)), crossprod(cbind(1, X0), y), 
+                 t(cbind(0, as(attr(X0, "constraint")$ui, "matrix"))), attr(X0, "constraint")$ci)
+  stopifnot(isTRUE(all.equal(X1 %*% q1$solution, cbind(1, X0) %*% q0$solution)))
+  stopifnot(isTRUE(all.equal(sum(q1$solution) / length(q1$solution), q0$solution[1L])))
   ### check derivatives
-  stopifnot(isTRUE(all.equal(model.matrix(Bb, data = data.frame(x = x), deriv = c("x" = 1)) %*% q1$theta,
-                             model.matrix(Bb0, data = data.frame(x = x), deriv = c("x" = 1)) %*% q0$theta[-1L])))
+  stopifnot(isTRUE(all.equal(model.matrix(Bb, data = data.frame(x = x), deriv = c("x" = 1)) %*% q1$solution,
+                             model.matrix(Bb0, data = data.frame(x = x), deriv = c("x" = 1)) %*% q0$solution[-1L])))
 }
 
 

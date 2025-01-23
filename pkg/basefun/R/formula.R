@@ -1,7 +1,7 @@
 
 as.basis.formula <- function(object, data = NULL, remove_intercept = FALSE, 
                              ui = NULL, ci = NULL, negative = FALSE, scale = FALSE,
-                             Matrix = FALSE, prefix = "", ...) {
+                             Matrix = FALSE, prefix = "", drop.unused.levels = TRUE, ...) {
 
     mm <- stats::model.matrix
     if (Matrix) mm <- Matrix::sparse.model.matrix
@@ -20,7 +20,8 @@ as.basis.formula <- function(object, data = NULL, remove_intercept = FALSE,
     mf <- NULL
     if (!is.null(data) && NROW(data) > 0) {
         ### see http://developer.r-project.org/model-fitting-functions.txt
-        mf <- model.frame(object, data = data, drop.unused.levels = TRUE)
+        mf <- model.frame(object, data = data, 
+                          drop.unused.levels = drop.unused.levels)
         mt <- attr(mf, "terms")
         X <- mm(mt, data = mf, ...)
         contr <- attr(X, "contrasts")
