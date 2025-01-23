@@ -72,7 +72,7 @@ robust_score_test.tram <- function(
   ci <- if (confint) {
     tryCatch(
       .ci(scfun, level, m, alternative, parm, TRUE),
-      error = \(e) {
+      error = function(e) {
         warning("Cannot invert score function numerically for paramerer `", parm, "`")
         NULL
       }
@@ -100,8 +100,8 @@ robust_score_test.tram <- function(
 
 .tmm <- function(object) {
   shi <- model.matrix(object, what = "shifting")
-  scl <- tryCatch(model.matrix(object, what = "scaling"), error = \(e) NULL)
-  int <- tryCatch(model.matrix(object, what = "interacting"), error = \(e) NULL)
+  scl <- tryCatch(model.matrix(object, what = "scaling"), error = function(e) NULL)
+  int <- tryCatch(model.matrix(object, what = "interacting"), error = function(e) NULL)
   nshi <- colnames(shi)
   nscl <- colnames(scl)
   scl_rm <- intersect(paste0("scl_", nshi), nscl)
@@ -154,7 +154,7 @@ robust_score_test.tram <- function(
   lwr <- if (alternative == "less") {
     -Inf
   } else {
-    stats::uniroot(\(x) scfun(x)$stat - stats::qnorm(alpha),
+    stats::uniroot(function(x) scfun(x)$stat - stats::qnorm(alpha),
       lower = wci[1],
       upper = wci[2], extendInt = "yes"
     )$root
@@ -162,14 +162,14 @@ robust_score_test.tram <- function(
   upr <- if (alternative == "greater") {
     Inf
   } else {
-    stats::uniroot(\(x) scfun(x)$stat - stats::qnorm(1 - alpha),
+    stats::uniroot(function(x) scfun(x)$stat - stats::qnorm(1 - alpha),
       lower = wci[1],
       upper = wci[2], extendInt = "yes"
     )$root
   }
   est <- NULL
   if (return_est) {
-    est <- stats::uniroot(\(x) scfun(x)$stat,
+    est <- stats::uniroot(function(x) scfun(x)$stat,
       lower = wci[1], upper = wci[2],
       extendInt = "yes"
     )$root
