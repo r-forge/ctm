@@ -1,3 +1,9 @@
+
+### ePolr model illustration:
+### M. Muri, A. Curt, J. Steeves, T. Hothorn
+### Baseline-adjusted Proportional Odds Models for the Quantification
+### of Treatment Effects in Trials with Ordinal Sum Score Outcomes
+
 SCI_OR_3 <-
 structure(list(UEMS3n_int = c(40.4573439161333, 31.411663761801, 
 41.7972382719063, 23.1553903051266, 42.7085644196872, 35.5135970742987, 
@@ -108,11 +114,6 @@ structure(list(UEMS3n_int = c(40.4573439161333, 31.411663761801,
 -240L))
 
 library("tram")
-
-### ePolr model illustration:
-### M. Muri, A. Curt, J. Steeves, T. Hothorn
-### Baseline-adjusted Proportional Odds Models for the Quantification
-### of Treatment Effects in Trials with Ordinal Sum Score Outcomes
 
 ### Model estimation
 modUEMS <- Colr(UEMS3n_int | 0 + segblw_s + UEMS0:segblw_s ~ trtmt,

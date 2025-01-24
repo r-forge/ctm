@@ -10,9 +10,13 @@ pkgs <- c("tram", "trtf", "ATR", "tramvs", "survival", "coin",
   "multcomp", "TH.data", "gamlss", "gamlss.cens", "mpr", "KONPsurv", "lattice",
   "latticeExtra", "grid",  "gridExtra", "reshape2", "colorspace", "xtable", "cotram")
 
-ix <- which(!sapply(pkgs, require, char = TRUE))
-if (length(ix) > 0) {install.packages(pkgs[ix], repos = "https://stat.ethz.ch/CRAN/")
- sapply(pkgs[ix], require, char = TRUE)}
+ip <- rownames(installed.packages())
+if (any(!pkgs %in% ip))
+    install.packages(pkgs[!pkgs %in% ip], repos = "https://stat.ethz.ch/CRAN/")
+
+OK <- sapply(pkgs, require, character.only = TRUE)
+if (!all(OK)) 
+    stop("package(s) ", paste(pkgs[!OK], collapse = ", "), " not available")
 
 `coef<-` <- mlt::`coef<-` ## masked
 

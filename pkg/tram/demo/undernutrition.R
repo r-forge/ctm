@@ -1,8 +1,20 @@
-### UNDERNUTRITION DATA DEMO
-library("tram") 
-library("mvtnorm")
-library("colorspace")
-library("latex2exp")
+
+### Undernutrition example presented in 
+### 
+### 	Multivariate Conditional Transformation Models
+### 	by Nadja Klein, Torsten Hothorn, Luisa Barbanti & Thomas Kneib
+### 	doi:10.1111/sjos.12501
+###
+
+pkgs <- c("tram", "mvtnorm", "colorspace", "latex2exp")
+
+ip <- rownames(installed.packages())
+if (any(!pkgs %in% ip))
+    install.packages(pkgs[!pkgs %in% ip], repos = "https://stat.ethz.ch/CRAN/")
+
+OK <- sapply(pkgs, require, character.only = TRUE)
+if (!all(OK)) 
+    stop("package(s) ", paste(pkgs[!OK], collapse = ", "), " not available")
 
 set.seed(42)
 par(ask = TRUE)

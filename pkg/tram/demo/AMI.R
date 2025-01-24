@@ -7,6 +7,11 @@
 
 ## packages
 pkgs <- c("tram", "TH.data", "multcomp", "survival")
+
+ip <- rownames(installed.packages())
+if (any(!pkgs %in% ip))
+    install.packages(pkgs[!pkgs %in% ip], repos = "https://stat.ethz.ch/CRAN/")
+
 OK <- sapply(pkgs, require, character.only = TRUE)
 if (!all(OK)) 
     stop("package(s) ", paste(pkgs[!OK], collapse = ", "), " not available")

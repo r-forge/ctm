@@ -6,9 +6,13 @@
 pkgs <- c("mlt", "tram",  "trtf", "SparseGrid", "ATR", "tramME", "multcomp",
   "coin", "TH.data", "survival", "colorspace", "xtable")
 
-ix <- which(!sapply(pkgs, require, char = TRUE))
-if (length(ix) > 0) {install.packages(pkgs[ix], repos = "https://stat.ethz.ch/CRAN/")
- sapply(pkgs[ix], require, char = TRUE)}
+ip <- rownames(installed.packages())
+if (any(!pkgs %in% ip))
+    install.packages(pkgs[!pkgs %in% ip], repos = "https://stat.ethz.ch/CRAN/")
+
+OK <- sapply(pkgs, require, character.only = TRUE)
+if (!all(OK)) 
+    stop("package(s) ", paste(pkgs[!OK], collapse = ", "), " not available")
 
 set.seed(290875)
 

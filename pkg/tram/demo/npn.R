@@ -3,19 +3,20 @@
 ### Fit models for HCC data presented in
 ### 
 ###	On Nonparanormal Likelihoods
-###	by Torsten Hothorn
+###	by Torsten Hothorn, UZH
 ###
 
 set.seed(290875)
 
 pkgs <- c("openxlsx", "tram", "survival")
-req <- sapply(pkgs, require, char = TRUE)
-if (!all(req)){
-  sapply(pkgs[!req], install.packages)
-  req[!req] <- sapply(pkgs[!req], require, char = TRUE)
-}
-if (!all(req)) 
-  stop("cannot load dependencies")
+
+ip <- rownames(installed.packages())
+if (any(!pkgs %in% ip))
+    install.packages(pkgs[!pkgs %in% ip], repos = "https://stat.ethz.ch/CRAN/")
+
+OK <- sapply(pkgs, require, character.only = TRUE)
+if (!all(OK)) 
+    stop("package(s) ", paste(pkgs[!OK], collapse = ", "), " not available")
 
 ### Load data
 dat <- read.xlsx("https://datadryad.org/api/v2/files/44697/download", sheet = 1)
