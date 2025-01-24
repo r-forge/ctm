@@ -1,20 +1,34 @@
+
+### Reproducibility material
+###
+###	Predictive Distribution Modelling Using Transformation Forests
+###     by Torsten Hothorn & Achim Zeileis
+###     doi:10.1080/10618600.2021.1872581
+###
+### and
+###
+###     Top-down Transformation Choice
+###	by Torsten Hothorn
+###	doi:10.1177/1471082X17748081
+###
+
 ## ----setup, echo = FALSE, results = "hide", message = FALSE, warning = FALSE----
 ### from CRAN
-library("lattice")
-library("latticeExtra")
-library("multcomp")
-library("memisc")
-library("Matrix")
-options(Matrix.warn = FALSE)
-library("colorspace")
-library("grid")
 
-library("libcoin")
-library("inum")
-library("partykit")
-library("ATR")
-library("trtf")
-library("mlt")
+pkgs <- c("lattice", "latticeExtra", "multcomp", "memisc", "Matrix",
+          "colorspace", "grid", "libcoin", "inum", "partykit",
+          "ATR", "trtf", "mlt")
+
+ip <- rownames(installed.packages())
+if (any(!pkgs %in% ip))
+    install.packages(pkgs[!pkgs %in% ip], repos = "https://stat.ethz.ch/CRAN/")
+
+OK <- sapply(pkgs, require, character.only = TRUE)
+if (!all(OK)) 
+    stop("package(s) ", paste(pkgs[!OK], collapse = ", "), " not available")
+
+options(Matrix.warn = FALSE)
+
 
 pdf("BMI.pdf", width = 12, height = 8)
 

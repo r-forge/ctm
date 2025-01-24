@@ -1,4 +1,6 @@
 
+### reproduces https://doi.org/10.48550/arXiv.1701.02110 Version 1
+
 options(warn = -1L)
 
 ###################################################
