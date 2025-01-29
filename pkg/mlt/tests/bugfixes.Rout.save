@@ -36,19 +36,7 @@ Loading required package: variables
 +                               x2=Bernstein_basis(x2, order = 3)))
 > ### fit model
 > mltm2 <- mlt(ctmm2, data = dat, scale = TRUE)
-> round(p <- predict(mltm2, newdata = data.frame(x1=0, x2 = 0), q = mkgrid(mltm2, n = 10)[["y"]]), 2)
-        
-y         [,1]
-  -1.28  -1.06
-  -0.997 -0.81
-  -0.712 -0.57
-  -0.427 -0.33
-  -0.142 -0.10
-  0.142   0.13
-  0.427   0.38
-  0.712   0.62
-  0.997   0.88
-   1.28   1.15
+> p <- predict(mltm2, newdata = data.frame(x1=0, x2 = 0), q = mkgrid(mltm2, n = 10)[["y"]])
 > ### plot data
 > plot(mltm2,newdata=expand.grid(x1=0:1, x2 = 0:1))
 > 
@@ -184,4 +172,4 @@ Coefficients: 30.951 38.885 42.523 -0.01508 -0.058906 -0.12136 -0.054061 -0.4769
 > 
 > proc.time()
    user  system elapsed 
-  0.889   0.056   0.940 
+  0.933   0.068   0.997 

@@ -2,7 +2,7 @@
 \name{NEWS}
 \title{NEWS file for the mlt package}
 
-\section{Changes in Version 1.6-2 (2025-01-23)}{
+\section{Changes in Version 1.6-2 (2025-01-29)}{
   \subsection{Bugfixes}{
     \itemize{
       \item{Fall back to \pkg{coneproj} if \pkg{quadprog} fails to get starting values.}
