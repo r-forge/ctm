@@ -3,7 +3,8 @@ Type: Package
 Title: Optimal Subset Selection for Transformation Models
 Version: 0.0-7
 Authors@R: c(person("Lucas", "Kook", email = "lucasheinrich.kook@gmail.com", 
-    role = c("aut", "cre")), person("Sandra", "Siegfried", role = "ctb"),
+    role = c("aut", "cre"), comment = c(ORCID = "0000-0002-7546-7356")),
+    person("Sandra", "Siegfried", role = "ctb"),
     person("Torsten", "Hothorn", role = "ctb"))
 Description: Greedy optimal subset selection for transformation models 
     (Hothorn et al., 2018, <doi:10.1111/sjos.12291> ) based on the abess
