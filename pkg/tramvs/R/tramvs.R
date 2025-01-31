@@ -38,18 +38,24 @@
 #' dat <- data.frame(y = Y, x = X)
 #'
 #' abess_tram(y ~ ., dat, modFUN = Lm, supp = 3)
+#' @references
+#' Siegfried, S., Kook, L., & Hothorn, T. (2023). Distribution-free
+#' location-scale regression. The American Statistician, 77(4), 345-356.
+#' \doi{10.1080/00031305.2023.2203177}
 #'
 #' @importFrom stats coef update residuals cor model.matrix
 #' @export
 abess_tram <- function(formula, data, modFUN, supp, mandatory = NULL, k_max = supp,
                        thresh = NULL, init = TRUE, m_max = 10, m0 = NULL, ...) {
-  if (is.null(k_max))
+  if (is.null(k_max)) {
     k_max <- supp
+  }
 
   stopifnot(k_max <= supp)
 
-  if (is.null(m0))
+  if (is.null(m0)) {
     m0 <- modFUN(formula, data, ... = ...)
+  }
 
   theta_init <- m0$theta
 
@@ -57,8 +63,9 @@ abess_tram <- function(formula, data, modFUN, supp, mandatory = NULL, k_max = su
   p <- length(ncfs)
   n <- nrow(m0$data)
 
-  if (is.null(thresh))
+  if (is.null(thresh)) {
     thresh <- 0.01 * supp * log(p) * log(log(n)) / n
+  }
 
   ### Model for initialization
   if (is.null(mandatory)) {
@@ -71,22 +78,27 @@ abess_tram <- function(formula, data, modFUN, supp, mandatory = NULL, k_max = su
 
   cors <- cor_init(m0, mb)
 
-  if (init)
+  if (init) {
     A0 <- ncfs[.a0_init(cors, supp)]
-  else
+  } else {
     A0 <- ncfs[sample.int(ceiling(length(ncfs) / 2), 1)]
-  if (!is.null(mcfs))
+  }
+  if (!is.null(mcfs)) {
     A0 <- sort(union(mcfs, A0))
+  }
 
   I0 <- setdiff(ncfs, A0)
   fix0 <- numeric(length(I0))
   names(fix0) <- I0
-  m0 <- modFUN(formula, data, fixed = fix0,
-               theta = theta_init[!names(theta_init) %in% I0],
-               ... = ...)
+  m0 <- modFUN(formula, data,
+    fixed = fix0,
+    theta = theta_init[!names(theta_init) %in% I0],
+    ... = ...
+  )
 
   sm <- s0 <- .splicing(m0, A0, I0, k_max, thresh, modFUN, formula, data,
-                        mcfs = mcfs, theta_init = theta_init, ... = ...)
+    mcfs = mcfs, theta_init = theta_init, ... = ...
+  )
 
   if (length(s0$A) == length(A0) && all(s0$A == A0)) {
     return(structure(s0, class = "abess_tram"))
@@ -95,11 +107,13 @@ abess_tram <- function(formula, data, modFUN, supp, mandatory = NULL, k_max = su
   for (m in seq_len(m_max)) {
     Am <- sm$A
     sm <- .splicing(sm$mod, sm$A, sm$I, k_max, thresh, modFUN, formula, data,
-                    mcfs = mcfs, theta_init = theta_init, ... = ...)
-    if (length(sm$A) == length(Am) && all(sm$A == Am))
+      mcfs = mcfs, theta_init = theta_init, ... = ...
+    )
+    if (length(sm$A) == length(Am) && all(sm$A == Am)) {
       return(structure(s0, class = "abess_tram"))
-    else
+    } else {
       return(structure(sm, class = "abess_tram"))
+    }
   }
 }
 
@@ -182,15 +196,18 @@ cor_init.stram <- function(m0, mb) {
 tramvs <- function(formula, data, modFUN, mandatory = NULL, supp_max = NULL,
                    k_max = NULL, thresh = NULL, init = TRUE, m_max = 10,
                    m0 = NULL, verbose = TRUE, parallel = FALSE,
-                   future_args = list(strategy = "multisession",
-                                      workers = supp_max), ...) {
+                   future_args = list(
+                     strategy = "multisession",
+                     workers = supp_max
+                   ), ...) {
   if (is.null(supp_max)) {
     m0 <- modFUN(formula, data, ... = ...)
     supp_max <- length(coef(m0))
   }
 
-  if (verbose & interactive() & !parallel)
+  if (verbose & interactive() & !parallel) {
     pb <- txtProgressBar(style = 3, width = 50, min = 0, max = supp_max)
+  }
 
   if (parallel) {
     do.call(plan, future_args)
@@ -200,12 +217,15 @@ tramvs <- function(formula, data, modFUN, mandatory = NULL, supp_max = NULL,
   }
 
   res <- this.lapply(seq_len(supp_max), \(ts) {
-    if (verbose & interactive())
+    if (verbose & interactive()) {
       setTxtProgressBar(pb, ts)
-    fit <- abess_tram(formula = formula, data = data, modFUN = modFUN,
-                      mandatory = mandatory, supp = ts, k_max = k_max,
-                      thresh = thresh, init = init, m_max = m_max, m0 = m0,
-                      ... = ...)
+    }
+    fit <- abess_tram(
+      formula = formula, data = data, modFUN = modFUN,
+      mandatory = mandatory, supp = ts, k_max = k_max,
+      thresh = thresh, init = init, m_max = m_max, m0 = m0,
+      ... = ...
+    )
     list(
       fit = fit,
       SIC = -logLik(fit$m) + length(fit$A) * log(length(coef(fit$m))) *
@@ -219,10 +239,12 @@ tramvs <- function(formula, data, modFUN, mandatory = NULL, supp_max = NULL,
   traj <- as(do.call("cbind", lapply(fits, coef, ... = ...)), "sparseMatrix")
   colnames(traj) <- seq_len(supp_max)
 
-  structure(list(SIC = data.frame(supp = seq_len(supp_max), SIC = SIC),
-                 coefs = traj,
-                 best_fit = fits[[which.min(SIC)]],
-                 all_fits = fits), class = "tramvs")
+  structure(list(
+    SIC = data.frame(supp = seq_len(supp_max), SIC = SIC),
+    coefs = traj,
+    best_fit = fits[[which.min(SIC)]],
+    all_fits = fits
+  ), class = "tramvs")
 }
 
 # Helpers
@@ -238,7 +260,7 @@ tramvs <- function(formula, data, modFUN, mandatory = NULL, supp_max = NULL,
   m0 <- m
   A0 <- A
   I0 <- I
-  L <- L0 <- - logLik(m) / nrow(m$data)
+  L <- L0 <- -logLik(m) / nrow(m$data)
   cf <- cf0 <- coef(m, with_baseline = TRUE)
   cfs <- cfs0 <- coef(m)
   cfb <- cfb0 <- cf0[!names(cf0) %in% names(cfs0)]
@@ -249,19 +271,23 @@ tramvs <- function(formula, data, modFUN, mandatory = NULL, supp_max = NULL,
   bwd_sacrifice <- sapply(seq_along(cfA), \(parm) {
     ncfs <- c(cfA[parm], cfI)
     ncfs[1] <- 0
-    m_retrained <- modFUN(formula, data, fixed = ncfs,
-                          theta = theta_init[!names(theta_init) %in% names(ncfs)],
-                          ... = ...)
-    nll_wo <- - logLik(m_retrained) / nrow(m$data)
+    m_retrained <- modFUN(formula, data,
+      fixed = ncfs,
+      theta = theta_init[!names(theta_init) %in% names(ncfs)],
+      ... = ...
+    )
+    nll_wo <- -logLik(m_retrained) / nrow(m$data)
     structure(L - nll_wo, names = names(cfA)[parm])
   })
 
   fwd_sacrifice <- sapply(seq_along(cfI), \(parm) {
     ncfs <- c(cfI[-parm], cfA)
-    m_retrained <- modFUN(formula, data, fixed = ncfs,
-                          theta = theta_init[!names(theta_init) %in% names(ncfs)],
-                          ... = ...)
-    nll_wo <- - logLik(m_retrained) / nrow(m$data)
+    m_retrained <- modFUN(formula, data,
+      fixed = ncfs,
+      theta = theta_init[!names(theta_init) %in% names(ncfs)],
+      ... = ...
+    )
+    nll_wo <- -logLik(m_retrained) / nrow(m$data)
     structure(nll_wo - L, names = names(cfI)[parm])
   })
 
@@ -270,20 +296,24 @@ tramvs <- function(formula, data, modFUN, mandatory = NULL, supp_max = NULL,
     Ik <- I[.ik_compute(fwd_sacrifice, k)]
 
     newA <- sort(union(setdiff(A, Ak), Ik))
-    if (!is.null(mcfs))
+    if (!is.null(mcfs)) {
       newA <- sort(union(newA, mcfs))
+    }
     newI <- setdiff(ncfs, newA)
 
     if (length(newI) == length(I) && all(sort(newI) == sort(I)) |
-        length(newI) == length(I0) && all(sort(newI) == sort(I0)) |
-        length(newA) > k_max)
+      length(newI) == length(I0) && all(sort(newI) == sort(I0)) |
+      length(newA) > k_max) {
       next
+    }
 
     newcfs <- numeric(length(newI))
     names(newcfs) <- newI
-    newm <- modFUN(formula, data, fixed = newcfs,
-                   theta = theta_init[!names(theta_init) %in% names(newcfs)],
-                   ... = ...)
+    newm <- modFUN(formula, data,
+      fixed = newcfs,
+      theta = theta_init[!names(theta_init) %in% names(newcfs)],
+      ... = ...
+    )
     newL <- -logLik(newm) / nrow(m$data)
 
     if (L > newL) {
@@ -297,10 +327,11 @@ tramvs <- function(formula, data, modFUN, mandatory = NULL, supp_max = NULL,
     }
   }
 
-  if (L0 - L > thresh)
+  if (L0 - L > thresh) {
     ret <- list(mod = m, A = A, I = I)
-  else
+  } else {
     ret <- list(mod = m0, A = A0, I = I0)
+  }
 
   ret
 }
