@@ -2,17 +2,13 @@
 \name{NEWS}
 \title{NEWS file for the tram package}
 
-\section{Changes in Version 1.2-2 (2025-01-09)}{
+\section{Changes in Version 1.2-2 (2025-02-21)}{
   \itemize{
     \item{Make \code{model.matrix} more flexible for \code{tram} objects.}
     \item{New doubly robust score test added as \code{robust_score_test}.}
     \item{Add \code{fit} argument to \code{Compris}.}
-  }
-}
-
-\section{Changes in Version 1.2-1 (2024-11-19)}{
-  \itemize{
     \item{Fix broken bib file.}
+    \item{Don't refit instable mixed models for toe nail data in vignette.}
   }
 }
 
