@@ -1,17 +1,12 @@
 ## ----setup, echo = FALSE, message = FALSE-------------------------------------
 ## Reprocibility Material for
 ##
-##	Adjusted Marginal Inference under Noncollapsibility
+##	Nonparanormal Adjusted Marginal Inference
 ##	by Susanne Dandl & Torsten Hothorn, UZH
 ##
 
 ## packages
 pkgs <- c("tram", "TH.data", "multcomp", "survival")
-
-ip <- rownames(installed.packages())
-if (any(!pkgs %in% ip))
-    install.packages(pkgs[!pkgs %in% ip], repos = "https://stat.ethz.ch/CRAN/")
-
 OK <- sapply(pkgs, require, character.only = TRUE)
 if (!all(OK)) 
     stop("package(s) ", paste(pkgs[!OK], collapse = ", "), " not available")
@@ -162,6 +157,8 @@ m <- mmlt(m0, m1, formula = ~ 1, data = d)
 
 (cf1f <- coef(m)["y.w100"])
 (ci1f <- confint(m)["y.w100",])
+Omega <- as.array(coef(m, type = "Lambda"))[,,1]
+R2 <- 1 - Omega[nrow(Omega), ncol(Omega)]^(-2)
 
 
 ## ----CAOdata, echo = FALSE, message = FALSE-----------------------------------
@@ -218,6 +215,8 @@ mr <- as.array(coef(m, type = "Cor"))["ypT0ypN0",,1]
 i <- which.max(abs(mr[-length(mr)]))
 ni <- names(mr)[i]
 mr <- mr[i]
+Omega <- as.array(coef(m, type = "Lambda"))[,,1]
+R2 <- 1 - Omega[nrow(Omega), ncol(Omega)]^(-2)
 
 
 ## ----flies, echo = FALSE, results = "hide"------------------------------------
@@ -237,6 +236,9 @@ flies$survival <- Surv(flies$Longevity)
 coxph_w <- Coxph(survival ~ Treatment, data = flies)
 ## multivariate transformation model
 m <- mmlt(xmod, coxph_w, data = flies, formula = ~ 1)
+
+Omega <- as.array(coef(m, type = "Lambda"))[,,1]
+R2 <- 1 - Omega[nrow(Omega), ncol(Omega)]^(-2)
 
 ## marginal log-hazard ratio + Wald CI
 (cf0 <- coef(coxph_w))
