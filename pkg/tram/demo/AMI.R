@@ -158,7 +158,7 @@ m <- mmlt(m0, m1, formula = ~ 1, data = d)
 (cf1f <- coef(m)["y.w100"])
 (ci1f <- confint(m)["y.w100",])
 Omega <- as.array(coef(m, type = "Lambda"))[,,1]
-R2 <- 1 - Omega[nrow(Omega), ncol(Omega)]^(-2)
+(R2 <- 1 - Omega[nrow(Omega), ncol(Omega)]^(-2))
 
 
 ## ----CAOdata, echo = FALSE, message = FALSE-----------------------------------
@@ -209,14 +209,14 @@ ci <- confint(glht(m, coef. = function(...) coef(..., fixed = FALSE)), calpha = 
 (ci <- ci[prm,-1])
 
 
-## ----CAO-correlation, echo = FALSE--------------------------------------------
+## ----CAO-correlation, echo = FALSE, results = "hide"--------------------------
 ## correlation with outcome
 mr <- as.array(coef(m, type = "Cor"))["ypT0ypN0",,1]
 i <- which.max(abs(mr[-length(mr)]))
 ni <- names(mr)[i]
 mr <- mr[i]
 Omega <- as.array(coef(m, type = "Lambda"))[,,1]
-R2 <- 1 - Omega[nrow(Omega), ncol(Omega)]^(-2)
+(R2 <- 1 - Omega[nrow(Omega), ncol(Omega)]^(-2))
 
 
 ## ----flies, echo = FALSE, results = "hide"------------------------------------
@@ -238,7 +238,7 @@ coxph_w <- Coxph(survival ~ Treatment, data = flies)
 m <- mmlt(xmod, coxph_w, data = flies, formula = ~ 1)
 
 Omega <- as.array(coef(m, type = "Lambda"))[,,1]
-R2 <- 1 - Omega[nrow(Omega), ncol(Omega)]^(-2)
+(R2 <- 1 - Omega[nrow(Omega), ncol(Omega)]^(-2))
 
 ## marginal log-hazard ratio + Wald CI
 (cf0 <- coef(coxph_w))

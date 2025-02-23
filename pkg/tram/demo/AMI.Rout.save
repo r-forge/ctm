@@ -18,7 +18,7 @@ Type 'q()' to quit R.
 > ## ----setup, echo = FALSE, message = FALSE-------------------------------------
 > ## Reprocibility Material for
 > ##
-> ##	Adjusted Marginal Inference under Noncollapsibility
+> ##	Nonparanormal Adjusted Marginal Inference
 > ##	by Susanne Dandl & Torsten Hothorn, UZH
 > ##
 > 
@@ -167,13 +167,13 @@ w100 -0.3901557 0.486494
 > ## multivariate model
 > (cf1 <- coef(m)["y.w100"])
       y.w100 
--0.001730209 
+-0.001729219 
 > (ci1 <- confint(m)["y.w100",])
      2.5 %     97.5 % 
--0.3442240  0.3407635 
+-0.3442229  0.3407645 
 > ## latent correlation
 > (r <- c(unclass(coef(m, type = "Corr"))))
-[1] 0.624871
+[1] 0.6248711
 > 
 > ## observed and 
 > (se0 <- sqrt(vcov(m0)))
@@ -191,7 +191,7 @@ w100 0.2236392
 
            y x
 y  1.0000000 0
-x -0.8003696 1
+x -0.8003699 1
 
 > (se1t <- sqrt(2/80 * ((1 + lambda^2)*cf1^2 + (2 + lambda^2)*4)/(2*lambda^4 + 6*lambda^2+4)))
 , , 1
@@ -221,6 +221,9 @@ x 0.1745761 1
 > (ci1f <- confint(m)["y.w100",])
      2.5 %     97.5 % 
 -0.2789881  0.3392572 
+> Omega <- as.array(coef(m, type = "Lambda"))[,,1]
+> (R2 <- 1 - Omega[nrow(Omega), ncol(Omega)]^(-2))
+[1] 0.5120928
 > 
 > 
 > ## ----CAOdata, echo = FALSE, message = FALSE-----------------------------------
@@ -276,15 +279,18 @@ ypT0ypN0.randarm5-FU + Oxaliplatin
 > ci <- confint(glht(m, coef. = function(...) coef(..., fixed = FALSE)), calpha = univariate_calpha())$confint
 > (ci <- ci[prm,-1])
        lwr        upr 
-0.02225947 0.65369663 
+0.02225946 0.65369662 
 > 
 > 
-> ## ----CAO-correlation, echo = FALSE--------------------------------------------
+> ## ----CAO-correlation, echo = FALSE, results = "hide"--------------------------
 > ## correlation with outcome
 > mr <- as.array(coef(m, type = "Cor"))["ypT0ypN0",,1]
 > i <- which.max(abs(mr[-length(mr)]))
 > ni <- names(mr)[i]
 > mr <- mr[i]
+> Omega <- as.array(coef(m, type = "Lambda"))[,,1]
+> (R2 <- 1 - Omega[nrow(Omega), ncol(Omega)]^(-2))
+[1] 0.02977877
 > 
 > 
 > ## ----flies, echo = FALSE, results = "hide"------------------------------------
@@ -305,6 +311,10 @@ ypT0ypN0.randarm5-FU + Oxaliplatin
 > ## multivariate transformation model
 > m <- mmlt(xmod, coxph_w, data = flies, formula = ~ 1)
 > 
+> Omega <- as.array(coef(m, type = "Lambda"))[,,1]
+> (R2 <- 1 - Omega[nrow(Omega), ncol(Omega)]^(-2))
+[1] 0.6714103
+> 
 > ## marginal log-hazard ratio + Wald CI
 > (cf0 <- coef(coxph_w))
 Treatment8 virgin 
@@ -319,7 +329,7 @@ survival.Treatment8 virgin
                   2.048252 
 > (ci1 <- confint(m)["survival.Treatment8 virgin",])
    2.5 %   97.5 % 
-1.430689 2.665815 
+1.430689 2.665816 
 > 
 > ## conditional log-hazard ratio
 > (cf2 <- coef(Coxph(survival ~ Treatment + Thorax, data = flies))["Treatment8 virgin"])
@@ -343,4 +353,4 @@ Treatment8 virgin
 > 
 > proc.time()
    user  system elapsed 
-155.619   0.113 155.754 
+156.857   0.167 157.105 
