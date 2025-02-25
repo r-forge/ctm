@@ -2000,7 +2000,7 @@ We start with the random intercept model
 assuming a marginal Weibull model whose effects are scaled depending on the
 variance $\gamma_1^2$ of a block-specific (interaction of lymph node involvement,
 tumor grading, and study center) random intercept:
-<<mtram-CAO_SR, cache = TRUE>>=
+<<mtram-CAO_SR, cache = FALSE>>=
 CAO_SR <- Survreg(iDFS2 ~ randarm, data = CAOsurv)
 CAO_SR_mtram <- mtram(CAO_SR, ~ (1 | Block), data = CAOsurv)
 logLik(CAO_SR_mtram)
@@ -2031,7 +2031,7 @@ quantile(exp(-rbeta[, ncol(rbeta)]), prob = c(.025, .5, .975))
 In a next step, we stratify with respect to lymph node involvement and tumor
 grading: For each of the four strata, the parameters $\eparm_1$ and
 $\eparm_2$ are estimated separately:
-<<mtram-CAO_SR_2, cache = TRUE>>=
+<<mtram-CAO_SR_2, cache = FALSE>>=
 CAO_SR_2 <- Survreg(iDFS2 | 0 + strat_n:strat_t ~ randarm, data = CAOsurv)
 CAO_SR_2_mtram <- mtram(CAO_SR_2, ~ (1 | Block), data = CAOsurv)
 logLik(CAO_SR_2_mtram)
@@ -2055,7 +2055,7 @@ We now relax the Weibull assumption in the Cox model
                      \eshiftparm_\text{5-FU + Ox}}{\sqrt{\gamma_1^2 + 1}}\right)\right)
 \end{eqnarray*}
 (note the positive sign of the treatment effect).
-<<mtram-CAO_Cox_2, cache = TRUE>>=
+<<mtram-CAO_Cox_2, cache = FALSE>>=
 CAO_Cox_2 <- Coxph(iDFS2 | 0 + strat_n:strat_t ~ randarm, data = CAOsurv, 
                    support = c(1, 1700), log_first = TRUE, order = 4)
 logLik(CAO_Cox_2)
@@ -2093,13 +2093,13 @@ ci_man <- quantile(-rbeta[, ncol(rbeta)], prob = c(.025, .5, .975))
 @
 We can fit mixed-effects transformation models 
 \citep{tamasi2021tramme,Tamasi_Crowther_Puhan_2022} as follows:
-<<tramME-CAO_SR, cache = TRUE>>=
+<<tramME-CAO_SR, cache = FALSE>>=
 CAO_Cox_2_tramME <- CoxphME(iDFS2 | 0 + strat_n:strat_t ~ randarm + (1 | Block), 
                             data = CAOsurv, log_first = TRUE)
 @
 From this conditional model, we can obtain the conditional hazard ratio with
 confidence interval:
-<<tramME-CAO_SR-hr, cache = TRUE>>=
+<<tramME-CAO_SR-hr, cache = FALSE>>=
 exp(coef(CAO_Cox_2_tramME))
 exp(confint(CAO_Cox_2_tramME, parm = "randarm5-FU + Oxaliplatin", 
             estimate = TRUE))

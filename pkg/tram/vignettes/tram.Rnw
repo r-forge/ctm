@@ -259,7 +259,7 @@ linear regression model in the parameterisation (\ref{Lm})
 BostonHousing2$rad <- as.numeric(BostonHousing2$rad)
 BostonHousing2$tax <- as.numeric(BostonHousing2$tax)
 @
-<<tram-BostonHousing-Lm1, cache = TRUE>>=
+<<tram-BostonHousing-Lm1, cache = FALSE>>=
 Lm_BH_1 <- Lm(cmedv ~ crim + zn + indus + chas + nox + rm + age + dis + 
               rad + tax + ptratio + b + lstat, data = BostonHousing2)
 @
@@ -291,7 +291,7 @@ One subtle difficulty with the observed response is that median housing
 values larger than $50$ are actually right-censored. This fact was ignored
 in both model fits. In contrast to \cmd{lm}, \cmd{Lm} is able to deal with
 this situation
-<<tram-BostonHousing-Lm2, cache = TRUE>>=
+<<tram-BostonHousing-Lm2, cache = FALSE>>=
 BostonHousing2$y <- with(BostonHousing2, Surv(cmedv, cmedv < 50))
 Lm_BH_2 <- Lm(y ~ crim + zn + indus + chas + nox + 
               rm + age + dis + rad + tax + ptratio + b + lstat, 
@@ -317,7 +317,7 @@ in this variable, but how about models that allow different variances? This
 is simple in \cmd{Lm} because we can use \code{chas} as a stratum variable.
 This means that we estimate $\eparm_1$ and $\eparm_2$ separately for each of
 the two groups in the model
-<<tram-BostonHousing-Lm3, cache = TRUE>>=
+<<tram-BostonHousing-Lm3, cache = FALSE>>=
 Lm_BH_3 <- Lm(y | 0 + chas ~ crim + zn + indus + nox + 
               rm + age + dis + rad + tax + ptratio + b + lstat, 
               data = BostonHousing2)
@@ -337,7 +337,7 @@ summary(glht(as.mlt(Lm_BH_3), linfct = c("y:chas0 - y:chas1 = 0")))
 
 We could go one step further and include an interaction term between each
 covariate and the response by treating all covariates as strata
-<<tram-BostonHousing-Lm4, cache = TRUE>>=
+<<tram-BostonHousing-Lm4, cache = FALSE>>=
 Lm_BH_4 <- Lm(y | 0 + chas + crim + zn + indus + nox + 
               rm + age + dis + rad + tax + ptratio + b + lstat ~ 0, 
               data = BostonHousing2)
@@ -371,7 +371,7 @@ model. For the Boston Housing data, we first fit the model
 \begin{eqnarray*}
 \Prob(\text{medv} \le \ry \mid \rX = \rx) = \Phi(\h_\rY(\ry) - \tilde{\rx}^\top \shiftparm)
 \end{eqnarray*}
-<<tram-BostonHousing-BC-1, cache = TRUE>>=
+<<tram-BostonHousing-BC-1, cache = FALSE>>=
 BC_BH_1 <- BoxCox(y ~ chas + crim + zn + indus + nox + 
                   rm + age + dis + rad + tax + ptratio + b + lstat, 
                   data = BostonHousing2)
@@ -396,7 +396,7 @@ plot(BC_BH_1, which = "baseline only", newdata = nd, col = col,
 \end{figure}
 
 When we add proximity to Charles River as stratum in the model
-<<tram-BostonHousing-BC-2, cache = TRUE>>=
+<<tram-BostonHousing-BC-2, cache = FALSE>>=
 BC_BH_2 <- BoxCox(y | 0 + chas ~ crim + zn + indus + nox + 
                   rm + age + dis + rad + tax + ptratio + b + lstat, 
                   data = BostonHousing2)
@@ -493,7 +493,7 @@ Regression' (COLR) for this formulation of the model.
 
 Using proximity to Charles River as single stratum variable $\rs$, we can fit this
 model with smooth baseline transformation $\h_\rY(\ry \mid \rs)$  
-<<tram-BostonHousing-Colr-1, cache = TRUE>>=
+<<tram-BostonHousing-Colr-1, cache = FALSE>>=
 Colr_BH_1 <- Colr(y | 0 + chas ~ crim + zn + indus + nox + 
                   rm + age + dis + rad + tax + ptratio + b + lstat, 
                   data = BostonHousing2)
@@ -506,7 +506,7 @@ the model fit.
 
 The estimated odds-ratios, along with likelihood-based confidence intervals,
 can be computed as 
-<<tram-BostonHousing-Colr-CI, cache = TRUE>>=
+<<tram-BostonHousing-Colr-CI, cache = FALSE>>=
 round(cbind(exp(coef(Colr_BH_1)), exp(confint(Colr_BH_1))), 3)
 @
 A display of the model and observed median housing values is given in
@@ -599,7 +599,7 @@ estimate a continuous outcome logistic regression with response-varying effects
 (restricting ourselves to very smooth regression coefficient functions
 parameterised as Bernstein polynomials with three parameters by
 the choice \code{order = 2}):
-<<tram-BostonHousing-rq-1, cache = TRUE>>=
+<<tram-BostonHousing-rq-1, cache = FALSE>>=
 tau <- 2:18 / 20
 fm <- cmedv ~ crim + zn + indus + chas + nox + rm + age + dis + 
               rad + tax + ptratio + b + lstat
@@ -703,7 +703,7 @@ As an example, consider time-to-death data from the German Breast Cancer Study G
 randomised clinical trial on hormonal treatment of breast cancer
 (\code{horTh} being the treatment indicator). The Weibull model can be
 fitted by these two functions
-<<tram-GBSG2-Weibull-1, cache = TRUE>>=
+<<tram-GBSG2-Weibull-1, cache = FALSE>>=
 data("GBSG2", package = "TH.data")
 Survreg_GBSG2_1 <- Survreg(Surv(time, cens) ~ horTh, data = GBSG2)
 logLik(Survreg_GBSG2_1)
@@ -746,7 +746,7 @@ legend("bottomleft", lty = 1, title = "Hormonal Therapy",
 
 The question is simple to answer when we use the treatment as a stratum and,
 in essence, fit two unconditional models (for each treatment arm) at once
-<<tram-GBSG2-Weibull-2, cache = TRUE>>=
+<<tram-GBSG2-Weibull-2, cache = FALSE>>=
 Survreg_GBSG2_2 <- Survreg(Surv(time, cens) | 0 + horTh ~ 1, data = GBSG2)
 logLik(Survreg_GBSG2_2)
 survreg_GBSG2_2 <- survreg(Surv(time, cens) ~ strata(horTh) + horTh - 1, 
@@ -787,14 +787,14 @@ parametric yet very flexible form for $\h_\rY$, leading to simpler inference
 and smooth estimated conditional survivor curves.
 
 For the breast cancer data, we get with
-<<tram-GBSG2-Cox-1, cache = TRUE>>=
+<<tram-GBSG2-Cox-1, cache = FALSE>>=
 Coxph_GBSG2_1 <- Coxph(Surv(time, cens) ~ horTh, data = GBSG2)
 logLik(Coxph_GBSG2_1)
 coef(Coxph_GBSG2_1)
 @
 a model very similar to \code{Survreg_GBSG2_1} and stratification with
 respect to treatment does not improve the fit by much
-<<tram-GBSG2-Cox-2, cache = TRUE>>=
+<<tram-GBSG2-Cox-2, cache = FALSE>>=
 Coxph_GBSG2_2 <- Coxph(Surv(time, cens) | 0 + horTh ~ 1 , data = GBSG2)
 logLik(Coxph_GBSG2_2)
 @
@@ -873,12 +873,12 @@ polr_wine <- polr(rating ~ temp + contact, data = wine)
 logLik(polr_wine)
 coef(polr_wine)
 @
-<<tram-wine-clm-1, cache = TRUE>>=
+<<tram-wine-clm-1, cache = FALSE>>=
 clm_wine_1 <- clm(rating ~ temp + contact, data = wine)
 logLik(clm_wine_1)
 coef(clm_wine_1)
 @
-<<tram-wine-Polr-1, cache = TRUE>>=
+<<tram-wine-Polr-1, cache = FALSE>>=
 Polr_wine_1 <- Polr(rating ~ temp + contact, data = wine)
 logLik(Polr_wine_1)
 coef(Polr_wine_1, with_baseline = TRUE)
@@ -886,25 +886,25 @@ coef(Polr_wine_1, with_baseline = TRUE)
 with identical results. Treating one of the variables as stratum is possible
 in \cmd{clm} and \cmd{Polr} (we use treatment contrasts for $\tilde{\rs}$
 here)
-<<tram-wine-clm-2, cache = TRUE>>=
+<<tram-wine-clm-2, cache = FALSE>>=
 clm_wine_2 <- clm(rating ~ temp, nominal = ~ contact, data = wine)
 logLik(clm_wine_2)
 coef(clm_wine_2)
 @
-<<tram-wine-Polr-2, cache = TRUE>>=
+<<tram-wine-Polr-2, cache = FALSE>>=
 Polr_wine_2 <- Polr(rating | 1 + contact ~ temp, data = wine)
 logLik(Polr_wine_2)
 coef(Polr_wine_2, with_baseline = TRUE)
 @
 and again the fit is equivalent. Changing the link function $\pZ$ from
 $\text{expit}$ to $\Phi$ is also possible in both functions
-<<tram-wine-clm-3, cache = TRUE>>=
+<<tram-wine-clm-3, cache = FALSE>>=
 clm_wine_3 <- clm(rating ~ temp, nominal = ~ contact, data = wine, 
                   link = "probit")
 logLik(clm_wine_3)
 coef(clm_wine_3)
 @
-<<tram-wine-Polr-3, cache = TRUE>>=
+<<tram-wine-Polr-3, cache = FALSE>>=
 Polr_wine_3 <- Polr(rating | 1 + contact ~ temp, data = wine, 
                     method = "probit")
 logLik(Polr_wine_3)
@@ -965,13 +965,13 @@ A transformation tree for the Boston Housing data (taking censoring in the
 median housing values into account) consists of two steps. First, we set-up
 an unconditional transformation model. We choose a model with smooth and
 flexible transformation function
-<<tram-BostonHousing-BC-4-0, cache = TRUE>>=
+<<tram-BostonHousing-BC-4-0, cache = FALSE>>=
 BC_BH_0 <- BoxCox(y ~ 1, data = BostonHousing2)
 logLik(BC_BH_0)
 @
 This model is then plugged into \cmd{trafotree}, along with a formula
 describing the response and partitioning ($\rx$) variables
-<<tram-BostonHousing-BC-4, cache = TRUE>>=
+<<tram-BostonHousing-BC-4, cache = FALSE>>=
 library("trtf")
 BC_BH_4 <- trafotree(BC_BH_0, 
     formula = y ~ chas + crim + zn + indus + nox + 
@@ -1074,7 +1074,7 @@ coef(Coxph_GBSG2_4)[, "horThyes"]
 %featuring a smooth baseline hazard function and a global treatment effect
 %$\eshiftparm$. We fit $100$ trees to subsamples of the data and study splits
 %in age only
-%<<tram-GBSG2-Cox-5, cache = TRUE>>=
+%<<tram-GBSG2-Cox-5, cache = FALSE>>=
 %ctrl <- ctree_control(minsplit = 30, minbucket = 15, mincriterion = 0)
 %Coxph_GBSG2_5 <- traforest(Coxph_GBSG2_1, 
 %    formula = Surv(time, cens) ~ horTh | age, control = ctrl, 
@@ -1086,7 +1086,7 @@ coef(Coxph_GBSG2_4)[, "horThyes"]
 %hormonal therapy.
 %
 %\begin{figure}[t]
-%<<tram-GBSG2-Cox-5-plot, cache = TRUE>>=
+%<<tram-GBSG2-Cox-5-plot, cache = FALSE>>=
 %nd <- data.frame(age = 30:70)
 %cf <- predict(Coxph_GBSG2_5, newdata = nd, type = "coef")
 %nd$logHR <- sapply(cf, function(x) x["horThyes"])
