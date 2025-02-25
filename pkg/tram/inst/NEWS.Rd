@@ -2,7 +2,7 @@
 \name{NEWS}
 \title{NEWS file for the tram package}
 
-\section{Changes in Version 1.2-2 (2025-02-25)}{
+\section{Changes in Version 1.2-1 (2025-02-25)}{
   \itemize{
     \item{Make \code{model.matrix} more flexible for \code{tram} objects.}
     \item{New doubly robust score test added as \code{robust_score_test}.}
