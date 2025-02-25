@@ -512,7 +512,7 @@ version <- packageDescription("tram")$Version
 Some Applications of Marginally Interpretable Linear 
 Transformation Models for Clustered Observations.
 \textsf{R} package vignette version \Sexpr{version}, 
-URL \url{https://CRAN.R-project.org/package=tram}.}
+URL \url{https://doi.org/10.32614/CRAN.package.tram}.}
 
 % \input{todo}
 
