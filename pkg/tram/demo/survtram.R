@@ -6,13 +6,11 @@
 pkgs <- c("mlt", "tram",  "trtf", "SparseGrid", "ATR", "tramME", "multcomp",
   "coin", "TH.data", "survival", "colorspace", "xtable")
 
-ip <- rownames(installed.packages())
-if (any(!pkgs %in% ip))
-    install.packages(pkgs[!pkgs %in% ip], repos = "https://stat.ethz.ch/CRAN/")
-
-OK <- sapply(pkgs, require, character.only = TRUE)
-if (!all(OK)) 
-    stop("package(s) ", paste(pkgs[!OK], collapse = ", "), " not available")
+ix <- which(!sapply(pkgs, require, char = TRUE))
+if (length(ix) > 0) {
+ install.packages(pkgs[ix], repos = "https://stat.ethz.ch/CRAN/")
+ sapply(pkgs[ix], require, char = TRUE)
+}
 
 set.seed(290875)
 
@@ -254,6 +252,14 @@ confint(mcs)
 perm_test_biv.stram(mcs)
 # plot(as.mlt(mcs), type = "survivor", newdata = nd1, col = col)
 
+## ----SCOX-survplot, fig.show = "hide"-----------------------------------------
+eval(par_surv)
+plot(surv_iDFS, ylim = ylimS, xlim = xlim,
+  col = lcol, lwd = lwd, xlab = xlab, ylab = ylabS)
+legend("bottomright", legend = levs, col = col, bty = "n", lty = 1, lwd = 1, cex = .8)
+plot.risktab(tvar = "iDFStime")
+plot(as.mlt(mcs), type = "survivor", newdata = nd1, col = col, add = TRUE)
+
 
 ## ----SCOX-HR-plot, echo = FALSE-----------------------------------------------
 qHR <- seq(50, max(q), by = 1)
@@ -342,7 +348,8 @@ tab
 
 ## ----DEPCENS-model-fit, cache = TRUE------------------------------------------
 md <- 
-Coxph(Surv(OStime, event = DepCevent) ~ randarm, data = CAOsurv)
+Coxph(Surv(OStime, event = DepCevent) ~ randarm, data = CAOsurv,
+  log_first = TRUE)
 
 
 ## ----DEPCENS-summary, cache = TRUE, results = "hide", fig.show = 'hide'-------
@@ -351,8 +358,8 @@ confint(md)
 
 
 ## ----COXME-install, echo = TRUE, eval = FALSE---------------------------------
-## install.packages("tramME")
-## library("tramME")
+# install.packages("tramME")
+# library("tramME")
 
 
 ## ----COXME-load---------------------------------------------------------------
@@ -374,42 +381,42 @@ confint(mcME)
 
 
 ## ----COXME-margsurv, eval = FALSE---------------------------------------------
-## ## computationally intensive
-## if (!file.exists("ME-margdist.rda")) {
-## mod <- mcME
-## 
-## ## A function to evaluate the joint cdf of the response and the random effects:
-## ## Takes a vector of random effect and covariates values, evaluates the conditional
-## ## distribution at these values and multiplies it with the pdf of the random effects
-## jointCDF <- function(re, nd, mod) {
-## nd <- nd[rep(1, length(re)), ]
-## nd$Block <- seq(nrow(nd)) ## to take vector-valued REs
-## pr <- predict(mod, newdata = nd, ranef = re, type = "distribution") *
-## dnorm(re, 0, sd = sqrt(varcov(mod)[[1]][1, 1]))
-## c(pr)
-## }
-## ## Marginalize the joint cdf by integrating out the random effects
-## ## using adaptive quadrature
-## marginalCDF <- function(nd, mod) {
-## nd$cdf <- integrate(jointCDF, lower = -Inf, upper = Inf, nd = nd, mod = mod)$value
-## nd
-## }
-## ## Set up the grid on which we evaluate the marginal distribution
-## nd <- expand.grid(iDFS = 1:max(CAOsurv$DFStime), randarm = unique(CAOsurv$randarm))
-## ## Calls marginalCDF on each row of nd
-## ## (done in parallel to speed up computations)
-## mp <- parallel::mclapply(split(nd, seq(nrow(nd))),
-##   marginalCDF, mod = mod, mc.cores = 4)
-## mp <- do.call("rbind", mp)
-## save(mp, file = "ME-margdist.rda")
-## } else load("ME-margdist.rda")
-## mp$surv <- with(mp, 1 - cdf)
-## 
-## plot(surv_iDFS, ylim = ylimS, xlim = xlim,
-##   col = lcol, lwd = lwd, xlab = xlab, ylab = ylabS)
-## with(mp[mp$randarm == levs[1], ], lines(iDFS, surv, col = col[1], lwd = lwd))
-## with(mp[mp$randarm == levs[2], ], lines(iDFS, surv, col = col[2], lwd = lwd))
-## legend("bottomright", legend = levs, col = col, bty = "n", lty = 1, lwd = 1, cex = .8)
+# ## computationally intensive
+# if (!file.exists("ME-margdist.rda")) {
+# mod <- mcME
+# 
+# ## A function to evaluate the joint cdf of the response and the random effects:
+# ## Takes a vector of random effect and covariates values, evaluates the conditional
+# ## distribution at these values and multiplies it with the pdf of the random effects
+# jointCDF <- function(re, nd, mod) {
+# nd <- nd[rep(1, length(re)), ]
+# nd$Block <- seq(nrow(nd)) ## to take vector-valued REs
+# pr <- predict(mod, newdata = nd, ranef = re, type = "distribution") *
+# dnorm(re, 0, sd = sqrt(varcov(mod)[[1]][1, 1]))
+# c(pr)
+# }
+# ## Marginalize the joint cdf by integrating out the random effects
+# ## using adaptive quadrature
+# marginalCDF <- function(nd, mod) {
+# nd$cdf <- integrate(jointCDF, lower = -Inf, upper = Inf, nd = nd, mod = mod)$value
+# nd
+# }
+# ## Set up the grid on which we evaluate the marginal distribution
+# nd <- expand.grid(iDFS = 1:max(CAOsurv$DFStime), randarm = unique(CAOsurv$randarm))
+# ## Calls marginalCDF on each row of nd
+# ## (done in parallel to speed up computations)
+# mp <- parallel::mclapply(split(nd, seq(nrow(nd))),
+#   marginalCDF, mod = mod, mc.cores = 4)
+# mp <- do.call("rbind", mp)
+# save(mp, file = "ME-margdist.rda")
+# } else load("ME-margdist.rda")
+# mp$surv <- with(mp, 1 - cdf)
+# 
+# plot(surv_iDFS, ylim = ylimS, xlim = xlim,
+#   col = lcol, lwd = lwd, xlab = xlab, ylab = ylabS)
+# with(mp[mp$randarm == levs[1], ], lines(iDFS, surv, col = col[1], lwd = lwd))
+# with(mp[mp$randarm == levs[2], ], lines(iDFS, surv, col = col[2], lwd = lwd))
+# legend("bottomright", legend = levs, col = col, bty = "n", lty = 1, lwd = 1, cex = .8)
 
 
 ## ----MCOX-preproc, echo = FALSE-----------------------------------------------
@@ -489,8 +496,8 @@ rug(CAOsurv$age, lwd = 2, col = rgb(.1, .1, .1, .1))
 
 
 ## ----TRT-load-install, echo = TRUE, eval = FALSE------------------------------
-## install.packages("trtf")
-## library("trtf")
+# install.packages("trtf")
+# library("trtf")
 
 ## ----TRT-load-----------------------------------------------------------------
 library("trtf")
@@ -532,6 +539,50 @@ ml <-
 Colr(iDFS ~ randarm, data = CAOsurv, log_first = TRUE)
 
 
+
+
+
+## ----SS-setup, echo = FALSE---------------------------------------------------
+### -> mlt
+# as.Surv.numeric <- function(object) Surv(object, rep(TRUE, length(object)))
+
+## ----SS, echo = TRUE----------------------------------------------------------
+m <- as.mlt(Survreg(OS ~ randarm + age, data = CAOsurv, 
+  dist = "weibull", support = c(.1, 80 * 365)))
+
+
+## ----SS-nd--------------------------------------------------------------------
+N <- 500
+nd <- with(CAOsurv, data.frame(randarm = gl(2, N, labels = levels(randarm)),
+  age = rnorm(N, mean = mean(age), sd = sd(age))))
+
+
+## ----SS-lOR, echo = TRUE------------------------------------------------------
+cf <- coef(m)
+cf["randarm5-FU + Oxaliplatin"] <- .25
+coef(m) <- cf
+nd$T <- as.Surv(simulate(m, newdata = nd, K = 1000))
+
+
+## ----SS-simC, echo = TRUE-----------------------------------------------------
+cf["(Intercept)"] <- cf["(Intercept)"] + qlogis(.8)
+coef(m) <- cf
+nd$C <- as.Surv(simulate(m, newdata = nd, K = 1000))
+
+
+## ----SS-OS, echo = TRUE, results = "asis"-------------------------------------
+nd$nOS <- with(nd, Surv(time = pmin(T[, "time"], C[, "time"]),
+  event = T[,"time"] < C[,"time"]))
+
+## ----SS-refit, results = "hide", fig.show = "hide"----------------------------
+mean(nd$nOS[,"status"])
+levels(nd$randarm)[2] <- "innovative"
+plot(survfit(nOS ~ randarm, data = nd), col = col, xlab = "Time (in days)", 
+  ylab = "Probability of survival")
+legend("topright", legend = levels(nd$randarm), col = col, lty = 1, bty = "n")
+Survreg(nOS ~ randarm + age, data = nd, dist = "weibull")
+
+
 ### Appendix
 ## ----pkgs---------------------------------------------------------------------
 ## additional packages
@@ -541,8 +592,10 @@ pkgs <- c("fastGHQuad", "icenReg", "TransModel", "rms", "ICsurv", "eha",
 
 ## ----install-pkgs-------------------------------------------------------------
 ix <- which(!sapply(pkgs, require, char = TRUE))
-if (length(ix) > 0) {install.packages(pkgs[ix], repos = "https://stat.ethz.ch/CRAN/")
-   sapply(pkgs[ix], require, char = TRUE)}
+if (length(ix) > 0) {
+   install.packages(pkgs[ix], repos = "https://stat.ethz.ch/CRAN/")
+   sapply(pkgs[ix], require, char = TRUE)
+}
 
 
 ## ----pkgs-setup---------------------------------------------------------------
