@@ -2,6 +2,12 @@
 \name{NEWS}
 \title{NEWS file for the tram package}
 
+\section{Changes in Version 1.2-2 (2025-03-20)}{
+  \itemize{
+    \item{Update \code{survtram} demo.}
+  }
+}
+
 \section{Changes in Version 1.2-1 (2025-02-25)}{
   \itemize{
     \item{Make \code{model.matrix} more flexible for \code{tram} objects.}
@@ -11,6 +17,7 @@
     \item{Don't refit instable mixed models for toe nail data in vignette.}
   }
 }
+
 
 \section{Changes in Version 1.2-0 (2024-11-18)}{
   \itemize{
