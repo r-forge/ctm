@@ -16,7 +16,7 @@ asvar.numeric <- function(object, name, prob = c(.1, .9), support = NULL, bounds
         return(variables::numeric_var(name, support = support, bounds = bounds, add = add, ...))  
     }
     if (is.null(support)) {
-        support <- quantile(object, prob = prob, na.rm = TRUE)
+        support <- quantile(object, probs = prob, na.rm = TRUE)
         add <- range(object, na.rm = TRUE) - support
         return(variables::numeric_var(name, support = support, add = add, bounds = bounds, ...))
     }
@@ -26,7 +26,7 @@ asvar.numeric <- function(object, name, prob = c(.1, .9), support = NULL, bounds
 asvar.Surv <- function(object, name, prob = c(.1, .9), support = NULL, bounds = c(0, Inf), add = c(0, 0), ...) {
     if (is.null(bounds)) bounds <- c(0, Inf)
     if (is.null(support)) {
-        support <- quantile(sf <- survfit(y ~ 1, data = data.frame(y = object)), prob = prob)$quantile
+        support <- quantile(sf <- survfit(y ~ 1, data = data.frame(y = object)), probs = prob)$quantile
         first <- min(sf$time[sf$n.event > 0])
         last <- max(sf$time[sf$n.event > 0])
         if (is.na(support[1])) 
@@ -47,7 +47,7 @@ asvar.response <- function(object, name, prob = c(.1, .9), support = NULL, bound
         stop("cannot determine class of response")
     }
     if (is.null(support)) {
-        support <- quantile(sf <- survfit(y ~ 1, data = data.frame(y = as.Surv(object))), prob = prob)$quantile
+        support <- quantile(sf <- survfit(y ~ 1, data = data.frame(y = as.Surv(object))), probs = prob)$quantile
         last <- max(sf$time[sf$n.event > 0])
         if (is.na(support[2])) 
             support[2] <- last
