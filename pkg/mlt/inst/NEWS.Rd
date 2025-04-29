@@ -6,6 +6,7 @@
   \subsection{Features}{
     \itemize{
       \item{Improve \code{R()} for interval censored data.}
+      \item{Add \code{constrOptim} to \code{mltoptim}.}
     }
   }
   \subsection{Bugfixes}{
