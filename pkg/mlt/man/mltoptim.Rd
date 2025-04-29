@@ -10,8 +10,8 @@
 mltoptim(auglag = list(maxtry = 5, kkt2.check = FALSE), 
          spg = list(maxit = 10000, quiet = TRUE, checkGrad = FALSE), 
          nloptr = list(algorithm = "NLOPT_LD_MMA", xtol_rel = 1.0e-8, maxeval = 1000L), 
-         constrOptim = list(method = "BFGS", control = list(), mu = 1e-04, outer.iterations = 100, 
-                            outer.eps = 1e-05, hessian = FALSE),
+         constrOptim = list(method = "BFGS", control = list(), mu = 1e-04, 
+                            outer.iterations = 100, outer.eps = 1e-05, hessian = FALSE),
          trace = FALSE)
 }
 \arguments{
