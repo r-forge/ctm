@@ -686,7 +686,7 @@
         if (!all(ui %*% ret > ci))
             warning("Starting values violate contraints")
     } else {
-        ret <- lm.fit(x = X, y = Z)$coef
+        ret <- lm.fit(x = X, y = Z)$coefficients
     }
     names(ret) <- names(coef(model))[!fix]
     ret[!is.finite(ret)] <- 0
