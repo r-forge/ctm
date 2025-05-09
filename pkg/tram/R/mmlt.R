@@ -170,7 +170,7 @@ HDR.Mmlt <- function(object, level = .95, newdata, nsim = 1000L, K = 25, ...) {
     }
 
     ### https://doi.org/10.2307/2684423 Section 3.2
-    y <- simulate(object, newdata = newdata[rep(1, nsim),,drop = FALSE])
+    y <- simulate(object, newdata = newdata[rep_len(1, nsim),,drop = FALSE])
     y <- cbind(y, newdata)
     d <- predict(object, newdata = y, type = "density")
 

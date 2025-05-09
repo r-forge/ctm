@@ -68,9 +68,9 @@ plot.tram <- function(x, newdata = model.frame(x),
 
     if (confidence) {
         if (length(fill) != NROW(newdata)) 
-            fill <- rep(fill, length.out = NROW(newdata))
+            fill <- rep_len(fill, length.out = NROW(newdata))
         if (length(col) != NROW(newdata)) 
-            col <- rep(col, length.out = NROW(newdata))
+            col <- rep_len(col, length.out = NROW(newdata))
 
         if (is.matrix(cb)) {
             .add_confband(cb, fill = fill[1], col = col[1], lwd = lwd) 
@@ -89,11 +89,11 @@ plot.ROCtram <- function(x, lty = 1:ncol(x),
          xlab = "1 - Specificity", ylab = "Sensitivity", ...)
     abline(a = 0, b = 1, col = "lightgrey")
     if (length(fill) != ncol(x)) 
-        fill <- rep(fill, length.out = ncol(x))
+        fill <- rep_len(fill, length.out = ncol(x))
     if (length(col) != ncol(x)) 
-        col <- rep(col, length.out = ncol(x))
+        col <- rep_len(col, length.out = ncol(x))
     if (length(lty) != ncol(x)) 
-        lty <- rep(lty, length.out = ncol(x))
+        lty <- rep_len(lty, length.out = ncol(x))
 
     for (i in 1:ncol(x))
         lines(c(0, prob, 1), c(0, x[, i], 1), lty = lty[i])

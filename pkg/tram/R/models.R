@@ -180,7 +180,7 @@ Survreg <- function(formula, data, subset, weights, offset, cluster, na.action =
     if (dist == "rayleigh")
         scale <- 0.5
     if (scale > 0) {
-        fixed <- rep(1 / scale, length(scalecf))
+        fixed <- rep_len(1 / scale, length(scalecf))
         names(fixed) <- cfnm[scalecf]
         ret <- tram(td, transformation = transformation, 
                     distribution = distribution, negative = TRUE, 

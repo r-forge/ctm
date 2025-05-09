@@ -698,7 +698,7 @@ perm_test.tram <- function(object, parm = names(coef(object)),
         }
 
         if (length(nullvalue) != length(parm))
-            nullvalue <- rep(nullvalue, length(parm))
+            nullvalue <- rep_len(nullvalue, length(parm))
 
         if (confint && !isTRUE(all.equal(nullvalue, coef(object)[parm],
                                          check.attributes = FALSE)))
@@ -1127,7 +1127,7 @@ perm_test.coxph <- function(object, parm = names(coef(object)),
     fm <- as.formula(paste(". ~ . + offset(offset_.) - ", vparm))
     cf <- coef(object)
     w <- object$weights
-    if (is.null(w)) w <- rep(1, nrow(mf))
+    if (is.null(w)) w <- rep_len(1, nrow(mf))
     env <- .copy_variables(object$call, environment(object$formula))
 
     sc <- function(b, statistic = TRUE) {
@@ -1307,7 +1307,7 @@ perm_test.glm <- function(object, parm = names(coef(object)),
     fmoff <- as.formula(". ~ 0 + offset(offset_.)")
     cf <- coef(object)
     w <- object$weights
-    if (is.null(w)) w <- rep(1, nrow(mf))
+    if (is.null(w)) w <- rep_len(1, nrow(mf))
     env <- .copy_variables(object$call, environment(object$formula))
 
     sc <- function(b, statistic = TRUE) {
