@@ -2,9 +2,11 @@
 \name{NEWS}
 \title{NEWS file for the tram package}
 
-\section{Changes in Version 1.2-2 (2025-03-20)}{
+\section{Changes in Version 1.2-2 (2025-05-09)}{
   \itemize{
     \item{Update \code{survtram} demo.}
+    \item{Avoid partial argument matches.}
+    \item{\code{rep} to \code{rep_len}.}
   }
 }
 
