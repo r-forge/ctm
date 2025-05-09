@@ -2,10 +2,10 @@
 ### Box product of two matrices
 .boxprod <- function(x, y) {
     stopifnot(NROW(x) == NROW(y))
-    ret <- x[, rep(1:ncol(x), ncol(y)), drop = FALSE] * 
-           y[, rep(1:ncol(y), rep(ncol(x), ncol(y))), drop = FALSE]
-    colnames(ret) <- paste(colnames(x)[rep(1:ncol(x), ncol(y))], 
-                           colnames(y)[rep(1:ncol(y), rep(ncol(x), ncol(y)))], sep = ":")
+    ret <- x[, rep(1:ncol(x), times = ncol(y)), drop = FALSE] * 
+           y[, rep(1:ncol(y), times = rep_len(ncol(x), ncol(y))), drop = FALSE]
+    colnames(ret) <- paste(colnames(x)[rep(1:ncol(x), times = ncol(y))], 
+                           colnames(y)[rep(1:ncol(y), times = rep_len(ncol(x), ncol(y)))], sep = ":")
     ret
 }
 
@@ -21,10 +21,10 @@
 
 ### Box "product" of two character matrices
 .boxprod_char <- function(x, y) {
-    matrix(paste(x[rep(1:nrow(x), nrow(y)), 
-                   rep(1:ncol(x), ncol(y)), drop = FALSE], 
-                 y[rep(1:nrow(y), nrow(x)), 
-                   rep(1:ncol(y), rep(ncol(x), ncol(y))), drop = FALSE], 
+    matrix(paste(x[rep(1:nrow(x), times = nrow(y)), 
+                   rep(1:ncol(x), times = ncol(y)), drop = FALSE], 
+                 y[rep(1:nrow(y), times = nrow(x)), 
+                   rep(1:ncol(y), times = rep_len(ncol(x), ncol(y))), drop = FALSE], 
                  sep = ":"), nrow = nrow(x) * nrow(y))
 }
 
@@ -49,10 +49,10 @@
         ret$ui <- rbind(kronecker(Diagonal(nci), ret$ui),
                         kronecker(args[[i]]$ui, Diagonal(ncr)))
         ret$ci <- c(as(kronecker(Diagonal(nci), 
-                                 matrix(ret$ci, ncol = 1)) %*% rep(1, nci), 
+                                 matrix(ret$ci, ncol = 1)) %*% rep_len(1, nci), 
                        "vector"),
                     as(kronecker(matrix(args[[i]]$ci, ncol = 1), 
-                                 Diagonal(ncr)) %*% rep(1, ncr), 
+                                 Diagonal(ncr)) %*% rep_len(1, ncr), 
                        "vector"))
     }
     ret

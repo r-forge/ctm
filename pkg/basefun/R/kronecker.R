@@ -8,8 +8,8 @@
    p2 <- ncol(X2)
    ip1 <- 1:p1
    ip2 <- 1:p2
-   ret <- X1[, rep(ip1, rep(p2, p1)), drop = FALSE] * 
-          X2[, rep(ip2, p1), drop = FALSE]
+   ret <- X1[, rep(ip1, times = rep(p2, p1)), drop = FALSE] * 
+          X2[, rep(ip2, times = p1), drop = FALSE]
    return(ret)
 }
 

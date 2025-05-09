@@ -14,7 +14,7 @@ polynomial_basis <- function(var, coef,
     }))
 
     if (is.null(ui)) ui <- Diagonal(length(object))
-    if (is.null(ci)) ci <- rep(-Inf, nrow(ui))
+    if (is.null(ci)) ci <- rep_len(-Inf, nrow(ui))
     stopifnot(nrow(ui) == length(ci))
 
     basis <- function(data, deriv = 0L) {

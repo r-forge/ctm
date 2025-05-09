@@ -77,7 +77,7 @@ model.matrix.cbind_bases <- function(object, data, model.matrix = TRUE,
                                             ncol = ncol(r)))
         mr <- max(sapply(a, NROW))
         for (i in 1:length(a)) 
-            a[[i]] <- a[[i]][rep(1:nrow(a[[i]]), length.out = mr),,
+            a[[i]] <- a[[i]][rep_len(seq_len(nrow(a[[i]])), length.out = mr),,
                              drop = FALSE]
         ret <- do.call("cbind", ret)
         attr(ret, "Assign") <- do.call("cbind", a)

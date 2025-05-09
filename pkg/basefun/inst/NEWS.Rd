@@ -2,6 +2,12 @@
 \name{NEWS}
 \title{NEWS file for the basefun package}
 
+\section{Changes in Version 1.2-3 (2025-05-09)}{
+  \itemize{
+    \item{\code{rep} to \code{rep_len}.}
+  }
+}
+
 \section{Changes in Version 1.2-2 (2025-01-29)}{
   \itemize{
     \item{Switch from \pkg{coneproj} to \pkg{quadprog} in \code{?Bernstein_basis}.}

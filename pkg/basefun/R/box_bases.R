@@ -82,7 +82,7 @@ model.matrix.box_bases <- function(object, data, model.matrix = TRUE,
         ui <- attr(X1, "constraint")$ui
         ci <- attr(X1, "constraint")$ci
         ui <- kronecker(X2, ui)
-        ci <- rep(ci, nrow(X2))
+        ci <- rep(ci, times = nrow(X2))
         constr <- list(ui = ui, ci = ci)
     } else {
         ### all components must meet constraints
