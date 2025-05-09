@@ -2,6 +2,12 @@
 \name{NEWS}
 \title{NEWS file for the variables package}
 
+\section{Changes in Version 1.1-2 (2025-05-09)}{
+  \itemize{
+    \item{Don't check support if all observations are missing.}
+  }
+}
+
 \section{Changes in Version 1.1-1 (2021-06-17)}{
   \itemize{
     \item{Allow to turn off \code{add} when calling \code{mkgrid} for

@@ -249,6 +249,9 @@ check.continuous_var <- function(object, data) {
         stopifnot(v %in% names(data))
         data <- data[[v]]
     }
+    ### we might want to set up models also when
+    ### all observations are missing
+    if (all(is.na(data))) return(TRUE)
     b <- bounds(object)[[variable.names(object)]]
     min(data, na.rm = TRUE) >= b[1] && 
     max(data, na.rm = TRUE) <= b[2]
