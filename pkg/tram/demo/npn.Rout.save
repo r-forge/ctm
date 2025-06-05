@@ -1,6 +1,6 @@
 
-R version 4.4.1 (2024-06-14) -- "Race for Your Life"
-Copyright (C) 2024 The R Foundation for Statistical Computing
+R version 4.5.0 (2025-04-11) -- "How About a Twenty-Six"
+Copyright (C) 2025 The R Foundation for Statistical Computing
 Platform: x86_64-pc-linux-gnu
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
@@ -15,20 +15,23 @@ Type 'demo()' for some demos, 'help()' for on-line help, or
 'help.start()' for an HTML browser interface to help.
 Type 'q()' to quit R.
 
-[Previously saved workspace restored]
-
 > 
 > ###
 > ### Fit models for HCC data presented in
 > ### 
 > ###	On Nonparanormal Likelihoods
-> ###	by Torsten Hothorn
+> ###	by Torsten Hothorn, UZH
 > ###
 > 
 > set.seed(290875)
 > 
 > pkgs <- c("openxlsx", "tram", "survival")
-> req <- sapply(pkgs, require, char = TRUE)
+> 
+> ip <- rownames(installed.packages())
+> if (any(!pkgs %in% ip))
++     install.packages(pkgs[!pkgs %in% ip], repos = "https://stat.ethz.ch/CRAN/")
+> 
+> OK <- sapply(pkgs, require, character.only = TRUE)
 Loading required package: openxlsx
 Loading required package: tram
 Loading required package: mlt
@@ -36,12 +39,8 @@ Loading required package: basefun
 Loading required package: variables
 Loading required package: mvtnorm
 Loading required package: survival
-> if (!all(req)){
-+   sapply(pkgs[!req], install.packages)
-+   req[!req] <- sapply(pkgs[!req], require, char = TRUE)
-+ }
-> if (!all(req)) 
-+   stop("cannot load dependencies")
+> if (!all(OK)) 
++     stop("package(s) ", paste(pkgs[!OK], collapse = ", "), " not available")
 > 
 > ### Load data
 > dat <- read.xlsx("https://datadryad.org/api/v2/files/44697/download", sheet = 1)
@@ -82,27 +81,27 @@ Loading required package: survival
 > coef(m, type = "marginal")
 $DKK
 DKK.Bs1(DKK) DKK.Bs2(DKK) DKK.Bs3(DKK) DKK.Bs4(DKK) DKK.Bs5(DKK) DKK.Bs6(DKK) 
- -1.09527940  -0.76241839   0.03964558   0.45283692   0.86880220   1.57502191 
+ -1.09527946  -0.76241849   0.03964703   0.45283461   0.86880373   1.57502179 
 DKK.Bs7(DKK)       DKK.x1   DKK.scl_x1 
-  1.89747858   0.54925423  -0.50870557 
+  1.89747849   0.54925428  -0.50870556 
 
 $OPN
 OPN.Bs1(OPN) OPN.Bs2(OPN) OPN.Bs3(OPN) OPN.Bs4(OPN) OPN.Bs5(OPN) OPN.Bs6(OPN) 
-  -1.2042978   -0.6044947    1.4183316    1.4183318    1.4627031    1.9719933 
+  -1.2042978   -0.6044946    1.4183316    1.4183317    1.4627036    1.9719934 
 OPN.Bs7(OPN)       OPN.x1   OPN.scl_x1 
-   2.2392216    0.4540269   -0.9789748 
+   2.2392217    0.4540269   -0.9789749 
 
 $PIVi
 PIVi.Bs1(PIVi) PIVi.Bs2(PIVi) PIVi.Bs3(PIVi) PIVi.Bs4(PIVi) PIVi.Bs5(PIVi) 
-   -0.95130558    -0.18367456     0.08167929     1.77136285     1.77136308 
+   -0.95130565    -0.18367458     0.08167941     1.77136317     1.77136318 
 PIVi.Bs6(PIVi) PIVi.Bs7(PIVi)        PIVi.x1    PIVi.scl_x1 
-    2.17346756     2.55726711     0.88612353    -0.65538393 
+    2.17346800     2.55726763     0.88612356    -0.65538422 
 
 $AFPi
 AFPi.Bs1(AFPi) AFPi.Bs2(AFPi) AFPi.Bs3(AFPi) AFPi.Bs4(AFPi) AFPi.Bs5(AFPi) 
-    -0.7747881      0.4370913      1.4284487      1.5923291      2.7584240 
+    -0.7747882      0.4370910      1.4284506      1.5923273      2.7584251 
 AFPi.Bs6(AFPi) AFPi.Bs7(AFPi)        AFPi.x1    AFPi.scl_x1 
-     2.7584240      3.1569894      1.0723483     -0.7534834 
+     2.7584251      3.1569905      1.0723484     -0.7534839 
 
 > ### copula parameter: Lambda
 > coef(m, type = "Lambdapar")
@@ -110,40 +109,40 @@ AFPi.Bs6(AFPi) AFPi.Bs7(AFPi)        AFPi.x1    AFPi.scl_x1
 
              DKK        OPN      PIVi AFPi
 DKK   1.00000000  0.0000000  0.000000    0
-OPN  -0.10484138  1.0000000  0.000000    0
+OPN  -0.10484137  1.0000000  0.000000    0
 PIVi -0.30489652 -0.3237667  1.000000    0
 AFPi  0.03576815 -0.1798486 -1.329335    1
 
 > ### standard errors for all parameters
 > sqrt(diag(vcov(m)))
          DKK.Bs1(DKK)          DKK.Bs2(DKK)          DKK.Bs3(DKK) 
-           0.10220525            0.11359599            0.30083914 
+           0.10220525            0.11359599            0.30083918 
          DKK.Bs4(DKK)          DKK.Bs5(DKK)          DKK.Bs6(DKK) 
-           0.43034411            0.31454748            0.13508377 
+           0.43034411            0.31454746            0.13508375 
          DKK.Bs7(DKK)                DKK.x1            DKK.scl_x1 
-           0.13993380            0.09298937            0.15284475 
+           0.13993379            0.09298937            0.15284476 
          OPN.Bs1(OPN)          OPN.Bs2(OPN)          OPN.Bs3(OPN) 
-           0.09637052            0.10526532            0.14165255 
+           0.09637052            0.10526533            0.14165255 
          OPN.Bs4(OPN)          OPN.Bs5(OPN)          OPN.Bs6(OPN) 
-           0.14165255            0.26134766            0.16005631 
+           0.14165255            0.26134767            0.16005631 
          OPN.Bs7(OPN)                OPN.x1            OPN.scl_x1 
            0.16526690            0.08648173            0.15382700 
        PIVi.Bs1(PIVi)        PIVi.Bs2(PIVi)        PIVi.Bs3(PIVi) 
-           0.09300331            0.11802007            0.22020914 
+           0.09300332            0.11802008            0.22020916 
        PIVi.Bs4(PIVi)        PIVi.Bs5(PIVi)        PIVi.Bs6(PIVi) 
-           0.17504922            0.17504922            0.20676773 
+           0.17504924            0.17504924            0.20676778 
        PIVi.Bs7(PIVi)               PIVi.x1           PIVi.scl_x1 
-           0.21740306            0.09396043            0.15597365 
+           0.21740312            0.09396043            0.15597366 
        AFPi.Bs1(AFPi)        AFPi.Bs2(AFPi)        AFPi.Bs3(AFPi) 
-           0.08551109            0.13282214            0.34109232 
+           0.08551109            0.13282214            0.34109243 
        AFPi.Bs4(AFPi)        AFPi.Bs5(AFPi)        AFPi.Bs6(AFPi) 
-           0.40143152            0.23927587            0.23927587 
+           0.40143161            0.23927600            0.23927600 
        AFPi.Bs7(AFPi)               AFPi.x1           AFPi.scl_x1 
-           0.25450614            0.09621668            0.15402452 
+           0.25450626            0.09621667            0.15402454 
   OPN.DKK.(Intercept)  PIVi.DKK.(Intercept)  PIVi.OPN.(Intercept) 
            0.05050893            0.05411981            0.05298288 
  AFPi.DKK.(Intercept)  AFPi.OPN.(Intercept) AFPi.PIVi.(Intercept) 
-           0.05481943            0.05414795            0.09619954 
+           0.05481943            0.05414795            0.09619953 
 > 
 > ### convex approximations
 > ## pseudo
@@ -157,8 +156,8 @@ AFPi  0.03576815 -0.1798486 -1.329335    1
 > ## ACS
 > ma <- Mmlt(mDKK, mOPN, mPIV, mAFP, data = HCC, fit = "ACS", ACSiter = 1)
 > logLik(ma)
-'log Lik.' -5284.7 (df=6)
+'log Lik.' -5284.701 (df=6)
 > 
 > proc.time()
    user  system elapsed 
-168.671   0.200 171.235 
+ 98.494   0.123 100.387 
