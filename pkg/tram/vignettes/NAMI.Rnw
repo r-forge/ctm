@@ -1,7 +1,7 @@
 
 %\VignetteEngine{knitr::knitr}
 %\VignetteIndexEntry{Applications of Nonparanormal Adjusted Marginal Inference}
-%\VignetteDepends{tram, TH.data, multcomp, survival}
+%\VignetteDepends{tram, TH.data, multcomp, survival, Stat2Data, tramME}
 
 \documentclass[article,nojss,shortnames]{jss}
 
@@ -25,7 +25,7 @@
 \usepackage{verbatim}
 
 <<nami-pkgs, echo = FALSE, results = "hide", message = FALSE, warning = FALSE>>=
-pkgs <- c("tram", "TH.data", "multcomp", "survival")
+pkgs <- c("tram", "TH.data", "multcomp", "survival", "Stat2Data", "tramME")
 pkgs <- sapply(pkgs, require, character.only = TRUE)
 @
 
@@ -336,7 +336,6 @@ suggests an improvement of the conditional over the marginal model.
 Model diagnosis can be conducted by fitting an additive transformation model for $\rY$ using the \pkg{tramME}
 package:
 <<cfsec_cont, echo = TRUE, message = FALSE>>=
-library("tramME")
 mad <- BoxCoxME(y ~ w + s(x), data = immun)
 @
 
@@ -535,7 +534,6 @@ males that live alone, males that live with one or eight receptive females,
 and males that live with one or eight nonreceptive females.  
 The data set \code{FruitFlies} is available in the \pkg{Stat2Data} package:
 <<flies, echo = TRUE, results = "hide">>=
-library("Stat2Data")
 data("FruitFlies", package = "Stat2Data")
 @
 
