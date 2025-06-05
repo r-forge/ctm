@@ -1,7 +1,7 @@
 
 Mmlt <- function(..., formula = ~ 1, data, conditional = FALSE, 
                  theta = NULL, fixed = NULL, scale = FALSE,
-                 optim = mltoptim(auglag = list(maxtry = 5)), 
+                 optim = mltoptim(hessian = TRUE), 
                  args = list(seed = 1, type = c("MC", "ghalton"), M = 1000), 
                  fit = c("jointML", "pseudo", "ACS", "sequential", "none"),
                  ACSiter = 2)
