@@ -151,7 +151,7 @@ set.seed(221224L)
 
 We present three applications from different domains illustrating
 the potential to estimate treatment effects more
-precisely with nonparanormal adjusted marginal inference \citep[NAMI][]{Dandl_2025_nami}:
+precisely with nonparanormal adjusted marginal inference \citep[NAMI,][]{Dandl_2025_nami}:
 A toxicity study demonstrates equivalence of a continuous outcome
 by Cohen's $d$, an efficiency trial compares a binary outcome between two arms
 by means of an odds ratio, and a survival study measures differences in terms of a hazard ratio.
@@ -168,7 +168,7 @@ demo("NAMI", package = "tram")
 \section{Continuous outcome: Immunotoxicity study on Chloramine}
 \label{subsec:appl-cont} 
 
-To assess the toxicity of Chloramine, a study on mice was conducted as part of the National Toxicology Program  \citep{toxicology_2000}.
+To assess the toxicity of Chloramine, a study on mice was conducted as part of the \cite{toxicology_2000}.
 Female mice were randomly assigned to two groups of which one group received Chlor\-amine-dosed water and the other not.
 Repeated measurements of weights were conducted on
 days $1$, $8$, $15$, $22$, and $29$ in five dose groups ($0$, $2$, $10$,
@@ -237,7 +237,7 @@ immun <- structure(list(y = c(21.699999999999999, 23.899999999999999,
 "271.1355", "272.1360"), class = "data.frame")
 @
 
-The following data set is a subset of the data obtained from
+The following data set is a subset of the data obtained from the
 \cite{toxicology_2000}. It focuses on the comparison of the highest dose group ($W = 1, N_1 =
 40$) with the control group ($W = 0, N_0 = 40$) with respect to the weight at day $29$ (denoted as outcome $\rY$).
 Information on the weight on day $1$ is also available and is used for adjustment, in the following.  
@@ -297,7 +297,7 @@ We obtain $\hat{\tau} = \Sexpr{frmt3(coef(m)["y.w100"])}$ as marginal adjusted C
 The standard error based on the
 observed Fisher information is $\Sexpr{frmt3(sqrt(diag(vcov(m))["y.w100"]))}$. 
 
-Given an estimate of the copula parameter $\Lambda$ \citep[see Sec. 2.3 in][]{Dandl_2025_nami}, 
+Given an estimate of the copula parameters in $\mLambda$ \citep[see Sec.~2.2 in][]{Dandl_2025_nami}, 
 we can confirm that the observed Fisher information is equal to the expected Fisher information
 evaluated at the maximum-likelihood estimates $\hat{\tau}$ and
 $\hat{\lambda}$:
@@ -392,7 +392,7 @@ dnorm(cf1 / sqrt(2))
 \section{Binary outcome: Efficacy study of new chemotherapy}
 
 \cite{roedel_oxaliplatin_2012} conducted an efficacy study of combining standard care with a new therapy for patients with rectal cancer. 
-Data from the completed trial, \citep{Roedel_Graeven_Fietkau_2015}, is available in the \pkg{TH.data} package.   
+Data from the completed trial \citep{Roedel_Graeven_Fietkau_2015} are available in the \pkg{TH.data} package.   
 
 <<CAOdata, echo = FALSE, message = FALSE>>=
 load(system.file("rda", "Primary_endpoint_data.rda", package = "TH.data"))
@@ -593,7 +593,7 @@ Omega <- as.array(coef(m, type = "Lambda"))[,,1]
 Model diagnosis is conducted on the level of the marginal model for the outcome 
 and on the level of the Gaussian copula parameterising the joint model.
 
-For the unadjusted and adjusted analysis, compare model-based and
+On the level of the marginal model, we compare model-based and
 nonparametric estimators of the distribution functions of time-to-death on
 the complementary log-log scale. Plots of these functions are parallel
 under proportional hazards:
