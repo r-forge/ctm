@@ -2,7 +2,7 @@
 \name{NEWS}
 \title{NEWS file for the mlt package}
 
-\section{Changes in Version 1.6-6 (2025-06-05)}{
+\section{Changes in Version 1.6-6 (2025-06-17)}{
   \subsection{Features}{
     \itemize{
       \item{Simpler switch for computing numerically approximated Hessians in \code{mltoptim}.}

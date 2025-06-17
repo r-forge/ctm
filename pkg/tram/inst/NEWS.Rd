@@ -2,7 +2,7 @@
 \name{NEWS}
 \title{NEWS file for the tram package}
 
-\section{Changes in Version 1.2-3 (2025-06-05)}{
+\section{Changes in Version 1.2-3 (2025-06-17)}{
   \itemize{
     \item{Update to \pkg{mlt} 1.6-6.}
     \item{New vignette instroducing nonparanormal marginal adjusted
