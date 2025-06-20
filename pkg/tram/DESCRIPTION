@@ -39,7 +39,7 @@ Suggests: MASS, TH.data, trtf (>= 0.3-3), mlbench, knitr, quantreg,
         tramME, glmmTMB, geepack, ranger, eha, flexsurv, frailtyEM, 
         frailtypack, gamlss.cens, icenReg, mpr, rms, rstpm2, timereg, 
         Stat2Data, cotram, latex2exp, tramvs, AER, 
-        KONPsurv, gamlss.data, Stat2Data
+        KONPsurv, gamlss.data
 VignetteBuilder: knitr
 URL: http://ctm.R-forge.R-project.org
 Encoding: UTF-8
