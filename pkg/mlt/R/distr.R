@@ -48,7 +48,7 @@
                  return(-exp(x))
              }
              if (lower.tail)
-                 return(1 - exp(-exp(x)))
+                 return(-expm1(-exp(x)))
              return(ret)             
          },
          q = function(p) log(-log1p(- p)),
@@ -66,7 +66,7 @@
              (ex - 3*ex^2 + ex^3) / exp(ex)
          },
          dd2d = function(x)
-             1 - exp(x),
+             -expm1(x),
          call = ".MinExtrVal",
          name = "minimum extreme value")
 
@@ -82,7 +82,7 @@
              }
              if (lower.tail)
                  return(exp(-exp(-x)))
-             1 - exp(-exp(-x))
+             -expm1(-exp(-x))
          },
          q = function(p) -log(-log(p)),
          d = function(x, log = FALSE) {
@@ -99,7 +99,7 @@
              exp(-x - ex) * (ex - 1)^2 - exp(-ex - 2 * x)
          },
          dd2d = function(x)
-             exp(-x) - 1,
+             expm1(-x),
          call = ".MaxExtrVal",
          name = "maximum extreme value")
 
