@@ -386,7 +386,7 @@ Transforming this estimate to the probabilistic index via $\Phi(\hat{\tau}/\sqrt
 probability of obtaining a lower outcome in the control than in the treatment
 group:
 <<trt, echo = TRUE, message = FALSE>>=
-dnorm(cf1 / sqrt(2))
+pnorm(cf1 / sqrt(2))
 @
 
 \section{Binary outcome: Efficacy study of new chemotherapy}
