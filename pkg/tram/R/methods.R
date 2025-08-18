@@ -214,10 +214,14 @@ print.tram <- function(x, ...) {
 }
 
 summary.tram <- function(object, ...) {
+
     ret <- list(call = object$call,
                 tram = object$tram,
-                test = cftest(object, parm = names(coef(object, with_baseline = FALSE))),
+                test = NULL,
                 ll = logLik(object))
+    cf <- coef(object, with_baseline = FALSE)
+    if (!is.null(cf))
+        ret$test <- cftest(object, parm = names(cf))
     if (!is.null(object$LRtest)) {
         ret$LRstat <- object$LRtest["LRstat"]
         ret$df <- floor(object$LRtest["df"])
@@ -232,13 +236,15 @@ print.summary.tram <- function(x, digits = max(3L, getOption("digits") - 3L), ..
     cat("\n", x$tram, "\n")
     cat("\nCall:\n")
     print(x$call)
-    cat("\nCoefficients:\n")
-    pq <- x$test$test
-    mtests <- cbind(pq$coefficients, pq$sigma, pq$tstat, pq$pvalues)
-    colnames(mtests) <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)")
-    sig <- .Machine$double.eps
-    printCoefmat(mtests, digits = digits, has.Pvalue = TRUE, 
-        P.values = TRUE, eps.Pvalue = sig)
+    if (!is.null(x$test)) {
+        cat("\nCoefficients:\n")
+        pq <- x$test$test
+        mtests <- cbind(pq$coefficients, pq$sigma, pq$tstat, pq$pvalues)
+        colnames(mtests) <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)")
+        sig <- .Machine$double.eps
+        printCoefmat(mtests, digits = digits, has.Pvalue = TRUE, 
+            P.values = TRUE, eps.Pvalue = sig)
+    }
     cat("\nLog-Likelihood:\n ", x$ll, " (df = ", attr(x$ll, "df"), ")", sep = "")
     if (!is.null(x$LRstat))
         cat("\nLikelihood-ratio Test: Chisq =", x$LRstat, "on",
