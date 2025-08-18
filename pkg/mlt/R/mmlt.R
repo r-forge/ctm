@@ -14,7 +14,9 @@
     normal <- sapply(m, function(x) x$todistr$name == "normal")
   
     w <- lapply(m, weights)
-    out <- lapply(w, function(x) stopifnot(isTRUE(all.equal(x, w[[1]]))))
+    wlength <- sapply(w, function(x) isTRUE(all.equal(x, w[[1]])))
+    if (!all(wlength))
+        stop("Number of (non-missing) observations differs between models supplied")
     w <- w[[1L]]
   
     ### determine if response is numeric and was measured exactly
@@ -1002,7 +1004,7 @@ summary.mmlt <- function(object, ...) {
 
     ret <- list(call = object$call,
                 convergence = object$convergence,
-                type = paste(description(object), collapse = "\n\t"),
+                type = "Multivariate transformation model",
                 logLik = logLik(object),
 #                AIC = AIC(object),
                 coef = coef(object))
