@@ -2,6 +2,15 @@
 \name{NEWS}
 \title{NEWS file for the mlt package}
 
+\section{Changes in Version 1.6-7 (2025-08-18)}{
+  \subsection{Bugfixes}{
+    \itemize{
+      \item{\code{summary.mmlt} works now.}
+      \item{Improved error messages in \code{mmlt}.}
+    }
+  }
+}
+
 \section{Changes in Version 1.6-6 (2025-06-17)}{
   \subsection{Features}{
     \itemize{
