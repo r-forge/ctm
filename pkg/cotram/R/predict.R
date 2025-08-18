@@ -34,14 +34,12 @@ predict.cotram <- function(object, newdata = model.frame(object),
     }
     
     
-    ## linear predictor
+    ## linear predictor (shift / scale possible)
     if (type == "lp") {
-        ret <- model.matrix(object, data = newdata) %*% 
-            coef(object, with_baseline = FALSE)
-        if (object$negative) return(-ret)
-        return(ret)
+        class(object) <- class(object)[-1L]
+        ### use ... to specify "what" in predict.stram
+        return(predict(object, newdata = newdata, type = "lp", ...))
     }
-    
     
     if (smooth) {
         
