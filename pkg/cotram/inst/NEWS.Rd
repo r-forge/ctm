@@ -2,6 +2,12 @@
 \name{NEWS}
 \title{NEWS file for the cotram package}
 
+\section{Changes in Version 0.5-3 (2025-08-18)}{
+  \itemize{
+    \item{Fix \code{predict} for linear predictors in location-scale models.}
+  }
+}
+
 \section{Changes in Version 0.5-2 (2024-09-18)}{
   \itemize{
     \item{Remove \code{mcotram} temporarily.}
