@@ -526,7 +526,8 @@ if (any(!pkgs))
 }
 if (!interactive() && .Platform$OS.type != "unix")
 {
-    cat("Vignette only compiled under Unix alikes.")
+    cat(paste("Vignette only compiled under Unix alikes.",
+        "\\end{document}\n"))
     knitr::knit_exit()
 }
 @
