@@ -1,0 +1,3280 @@
+\documentclass[article,nojss,shortnames]{jss}
+
+%\VignetteEngine{knitr::knitr}
+%\VignetteIndexEntry{Smooth Transformation Models for Survival Analysis: A Tutorial Using R}
+%\VignetteDepends{mlt, tram, trtf, SparseGrid, ATR, tramME, multcomp, coin, TH.data, survival, colorspace, xtable, english}
+
+
+\usepackage[]{graphicx}
+\usepackage[]{xcolor}
+% maxwidth is the original width if it is less than linewidth
+% otherwise use linewidth (to make sure the graphics do not exceed the margin)
+\makeatletter
+\def\maxwidth{ %
+  \ifdim\Gin@nat@width>\linewidth
+    \linewidth
+  \else
+    \Gin@nat@width
+  \fi
+}
+\makeatother
+
+%% packages
+\usepackage[utf8]{inputenc}
+\usepackage{thumbpdf,lmodern}
+\usepackage{xspace}
+% \usepackage{animate}
+
+%% math
+\usepackage{amsfonts,amstext,amsmath,amssymb}
+\usepackage{nicefrac}
+\usepackage{accents} %% load after amsmath
+
+% \usepackage{numprint}
+% \npthousandsep{'}
+% \npdecimalsign{.}
+
+%% bibliography
+\usepackage[sectionbib]{bibunits}
+\defaultbibliographystyle{jss} 
+\defaultbibliography{survtram}
+
+%% appendix
+\usepackage[title]{appendix}
+
+%% line numbers
+\usepackage{lineno} 
+%\internallinenumbers
+%\setrunninglinenumbers
+%\runninglinenumbers
+
+\renewcommand{\thefootnote}{}
+
+%% tables
+\usepackage{booktabs}
+% \usepackage{float} %% don't reposition tables
+% \usepackage{pdflscape}
+% \usepackage{rotating}
+%%% center by default
+\makeatletter
+\g@addto@macro{\table}{\centering}
+\makeatother
+%%% move caption to bottom
+\usepackage{floatrow} 
+\setlength{\tabcolsep}{12pt}
+
+%% revision
+\let\comment\undefined
+\usepackage[final]{changes}
+
+% \newcommand{\new}[1]{\textcolor{black}{#1}}
+% \newcommand{\rev}[1]{\textcolor{red}{#1}}
+\newcommand{\TODO}[1]{{\color{red} todo: #1}}
+%\newcommand{\COMMENT}[1]{{\color{red} #1}}
+
+\newcommand\Sandra[1]{{\color{blue}Sandra: ``#1''}}
+\newcommand\Torsten[1]{{\color{blue}Torsten: ``#1''}}
+
+% \usepackage[colorinlistoftodos,prependcaption,textsize=tiny]{todonotes}
+% \usepackage{xargs}                      % Use more than one optional parameter in a new commands
+% \newcommandx{\unsure}[2][1=]{\todo[linecolor=pink,backgroundcolor=pink!25,bordercolor=pink,#1]{#2}}
+% \newcommandx{\change}[2][1=]{\todo[linecolor=red,backgroundcolor=red!25,bordercolor=red,#1]{#2}}
+% \newcommandx{\add}[2][1=]{\todo[inline,linecolor=teal,backgroundcolor=teal!25,bordercolor=teal,#1]{#2}}
+% \newcommandx{\torsten}[2][1=]{\todo[linecolor=red,backgroundcolor=red!25,bordercolor=red,#1]{#2}}
+% \newcommandx{\idea}[2][1=]{\todo[inline,linecolor=green,backgroundcolor=green!25,bordercolor=green,#1]{#2}}
+% \newcommandx{\improve}[2][1=]{\todo[linecolor=purple,backgroundcolor=purple!25,bordercolor=purple,#1]{#2}}
+
+% \let\comment\relax
+% \usepackage{changes}
+% \definechangesauthor[color=red, names={Torsten}]{T.H.}
+% \definechangesauthor[color=red, name={Sandra}]{S.S.}
+
+%% code
+\usepackage{verbatim}
+\usepackage{alltt}
+\usepackage{paralist}
+
+%% code macros
+% \newcommand{\proglang}[1]{\textsf{#1}}
+% \newcommand{\pkg}[1]{\textbf{#1}}
+\renewcommand{\code}[1]{\texttt{#1}}
+\newcommand{\var}[1]{\code{#1}}
+\newcommand{\cmd}[1]{\code{#1()}}
+\newcommand{\Rclass}[1]{`\code{#1}'}
+
+%% math macros
+%%% mlt
+
+%% surv
+\newcommand{\sY}{S_\rY}
+\newcommand{\sMEV}[1]{\exp\left\{-\exp\left[#1\right]\right\}}
+\newcommand{\rS}{S}
+\newcommand{\rs}{s}
+\newcommand{\scaleparm}{\gammavec}
+\newcommand{\escaleparm}{\gamma}
+\newcommand{\rF}{A}
+\newcommand{\rf}{a}
+\newcommand{\cureparm}{p}
+\newcommand{\rC}{C}
+\newcommand{\rc}{c}
+\newcommand{\rW}{W}
+\newcommand{\rw}{w}
+\newcommand{\sw}{S_\rw}
+\newcommand{\sYw}{S_\rw}
+\newcommand{\sCw}{G_\rw}
+\newcommand{\indep}{\perp \!\!\! \perp}
+\newcommand{\rA}{\text{Age}}
+\newcommand{\ra}{\text{age}}
+
+%% cholesky
+\newcommand{\lparm}{\xi}
+\newcommand{\mparm}{\lparm}
+
+%% random effects
+\newcommand{\rU}{\mU}
+\newcommand{\ru}{\uvec}
+\newcommand{\reparm}{\rr}
+\def \Sigmavec {\text{\boldmath$\Sigma$}}
+\newcommand{\haz}{\lambda}
+\newcommand{\Haz}{\Lambda}
+\newcommand{\haznul}{\haz_0}
+\newcommand{\hazone}{\haz_1}
+\newcommand{\Haznul}{\Haz_0}
+\newcommand{\hatHaznul}{\hat{\Haz}_0}
+\newcommand{\Hazone}{\Haz_1}
+\newcommand{\sYx}{S_{\rY \mid \rX = \rx}}
+\newcommand{\sYerx}{S_{\rY \mid X = \erx}}
+\newcommand{\snul}{S_{0}}
+\newcommand{\sone}{S_{1}}
+\newcommand{\dnul}{f_{0}}
+\newcommand{\done}{f_{1}}
+\newcommand{\pnul}{F_{0}}
+\newcommand{\pone}{F_{1}}
+
+%% rv
+\newcommand{\rZ}{Z}
+\newcommand{\rY}{T}
+\newcommand{\rX}{\mX}
+% \newcommand{\rS}{\mS}
+% \newcommand{\rs}{\svec}
+\newcommand{\rr}{\rvec}
+\newcommand{\rz}{z}
+\newcommand{\ry}{t}
+\newcommand{\rx}{\xvec}
+\newcommand{\erx}{x}
+%% sigma algebra
+\newcommand{\sA}{\mathfrak{A}}
+\newcommand{\sAZ}{\mathfrak{B}}
+\newcommand{\sAY}{\mathfrak{C}}
+\newcommand{\esA}{A}
+\newcommand{\esAZ}{B}
+\newcommand{\esAY}{C}
+%% sample spaces
+\newcommand{\sam}{\Omega}
+\newcommand{\samZ}{\RR}
+\newcommand{\samY}{\Xi}
+\newcommand{\samX}{\chi}
+%% measureable spaces
+\newcommand{\ms}{(\sam, \sA)}
+\newcommand{\msZ}{(\samZ, \sAZ)}
+\newcommand{\msY}{(\samY, \sAY)}
+%% probability spaces
+\newcommand{\ps}{(\sam, \sA, \Prob)}
+\newcommand{\psZ}{(\samZ, \sAZ, \Prob_\rZ)}
+\newcommand{\psY}{(\samY, \sAY, \Prob_\rY)}
+%% distributions
+\newcommand{\pZ}{F}
+\newcommand{\pY}{F_\rY}
+\newcommand{\hatpY}{\hat{F}_{\rY,N}}
+\newcommand{\hatpYx}{\hat{F}_{\rY | \rX = \rx, N}}
+\newcommand{\pN}{\Phi}
+\newcommand{\pSL}{F_{\SL}}
+\newcommand{\pMEV}{F_{\MEV}}
+\newcommand{\pSW}{F_{\SW}}
+\newcommand{\pYx}{F_{\rY | \rX = \rx}}
+\newcommand{\pYA}{F_{\rY | \rX = A}}
+\newcommand{\pYB}{F_{\rY | \rX = B}}
+\newcommand{\qZ}{F^{-1}_\rZ}
+\newcommand{\qY}{F^{-1}_\rY}
+\newcommand{\dZ}{f}
+\newcommand{\dY}{f_\rY}
+\newcommand{\hatdY}{\hat{f}_{\rY, N}}
+\newcommand{\dYx}{f_{\rY | \rX = \rx}}
+\newcommand{\hazY}{\lambda_{\rY}}
+\newcommand{\HazY}{\Lambda_{\rY}}
+\newcommand{\hathazY}{\hat{\lambda}_{\rY, N}}
+\newcommand{\hatHazY}{\hat{\Lambda}_{\rY, N}}
+%% measures
+\newcommand{\measureY}{\mu}
+\newcommand{\lebesgue}{\mu_L}
+\newcommand{\counting}{\mu_C}
+%% trafo
+\newcommand{\g}{g}
+\newcommand{\h}{h}
+\newcommand{\s}{\svec}
+\newcommand{\hY}{h_\rY}
+\newcommand{\hx}{h_\rx}
+\newcommand{\hs}{\mathcal{H}}
+\newcommand{\basisy}{\avec}
+\newcommand{\bern}[1]{\avec_{\text{Bs},#1}}
+\newcommand{\bernx}[1]{\bvec_{\text{Bs},#1}}
+\newcommand{\basisx}{\bvec}
+\newcommand{\basisyx}{\cvec}
+\newcommand{\m}{m}
+\newcommand{\lik}{\mathcal{L}}
+\newcommand{\parm}{\varthetavec}
+\newcommand{\eparm}{\vartheta}
+\newcommand{\dimparm}{P}
+\newcommand{\dimparmx}{Q}
+\newcommand{\shiftparm}{\betavec}
+\newcommand{\baseparm}{\alphavec}
+\newcommand{\eshiftparm}{\beta}
+
+\newcommand{\ie}{\textit{i.e.,}}
+\newcommand{\eg}{\textit{e.g.,}}
+
+\renewcommand{\Prob}{\mathbb{P}}
+\newcommand{\Ex}{\mathbb{E}}
+\newcommand{\RR}{\mathbb{R}}
+\newcommand{\eps}{\varepsilon}
+\newcommand{\prodname}{tensor }
+\newcommand{\Null}{\mathbf{0}}
+\newcommand{\FI}{\mF}
+
+\usepackage{dsfont}
+\newcommand{\I}{\mathds{1}}
+
+
+
+\def \dsP {\text{$\mathds{P}$}}
+\def \dsE {\text{$\mathds{E}$}}
+\def \dsR {\text{$\mathds{R}$}}
+\def \dsN {\text{$\mathds{N}$}}
+
+
+% Math Operators
+
+ \DeclareMathOperator{\logit}{logit}
+ \DeclareMathOperator{\loglog}{loglog}
+ \DeclareMathOperator{\cloglog}{cloglog}
+ \DeclareMathOperator{\probit}{probit}
+ \DeclareMathOperator{\LRT}{LRT}
+ \DeclareMathOperator{\RLRT}{RLRT}
+ \DeclareMathOperator{\Cov}{Cov}
+ \DeclareMathOperator{\Cor}{Cor}
+ \DeclareMathOperator{\Var}{Var}
+ \DeclareMathOperator{\EW}{\dsE}
+ \DeclareMathOperator{\D}{D}
+ \DeclareMathOperator{\Bias}{Bias}
+ \DeclareMathOperator{\MSE}{MSE}
+ \DeclareMathOperator{\PLS}{PLS}
+ \DeclareMathOperator{\rank}{rank}
+ \DeclareMathOperator{\ncol}{ncol}
+ \DeclareMathOperator{\pen}{pen}
+ \DeclareMathOperator{\const}{const}
+ \DeclareMathOperator{\diag}{diag}
+ \DeclareMathOperator{\blockdiag}{blockdiag}
+ \DeclareMathOperator{\df}{df}
+ \DeclareMathOperator{\trace}{tr}
+ \DeclareMathOperator{\iid}{i.i.d.}
+ \DeclareMathOperator{\ind}{ind.}
+ \DeclareMathOperator{\obs}{obs}
+ \DeclareMathOperator{\acos}{acos}
+ \DeclareMathOperator{\spat}{spat}
+ \DeclareMathOperator{\fix}{{fix}}
+ \DeclareMathOperator{\ran}{{ran}}
+ \DeclareMathOperator*{\argmin}{{arg\,min}}
+ \DeclareMathOperator*{\argmax}{{arg\,max}}
+ \DeclareMathOperator{\BIC}{{BIC}}
+ \DeclareMathOperator{\DIC}{{DIC}}
+ \DeclareMathOperator{\AIC}{{AIC}}
+ \DeclareMathOperator{\mAIC}{{mAIC}}
+ \DeclareMathOperator{\cAIC}{{cAIC}}
+
+% Distributions
+
+ \DeclareMathOperator{\WD}{Wei}
+ \DeclareMathOperator{\ND}{N}
+ \DeclareMathOperator{\TND}{TN}
+ \DeclareMathOperator{\UD}{U}
+ \DeclareMathOperator{\GaD}{Ga}
+ \DeclareMathOperator{\tD}{t}
+ \DeclareMathOperator{\IGD}{IG}
+ \DeclareMathOperator{\IWD}{IW}
+ \DeclareMathOperator{\PoD}{Po}
+ \DeclareMathOperator{\ExpD}{Exp}
+ \DeclareMathOperator{\LapD}{Lap}
+ \DeclareMathOperator{\MuD}{Mu}
+ \DeclareMathOperator{\DirD}{Dir}
+ \DeclareMathOperator{\PDD}{PD}
+ \DeclareMathOperator{\BeD}{Be}
+ \DeclareMathOperator{\BD}{B}
+ \DeclareMathOperator{\DPD}{DP}
+ \DeclareMathOperator{\KSD}{KS}
+ \DeclareMathOperator{\SL}{SL}
+ \DeclareMathOperator{\MEV}{MEV}
+ \DeclareMathOperator{\SW}{SW}
+ \DeclareMathOperator{\Chi1}{\chi^2_1}
+
+
+
+% Boldface vectors and matrices
+
+\def \avec {\text{\boldmath$a$}}    \def \mA {\text{\boldmath$A$}}
+\def \bvec {\text{\boldmath$b$}}    \def \mB {\text{\boldmath$B$}}
+\def \cvec {\text{\boldmath$c$}}    \def \mC {\text{\boldmath$C$}}
+\def \dvec {\text{\boldmath$d$}}    \def \mD {\text{\boldmath$D$}}
+\def \evec {\text{\boldmath$e$}}    \def \mE {\text{\boldmath$E$}}
+\def \fvec {\text{\boldmath$f$}}    \def \mF {\text{\boldmath$F$}}
+\def \gvec {\text{\boldmath$g$}}    \def \mG {\text{\boldmath$G$}}
+\def \hvec {\text{\boldmath$h$}}    \def \mH {\text{\boldmath$H$}}
+\def \ivec {\text{\boldmath$i$}}    \def \mI {\text{\boldmath$I$}}
+\def \jvec {\text{\boldmath$j$}}    \def \mJ {\text{\boldmath$J$}}
+\def \kvec {\text{\boldmath$k$}}    \def \mK {\text{\boldmath$K$}}
+\def \lvec {\text{\boldmath$l$}}    \def \mL {\text{\boldmath$L$}}
+\def \mvec {\text{\boldmath$m$}}    \def \mM {\text{\boldmath$M$}}
+\def \nvec {\text{\boldmath$n$}}    \def \mN {\text{\boldmath$N$}}
+\def \ovec {\text{\boldmath$o$}}    \def \mO {\text{\boldmath$O$}}
+\def \pvec {\text{\boldmath$p$}}    \def \mP {\text{\boldmath$P$}}
+\def \qvec {\text{\boldmath$q$}}    \def \mQ {\text{\boldmath$Q$}}
+\def \rvec {\text{\boldmath$r$}}    \def \mR {\text{\boldmath$R$}}
+\def \svec {\text{\boldmath$s$}}    \def \mS {\text{\boldmath$S$}}
+\def \tvec {\text{\boldmath$t$}}    \def \mT {\text{\boldmath$T$}}
+\def \uvec {\text{\boldmath$u$}}    \def \mU {\text{\boldmath$U$}}
+\def \vvec {\text{\boldmath$v$}}    \def \mV {\text{\boldmath$V$}}
+\def \wvec {\text{\boldmath$w$}}    \def \mW {\text{\boldmath$W$}}
+\def \xvec {\text{\boldmath$x$}}    \def \mX {\text{\boldmath$X$}}
+\def \yvec {\text{\boldmath$y$}}    \def \mY {\text{\boldmath$Y$}}
+\def \zvec {\text{\boldmath$z$}}    \def \mZ {\text{\boldmath$Z$}}
+
+ \def \calA {\mathcal A}
+ \def \calB {\mathcal B}
+ \def \calC {\mathcal C}
+ \def \calD {\mathcal D}
+ \def \calE {\mathcal E}
+ \def \calF {\mathcal F}
+ \def \calG {\mathcal G}
+ \def \calH {\mathcal H}
+ \def \calI {\mathcal I}
+ \def \calJ {\mathcal J}
+ \def \calK {\mathcal K}
+ \def \calL {\mathcal L}
+ \def \calM {\mathcal M}
+ \def \calN {\mathcal N}
+ \def \calO {\mathcal O}
+ \def \calP {\mathcal P}
+ \def \calQ {\mathcal Q}
+ \def \calR {\mathcal R}
+ \def \calS {\mathcal S}
+ \def \calT {\mathcal T}
+ \def \calU {\mathcal U}
+ \def \calV {\mathcal V}
+ \def \calW {\mathcal W}
+ \def \calX {\mathcal X}
+ \def \calY {\mathcal Y}
+ \def \calZ {\mathcal Z}
+
+\def \ahatvec {\text{\boldmath$\hat a$}}    \def \mhatA {\text{\boldmath$\hat A$}}
+\def \bhatvec {\text{\boldmath$\hat b$}}    \def \mhatB {\text{\boldmath$\hat B$}}
+\def \chatvec {\text{\boldmath$\hat c$}}    \def \mhatC {\text{\boldmath$\hat C$}}
+\def \dhatvec {\text{\boldmath$\hat d$}}    \def \mhatD {\text{\boldmath$\hat D$}}
+\def \ehatvec {\text{\boldmath$\hat e$}}    \def \mhatE {\text{\boldmath$\hat E$}}
+\def \fhatvec {\text{\boldmath$\hat f$}}    \def \mhatF {\text{\boldmath$\hat F$}}
+\def \ghatvec {\text{\boldmath$\hat g$}}    \def \mhatG {\text{\boldmath$\hat G$}}
+\def \hhatvec {\text{\boldmath$\hat h$}}    \def \mhatH {\text{\boldmath$\hat H$}}
+\def \ihatvec {\text{\boldmath$\hat i$}}    \def \mhatI {\text{\boldmath$\hat I$}}
+\def \jhatvec {\text{\boldmath$\hat j$}}    \def \mhatJ {\text{\boldmath$\hat J$}}
+\def \khatvec {\text{\boldmath$\hat k$}}    \def \mhatK {\text{\boldmath$\hat K$}}
+\def \lhatvec {\text{\boldmath$\hat l$}}    \def \mhatL {\text{\boldmath$\hat L$}}
+\def \mhatvec {\text{\boldmath$\hat m$}}    \def \mhatM {\text{\boldmath$\hat M$}}
+\def \nhatvec {\text{\boldmath$\hat n$}}    \def \mhatN {\text{\boldmath$\hat N$}}
+\def \ohatvec {\text{\boldmath$\hat o$}}    \def \mhatO {\text{\boldmath$\hat O$}}
+\def \phatvec {\text{\boldmath$\hat p$}}    \def \mhatP {\text{\boldmath$\hat P$}}
+\def \qhatvec {\text{\boldmath$\hat q$}}    \def \mhatQ {\text{\boldmath$\hat Q$}}
+\def \rhatvec {\text{\boldmath$\hat r$}}    \def \mhatR {\text{\boldmath$\hat R$}}
+\def \shatvec {\text{\boldmath$\hat s$}}    \def \mhatS {\text{\boldmath$\hat S$}}
+\def \thatvec {\text{\boldmath$\hat t$}}    \def \mhatT {\text{\boldmath$\hat T$}}
+\def \uhatvec {\text{\boldmath$\hat u$}}    \def \mhatU {\text{\boldmath$\hat U$}}
+\def \vhatvec {\text{\boldmath$\hat v$}}    \def \mhatV {\text{\boldmath$\hat V$}}
+\def \whatvec {\text{\boldmath$\hat w$}}    \def \mhatW {\text{\boldmath$\hat W$}}
+\def \xhatvec {\text{\boldmath$\hat x$}}    \def \mhatX {\text{\boldmath$\hat X$}}
+\def \yhatvec {\text{\boldmath$\hat y$}}    \def \mhatY {\text{\boldmath$\hat Y$}}
+\def \zhatvec {\text{\boldmath$\hat z$}}    \def \mhatZ {\text{\boldmath$\hat Z$}}
+
+
+\def \atildevec {\text{\boldmath$\tilde a$}}    \def \mtildeA {\text{\boldmath$\tilde A$}}
+\def \btildevec {\text{\boldmath$\tilde b$}}    \def \mtildeB {\text{\boldmath$\tilde B$}}
+\def \ctildevec {\text{\boldmath$\tilde c$}}    \def \mtildeC {\text{\boldmath$\tilde C$}}
+\def \dtildevec {\text{\boldmath$\tilde d$}}    \def \mtildeD {\text{\boldmath$\tilde D$}}
+\def \etildevec {\text{\boldmath$\tilde e$}}    \def \mtildeE {\text{\boldmath$\tilde E$}}
+\def \ftildevec {\text{\boldmath$\tilde f$}}    \def \mtildeF {\text{\boldmath$\tilde F$}}
+\def \gtildevec {\text{\boldmath$\tilde g$}}    \def \mtildeG {\text{\boldmath$\tilde G$}}
+\def \htildevec {\text{\boldmath$\tilde h$}}    \def \mtildeH {\text{\boldmath$\tilde H$}}
+\def \itildevec {\text{\boldmath$\tilde i$}}    \def \mtildeI {\text{\boldmath$\tilde I$}}
+\def \jtildevec {\text{\boldmath$\tilde j$}}    \def \mtildeJ {\text{\boldmath$\tilde J$}}
+\def \ktildevec {\text{\boldmath$\tilde k$}}    \def \mtildeK {\text{\boldmath$\tilde K$}}
+\def \ltildevec {\text{\boldmath$\tilde l$}}    \def \mtildeL {\text{\boldmath$\tilde L$}}
+\def \mtildevec {\text{\boldmath$\tilde m$}}    \def \mtildeM {\text{\boldmath$\tilde M$}}
+\def \ntildevec {\text{\boldmath$\tilde n$}}    \def \mtildeN {\text{\boldmath$\tilde N$}}
+\def \otildevec {\text{\boldmath$\tilde o$}}    \def \mtildeO {\text{\boldmath$\tilde O$}}
+\def \ptildevec {\text{\boldmath$\tilde p$}}    \def \mtildeP {\text{\boldmath$\tilde P$}}
+\def \qtildevec {\text{\boldmath$\tilde q$}}    \def \mtildeQ {\text{\boldmath$\tilde Q$}}
+\def \rtildevec {\text{\boldmath$\tilde r$}}    \def \mtildeR {\text{\boldmath$\tilde R$}}
+\def \stildevec {\text{\boldmath$\tilde s$}}    \def \mtildeS {\text{\boldmath$\tilde S$}}
+\def \ttildevec {\text{\boldmath$\tilde t$}}    \def \mtildeT {\text{\boldmath$\tilde T$}}
+\def \utildevec {\text{\boldmath$\tilde u$}}    \def \mtildeU {\text{\boldmath$\tilde U$}}
+\def \vtildevec {\text{\boldmath$\tilde v$}}    \def \mtildeV {\text{\boldmath$\tilde V$}}
+\def \wtildevec {\text{\boldmath$\tilde w$}}    \def \mtildeW {\text{\boldmath$\tilde W$}}
+\def \xtildevec {\text{\boldmath$\tilde x$}}    \def \mtildeX {\text{\boldmath$\tilde X$}}
+\def \ytildevec {\text{\boldmath$\tilde y$}}    \def \mtildeY {\text{\boldmath$\tilde Y$}}
+\def \ztildevec {\text{\boldmath$\tilde z$}}    \def \mtildeZ {\text{\boldmath$\tilde Z$}}
+
+\def \alphavec        {\text{\boldmath$\alpha$}}
+\def \betavec         {\text{\boldmath$\beta$}}
+\def \gammavec        {\text{\boldmath$\gamma$}}
+\def \deltavec        {\text{\boldmath$\delta$}}
+\def \epsilonvec      {\text{\boldmath$\epsilon$}}
+\def \varepsilonvec   {\text{\boldmath$\varepsilon$}}
+\def \zetavec         {\text{\boldmath$\zeta$}}
+\def \etavec          {\text{\boldmath$\eta$}}
+\def \thetavec        {\text{\boldmath$\theta$}}
+\def \varthetavec     {\text{\boldmath$\vartheta$}}
+\def \iotavec         {\text{\boldmath$\iota$}}
+\def \kappavec        {\text{\boldmath$\kappa$}}
+\def \lambdavec       {\text{\boldmath$\lambda$}}
+\def \muvec           {\text{\boldmath$\mu$}}
+\def \nuvec           {\text{\boldmath$\nu$}}
+\def \xivec           {\text{\boldmath$\xi$}}
+\def \pivec           {\text{\boldmath$\pi$}}
+\def \varpivec        {\text{\boldmath$\varpi$}}
+\def \rhovec          {\text{\boldmath$\rho$}}
+\def \varrhovec       {\text{\boldmath$\varrho$}}
+\def \sigmavec        {\text{\boldmath$\sigma$}}
+\def \varsigmavec     {\text{\boldmath$\varsigma$}}
+\def \tauvec          {\text{\boldmath$\tau$}}
+\def \upsilonvec      {\text{\boldmath$\upsilon$}}
+\def \phivec          {\text{\boldmath$\phi$}}
+\def \varphivec       {\text{\boldmath$\varphi$}}
+\def \psivec          {\text{\boldmath$\psi$}}
+\def \chivec          {\text{\boldmath$\chi$}}
+\def \omegavec        {\text{\boldmath$\omega$}}
+
+\def \alphahatvec        {\text{\boldmath$\hat \alpha$}}
+\def \betahatvec         {\text{\boldmath$\hat \beta$}}
+\def \gammahatvec        {\text{\boldmath$\hat \gamma$}}
+\def \deltahatvec        {\text{\boldmath$\hat \delta$}}
+\def \epsilonhatvec      {\text{\boldmath$\hat \epsilon$}}
+\def \varepsilonhatvec   {\text{\boldmath$\hat \varepsilon$}}
+\def \zetahatvec         {\text{\boldmath$\hat \zeta$}}
+\def \etahatvec          {\text{\boldmath$\hat \eta$}}
+\def \thetahatvec        {\text{\boldmath$\hat \theta$}}
+\def \varthetahatvec     {\text{\boldmath$\hat \vartheta$}}
+\def \iotahatvec         {\text{\boldmath$\hat \iota$}}
+\def \kappahatvec        {\text{\boldmath$\hat \kappa$}}
+\def \lambdahatvec       {\text{\boldmath$\hat \lambda$}}
+\def \muhatvec           {\text{\boldmath$\hat \mu$}}
+\def \nuhatvec           {\text{\boldmath$\hat \nu$}}
+\def \xihatvec           {\text{\boldmath$\hat \xi$}}
+\def \pihatvec           {\text{\boldmath$\hat \pi$}}
+\def \varpihatvec        {\text{\boldmath$\hat \varpi$}}
+\def \rhohatvec          {\text{\boldmath$\hat \rho$}}
+\def \varrhohatvec       {\text{\boldmath$\hat \varrho$}}
+\def \sigmahatvec        {\text{\boldmath$\hat \sigma$}}
+\def \varsigmahatvec     {\text{\boldmath$\hat \varsigma$}}
+\def \tauhatvec          {\text{\boldmath$\hat \tau$}}
+\def \upsilonhatvec      {\text{\boldmath$\hat \upsilon$}}
+\def \phihatvec          {\text{\boldmath$\hat \phi$}}
+\def \varphihatvec       {\text{\boldmath$\hat \varphi$}}
+\def \psihatvec          {\text{\boldmath$\hat \psi$}}
+\def \chihatvec          {\text{\boldmath$\hat \chi$}}
+\def \omegahatvec        {\text{\boldmath$\hat \omega$}}
+
+\def \alphatildevec        {\text{\boldmath$\tilde \alpha$}}
+\def \betatildevec         {\text{\boldmath$\tilde \beta$}}
+\def \gammatildevec        {\text{\boldmath$\tilde \gamma$}}
+\def \deltatildevec        {\text{\boldmath$\tilde \delta$}}
+\def \epsilontildevec      {\text{\boldmath$\tilde \epsilon$}}
+\def \varepsilontildevec   {\text{\boldmath$\tilde \varepsilon$}}
+\def \zetatildevec         {\text{\boldmath$\tilde \zeta$}}
+\def \etatildevec          {\text{\boldmath$\tilde \eta$}}
+\def \thetatildevec        {\text{\boldmath$\tilde \theta$}}
+\def \varthetatildevec     {\text{\boldmath$\tilde \vartheta$}}
+\def \iotatildevec         {\text{\boldmath$\tilde \iota$}}
+\def \kappatildevec        {\text{\boldmath$\tilde \kappa$}}
+\def \lambdatildevec       {\text{\boldmath$\tilde \lambda$}}
+\def \mutildevec           {\text{\boldmath$\tilde \mu$}}
+\def \nutildevec           {\text{\boldmath$\tilde \nu$}}
+\def \xitildevec           {\text{\boldmath$\tilde \xi$}}
+\def \pitildevec           {\text{\boldmath$\tilde \pi$}}
+\def \varpitildevec        {\text{\boldmath$\tilde \varpi$}}
+\def \rhotildevec          {\text{\boldmath$\tilde \rho$}}
+\def \varrhotildevec       {\text{\boldmath$\tilde \varrho$}}
+\def \sigmatildevec        {\text{\boldmath$\tilde \sigma$}}
+\def \varsigmatildevec     {\text{\boldmath$\tilde \varsigma$}}
+\def \tautildevec          {\text{\boldmath$\tilde \tau$}}
+\def \upsilontildevec      {\text{\boldmath$\tilde \upsilon$}}
+\def \phitildevec          {\text{\boldmath$\tilde \phi$}}
+\def \varphitildevec       {\text{\boldmath$\tilde \varphi$}}
+\def \psitildevec          {\text{\boldmath$\tilde \psi$}}
+\def \chitildevec          {\text{\boldmath$\tilde \chi$}}
+\def \omegatildevec        {\text{\boldmath$\tilde \omega$}}
+
+\def \mGamma   {\mathbf{\Gamma}}
+\def \mDelta   {\mathbf{\Delta}}
+\def \mTheta   {\mathbf{\Theta}}
+\def \mLambda  {\mathbf{\Lambda}}
+\def \mXi      {\mathbf{\Xi}}
+\def \mPi      {\mathbf{\Pi}}
+\def \mSigma   {\mathbf{\Sigma}}
+\def \mUpsilon {\mathbf{\Upsilon}}
+\def \mPhi     {\mathbf{\Phi}}
+\def \mPsi     {\mathbf{\Psi}}
+\def \mOmega   {\mathbf{\Omega}}
+
+\def \mhatGamma   {\mathbf{\hat \Gamma}}
+\def \mhatDelta   {\mathbf{\hat \Delta}}
+\def \mhatTheta   {\mathbf{\hat \Theta}}
+\def \mhatLambda  {\mathbf{\hat \Lambda}}
+\def \mhatXi      {\mathbf{\hat \Xi}}
+\def \mhatPi      {\mathbf{\hat \Pi}}
+\def \mhatSigma   {\mathbf{\hat \Sigma}}
+\def \mhatUpsilon {\mathbf{\hat \Upsilon}}
+\def \mhatPhi     {\mathbf{\hat \Phi}}
+\def \mhatPsi     {\mathbf{\hat \Psi}}
+\def \mhatOmega   {\mathbf{\hat \Omega}}
+
+\def \nullvec {\mathbf{0}}
+\def \onevec {\mathbf{1}}
+
+%%% theorems
+\newtheorem{lem}{Lemma}
+\newtheorem{thm}{Theorem}
+\newtheorem{coro}{Corollary}
+\newtheorem{defn}{Definition}
+% \newtheorem{remark}{Remark}
+
+\newcommand{\ubar}[1]{\underaccent{\bar}{#1}}
+
+% \newcommand{\Prob}{\text{Prob}} %% already defined
+
+%% colors
+\definecolor{Red}{rgb}{0.5,0,0}
+\definecolor{Blue}{rgb}{0,0,0.5}
+
+\title{Smooth Transformation Models for Survival Analysis: A Tutorial Using \proglang{R}}
+\Shorttitle{Smooth Transformation Models for Survival Analysis: A Tutorial Using \proglang{R}}
+\Plaintitle{Smooth Transformation Models for Survival Analysis: A Tutorial Using R}
+ 
+\author{Sandra Siegfried \\ Universit\"at Z\"urich \And B\'alint Tam\'asi \\ Universit\"at Z\"urich \And Torsten Hothorn \\ Universit\"at Z\"urich}
+\Plainauthor{Siegfried, Tam\'asi and Hothorn}
+ 
+\Keywords{non-proportional hazards, dependent censoring, clustered observations, personalised medicine, survival trees, \proglang{R}}
+
+\Plainkeywords{non-proportional hazards, dependent censoring, clustered observations, personalised medicine, survival trees, R}
+ 
+\Address{
+Sandra Siegfried, B\'alint Tam\'asi, and Torsten Hothorn\\
+Institut f\"ur Epidemiologie, Biostatistik und Pr\"avention \\
+Universit\"at Z\"urich \\
+Hirschengraben 84, CH-8001 Z\"urich, Switzerland \\
+\texttt{Sandra.Siegfried@alumni.uzh.ch}, \texttt{Torsten.Hothorn@uzh.ch} \\
+}
+ 
+\Abstract{
+Over the last five
+decades, we have seen strong methodological advances in survival analysis, using parametric methods and, more prominently, methods based on non-/semi-parametric estimation. As the methodological landscape continues
+to evolve, the task of navigating through the multitude of methods and
+identifying available software resources is becoming increasingly challenging -- especially in more complex scenarios, 
+such as when dealing with interval-censored or clustered survival data,
+non-proportional hazards, or dependent censoring.
+
+This tutorial explores the potential of using the framework of smooth transformation
+models for survival analysis in the \proglang{R} system for statistical computing. This unified maximum likelihood framework covers a wide range of survival models, including well-established ones such as
+the Weibull model and a fully parameterised version of the famous Cox
+proportional hazards model, as well as extensions for more complex scenarios. 
+We explore models for non-proportional/crossing hazards, dependent censoring, clustered observations
+and extensions towards personalised medicine within this framework.
+
+Using survival data from a two-arm randomised controlled
+trial on rectal cancer therapy, we demonstrate how survival analysis tasks can be seamlessly
+navigated in \proglang{R} within this framework using
+the implementation provided by the \pkg{tram} package, and
+few related packages.
+}
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\begin{document}
+
+%% main
+\begin{bibunit}
+
+%
+
+<<survtram-pkgs, echo = FALSE, results = "hide", message = FALSE, warning = FALSE>>=
+# required packages
+pkgs <- c("mlt", "tram",  "trtf", "SparseGrid", "ATR", "tramME", "multcomp",
+  "coin", "TH.data", "survival", "colorspace", "xtable", "english")
+pkgs <- sapply(pkgs, require, character.only = TRUE)
+@
+
+<<fail, results = "asis", echo = FALSE>>=
+if (any(!pkgs))
+{
+    cat(paste("Package(s)", paste(names(pkgs)[!pkgs], collapse = ", "), 
+        "not available, stop processing.",
+        "\\putbib\n",
+        "\\end{bibunit}\n",
+        "\\end{document}\n"))
+    knitr::knit_exit()
+}
+if (!interactive() && .Platform$OS.type != "unix")
+{
+    cat("Vignette only compiled under Unix alikes.")
+    knitr::knit_exit()
+}
+@
+
+
+<<setup, echo = FALSE, results = "hide", message = FALSE, warning = FALSE>>=
+set.seed(290875)
+
+## plotting
+xlab <- "Time (in days)"
+lxlab <- paste0(xlab, " on log-scale")
+ylabS <- "Probability of survival"
+ylablHaz <- "Log-cumulative hazard"
+ylabcumHR <- expression(Lambda[1](t)/Lambda[0](t))
+ylimS <- c(0, 1)
+ylimHR <- c(0, 1.6)
+q <- 0:2204
+xlim <- c(0, max(q))
+lwd <- 1.3
+
+## color
+acol <- sequential_hcl(6, "BluYl")[1:5]
+col <- acol[c(2, (length(acol)) - 1)]
+lcol <- lighten(col, amount = .4) ## lighten color for overlaid lines 
+
+## aux
+perm_test_biv.stram <-  function(object, seed = 1) {
+  stopifnot(inherits(object, "stram"))
+  fixed <- c(trt = 0, scl = 0)
+  lhs <- object$call[[2]][[3]]
+  if (!(length(lhs) == 3 & lhs[[2]] == lhs[[3]]))
+    stop("Bivariate score perm test not applicable")
+  names(fixed) <- names(coef(object))
+  m0 <- update(object, fixed = fixed) ## uncond. model
+  r <- resid(m0, what = "shifting")
+  rs <- resid(m0, what = "scaling")
+  set.seed(seed)
+  
+  formula <- as.formula(paste("r + rs ~", lhs[[2]]))
+  pvalue(independence_test(formula, data = m0$data))
+}
+
+## formatting
+big.mark <- "'"
+frmt0 <- round
+frmt <- function(digits, x, math = FALSE) {
+  if (!is.numeric(x)) return(x)
+    ret <- formatC(round(x, digits), digits = digits, format = "f", big.mark = big.mark) 
+    if (math) ret <- paste("$", ret, "$")
+    if (is.matrix(x)) {
+        ret <- matrix(ret, nrow = nrow(x))
+        dimnames(ret) <- dimnames(x)
+    }
+    ret
+}
+
+frmt1 <- function(x, math = FALSE) frmt(1, x = x, math = math)
+frmt2 <- function(x, math = FALSE) frmt(2, x = x, math = math)
+frmt3 <- function(x, math = FALSE) frmt(3, x = x, math = math)
+
+## logLik
+frmtll <- function(x, math = FALSE, mark = FALSE) {
+  if (!inherits(x, "logLik") && !is.numeric(x) && all(!is.na(x))) x <- logLik(x)
+    if (is.na(x)) return("")
+  ret <- frmt2(abs(x), math = FALSE)
+  if (x < 0) ret <- paste0(ifelse(math, "$-$", "-"), ret)
+  if (mark) ret <- paste0("{\\color{darkgray}", ret, "}")
+  ret
+}
+
+## data
+load(system.file("rda", "Primary_endpoint_data.rda", package = "TH.data"))
+
+## randomization arm
+levs <- levels(CAOsurv$randarm)
+trt <- with(CAOsurv, paste0("randarm", levs[2], collapse = ""))
+nd1 <- data.frame(randarm = factor(levs, levels = levs))
+
+## strata
+CAOsurv$strat <- with(CAOsurv, interaction(strat_t, strat_n))
+slevs <- levels(CAOsurv$strat)
+nd2 <- data.frame(randarm = nd1$randarm[1], strat = factor(slevs, levels = slevs))
+
+## for pretty legends
+lslevs <- gsub("\\.", " : ", slevs)
+lslevs <- gsub("cT4", "cT4    ", lslevs)
+
+## id
+CAOsurv$id <- factor(1:nrow(CAOsurv))
+
+# ### lattice
+# trellis.par.set(
+#   list(
+#     plot.symbol = list(col = 1, pch = 20, cex = 0.7),
+#     box.rectangle = list(col = 1),
+#     box.umbrella = list(lty = 1, col = 1),
+#     strip.background = list(col = "white")
+#   )
+# )
+# 
+# ltheme <- canonical.theme(color = FALSE)     ## in-built B&W theme
+# ltheme$strip.background$col <- "transparent" ## change strip bg
+# lattice.options(default.theme = ltheme)
+
+## knitr
+library("knitr")
+knitr::opts_chunk$set(results = "hide", echo = FALSE, purl = TRUE, 
+  tidy = FALSE, size = "small", error = FALSE, warning = FALSE, message = FALSE,
+  fig.scap = NA, fig.align = "center", fig.width = 6, fig.height = 3.3, 
+  out.width = NULL, out.height = NULL, dev = c("pdf", "postscript"))
+opts_knit$set(global.par = TRUE)
+knitr::render_sweave()  # use Sweave environments
+knitr::set_header(highlight = "")  # do not \usepackage{Sweave}
+options(prompt = "R> ", continue = "+  ", useFancyQuotes = FALSE)  # JSS style
+options(width = 74)
+
+## format
+frmtI <- function(x, math = FALSE) {
+  if (is.character(x)) return(x)
+  ret <- trimws(formatC(x, format = "fg", width = 7, big.mark = big.mark))
+  if (x < 0) ret <- paste0(ifelse(math, "$-$", "-"), ret)
+  if (math) ret <- paste("$", ret, "$")
+  if (is.matrix(x)) {
+    ret <- matrix(ret, nrow = nrow(x))
+    dimnames(ret) <- dimnames(x)
+  }
+  ret
+}
+    
+frmtN <- function(x, bound = 10, all = TRUE) { ## => all because of consistency
+    ret <- round(x)
+    if (all | x <= bound) return(as.character(english::english(ret)))
+    ret
+}
+
+frmtd <- function(date) format(date, format = "%b~%-d")
+frmtD <- function(date) format(date, format = "%B~%-d")
+
+toUpper <- function(x) gsub("\\b([[:lower:]])([[:lower:]]+)", "\\U\\1\\L\\2",
+                            x, perl = TRUE)
+
+## print results
+frmtp <- function(pv) paste("$p$ =", frmt3(pv))
+frmtCI <- function(x, phantom = FALSE, math = FALSE) {
+  if (!isTRUE(nrow(x) > 1)) phantom <- FALSE
+  if (phantom) phantom <- any(x[,2] < 0) ## switch all to phantom if one is negative
+  FUN <- function(x) {
+     ciL <- frmt3(x[1], math = FALSE)
+     ciL <- ifelse(math & phantom & ciL > 0,
+       paste0("$\\phantom{-}", ciL, "$"), paste0("$", ciL, "$"))
+     ciU <- frmt3(x[2], math = FALSE)
+     ciU <- ifelse(math & phantom & ciU > 0,
+       paste0("$\\phantom{-}", ciU, "$"), paste0("$", ciU, "$"))
+    paste(ciL, "to", ciU)
+  }
+  if (is.matrix(x)) ret <- apply(x, 1, FUN)
+  else ret <- FUN(x)
+  return(ret)
+}
+
+
+
+## table with results from "tram"
+ret.tram <- function(object, seed = 25, math = TRUE) {
+mod0 <- object
+if (inherits(object, "Survreg")) object <- as.mlt(object)
+
+## Estimate
+cf <- coef(object)
+ibs <- grep("Bs", names(cf))
+if (length(ibs) > 1) cf <- cf[-ibs]
+
+if (inherits(object, "Compris")) cf <- cf[c(grep("^Event_EoI", names(cf), value = TRUE), "Event_DepC.Event_EoI.(Intercept)")]
+
+if (inherits(object, "fmlt")) cf <- c(cf, coef(object, addparm = TRUE))
+
+ncf <- names(cf)
+
+## SE
+if (inherits(object, "fmlt")) vc <- vcov(object, addparm = TRUE)
+else vc <- vcov(object)
+se <- sqrt(diag(vc))[ncf]
+
+## CIs
+if (inherits(object, "tram") & !inherits(object, "stram")) {
+  st <- score_test(object)
+  ci <- st$conf.int
+  nci <- "95\\%-Score CI"
+} else {
+  ciWald <- function(cf, se) cf + c(-1, 1) * qnorm(1-0.05/2) * se
+  ci <- t(sapply(1:length(cf), function(i) ciWald(cf[i], se[i])))
+  nci <- "95\\%-Wald CI"
+}
+
+# ci <- confint(object)[ncf, ]
+
+ncf <- sapply(ncf, function(x)
+  switch(x, "(Intercept)" = "$\\eparm_1$", 
+    "log(iDFS)" = "$\\eparm_2$",
+    "randarm5-FU + Oxaliplatin" = "$\\eshiftparm$",
+    "Event_EoI.Event_EoI.randarm5-FU + Oxaliplatin" = "$\\eshiftparm_\\rY$",
+    "scl_randarm5-FU + Oxaliplatin" = "$\\escaleparm$", 
+    "gamma1" = "$\\mparm$", 
+    "Event_DepC.Event_EoI.(Intercept)" = "$\\lparm$", 
+    "logrho" = "$\\log(\\lparm)$"))
+
+ret.cfs <- cbind("Coefficient" = ncf, "Estimate" = frmt3(cf, math = math),
+  "Std. Error" = frmt3(se), "95\\%-CI" = frmtCI(ci, phantom = TRUE, math = math))
+colnames(ret.cfs)[which(colnames(ret.cfs) == "95\\%-CI")] <- nci
+
+if (inherits(object, "tramME")) ret.cfs <- rbind(ret.cfs, c("$\\tau^2$", frmt3(VarCorr(object)[[1]]$var), "", ""))
+
+ll <- logLik(object)
+
+object <- mod0
+
+if (inherits(object, "tram")) {
+p.lrt <- summary(object)$p.value
+
+if (inherits(object, "stram")) {
+  p.pst <- perm_test_biv.stram(object)
+  ret.mod <- cbind("Bivariate Permutation Score Test" = frmtp(p.pst), " " = NA)
+} else {
+  if (inherits(mod0, "Survreg")) st <- score_test(mod0)
+  p.st <- st$p.value
+  p.pt <- (pt <- perm_test(object))$p.value
+  ret.mod <- cbind("Score Test" = frmtp(p.st),"Permutation Score Test" = frmtp(p.pt))
+}
+ret.mod <- cbind(cbind("Log-Likelihood" = frmtll(ll, math = math),
+  "Likelihood Ratio Test" = frmtp(p.lrt)), ret.mod)
+}
+
+if (inherits(object, c("tramME", "mtram", "fmlt", "mmlt")))
+  ret.mod <- cbind("Log-Likelihood" = frmtll(ll, math = math), " " = NA, " " = NA, " " = NA)
+
+ret.mod <- rbind(colnames(ret.mod), ret.mod)
+ns <- colnames(ret.cfs)
+ret <- rbind(ret.cfs, ret.mod)
+colnames(ret) <- ns
+return(ret)
+}
+
+print.tram <- function(object) {
+  ret <- ret.tram(object)
+  cat("\\begin{center}")
+  cat("\n")
+  # cat("\\small")
+  cat("\n")
+  print(xtable(ret, align = "rrrrr"), 
+  add.to.row = list(pos = list(nrow(ret) - 2, nrow(ret) - 1, nrow(ret)),
+    command = c("\\\\[-1.2ex] \\toprule ", "\\midrule ", "\\\\[-2ex] ")),
+  booktabs = TRUE, floating = FALSE, sanitize.text.function = function(x){x}, 
+  include.rownames = FALSE, scale = .8)
+cat("\n")
+cat("\\end{center}")
+}
+
+## Formatting
+is.neg <- function(x) x < 0
+
+lHR <- function(model, frmt = function(x) {frmt3(x, math = FALSE)}) {
+stopifnot(inherits(model, c("tram", "mlt", "tramME")))
+cf <- coef(model)[trt]
+if (inherits(model, "tram")) cf <- c(1, -1)[model$negative + 1] * cf
+frmt(cf)
+}
+
+HR <- function(model,  frmt = function(x) {frmt3(x, math = FALSE)})
+  frmt(exp(lHR(model, frmt = function(x) {x})))
+
+
+@
+<<pars, include = FALSE>>=
+par_main <- expression(par(mgp = c(2.5, 1, 0), mar = c(4, 4, 1.5, 4), las = 1))
+par_surv <- expression(par(mgp = c(2.5, 1, 0), mar = c(6, 6, .5, 4), las = 1))
+@
+
+\section{Introduction}
+
+In ``parametric'' survival analysis, researchers commonly rely on the Weibull
+model or alternative accelerated failure time models.  To achieve
+greater flexibility and overcome the strict distributional assumptions
+underlying these models, researchers often need to turn to
+non-/semi-parametric methods to analyse their survival data.  When it comes
+to non-/semi-parametric approaches, however, overcoming issues tied to
+interval-censored or truncated observations can prove challenging due
+to their limited availability in standard software implementations.
+
+Furthermore, when aiming to fit models that handle crossing or non-proportional
+hazards, clustered observations, or dependent censoring, researchers often
+find themselves navigating a complex landscape of diverse software
+implementations.  Even the same models \added{can be difficult to compare}\deleted{are sometimes hard to compare} across
+different implementations, because different parametrisations,
+estimation strategies or optimisation procedures are used. 
+
+This becomes even more challenging when \added{comparing} different
+models computed from different packages \deleted{shall be compared} -- emphasising
+the benefit of a unified framework that facilitates smooth transitions
+between models and is based on a common core infrastructure 
+for model parametrisation, estimation strategy, and optimisation procedure.
+
+To tackle these challenges, researchers may explore the
+potential of the \pkg{tram} add-on package \citep{pkg:tram} in \proglang{R}
+\citep{R}, which offers a flexible framework for survival analysis.  The
+\pkg{tram} package implements a user-friendly interface to smooth
+transformation models \citep{Hothorn_Moest_Buehlmann_2017}, which encompass
+a range of classical survival models including accelerated failure models
+and the Cox proportional hazards model, as well as many useful extensions
+and novel model formulations.  The package can be easily installed from the
+Comprehensive \proglang{R} Archive Network (CRAN):
+%
+<<install, eval = FALSE, echo = TRUE, purl = FALSE>>=
+install.packages("tram")
+library("tram")
+@
+<<packages, echo = FALSE>>=
+library("tram")
+@
+<<risk-tab>>=
+risktab <- function(ti, st) { ## time-index and survival time
+  nrisk <- NULL
+  for (t in ti) nrisk <- c(nrisk, sum(st >= t))
+  return(nrisk)
+}
+
+plot.risktab <- function(tvar, ti = seq(min(q), max(q), by = 500),
+  cex = .8, at = -450) {
+mtext(levs[1], 1, line = 4, at = at, cex = cex)
+mtext(risktab(ti, CAOsurv[CAOsurv$randarm == levs[1], tvar]),
+  side = 1, line = 4, at = ti, cex = cex)
+mtext(levs[2], 1, line = 5, at = at, cex = cex)
+mtext(risktab(ti, CAOsurv[CAOsurv$randarm == levs[2], tvar]),
+  side = 1, line = 5, at = ti, cex = cex)
+}
+@
+<<surv-OS>>=
+surv_OS <- survfit(OS ~ randarm, data = CAOsurv) ## KM
+@
+<<plot-surv-OS, eval = FALSE, purl = FALSE>>=
+plot(surv_OS, ylim = ylimS, xlim = xlim,
+  col = lcol, lwd = lwd, xlab = xlab, ylab = ylabS)
+@
+<<surv-iDFS>>=
+surv_iDFS <- survfit(iDFS ~ randarm, data = CAOsurv) ## Turnbull
+@
+<<plot-surv-iDFS, eval = FALSE, purl = FALSE>>=
+plot(surv_iDFS, ylim = ylimS, xlim = xlim,
+  col = lcol, lwd = lwd, xlab = xlab, ylab = ylabS)
+@
+<<legend-trt, eval = FALSE, purl = FALSE>>=
+legend("bottomright", legend = levs, col = col, bty = "n", lty = 1, lwd = 1, cex = .8)
+@
+%
+All models are implemented in a fully parametric fashion, allowing for
+straightforward maximum likelihood inference.  The estimation of these
+models is facilitated by the core infrastructure package \pkg{mlt}
+\citep{Hothorn_2018,pkg:mlt} which provides a unified maximum likelihood
+framework for general transformation models
+\citep{Hothorn_Moest_Buehlmann_2017}.  We further leverage two add-on
+packages from this family of packages for transformation modelling: The
+\pkg{tramME} package \citep{Tamasi_2025,pkg:tramME} implementing mixed-effects and
+non-linear additive effects for smooth transformation models, and the
+\pkg{trtf} package \citep{pkg:trtf} designed for estimating tree-based
+survival models.
+
+In this tutorial, we will explore a variety of models commonly utilised in
+survival analysis.  The focus of this tutorial lies on the practical
+implementation and interpretation of these models within the framework of
+smooth transformation models, rather than on theoretical aspects.  Our
+objective is to provide users with a practical understanding of how to apply
+these models using \proglang{R}.  Through an application to data from a
+randomised trial on rectal cancer therapy, we showcase how users can
+seamlessly conduct their survival analysis tasks without the need to
+navigate through a multitude of packages in \proglang{R}.
+
+In Section~\ref{sec:iObs}, we discuss models for independent observations. 
+We start with the well-known Weibull model, and then, to introduce more
+flexibility and overcome the log-linear log-cumulative hazard assumption
+inherent to the Weibull model, we explore a fully parametric version of the
+Cox model.  We further discuss the estimation of stratified log-cumulative
+hazard functions to account for baseline risk variations across patient
+strata.  Moving beyond the assumption of proportional hazards, we showcase
+models that challenge this assumption.  We discuss a location-scale version
+of the Cox model, accommodating scenarios with non-proportional/crossing
+hazards, and models estimating time-varying treatment effects.
+
+Addressing scenarios where the assumption of independent censoring might not
+be justified, we discuss a copula proportional hazards model, that
+accommodates dependent censoring (Section~\ref{sec:dCens}).  For clustered
+observations we employ mixed-effects Cox models and alternative models
+featuring marginally interpretable hazard ratios in Section~\ref{sec:dObs}. 
+Our tutorial also explores the domain of personalised medicine, presenting
+models that incorporate covariate-dependent treatment effects and survival
+trees (Section~\ref{sec:PM}).  In Section~\ref{sec:ext}, we explore further
+extensions, including topics like frailty models, model estimation using the
+non-parametric likelihood, covariate adjustment and the potential of using these models for
+sample size estimation of new trials.
+
+This tutorial is composed of the main text, which introduces models
+and very briefly shows how to estimate them using smooth transformation models
+in \proglang{R}. In addition,  we present numerical head-to-head
+comparisons of user-interfaces and results obtained from alternative
+packages available in the \proglang{R} universe in Supplementary Material~\ref{sec:supp}.
+Both parts come with
+much more detailed \proglang{R} code for exploring fitted models
+(for example, plotting model terms, computing confidence intervals, or performing tests), which can be run with:
+%
+<<demo, eval = FALSE, echo = TRUE, purl = FALSE>>=
+demo("survtram", package = "tram")
+@
+%
+In our Supplementary Material~\ref{sec:supp}, we conduct a thorough comparison of a
+subset of the models discussed here which can be estimated using alternative
+implementations (in total 13~established CRAN packages) and corresponding results obtained with smooth transformation models from
+\pkg{tram} and \pkg{tramME}.  This quality assurance task not only helped to validate the
+unified implementation in \pkg{tram} and \pkg{tramME} but also led to the identification of
+problematic special cases and, in some instances, practically relevant
+discrepancies between different implementations of the very same model. 
+Moreover, Supplementary Material~\ref{sec:supp} presents the different user interfaces
+offered by various packages side-by-side, such that it becomes simple to
+estimate and compare relatively complex models across independent
+implementations.  For the analysis of future survival trials, an assessment
+of the agreement of such estimates, standard errors, and possibly other
+model aspects can help to increase faith in reported numerical results and
+conclusions derived therefrom.
+
+\section{Application} \label{sec:app}
+
+In our tutorial, we will work with data from the CAO/ARO/AIO-04 two-arm
+randomised controlled trial
+\citep{Roedel_Graeven_Fietkau_2015}, a phase~3
+study that aimed to compare an experimental regimen with the previously
+established treatment regimen (control) for locally advanced rectal cancer.  In this
+experimental regimen, Oxaliplatin was added to the control treatment of preoperative
+Fluorouracil-based chemoradiotherapy and postoperative chemotherapy of
+locally advanced rectal cancer.
+
+The trial was conducted across
+\Sexpr{length(unique(CAOsurv$CenterID))}~centers and included a cohort of
+\Sexpr{frmtI(nrow(CAOsurv))} patients.  The patients were randomly allocated
+to the two treatment arms $\rW \in \{0, 1\}$, receiving the experimental
+treatment of Oxaliplatin added to Fluorouracil-based preoperative
+chemoradiotherapy and postoperative chemotherapy (\Sexpr{levs[2]}, $\rW =
+1$) or the control treatment using Fluorouracil only (\Sexpr{levs[1]}, $\rW
+= 0$).  Treatment allocation was performed using block-randomisation
+stratified by study center $j = 1, \dots,
+\Sexpr{length(unique(CAOsurv$CenterID))}$ and the stratum~$\rs$, which is
+defined by four categories consisting of a combination of clinical
+N~category, \ie~lymph node involvement
+(\Sexpr{paste(levels(CAOsurv$strat_n),collapse = " vs ")}), and clinical
+T~category \ie~tumor grading (\Sexpr{paste(levels(CAOsurv$strat_t),collapse
+= " vs ")}).  The distribution of patients in the two treatment arms across
+strata is shown in Table~\ref{tab:strat}.
+
+\begin{table}
+\caption{Number of patients in each treatment arm stratified by the combination of
+clinical N~and T~category.} \label{tab:strat}
+\centering
+\small
+%
+<<CAO-table, results = 'hide'>>=
+tab <- xtabs( ~ strat + randarm, data = CAOsurv)
+tab <- rbind(tab, "Total" = colSums(tab))
+@
+<<CAO-table-print, results = "asis", purl = FALSE>>=
+rownames(tab) <- gsub("\\.", " : \\\\phantom{-}", rownames(tab))
+rownames(tab) <- gsub("cT4", "cT4\\\\phantom{1-3}", rownames(tab))
+rownames(tab) <- gsub("cT1-3", "cT1-3\\\\phantom{4}", rownames(tab))
+print(xtable(tab, align = "lrr", digits = 0), booktabs = TRUE, floating = FALSE,
+   hline.after = c(-1, 0, nrow(tab) - 1, nrow(tab)), sanitize.text.function = function(x){x})
+@
+%
+\end{table}
+
+The primary endpoint is disease-free survival, defined
+as the time $\rY \in \RR^{+}$ between randomisation and non-radical surgery
+of the primary tumor (R2 resection), loco-regional recurrence after R0/1
+resection, metastatic disease or progression, or death from any cause --
+whichever occurred first.  The observed times encompass a mix of exact
+observations $\ry$ for time to death or incomplete removal of the primary
+tumor, interval-censored observations $\ry \in (\ubar{\ry}, \bar{\ry}]$ for the 
+time span from the previous follow-up $\ubar{\ry}$ to the time-point of detecting local or distant
+metastases $\bar{\ry}$, and right-censored observations $\ry \in (\ry,
+\infty)$ corresponding to the end of the follow-up period or instances where
+patients were lost to follow-up. The survivor curves of the primary
+endpoint (disease-free survival) estimated by the non-parametric Turnbull
+estimator \citep{Turnbull_1976} are shown for the two treatment arms in Figure~\ref{fig:DFS}.
+
+\begin{figure}[t!]
+<<surv-iDFS-plot>>=
+eval(par_surv)
+<<plot-surv-iDFS>>
+<<legend-trt>>
+plot.risktab(tvar = "iDFStime")
+@
+\caption{Disease-free survival. The survivor functions of the two treatment arms estimated
+by the non-parametric Turnbull method are shown together with the number at risk table.}
+\label{fig:DFS}
+\end{figure}
+
+A secondary endpoint considered in the study is overall survival, defined as
+the time $\rY \in \RR^{+}$ from the point of randomisation to death
+from any cause.  Notably, all observations $\ry$ for this endpoint are
+exact or right-censored.  The corresponding survivor curves, estimated
+non-parametrically by the Kaplan-Meier method \citep{Kaplan_Meier_1958}, are shown in Figure~\ref{fig:OS}.
+
+\begin{figure}[t!]
+<<surv-OS-plot>>=
+<<plot-surv-OS>>
+<<legend-trt>>
+plot.risktab(tvar = "OStime")
+@
+\caption{Overall survival. The survivor functions of the two treatment arms estimated
+by the non-parametric Kaplan-Meier method are shown together with the number at risk table.}
+\label{fig:OS}
+\end{figure}
+
+The primary data analysis for this trial was performed by
+\citet{Roedel_Graeven_Fietkau_2015}.  In their analysis, the
+treatment effect comparing the effect of the experimental treatment
+to the effect of the control treatment on disease-free and overall survival was
+assessed by adjusted log-rank tests and mixed-effects Cox models (both adjusting for the stratified randomisation process), treating both survival endpoints as exact.  We demonstrate
+the process of fitting a fully parametric mixed-effects Cox model that
+accounts for interval-censored event times of the primary endpoint in Section~\ref{sec:dObs}, also in terms
+of a model featuring marginal interpretation of the estimated hazard ratio.
+
+A subsequent post hoc analysis was carried out by
+\citet{Hofheinz_Arnold_Fokas_2018}.  In this analysis, the
+possibility of an age-varying treatment effect on both the primary endpoint
+of disease-free survival and the secondary endpoint of overall survival was
+investigated.  In
+Section~\ref{sec:PM}, we demonstrate how such an analysis can be performed
+within the discussed framework, taking into account interval-censoring.
+We illustrate two approaches for estimating age-varying effects, using smooth
+age-varying hazard ratios and age-structured survival trees.
+
+While the analyses conducted by \citet{Roedel_Graeven_Fietkau_2015} and \citet{Hofheinz_Arnold_Fokas_2018}
+made serious efforts to address the research
+questions effectively, they were limited by the lack of software resources capable
+of adequately handling interval-censored and correlated observations for the analysis of the primary endpoint.
+Notably,
+the first \proglang{R} add-on package capable of estimating Cox models in
+the presence of interval-censoring was published in 2014
+(\citealp[\pkg{coxinterval} package][]{pkg:coxinterval}). At the time of the
+statistical analysis of the primary endpoint, it was impossible to fit
+mixed-effects models with flexible baseline hazard to interval-censored outcomes.
+This obstacle was one of the main
+motivation to develop a comprehensive software package implementing a
+general class of transformation models with applications in the domain of survival
+analysis. The corresponding framework implementing smooth
+transformation models \citep{Hothorn_Moest_Buehlmann_2017} in \proglang{R}
+helps to address such and other practically relevant limitations.
+In this tutorial, we present analyses that the CAO/ARO/AIO-04 study investigators
+would have liked to have been able to perform a decade ago.
+
+\section{Independent observations} \label{sec:iObs}
+
+\subsection{Survival models}
+\subsubsection{Weibull proportional hazards model} \label{sec:WEI}
+
+Probably one of the most renowned parametric model in survival analysis
+is the Weibull model
+\citep{Wei_1992}, where the response $\rY$ conditional on treatment
+assignment $\rW = \rw$ is assumed to follow a Weibull
+distribution.  We consider the Weibull proportional hazards model with
+survivor functions conditional on the treatment assignment parametrised as,
+%
+\begin{eqnarray*}
+\snul(\ry) &=& \Prob(\rY > \ry \mid \rW = 0) =
+\sMEV{\eparm_1 + \eparm_2 \log(\ry)},
+\qquad \qquad \eparm_2 > 0,\nonumber\\
+\sone(\ry) &=& \Prob(\rY > \ry \mid \rW = 1) =
+\sMEV{\eparm_1 + \eparm_2 \log(\ry) - \eshiftparm},\nonumber\\
+\end{eqnarray*}
+%
+with the general formula,
+%
+\begin{eqnarray} \label{mod:WEI}
+\sw(\ry) &=& \Prob(\rY > \ry \mid \rW = \rw) =
+\sMEV{\eparm_1 + \eparm_2 \log(\ry) - \eshiftparm \rw}.
+\end{eqnarray}
+%
+The log-cumulative baseline hazard $\log(-\log(\snul(\ry))) =
+\log(\Haznul(\ry))$ here is given by $\h(\ry) = \eparm_1 + \eparm_2
+\log(\ry)$, assuming a linear shift $\eshiftparm$ on the scale of log-time $\log(\ry)$.  The model not only assumes proportional
+hazards, with hazard ratio $\nicefrac{\Hazone(\ry)}{\Haznul(\ry)} =
+\nicefrac{\hazone(\ry)}{\haznul(\ry)} = \exp(-\eshiftparm)$, but is also an
+accelerated failure time model
+%
+\begin{eqnarray*} \label{mod:WEIAFT}
+\log(\rY) &=& \frac{- \eparm_1 + \eshiftparm \rw + \rZ}{\eparm_2}, \qquad \rZ \sim \MEV\\
+&=& - \frac{\eparm_1}{\eparm_2} + \frac{\eshiftparm}{\eparm_2} \rw + \frac{1}{\eparm_2}\rZ
+= \alpha + \tilde\eshiftparm \rw + \sigma \rZ,
+\end{eqnarray*}
+%
+with the errors $\rZ$ following a minimum extreme value distribution (MEV). 
+Consequently, $\rY \mid \rW = \rw$ follows a Weibull distribution
+(\citealt{Kalbfleisch_Prentice_2002}, Chapter~2) with intercept
+$\alpha = -\eparm_1 \eparm_2^{-1}$, scale parameter $\sigma = \eparm_2^{-1}$ and log-acceleration
+factor $\tilde\eshiftparm = \eshiftparm \eparm_2^{-1}$. 
+This implies that,
+for the experimental arm the time $\rY$ is accelerated by
+$\exp(\tilde\eshiftparm)$, that is $\rY_1 = \exp(\tilde\eshiftparm) \rY_0$,
+thus the probability of survival of the experimental arm is given by
+$\sone(\ry) = \snul(\exp(-\tilde\eshiftparm) \ry)$.
+
+Alternatively, different distributions for $\rZ$, such as the normal or
+logistic distribution, can be specified, leading to the formulation of
+log-normal or log-logistic models.
+
+Parameter estimation of the Weibull model is straightforward using maximum
+likelihood, because the distribution function can be directly evaluated and
+thus allows to effectively handle interval-censored or truncated data, as
+will be discussed in Section~\ref{subsec:ll}.
+
+\subsubsection{Flexible proportional hazards model} \label{sec:COX}
+
+The assumption of a log-linear log-cumulative baseline hazard function $\h$, implied by the
+Weibull model, can be relaxed by replacing
+$\log(\Haznul(\ry)) = \h(\ry) = \eparm_1 + \eparm_2
+\log(\ry)$ with a more flexible function
+$\h(\ry) = \basisy(\ry)^\top \parm$ defined in terms of smooth spline basis
+functions $\basisy$ and corresponding parameters $\parm$.  This yields the following model
+%
+\begin{eqnarray} \label{mod:COX}
+% \snul(\ry) &=& \Prob(\rY > \ry \mid \rW = 0) = \sMEV{\h(\ry)},\nonumber\\
+% \sone(\ry) &=& \Prob(\rY > \ry \mid \rW = 1) = \sMEV{\h(\ry) + \eshiftparm},\nonumber\\
+\sw(\ry) &=& \Prob(\rY > \ry \mid \rW = \rw) = \sMEV{\h(\ry) + \eshiftparm \rw},
+\end{eqnarray}
+%
+where the hazard ratio is given by $\nicefrac{\Hazone(\ry)}{\Haznul(\ry)} =
+\nicefrac{\hazone(\ry)}{\haznul(\ry)} = \exp(\eshiftparm)$. 
+\citet{McLain_Ghosh_2013} and \citet{Hothorn_Moest_Buehlmann_2017} proposed
+parametrising $\h(\ry) = \basisy(\ry)^\top \parm$ as polynomials in
+Bernstein form $\h(\ry) = \bern{\dimparm - 1}(\ry)^\top \parm$ of order
+$\dimparm - 1$.  In the context of skewed survival data, it might be
+suitable to apply polynomials in Bernstein form to the logarithm of the survival
+time $\ry$, leading to $\h(\ry) = \bern{\dimparm - 1}(\log(\ry))^\top
+\parm$.  This model is a fully parametric version of the otherwise semi-parametric Cox
+proportional hazards model \citep{Cox_1972}.  The latter treats $\h$ as an
+infinite dimensional nuisance parameter which is profiled out from the
+likelihood.  This gives rise to the partial likelihood allowing to estimate
+the log-hazard ratio $\eshiftparm$ \citep{Cox_1975}.  In contrast, all
+parameters of model (\ref{mod:COX}) are estimated simultaneously by maximum
+likelihood.  The parametrisation of $\h$ in terms of basis functions
+and corresponding parameters allows to specify of a flexible, yet fully
+parametric, monotonically increasing log-cumulative hazard function. 
+This is achieved under appropriate constraints $\eparm_p \le \eparm_{p + 1}$
+for $p \in 1, \dots, \dimparm - 1$ \citep{Hothorn_Moest_Buehlmann_2017}. 
+Adopting this specific parametrisation for the log-cumulative baseline
+hazard function $\log(\Haznul(\ry)) = \h(\ry)$ facilitates the computation
+of the associated density $\dnul(\ry)$ and distribution function
+$\pnul(\ry)$, thus allowing for straightforward parameter estimation using
+maximum likelihood.  This holds true even when dealing with
+interval-censored or truncated observations.
+
+Within the \pkg{tram} add-on package, the order $\dimparm - 1$ of
+polynomials in Bernstein form is not determined in a data-driven way. The default $\dimparm -
+1 = 6$ is typically a good compromise between flexibility of $\h(\ry)$ and
+computing time needed to optimise the log-likelihood. Fixed $\dimparm$ also facilitates
+standard maximum likelihood inference. Because of the
+monotonicity constraint on $\h$, the transformation function 
+$\h$ it not prone to overfit and
+thus, in principle, $\dimparm$ can be chosen much larger.
+The effect of larger $\dimparm$ on 
+estimates of other model parameters and their standard errors is very small
+(see, for example, the log-hazard ratios in Figure~5 provided by \citet{Hothorn_2018}
+and the empirical comparison to non-parametric models
+\cite{Yuqi_Hothorn_Li_2020}). However, if one is
+interested in expressions involving the derivative $\h^\prime(\ry)$, which
+itself is in Bernstein form, the order $\dimparm - 1$ must be chosen
+in a data-driven way, for example for density estimation. Sieve maximum
+likelihood procedures have been suggested in this context, for example in Cox models with
+log-cumulative baseline hazard functions in Bernstein form
+\cite{McLain_Ghosh_2013}.
+
+\subsubsection{Stratified proportional hazards model} \label{sec:STRAT}
+
+Accounting for the variations in baseline risks among different patient
+strata identified by variable $\rs$, one can employ stratified models that
+incorporate stratum-specific log-cumulative baseline hazard functions
+$\h(\ry \mid \rs)$.  These models can be defined by
+%
+\begin{eqnarray*} \label{mod:STRAT}
+% \snul(\ry \mid \rs) &=& \Prob(\rY > \ry \mid \rS = \rs, \rW = 0) =
+% \sMEV{\h(\ry \mid \rs)},\nonumber\\
+% \sone(\ry \mid \rs) &=& \Prob(\rY > \ry \mid \rS = \rs, \rW = 1) =
+% \sMEV{\h(\ry \mid \rs) + \eshiftparm},\nonumber\\
+\sw(\ry \mid \rs) &=& \Prob(\rY > \ry \mid \rS = \rs, \rW = \rw) =
+\sMEV{\h(\ry \mid \rs) + \eshiftparm \rw},
+\end{eqnarray*}
+%
+with $\h(\ry \mid \rs) = \basisy(\ry)^\top \parm(\rs)$ and global hazard
+ratio $\nicefrac{\Hazone(\ry \mid \rs)}{\Haznul(\ry \mid \rs)} =
+\nicefrac{\hazone(\ry \mid \rs)}{\haznul(\ry \mid \rs)} = \exp(\eshiftparm)$,
+assuming that the treatment effect is the same
+across all patient strata $\rs$.
+
+One could further relax the restriction of a global treatment effect, allowing
+for an interaction of the treatment assignment $\rW = \rw$ and the stratum
+$\rs$ by formulating the log-cumulative hazard as $\h(\ry \mid \rs) + \rw
+\eshiftparm + \gammavec^\top(\rw \times \rs)$.
+
+\subsubsection{Non-proportional hazards model} \label{sec:SCOX}
+
+Extending beyond the proportional hazards assumption, an additional
+covariate-dependent model term can be estimated.  \citet{Burke_2017}
+introduced the multi-parameter extension to the Weibull model~(\ref{mod:WEI}) in the context
+of survival analysis, specifically outlining its use for interval-censored observations \citep{Burke_SiM_2020}.
+
+A similar extension can be made to the more flexible, parametric, Cox
+model~(\ref{mod:COX}),
+by additionally estimating a scale term $\escaleparm$ for the experimental arm
+\citep{Siegfried_Kook_Hothorn_2023},
+%
+\begin{eqnarray*} \label{mod:SCOX}
+% \snul(\ry) &=& \Prob(\rY > \ry \mid \rW = 0) =
+% \sMEV{\h(\ry)},\nonumber\\
+% \sone(\ry) &=& \Prob(\rY > \ry \mid \rW = 1) =
+% \sMEV{\sqrt{\exp(\escaleparm)}\,\h(\ry) + \eshiftparm},\nonumber\\
+\sw(\ry) &=& \Prob(\rY > \ry \mid \rW = \rw) =
+\sMEV{\sqrt{\exp(\escaleparm\rw)}\,\h(\ry) + \eshiftparm \rw}.
+\end{eqnarray*}
+%
+In this case the ratio of the cumulative hazards, $\nicefrac{\Hazone(\ry)}{\Haznul(\ry)}$, is a
+non-proportional function of $\ry$. 
+The corresponding bivariate score test 
+(Section~3.1.2 of \citealt{Siegfried_Kook_Hothorn_2023}) further allows to test the null 
+hypothesis of equal survival, \ie~$\eshiftparm = \escaleparm = 0$, 
+without relying on the assumption of proportional hazards.
+
+\subsubsection{Time-varying hazards model} \label{sec:TCOX}
+
+Accounting for changing effects of the treatment over time, we can further
+extend beyond the proportional hazards assumptions and estimate a model
+incorporating a time-varying treatment effect,
+%
+\begin{eqnarray*} \label{mod:TCOX}
+% \snul(\ry) &=& \Prob(\rY > \ry \mid \rW = 0) =
+% \sMEV{\h(\ry)},\\
+% \sone(\ry) &=& \Prob(\rY > \ry \mid \rW = 1) =
+% \sMEV{\h(\ry) + \eshiftparm(\ry)},\\
+\sw(\ry) &=& \Prob(\rY > \ry \mid \rW = \rw) =
+\sMEV{\h(\ry) + \eshiftparm(\ry)\rw}.
+\end{eqnarray*}
+%
+Here, the model introduces a time-varying shift $\eshiftparm(\ry)$ in the log-cumulative hazard
+function $\log(\Hazone(\ry)) = \log(\Haznul(\ry)) + \eshiftparm(\ry)$, avoiding
+the assumption of a constant log-hazard ratio $\eshiftparm$. The shift
+$\eshiftparm(\ry)$ is also parameterised in terms of a
+polynomial in Bernstein form, thus allowing to estimate a time-varying ratio
+of the cumulative hazards $\nicefrac{\Hazone(\ry)}{\Haznul(\ry)} = \exp(\eshiftparm(\ry))$.
+
+\subsection{Likelihood} \label{subsec:ll}
+
+From the above models, the log-likelihoods for exact or independently right-,
+left- or interval-censored and truncated observations are easily deducible. 
+We here consider the most general case where the log-cumulative hazard
+function is given by $\h(\ry \mid \rw, \rs) = \sqrt{\exp(\escaleparm \rw)}\,\h(\ry
+\mid \rs) + \eshiftparm \rw$.
+
+For exact continuous observations $(\ry, \rw, \rs)$, the corresponding likelihood
+contributions are given by
+%
+\begin{eqnarray*} \label{eq:cll}
+\ell(\parm(\rs), \eshiftparm, \escaleparm \mid \rY = \ry) =
+  \log\left\{\dZ\left[\h(\ry \mid \rw, \rs) \right]\right\} +
+  \log\left\{\h^\prime(\ry \mid \rw, \rs)\right\},
+\end{eqnarray*}
+%
+with the standard minimum extreme value density $\dZ(\rz) = \exp(\rz -
+\exp(\rz))$ and the derivative of the log-cumulative hazard function with
+respect to $\ry$, $\h^\prime(\ry \mid \rw, \rs) = \sqrt{\exp(
+\escaleparm \rw)}\, \basisy^\prime(\ry)^\top \parm(\rs)$.
+
+Because the transformation function $\h$, defining the log-cumulative
+baseline hazard function, is parametrised in terms of polynomials in
+Bernstein form, where the basis functions $\bern{\dimparm - 1}(\ry) \in
+\RR^\dimparm$ are specific beta densities \citep{Farouki_2012}, it is
+straightforward to obtain the derivatives of the basis functions with
+respect to $\ry$, leading to $\h^\prime(\ry \mid \rs) = 
+\bern{\dimparm - 1}^\prime(\ry)^\top \parm(\rs)$.
+
+Under independent left-, right- or interval-censored event times
+$(\ubar{\ry}, \bar{\ry}]$ the exact log-likelihood contribution is
+%
+\begin{eqnarray*} \label{eq:ill}
+\ell(\parm(\rs), \eshiftparm, \escaleparm \mid \rY \in (\ubar{\ry}, \bar{\ry}])  =
+\log\left\{\Prob(\rY \in (\ubar{\ry}, \bar{\ry}] \mid \rw, \rs)\right\} = 
+\log\left\{\sw(\ubar\ry \mid \rw, \rs) -
+     \sw(\bar\ry \mid \rw, \rs)\right\}.
+\end{eqnarray*}
+%
+For observations that are right-censored at time $\ry$ the datum is given by
+$(\ubar{\ry}, \bar{\ry}] = (\ry, \infty)$ and for left-censored observations
+it is $(\ubar{\ry}, \bar{\ry}] = (0, \ry]$.
+
+In cases where event times are subject to random left-, right-, or
+interval-truncation $(\ry_{\text{l}}, \ry_{\text{r}}] \subset \RR^{+}$, the
+above log-likelihood contributions change to
+%
+\begin{eqnarray*} \label{eq:tll}
+\ell(\parm(\rs), \eshiftparm, \escaleparm \mid \rY \in (\ubar{\ry}, \bar{\ry}]) -
+\ell(\parm(\rs), \eshiftparm, \escaleparm \mid \rY \in (\ry_\text{l}, \ry_\text{r}])
+\end{eqnarray*}
+%
+with $\ry_\text{l} = 0$ for right-truncated and $\ry_\text{r} = \infty$ for
+left-truncated observations.  Such considerations are relevant in scenarios
+involving a late entry approach, for instance, resulting in left-truncated
+observations, where one is interested in modelling $\Prob(\ry > \rY \mid \rY \in
+(\ry_{\text{l}}, \infty))$, or for modelling time-varying covariates.
+
+% For independent realizations $i = 1, \dots, N$  the unknown parameters
+% $\parm$ and $\eshiftparm$ can be estimated simultaneously 
+% by maximizing the corresponding log-likelihood under suitable constraints,
+% %
+% \begin{eqnarray*} \label{eq:mle}
+%    (\hat{\parm}_N, \hat{\shiftparm}_N) =
+%    \argmax_{\parm, \shiftparm}
+%    \sum_{i = 1}^N \ell_i\left(\parm, \shiftparm\right) \quad
+%    \text{subject to } \eparm_p \le \eparm_{p + 1}, p \in 1, \dots, \dimparm - 1.
+% \end{eqnarray*}
+%
+\subsection{Application}
+
+Now, turning our attention to the CAO/ARO/AIO-04 two-arm
+randomised controlled trial, we aim to estimate the previously discussed
+models using the unified maximum likelihood framework provided by the
+\proglang{R} add-on package \pkg{tram} \citep{pkg:tram}.  We fit the models
+to the primary endpoint of disease-free survival $\rY$ estimating the treatment
+effect corresponding to the assignment $\rW =
+\var{randarm}$. 
+
+The disease-free survival times are stored as \code{iDFS},
+an object of class `\code{Surv}',
+which includes a mix of exact, interval-, and right-censored observations.
+This `\code{Surv}' object can be specified using
+\code{Surv(CAOsurv\$iDFStime, CAOsurv\$iDFStime2, type = "interval2")}
+\citep{pkg:survival,Therneau_Grambsch_2000}.
+Exact observations are represented by two identical time points,
+for interval-censored observations, the two times define the period within
+which the event occurred and right-censored observations are represented by an
+interval from the last visit to infinity.
+
+We start by fitting the Weibull model (Section~\ref{sec:WEI}) using the \cmd{Survreg}
+function.
+%
+<<WEI-model, echo = TRUE, eval = FALSE, purl = FALSE>>=
+Survreg(iDFS ~ randarm, data = CAOsurv, dist = "weibull")
+@
+<<WEI-model-fit, echo = FALSE, cache = TRUE>>=
+mw <- 
+<<WEI-model>>
+@
+<<WEI-results, results = "asis", purl = FALSE>>=
+lAF <- coef(mw, as.survreg = TRUE)[trt]
+print.tram(mw)
+@
+<<WEI-summary, cache = TRUE, results = "hide", fig.show = 'hide'>>=
+summary(mw)
+coef(mw, as.survreg = TRUE) ## same interpretation as "survreg"
+score_test(mw)
+perm_test(mw)
+# plot(as.mlt(mw), type = "survivor", newdata = nd1, col = col)
+@
+%
+The model quantifies the treatment effect through a hazard ratio
+$\exp(-\hat\eshiftparm) = \Sexpr{HR(mw)}$, comparing the hazards of the
+treatment arm to the hazards of the control arm.  The results indicate
+a reduction in hazards for patients receiving the
+experimental treatment compared to the control treatment. 
+This reduction in hazards translates to a
+prolonged disease-free survival time in the experimental arm. 
+Since the model is a proportional hazards counterpart of the Weibull accelerated
+failure time model fitted by \cmd{survreg} from the \pkg{survival} package
+\citep{Therneau_Grambsch_2000,pkg:survival},
+the estimate can also be translated into a log-acceleration factor
+$\hat{\tilde\eshiftparm} = \hat\eshiftparm \hat\eparm_2^{-1} =
+\Sexpr{frmt3(lAF)}$.  This implies that
+the disease-free survival time $\rY$ is prolonged by
+$\exp(\tilde\eshiftparm) = \Sexpr{frmt3(exp(lAF))}$ in the
+experimental arm, compared to the control arm. 
+
+Next, we fit the flexible proportional hazards model (Section~\ref{sec:COX}) using the
+\cmd{Coxph} function from the \pkg{tram} package.
+%
+<<COX-model, echo = TRUE, eval = FALSE, purl = FALSE>>=
+Coxph(iDFS ~ randarm, data = CAOsurv, log_first = TRUE)
+@
+<<COX-model-fit, echo = FALSE, cache = TRUE>>=
+mc <-
+<<COX-model>>
+@
+<<COX-results, results = "asis", purl = FALSE>>=
+print.tram(mc)
+@
+<<COX-summary, cache = TRUE, results = "hide", fig.show = "hide">>=
+summary(mc)
+score_test(mc)
+perm_test(mc)
+# plot(as.mlt(mc), type = "survivor", newdata = nd1, col = col)
+@
+%
+The fitted model is a fully parametric version of the famous Cox model,
+otherwise estimated semi-parametrically using the partial likelihood (as
+implemented in the \pkg{survival} package in the \cmd{coxph} function). 
+Here the log-cumulative hazard function is specified in terms of
+polynomials in Bernstein form, by default of order $\dimparm - 1 = 6$, which
+is defined on the scale of $\log(\ry)$ (setting \code{log\_first = TRUE}),
+thus specifying the transformation function $\h(\ry)$ in terms of
+$\bern{6}(\log(\ry))^\top\parm$.  The fully parametric approach enables the
+straightforward incorporation of interval-censored disease-free survival times. 
+Figure~\ref{fig:COX} illustrates the estimated log-cumulative baseline hazard
+function $\hatHaznul(\ry) = \hat{\h}(\ry) =
+\bern{6}(\log(\ry))^\top\hat{\parm}$ along with the $95\%$-confidence band,
+revealing a non-linear function of log-time ($\log(\ry)$). The band was
+obtained from simultaneous confidence intervals for a dense grid of time
+points utilising the asymptotic normality of the maximum likelihood
+estimator $\hat{\parm}$ and the fact that $\h$ was parameterised as
+a contrast.
+The estimated hazard ratio is $\exp(\hat\eshiftparm) = \Sexpr{HR(mc)}$,
+indicating reduced hazards in the experimental arm.
+The software implementation further allows
+to compute a corresponding 95\%-permutation score confidence interval which
+ranges from \Sexpr{frmtCI(exp(perm_test(mc)$conf.int), math = TRUE)}.
+%
+\begin{figure}[t!]
+\centering
+<<COX-lHaz-try, purl = FALSE>>=
+## FIXME: confband does not like log_first = TRUE
+# try(cb <- confband(as.mlt(mc), newdata =  nd1[1,, drop = FALSE], K = 20, cheat = 100))
+@
+<<COX-lHaz, echo = FALSE>>=
+## confband
+object <- as.mlt(mc)
+newdata <- nd1[1,, drop = FALSE]
+K <- 20
+cheat <- 200
+y <- variable.names(object, "response")
+q <- mkgrid(object, n = K)[[y]]
+q[1] <- q[1] + 1 ## quick fix for log_first
+nd <- newdata[rep(1, length(q)), , drop = FALSE]
+nd[[y]] <- q
+X <- model.matrix(object$model$model, data = nd)
+cb <- confint(multcomp::glht(multcomp::parm(coef(object), 
+  vcov(object)), linfct = X))$confint
+q <- mkgrid(object, n = cheat)[[y]]
+q[1] <- q[1] + 1 ## quick fix for log_first 
+nd <- newdata[rep(1, length(q)), , drop = FALSE]
+nd[[y]] <- q
+X <- model.matrix(object$model$model, data = nd)
+cb <- confint(multcomp::glht(multcomp::parm(coef(object), 
+  vcov(object)), linfct = X), calpha = attr(cb, 
+        "calpha"))$confint
+cb <- cbind(q, cb)
+@
+<<COX-lHaz-plot>>=
+eval(par_main)
+plot(cb[, "q"], cb[, "Estimate"], log = "x", type = "n",
+  xlab = lxlab, ylab = ylablHaz, xlim = xlimlHaz <- range(cb[, "q"]),
+  ylim = range(cb[, -1]))
+
+polygon(c(cb[, "q"], rev(cb[, "q"])), c(cb[, "lwr"], rev(cb[, "upr"])),
+  border = NA, col = rgb(.1, .1, .1, .1))
+lines(cb[, "q"], cb[, "Estimate"], lwd = lwd)
+@
+
+%
+\caption{Flexible proportional hazards model.
+Log-cumulative baseline hazard function and corresponding 95\%-confidence
+band estimated by the model.} \label{fig:COX}
+%
+\end{figure}
+
+To further accommodate for varying log-cumulative baseline hazard functions $\Haznul(\ry \mid \rs)$
+across patient strata $\rs$ (here identified by $\code{strat}$), we can fit
+a stratified model (Section~\ref{sec:STRAT}).
+%
+<<STRAT-model, echo = TRUE, eval = FALSE, purl = FALSE>>=
+Coxph(iDFS | strat ~ randarm, data = CAOsurv, log_first = TRUE)
+@
+<<STRAT-model-fit, cache = TRUE>>=
+mcst <- 
+<<STRAT-model>>
+@
+<<STRAT-results, results = "asis", purl = FALSE>>=
+print.tram(mcst)
+@
+<<STRAT-summary, cache = TRUE, results = "hide", fig.show = "hide">>=
+summary(mcst)
+score_test(mcst)
+perm_test(mcst)
+@
+%
+The model estimates separate smooth log-cumulative baseline hazards for each
+stratum~$\rs$, as illustrated in Figure~\ref{fig:STRAT}, but provides an estimate
+of the global hazard ratio $\exp(\hat\eshiftparm) = \Sexpr{HR(mcst)}$,
+indicating a reduction of the hazard in the experimental arm by
+\Sexpr{HR(mcst)} relative to the hazard in the control arm across all
+stratum.
+
+\begin{figure}[t!]
+\centering
+%
+<<STRAT-lHaz-plot>>=
+plot(as.mlt(mcst), newdata = nd2, q = q, type = "trafo", log = "x",
+  lty = lty <- 1:4, xlab = lxlab, ylab = ylablHaz, xlim = xlimlHaz,
+  col = 1, lwd = lwd)
+
+legend("bottomright", legend = lslevs, title = "Stratum", 
+  lty = lty, lwd = lwd, col = 1, bty = "n")
+@
+<<STRAT-TB-plot, purl = FALSE, eval = FALSE>>=
+plot(survfit(iDFS ~ strat, data = subset(CAOsurv, randarm == "5-FU")), fun = "loglog")
+@
+
+\caption{Stratified proportional hazards model.
+Log-cumulative baseline hazard functions $\Haznul(\ry \mid \rs)$ estimated
+by the model are shown separately for each stratum $\rs$.}\label{fig:STRAT}
+\end{figure}
+
+Moving away from the proportional hazards assumption, we can fit a non-proportional hazards model
+(a location-scale version of the Cox model, Section~\ref{sec:SCOX}) using the same function.
+%
+<<SCOX-model, echo = TRUE, eval = FALSE, purl = FALSE>>=
+Coxph(iDFS ~ randarm | randarm, data = CAOsurv, log_first = TRUE)
+@
+<<SCOX-model-fit, cache = TRUE>>=
+mcs <- 
+<<SCOX-model>>
+@
+<<SCOX-results, results = "asis", purl = FALSE>>=
+cf <- coef(mcs)
+print.tram(mcs)
+@
+<<SCOX-summary, cache = TRUE, results = "hide", fig.show = "hide">>=
+summary(mcs)
+confint(mcs)
+perm_test_biv.stram(mcs)
+# plot(as.mlt(mcs), type = "survivor", newdata = nd1, col = col)
+@
+<<SCOX-survplot, fig.show = "hide">>=
+<<surv-iDFS-plot>>
+plot(as.mlt(mcs), type = "survivor", newdata = nd1, col = col, add = TRUE)
+@
+
+%
+The ratio of the cumulative hazards $\nicefrac{\widehat\Hazone(\ry)}{\widehat\Haznul(\ry)}$,
+shown in Figure~\ref{fig:SCOX}, no longer remains proportional but varies over time. 
+The curve indicates a pronounced initial reduction in cumulative hazards for the
+experimental arm compared to the control arm, which
+gradually decreases as time progresses.  This suggests that the treatment
+effect is stronger in the beginning.  The corresponding bivariate score
+test, which tests the null hypothesis of equal survival without assuming
+proportional hazards, further indicates evidence for non-equal disease-free
+survival times.
+
+\begin{figure}[t!]
+\centering
+%
+<<SCOX-HR-plot, echo = FALSE>>=
+qHR <- seq(50, max(q), by = 1)
+cumhaz <- predict(mcs, type = "cumhazard", newdata = nd1, q = qHR)
+cumhr <- unname(cumhaz[, 2] / cumhaz[, 1])
+plot(qHR, cumhr, type = "l", ylab = ylabcumHR, xlab = xlab,
+  ylim = ylimHR, xlim = xlimHR <- range(qHR), lwd = lwd)
+
+abline(h = exp(coef(mc)), lty = 2, lwd = 1) ## constant HR
+abline(h = 1, lty = 3) ## HR = 1
+@
+<<SCOX-HR-plot-check, eval = FALSE, purl = FALSE>>=
+ht <- predict(mcs, type = "trafo", newdata = nd1[1,,drop = FALSE], q = qHR)
+gamma <- coef(mcs)[2]
+beta <- coef(mcs)[1]
+cumhr2 <- exp((sqrt(exp(gamma)) - 1) * ht + beta)
+lines(qHR, cumhr2, col = 2)
+@
+%
+\caption{Non-proportional hazards model. $\nicefrac{\Hazone(\ry)}{\Haznul(\ry)}$ (solid line) estimated by the model is shown alongside the constant hazard
+ratio estimated from the proportional hazards model (dashed line) over time
+$\ry$.}\label{fig:SCOX}
+%
+\end{figure}
+
+Finally, we fit the model featuring a time-varying treatment effect (Section~\ref{sec:TCOX}).
+%
+<<TCOX-model, echo = TRUE, eval = FALSE, purl = FALSE>>=
+Coxph(iDFS | randarm ~ 1, data = CAOsurv, log_first = TRUE)
+@
+<<TCOX-model-fit, cache = TRUE>>=
+mcv <- 
+<<TCOX-model>>
+@
+<<TCOX-summary, cache = TRUE, results = "hide", fig.show = 'hide'>>=
+logLik(mcv)
+@
+%
+The treatment effect $\nicefrac{\Hazone(\ry)}{\Haznul(\ry)} =
+\exp(\eshiftparm(\ry))$ is a function of time, as shown in
+Figure~\ref{fig:TCOX}.  The curve again demonstrates a reduction in hazards
+for the experimental arm compared to the control arm, which is more
+substantial in the beginning and gradually becomes less prominent as time
+progresses.
+
+\begin{figure}[t!]
+\centering
+<<TCOX-HR, cache = TRUE>>=
+mcv <- as.mlt(mcv)
+
+## grid (was n = 500, qmvnorm failed)
+s <- mkgrid(mcv, 39)
+s$iDFS <- s$iDFS[s$iDFS >= min(xlimHR) & s$iDFS <= max(xlimHR)]
+nd3 <- expand.grid(s)
+
+## confint
+K <- model.matrix(mcv$model, data = nd3)
+Kyes <- K[nd3$randarm == levels(nd3$randarm)[2],]
+Kyes[,grep("Intercept", colnames(Kyes))] <- 0  
+gh <- glht(parm(coef(mcv), vcov(mcv)), Kyes)
+ci <- exp(confint(gh)$confint)
+coxy <- s$iDFS
+
+## confint for constant HR
+ci2 <- exp(confint(mc))
+@
+<<TCOX-HR-plot>>=
+plot(coxy, ci[, "Estimate"], ylim = ylimHR, type = "n",
+  xlim = xlimHR, xlab = xlab, ylab = ylabcumHR)
+polygon(c(coxy, rev(coxy)), c(ci[,"lwr"], rev(ci[, "upr"])),
+        border = NA, col = rgb(.1, .1, .1, .1))
+lines(coxy, ci[, "Estimate"], lty = 1, lwd = lwd)
+
+## constant HR
+polygon(c(coxy[c(1, length(coxy))], rev(coxy[c(1, length(coxy))])),
+  rep(ci2, c(2, 2)), border = NA, col = rgb(.1, .1, .1, .1))
+abline(h = exp(coef(mc)), lty = 2, lwd = 1)
+
+## HR = 1
+abline(h = 1, lty = 3)
+@
+%
+\caption{Time-varying hazards model. $\nicefrac{\Hazone(\ry)}{\Haznul(\ry)}$
+and corresponding 95\%-confidence
+bands over time
+$\ry$ (solid line) estimated by the model is shown alongside the constant hazard
+ratio estimated from the proportional hazards model (dashed line). The log-likelihood of the model is
+\Sexpr{frmtll(mcv, math = TRUE)}.} \label{fig:TCOX}
+%
+\end{figure}
+
+\section{Dependent censoring} \label{sec:dCens}
+
+\subsection{Copula proportional hazards model}
+
+Until now, the models, we have discussed, have been constructed under the
+assumption of independent censoring, which implies that the censoring times
+$\rC$ are independent of the event times $\rY$ given the treatment
+assignment $\rW = \rw$, that is $\rY \indep \rC \mid \rW = \rw$.  We can
+however move beyond relying on this assumption and allow the model to
+capture potential dependence between the censoring times $\rC$ and event times $\rY$.
+
+We explore models discussed in recent work of \citet{Cazado_Keilegom_2022},
+which involve a joint model for $\rY$ and $\rC$ employing a bivariate
+Gaussian copula of 
+the marginal survivor functions $\sYw(\ry)$ and 
+$\sCw(\rc)$ of $\rY$ and $\rC$ respectively,
+%
+\begin{eqnarray*} \label{mod:DEPC}
+\Prob(\rY \leq \ry, \rC \leq \rc \mid \rW = \rw) = \Phi_{0, \mR(\lparm)}
+\left\{
+\Phi^{-1}\left[1 - \sYw(\ry)\right],
+\Phi^{-1}\left[1 - \sCw(\rc)\right]
+\right\}
+\end{eqnarray*}
+%
+with correlation matrix
+%
+\begin{eqnarray*} \label{mod:DEPC:CORR}
+\mR(\lparm) =
+\left[\begin{array}{cc}
+1 & \nicefrac{-\lparm}{\sqrt{1 + \lparm^2}}\\
+\nicefrac{-\lparm}{\sqrt{1 + \lparm^2}} & 1
+\end{array} \right], \qquad \lparm \in (-\infty, \infty)
+\end{eqnarray*}
+%
+to account for the association between $\rY$ and $\rC$.
+\citet{Deresa_Keilegom_2023} recently demonstrated that the above model
+maintains identifiability when the marginal survivor functions $\sYw(\ry)$ and
+$\sCw(\rc)$ are described by a
+flexible proportional hazards model~(\ref{mod:COX}) and a model that assumes
+a Weibull distribution~(\ref{mod:WEI}),
+respectively.  This allows to estimate the dependence parameter $\lparm$ and
+other model parameters from the observed data.
+A dependence parameter $\lparm$ of zero corresponds to uncorrelated event
+times $\rY$ and censoring times $\rC$, thus indicating lack of evidence for dependent censoring.
+
+\subsection{Application}
+%
+<<DEPCENS-preproc, echo = FALSE>>=
+## DepC: loss of follow-up (everyone else is admin censored) Mail TH 23-06-12
+patnr_lofu <-c(1012, 2003, 3002, 3003, 6018, 7001, 7003, 7005, 7008, 7012, 10003,
+              10012, 11018, 12003, 12014, 13028, 14002, 15001, 16001, 16004, 16005,
+              16007, 16009, 18016, 18025, 21011, 21013, 21014, 21022, 21023, 21026,
+              21027, 21029, 21043, 22003, 23008, 24008, 24021, 25001, 25004, 25005,
+              25006, 26005, 26018, 27005, 27030, 27034, 29002, 30006, 30011, 31003,
+              31004, 31005, 34001, 35011, 35014, 36017, 41004, 42001, 42003, 42005,
+              42007, 42010, 44004, 44005, 45002, 45003, 45009, 45011, 46003, 49001,
+              49003, 49011, 49012, 49015, 50001, 50003, 50004, 50007, 50011, 52004,
+              54004, 56006, 56008, 59002, 59005, 68001, 70010, 71002, 73009, 74004,
+              75002, 75004, 75005, 80003, 81001, 84005, 84007, 86002) 
+ilofu <- with(CAOsurv, which(patnr %in% patnr_lofu))
+CAOsurv$DepCevent <- CAOsurv$OSevent
+CAOsurv$DepCevent <- factor(as.numeric(CAOsurv$DepCevent), levels = 0:2,
+  labels = c("AdminC", "EoI", "DepC"))
+CAOsurv$DepCevent[ilofu] <- "DepC"
+@
+
+Returning to our application, where we previously assumed independent
+censoring of disease-free survival times,
+we now aim to address the potential scenario where loss of
+follow-up time $\rC \in \RR^{+}$ in the two arms is not independent of the
+overall survival time  $\rY \in \RR^{+}$ (secondary endpoint).
+
+The observed times can be categorised into the following event types (specified in \code{DepCevent}):
+The event of interest (overall survival), loss of
+follow-up (dependent censoring), and end of follow-up period
+(administrative/independent censoring).
+%
+\begin{center}
+\small
+<<DEPCENS-table, results = 'hide'>>=
+CAOsurv$nDepCevent <- factor(as.character(CAOsurv$DepCevent),
+  levels = c("AdminC", "EoI", "DepC"), 
+  labels = c("Administrative censoring", "Event of interest", "Loss of follow-up"))
+tab <- xtabs(~ nDepCevent + randarm, data = CAOsurv)
+tab
+@
+<<DEPCENS-table-print, results = "asis", purl = FALSE>>=
+print(xtable(tab, align = "lrr"), booktabs = TRUE, floating = FALSE) # scale = .9
+@
+\end{center}
+% 
+The model accommodating dependent censoring can also be fitted using the
+\cmd{Coxph} function by appropriately specifying the event in the
+`\code{Surv}' object.
+%
+<<DEPCENS-model, echo = TRUE, eval = FALSE, purl = FALSE>>=
+Coxph(Surv(OStime, event = DepCevent) ~ randarm, data = CAOsurv,
+  log_first = TRUE)
+@
+<<DEPCENS-model-fit, cache = TRUE>>=
+md <- 
+<<DEPCENS-model>>
+@
+<<DEPCENS-results, results = "asis", purl = FALSE>>=
+print.tram(md)
+lparm <- "Event_DepC.Event_EoI.(Intercept)"
+est_lambda <- coef(md)[lparm]
+ci_lambda <- confint(md, parm = lparm)
+est_tau <- as.array(coef(md, type = "Kendall"))[,,1][1,2]
+trt_t <- "Event_EoI.Event_EoI.randarm5-FU + Oxaliplatin"
+cf_md <- coef(md)[trt_t]
+est_HR <- exp(cf_md)
+ci_HR <- exp(confint(md)[trt_t, ])
+@
+<<DEPCENS-summary, cache = TRUE, results = "hide", fig.show = 'hide'>>=
+summary(md)
+confint(md)
+@
+
+%
+The joint model is fitted based on a Gaussian copula, estimating a marginal
+flexible proportional hazards model~(\ref{mod:COX}) for the time of overall survival $\rY$
+and a marginal Weibull proportional hazards model~(\ref{mod:WEI})
+for the time of loss of follow-up $\rC$, while
+accounting for independent right-censoring at the end of the follow-up
+period.
+
+The estimated hazard ratio assessing the treatment effect on overall survival,
+is $\exp(\hat\eshiftparm_\rY) = \Sexpr{frmt3(est_HR)}$ with a
+95\%-confidence interval from \Sexpr{frmtCI(ci_HR, math = TRUE)}.  This indicates
+no evidence for prolonged overall survival in the experimental arm.  The dependence
+parameter $\lparm$ is estimated to be \Sexpr{frmt3(est_lambda, math = TRUE)},
+corresponding to a Kendall's $\tau = \Sexpr{frmt3(est_tau)}$. 
+The corresponding 95\%-confidence interval from \Sexpr{frmtCI(ci_lambda, math = TRUE)}
+for $\lparm$ does include zero, providing no evidence for a dependence between time
+of overall survival $\rY$ and loss of follow-up $\rC$ given the treatment assignment $\rW = \rw$.
+
+\section{Dependent observations} \label{sec:dObs}
+
+\subsection{Survival models}
+
+Up to this point, the models we have discussed have been built upon the
+assumption of independent observations.  However, this
+assumption may not hold in situations where observations are clustered, such
+as for multi-center trials where observations from the same center are
+correlated.
+
+\subsubsection{Mixed-effects proportional hazards model} \label{sec:COXME}
+
+In order to address this challenge, we can leverage a flexible mixed-effects
+proportional hazards model as proposed by \citet{Tamasi_Crowther_Puhan_2022}. 
+This approach extends the previously discussed smooth transformation models by conditioning on an
+unobserved cluster-specific random effect $R = r$ that accounts for the dependence within
+clusters,
+%
+\begin{eqnarray*} \label{mod:COXME}
+% \snul(\ry \mid R = r) &=&  \Prob(\rY > \ry \mid \rW = 0, R = r) = 
+% \sMEV{\h(\ry) + r}, R \sim \ND(0, \tau^2),\\
+% \sone(\ry \mid R = r) &=& \Prob(\rY > \ry \mid \rW = 1, R = r) =
+% \sMEV{\h(\ry) + \eshiftparm + r},\\
+\sw(\ry \mid R = r) &=&  \Prob(\rY > \ry \mid \rW = \rw, R = r) = 
+\sMEV{\h(\ry) + \eshiftparm \rw + r}.
+\end{eqnarray*}
+%
+This formulation provides a fully parametric version of the Cox proportional
+hazards model~(\ref{mod:COX}), incorporating multivariate normally distributed random
+effects with a zero mean and variance $\tau^2$.  The treatment
+effect $\eshiftparm$ is interpreted as a log-hazard ratio conditional on
+unobserved random effects. For more in-depth information on likelihood-based inference, 
+see \citet{Tamasi_Hothorn_2021} and \citet{Tamasi_Crowther_Puhan_2022}.
+
+\subsubsection{Marginalised proportional hazards model} \label{sec:MCOX}
+
+Furthermore, we can explore the model proposed by
+\citet{Barbanti_Hothorn_2023}, where the marginal survivor functions are
+characterised by models~(\ref{mod:COX}), while the correlations within
+clusters are captured by a joint multivariate normal distribution.  This
+joint modeling approach yields a marginalised formulation for the random
+intercept model,
+%
+\begin{eqnarray*} \label{mod:MCOX}
+% \snul(\ry) &=&  \Prob(\rY > \ry \mid \rW = 0) =
+% \sMEV{\frac{\h(\ry)}{\sqrt{\mparm^2 + 1}}},\\
+% \sone(\ry) &=&  \Prob(\rY > \ry \mid \rW = 1) =
+% \sMEV{\frac{\h(\ry) + \eshiftparm}{\sqrt{\mparm^2 + 1}}},\\
+\sw(\ry) &=&  \Prob(\rY > \ry \mid \rW = \rw) =
+\sMEV{\frac{\h(\ry) + \eshiftparm \rw}{\sqrt{\mparm^2 + 1}}}.\\
+\end{eqnarray*}
+%
+Here, $\mparm^2$ represents the variance of a cluster-specific intercept. 
+Using this framework, it becomes possible to quantify the treatment effect
+using the marginal hazard ratio given by $\exp\left(\nicefrac{\eshiftparm}{
+\sqrt{\mparm^2 + 1}}\right)$.
+
+Further details on the models, including likelihood-based inference, can be
+found in \citet{Barbanti_Hothorn_2023}.
+
+\subsection{Application}
+
+To estimate mixed-effects smooth transformation models (Section~\ref{sec:COXME}) we can use the
+\pkg{tramME} package \citep{pkg:tramME,Tamasi_Hothorn_2021}, available from 
+CRAN:
+%
+<<COXME-install, echo = TRUE, eval = FALSE>>=
+install.packages("tramME")
+library("tramME")
+@
+%
+<<COXME-load>>=
+library("tramME")
+@
+%
+Including a random-intercept for the block used in the randomisation, which
+is a combination of the centers $j = 1, \dots
+\Sexpr{length(unique(CAOsurv$CenterID))}$ and the stratum $\rs$ ($j \times
+\rs = \code{Block}$) in the model, we can account for potential correlation
+between patients from the same block.  The corresponding mixed-effects
+proportional hazards model can be estimated using the \code{CoxphME}
+function.
+%
+<<COXME-model, echo = TRUE, eval = FALSE, purl = FALSE>>=
+CoxphME(iDFS ~ randarm + (1 | Block), data = CAOsurv,
+  log_first = TRUE)
+@
+<<COXME-model-fit, cache = TRUE>>=
+mcME <- 
+<<COXME-model>>
+@
+<<COXME-results, results = "asis", purl = FALSE>>=
+print.tram(mcME)
+@
+<<COXME-summary, cache = TRUE, results = "hide", fig.show = 'hide'>>=
+summary(mcME)
+confint(mcME)
+@
+%
+The model provides an estimate of the log-hazard ratio $\eshiftparm$, which
+is conditional on the unobserved random effects.  The estimated hazard ratio
+of $\exp(\hat\eshiftparm) = \Sexpr{HR(mcME)}$ and corresponding 95\% confidence intervals
+indicate prolonged
+disease-free survival time in the experimental arm. The estimated variance of the random effect 
+$R$ is relatively small, with
+$\hat{\tau}^2 = \Sexpr{frmt3(VarCorr(mcME)[[1]]$var)}$.
+We can further examine
+the corresponding marginal estimates of the survivor curves or related
+measures by integrating out the random effects (for more details,
+see \citet{Tamasi_Hothorn_2021}).  The corresponding marginal survivor curves for
+patients from all blocks are depicted in Figure~\ref{fig:COXME}.
+%
+\begin{figure}[t!]
+% This takes too long for CRAN
+\begin{Schunk}
+
+
+{\centering \includegraphics{figure/COXME-margsurv-plot-1} 
+
+}
+
+\end{Schunk}
+
+<<COXME-margdist, eval = FALSE, purl = FALSE>>=
+mod <- mcME
+
+## A function to evaluate the joint cdf of the response and the random effects:
+## Takes a vector of random effect and covariates values, evaluates the conditional
+## distribution at these values and multiplies it with the pdf of the random effects
+jointCDF <- function(re, nd, mod) {
+  nd <- nd[rep(1, length(re)), ]
+  nd$Block <- seq(nrow(nd)) ## to take vector-valued REs
+  pr <- predict(mod, newdata = nd, ranef = re, type = "distribution") *
+  dnorm(re, 0, sd = sqrt(varcov(mod)[[1]][1, 1]))
+  c(pr)
+}
+## Marginalize the joint cdf by integrating out the random effects
+## using adaptive quadrature
+marginalCDF <- function(nd, mod) {
+  nd$cdf <- integrate(jointCDF, lower = -Inf, upper = Inf, nd = nd, mod = mod)$value
+  nd
+}
+## Set up the grid on which we evaluate the marginal distribution
+nd <- expand.grid(iDFS = 1:max(CAOsurv$DFStime), randarm = unique(CAOsurv$randarm))
+## Calls marginalCDF on each row of nd
+## (done in parallel to speed up computations)
+mp <- parallel::mclapply(split(nd, seq(nrow(nd))),
+  marginalCDF, mod = mod, mc.cores = 1)
+mp <- do.call("rbind", mp)
+@
+<<COXME-margsurv-plot, eval = FALSE, purl = FALSE>>=
+mp$surv <- with(mp, 1 - cdf)
+
+<<plot-surv-iDFS, eval = FALSE>>
+with(mp[mp$randarm == levs[1], ], lines(iDFS, surv, col = col[1], lwd = lwd))
+with(mp[mp$randarm == levs[2], ], lines(iDFS, surv, col = col[2], lwd = lwd))
+<<legend-trt>>
+@
+<<COXME-margsurv, eval = FALSE>>=
+## computationally intensive
+<<COXME-margdist>>
+<<COXME-margsurv-plot>>
+@
+
+%
+\caption{Mixed-effects proportional hazards model.  Marginal survivor curves
+obtained from integrating out the random effects from the model, along with
+the non-parametric Turnbull estimates.}
+\label{fig:COXME}
+\end{figure}
+
+The estimated mixed-effects proportional hazards model using \cmd{CoxphME}
+translates the analysis conducted in \citet{Roedel_Graeven_Fietkau_2015} into
+the smooth transformation framework.  The aim of the primary analysis of
+\citet{Roedel_Graeven_Fietkau_2015} was to fit a Cox model for clustered
+observations estimating the treatment effect and corresponding
+standard errors.  However, at the time of the primary analysis it was not
+feasible to estimate the mixed-effects Cox model while accounting for
+interval-censoring.  Fortunately, here the discrepancies
+between the reported results from the model ignoring interval-censoring and
+the fitted one, accounting for it, are practically negligible.
+
+To obtain a marginal hazard ratio we can estimate the model that captures the
+dependence within clusters using a joint multivariate normal distribution
+(Section~\ref{sec:MCOX}), which can be fitted using the \cmd{mtram}
+function from the \pkg{tram} package.  Estimation is straightforward for
+completely exact or interval-censored outcomes within a cluster.  Since
+\var{iDFS} comprises a mix of different types of outcomes (within each
+cluster, event times can be either all exact or all censored, see Formulae
+2.5 and 2.6 of \citet{Barbanti_Hothorn_2023}), we handle exact
+event times by treating them as interval-censored, accomplished by adding a
+4-day window (stored in the object \code{iDFS2} of class `\code{Surv}', 
+see Section~5 of the \code{mtram} package vignette by \citet{pkg:tram} for details).
+%
+<<MCOX-preproc, echo = FALSE>>=
+### convert "exact" event dates to interval-censoring (+/- two days)
+tmp <- CAOsurv$iDFS
+exact <- tmp[, 3] == 1
+tmp[exact, 2] <- tmp[exact, 1] + 2
+tmp[exact, 1] <- pmax(tmp[exact, 1] - 2, 0)
+tmp[exact, 3] <- 3
+CAOsurv$iDFS2 <- tmp
+@
+<<MCOX-model, echo = TRUE, eval = FALSE, purl = FALSE>>=
+mtram(Coxph(iDFS2 ~ randarm, data = CAOsurv, log_first = TRUE),
+  formula = ~ (1 | Block), data = CAOsurv)
+@
+<<MCOX-model-fit, cache = TRUE>>=
+mmc <- 
+<<MCOX-model>>
+@
+<<MCOX-results, results = "asis", purl = FALSE>>=
+print.tram(mmc)
+@
+<<MCOX-FUN>>=
+## marginal HR from "mtram"
+## <FIXME> reset seed on.exit </FIXME>
+mHR.mtram <- function(object, with_confint = FALSE, seed = 1) {
+  stopifnot(inherits(object, "mtram"))
+  cf <- coef(object)
+  cf <- cf[-grep("Bs", names(cf))]
+  stopifnot(length(cf) == 2)
+  mlHR <- cf[1] / sqrt(1 + cf["gamma1"]^2)
+  ret <- mHR <- exp(mlHR)
+  if (with_confint) {
+    set.seed(seed)
+    S <- vcov(object)
+    rbeta <- rmvnorm(10000, mean = coef(object), sigma = S)
+    s <- rbeta[,ncol(rbeta)]
+    rbeta <- rbeta[,-ncol(rbeta)] / sqrt(s^2 + 1)
+    ci <- quantile(exp(rbeta[, ncol(rbeta)]), prob = c(.025, .975))
+    ret <- c(mHR, ci)
+    ret <- as.array(t(ret))
+  }
+  return(ret)
+}
+@
+<<MCOX-summary, cache = TRUE, results = "hide", fig.show = 'hide'>>=
+coef(mmc)
+sqrt(diag(vcov(mmc)))
+(ci_MCOX <- mHR.mtram(mmc, with_confint = TRUE))
+@
+
+%
+The corresponding estimate of the marginal hazard ratio is
+$\exp(\nicefrac{\hat\eshiftparm}{\sqrt{\hat\mparm^2 + 1}}) =
+\Sexpr{frmt3(ci_MCOX[1])}$ with empirical 95\%-confidence
+intervals from \Sexpr{frmtCI(ci_MCOX[2:3], math = TRUE)}.  The results indicate that the
+hazards for patients in the experimental arm is reduced by
+\Sexpr{frmt3(ci_MCOX[1], math = TRUE)} compared to the hazards in the control arm,
+regardless of the block.
+
+\section{Personalised medicine} \label{sec:PM}
+
+In the context of personalised medicine, our focus now turns towards
+modeling heterogeneous treatment effects, that is, log-hazard ratios which
+might depend on patient's age.  This involves a
+shift towards capturing the individualised responses to treatment,
+acknowledging that a global treatment effect may not adequately represent
+how different age groups respond to treatment.
+
+\subsection{Survival models}
+
+\subsubsection{Age-varying hazards model} \label{sec:HTECOX}
+
+To detect varying treatment effects based on age we can employ models which
+estimate an age-varying hazard ratio $\exp(\eshiftparm(\ra))$ \citep{Tamasi_Hothorn_2023},
+%
+\begin{eqnarray*} \label{mod:HTECOX}
+% \snul(\ry) &=& \Prob(\rY > \ry \mid \rW = 0, \rA = \ra) =
+% \sMEV{\h(\ry)},\\
+% \sone(\ry) &=& \Prob(\rY > \ry \mid \rW = 1, \rA = \ra) =
+% \sMEV{\h(\ry) + \eshiftparm(\ra)},\\
+\sw(\ry) &=& \Prob(\rY > \ry \mid \rW = \rw,  \rA = \ra) =
+\sMEV{\h(\ry) + \eshiftparm(\ra) \rw}.
+\end{eqnarray*}
+%
+This formulation aligns with the model estimated in the analysis of
+\citet{Hofheinz_Arnold_Fokas_2018}.
+
+Such models could be further extended to additionally capture variations in
+baseline risks across age by including an age-dependent
+log-cumulative baseline hazard function: $\log(\Haznul(\ry \mid \ra)) =
+\h(\ry \mid \ra) = \basisy(\ry)^\top\parm + \beta_0(\ra)$.
+
+\subsubsection{Tree-based age-varying hazards model} \label{sec:TRT}
+
+Furthermore, for estimating heterogeneous treatment effects, tree-based Cox
+models can also be employed
+\citep{Korepanova_Seibold_Steffen_2019,Seibold_Zeileis_Hothorn_2017},
+%
+\begin{eqnarray*} \label{mod:TRT}
+% \snul(\ry \mid \rA = \ra) &=& 
+% \sMEV{\h(\ry \mid \ra)},\\
+% \sone(\ry \mid \rA = \ra) &=&
+% \sMEV{\h(\ry \mid \ra) + \eshiftparm(\ra)},\\
+\sw(\ry \mid \rA = \ra) &=& 
+\sMEV{\h(\ry \mid \ra) + \eshiftparm(\ra) \rw},
+\end{eqnarray*}
+%
+allowing to partition both the log-cumulative baseline hazard
+$\log(\Haznul(\ry \mid \ra)) = \h(\ry \mid \ra) =
+\basisy(\ry)^\top\parm(\ra)$ and the treatment effect $\eshiftparm(\ra)$
+with respect to the different age groups.  In contrast to the model in
+Section~\ref{sec:HTECOX}, both the log-cumulative baseline hazard and the
+log-hazard ratio $\eshiftparm$ depend on age, in this case via an
+age-structured tree.
+
+\subsection{Application}
+
+The hazards model featuring an age-varying treatment effect
+(Section~\ref{sec:HTECOX}) can be fitted using the \pkg{tramME} package
+\citep{pkg:tramME}.
+%
+<<HTECOX-model, echo = TRUE, eval = FALSE, purl = FALSE>>=
+CoxphME(iDFS ~ randarm + s(age, by = as.ordered(randarm),
+    fx = TRUE, k = 6), data = CAOsurv, log_first = TRUE)
+@
+<<HTECOX-model-fit, cache = TRUE>>=
+ma <- 
+<<HTECOX-model>>
+nd <- model.frame(ma)[rep(2, 100), ]
+nd$age <- seq(min(CAOsurv$age), max(CAOsurv$age), length.out = 100)
+xx <- model.matrix(ma, data = nd, type = "X", keep_sign = FALSE)$X
+ip <- grep("randarm", names(bb <- coef(ma, with_baseline = TRUE)))
+vc <- vcov(ma, parm = names(bb)[ip])
+bb <- bb[ip]
+
+## NOTE: unadjusted
+cb <- exp(confint(multcomp::glht(multcomp::parm(bb, vc), linfct = xx),
+                  calpha = univariate_calpha())$confint)
+@
+<<HTECOX-summary, cache = TRUE, results = "hide", fig.show = 'hide'>>=
+summary(ma)
+@
+%
+The model estimates a global treatment effect and an
+additional smooth effect for age in the experimental arm, specified as an
+unpenalized term (using \code{fx = TRUE}) to match the approach used in
+\citet{Hofheinz_Arnold_Fokas_2018}. From the model terms, one can compute an
+age-varying hazard ratio $\exp(\eshiftparm(\ra))$.
+
+The estimated age-varying hazard ratio curve, shown in Figure~\ref{fig:HTECOX},
+indicates that the experimental treatment is more effective than the control
+treatment for patients aged $40-70$ years, while for older patients the control
+treatment reduces the hazard compared to the experimental treatment.
+However, the corresponding confidence interval is notably wide and mostly
+overlaps with a hazard ratio of 1.
+
+\begin{figure}[t!]
+\centering
+<<HTECOX-HR-plot>>=
+## Plot HR
+plot(nd$age, cb[, "Estimate"], type = "n", ylab = "Hazard ratio", xlab = "Age (in years)",
+     ylim = ylimHR)
+polygon(c(nd$age, rev(nd$age)), c(cb[, "lwr"], rev(cb[, "upr"])),
+        border = NA, col = rgb(.1, .1, .1, .1))
+lines(nd$age, cb[, "Estimate"], lwd = lwd)
+abline(h = 1, lty = 3)
+rug(CAOsurv$age, lwd = 2, col = rgb(.1, .1, .1, .1))
+@
+%
+\caption{Age-varying hazards model. Hazard ratio and corresponding 95\%-confidence interval estimated by the model shown
+along age. The log-likelihood of the corresponding model is \Sexpr{frmtll(ma, math = TRUE)}.}
+\label{fig:HTECOX}
+\end{figure}
+
+Fitting a hazards model partitioning the log-cumulative baseline hazards and
+treatment effect by age, a survival tree (Section~\ref{sec:TRT}) can be estimated using the \pkg{trtf} package \citep{pkg:trtf,Hothorn_Zeileis_2017}.
+%
+<<TRT-load-install, echo = TRUE, eval = FALSE>>=
+install.packages("trtf")
+library("trtf")
+@
+<<TRT-load>>=
+library("trtf")
+set.seed(4)
+@
+<<TRT-model, echo = TRUE, eval = FALSE, purl = FALSE>>=
+trafotree(Coxph(iDFS ~ randarm, data = CAOsurv, log_first = TRUE),
+  formula = iDFS ~ randarm | age, data = CAOsurv,
+  control = ctree_control(teststat = "maximum", minbucket = 40))
+@
+<<TRTF-model-fit, cache = TRUE, warning=TRUE>>=
+tr <-
+<<TRT-model>>
+@
+<<TRT-results, results = "hide", fig.show = 'hide'>>=
+logLik(tr)
+@
+%
+The survivor functions corresponding to the terminal nodes of the estimated
+tree are shown in Figure~\ref{fig:TRT}.  The results again indicate that the
+experimental treatment is more effective for younger patients, while the
+control treatment is more effective for older patients. This result is also
+in line with the one previously obtained by \citet{Hofheinz_Arnold_Fokas_2018}.
+%
+\begin{figure}[t!]
+<<TRTF-surv-plot, fig.width = 10, fig.height = 6>>=
+library("ATR")
+plot(rotate(tr), tp_args = list(newdata = nd1, type = "survivor", col = col, lwd = lwd),
+  terminal_panel = trtf:::node_mlt)
+@
+\caption{Tree-based age-varying hazards model.
+Survival tree depicting the estimated survivor curves of the age-groups
+corresponding to the terminal nodes of the partitioned hazards model. The corresponding 
+in-sample log-likelihood is \Sexpr{frmtll(tr, math = TRUE)}.}
+\label{fig:TRT}
+\end{figure}
+%
+
+\section{Other extensions}\label{sec:ext}
+
+\subsection{Frailty proportional hazards model}
+
+In cases where the assumption of a homogeneous study population falls short,
+frailty models offer a valuable alternative.  These models address
+situations where the population under consideration comprises heterogeneous
+individuals with varying risk levels, reflecting the concept of frailty
+\citep{Balan_Putter_2020}.
+
+To handle such scenarios in the framework of smooth transformation models,
+the approach discussed by \citet{McLain_Ghosh_2013} can be employed.  The
+corresponding frailty proportional hazards model introduces an unobservable
+multiplicative frailty effect $\rF = \rf$ on the hazard, with
+corresponding conditional survivor function
+%
+\begin{eqnarray*} \label{mod:frailty}
+% \snul(\ry \mid \rF = \rf) &=& 
+% \Prob(\rY > \ry \mid \rW = 0, \rF = \rf) = \sMEV{\h(\ry) + \log(\rf)},\\
+% \sone(\ry \mid \rF = \rf) &=& 
+% \Prob(\rY > \ry \mid \rW = 1, \rF = \rf) = \sMEV{\h(\ry) + \log(\rf) + \eshiftparm},\\
+\sw(\ry \mid \rF = \rf) &=& 
+\Prob(\rY > \ry \mid \rW = \rw, \rF = \rf) = \sMEV{\h(\ry) + \log(\rf) + \eshiftparm \rw}.
+\end{eqnarray*}
+%
+The model implies that the proportional hazards assumption, that is 
+$\nicefrac{\Hazone(\ry \mid \rf)}{\Haznul(\ry \mid \rf)} =
+\nicefrac{\hazone(\ry \mid  \rf)}{\haznul(\ry \mid\rf)} = \eshiftparm$,
+holds conditional
+on frailty $\rF = \rf$.  The frailty $\rF$ specifies a latent random
+term, assumed to have a certain non-negative distribution, such as the
+gamma, inverse Gaussian or positive stable distribution
+\citep{Hougaard_1986}, which, for identifiability, is scaled such that
+$\Ex(\rF) = 1$. 
+%
+% The marginal hazard ratio, however, becomes
+% time-dependent when assuming a gamma or inverse Gaussian frailty, but not
+% for the positive stable distribution.
+%
+The proportional hazards model with gamma frailty can be fitted in
+\pkg{tram}, using the \cmd{Coxph} function specifying the frailty
+distribution, for instance \code{frailty = "Gamma"}.
+%
+<<FRAILTY-model, echo = FALSE, eval = FALSE, purl = FALSE>>=
+Coxph(iDFS ~ randarm, data = CAOsurv, log_first = TRUE, frailty = "Gamma")
+@
+<<FRAILTY-model-fit, cache = TRUE>>=
+mf <- 
+<<FRAILTY-model>>
+@
+<<FRAILTY-results, results = "hide", purl = FALSE>>=
+print.tram(mf)
+@
+<<FRAILTY-summary, cache = TRUE, results = "hide", fig.show = 'hide'>>=
+logLik(mf)
+coef(mf)[trt]
+coef(mf, addparm = TRUE)
+confint(mf, parm = c(trt, "logrho"))
+@
+%
+% \TODO{Check: \citet{Dabrowska_Doksum_1988}.}
+% 
+% Gamma frailly distribution is a standard assumption, which implies that
+% the dependence is most important for late events \citep{Hougaard_1995}.
+
+\subsection{Non-parametric likelihood}
+
+In this tutorial, we have primarily focused on the implementation of smooth
+parametrisation for the log-cumulative baseline hazard function $\h$. 
+Nevertheless, it is important to highlight that researchers also have the
+option to utilize the discussed models that incorporate a non-parametric
+version of the transformation function $\h$, should they wish to do so. 
+The corresponding non-parametric transformation function $\h$ is specified 
+in terms of $\basisy(\ry_k)^\top \parm = \eparm_k$, where a parameter $\eparm_k$
+is assigned to each distinct event time $\ry_k$ with $k = 1, \dots, K - 1$.
+A head-to-head comparison of the smooth parametrisation
+and the non-parametric version can be found in \citet{Yuqi_Hothorn_Li_2020}.
+
+\subsection{Link function}
+
+Undoubtedly, the proportional hazards model stands as a cornerstone in
+survival analysis, prominently emerging from specifying the complementary
+log-log link (the cumulative distribution function of the standard minimum
+extreme value), wherein $\h$ parametrises the log-cumulative baseline
+hazards function.  Nevertheless, it is worth noting that researchers have
+the opportunity to explore other link functions for all the models shown
+above, such as the logit link (as also discussed in detail in
+\citet{Royston_Parmar_2002}), or the probit or log-log link.
+
+For example, specifying a flexible proportional odds model ``only'' requires to change the link
+function from complementary log-log to logit; such a model can be estimated via
+%
+<<LOGIT-model, purl = FALSE, eval = FALSE, echo = TRUE>>=
+Colr(iDFS ~ randarm, data = CAOsurv, log_first = TRUE)
+@
+<<LOGIT-model-fit>>=
+ml <- 
+<<LOGIT-model>>
+@
+<<LOGIT-results, purl = FALSE, results = "asis">>=
+print.tram(ml)
+@
+
+This inherent versatility of link functions facilitates the construction
+of alternative models, encompassing mean or odds models, by specifying a probit or 
+logit link respectively.  These alternative
+models are well known from the class of accelerated failure time models
+(with log-linear $\h$), but extend seamlessly to the more flexible
+framework of smooth transformation models.  Moreover, by selecting the
+log-log link, it is possible to define a reverse time hazards model.  For a
+comprehensive overview, see Table~1 of \citet{Hothorn_Moest_Buehlmann_2017}.
+
+\subsection{Covariate adjustment}
+
+While the models above estimate a single coefficient $\eshiftparm$ for the
+treatment effect, they naturally allow for the inclusion of additional
+covariates $\rx$. For example, in the time-varying hazards model (Section~\ref{sec:TCOX}),
+age can be incorporated into the linear predictor as follows:
+%
+<<TCOX-age-model, echo = TRUE, eval = FALSE, purl = FALSE>>=
+Coxph(iDFS | randarm ~ age, data = CAOsurv, log_first = TRUE)
+@
+%
+Additionally, penalised covariate effects can be estimated by maximizing the
+$L_1$- or $L_2$-penalised log-likelihood using the \pkg{tramnet} package
+\citep{pkg:tramnet,Kook_Hothorn_2021}.
+
+Moreover, conditional transformation models \citep{Hothorn_Kneib_Buehlmann_2014},
+which accommodate complex, non-linear covariate effects, can be estimated using
+package \pkg{tbm} \citep{pkg:tbm, Hothorn_2020}.
+
+\subsection{Sample size estimation and simulation}
+
+The framework of smooth transformation models can also be valuable for
+researchers involved in designing new studies.  Simulating from the
+illustrated models (using \cmd{simulate}) offers a straightforward approach
+for tasks such as sample size estimation. Because the transformation
+function $\h$ is smooth, it is relatively simple to invert this function
+numerically, such that it becomes possible to apply probability integral
+transforms for generating new event times from a fitted model analogously to
+\citet{Bender_Augustin_Blettner_2005}. 
+As an example, we might want to generate data for a
+future trial where 5-FU overall survival is improved by some innovative
+therapy. We start with fitting a Weibull model to overall survival,
+conditional on treatment $\rw$ and age.
+%
+<<SS, echo = TRUE>>=
+m <- as.mlt(Survreg(OS ~ randarm + age, data = CAOsurv, 
+  dist = "weibull", support = c(.1, 80 * 365)))
+@
+%
+We simulate new survival times $\rY$ from this conditional distribution
+for study participants with normally distributed age in a balanced trial,
+with the covariate values stored in a data frame called \code{nd}.
+%
+<<SS-nd>>=
+N <- 500
+nd <- with(CAOsurv, data.frame(randarm = gl(2, N, labels = levels(randarm)),
+  age = rnorm(N, mean = mean(age), sd = sd(age))))
+@
+%
+A useful feature in \pkg{tram} is the ability to change model coefficients
+on the fly. Here, we change the log-hazard ratio to $0.25$ and simulate from
+this altered Weibull model:
+%
+<<SS-setup, echo = FALSE>>=
+`coef<-` <- mlt::`coef<-` ## masked by tramME?
+@
+%
+<<SS-lOR, echo = TRUE>>=
+cf <- coef(m)
+cf["randarm5-FU + Oxaliplatin"] <- .25
+coef(m) <- cf
+nd$T <- as.Surv(simulate(m, newdata = nd, K = 1000))
+@
+%
+In addition, we simulate censoring times $\rC \indep \rY \mid \rW = \rw,  \rA = \ra$ such that $80\%$ of observations
+will be right-censored (with probabilistic index
+\deleted{$\Prob(\rY > \rC \mid \rW = \rw,  \rA = \ra) = \logit(\Sexpr{frmt3(qlogis(0.8))})$}\added{
+$\Prob(\rY > \rC \mid \rW = \rw,  \rA = \ra) = 0.8 = \logit^{-1}(\Sexpr{frmt3(qlogis(0.8))})$}
+\citep{Sewak_Hothorn_2023})
+%
+<<SS-simC, echo = TRUE>>=
+cf["(Intercept)"] <- cf["(Intercept)"] + qlogis(.8)
+coef(m) <- cf
+nd$C <- as.Surv(simulate(m, newdata = nd, K = 1000))
+@
+%
+and finally compute the potentially right-censored event times for model
+re-fitting:
+%
+<<SS-OS, echo = TRUE, results = "asis">>=
+nd$nOS <- with(nd, Surv(time = pmin(T[, "time"], C[, "time"]),
+  event = T[,"time"] < C[,"time"]))
+@
+<<SS-refit, eval = FALSE, results = "hide", fig.show = "hide">>=
+table(nd$nOS[,"status"])
+levels(nd$randarm)[2] <- "innovative"
+plot(survfit(nOS ~ randarm, data = nd), col = col, xlab = "Time (in days)", 
+  ylab = "Probability of survival")
+legend("topright", legend = levels(nd$randarm), col = col, lty = 1, bty = "n")
+Survreg(nOS ~ randarm + age, data = nd, dist = "weibull")
+@
+
+\section{Discussion}
+
+Motivated by the complexities researchers face when navigating various
+software implementations for their survival analysis tasks, we highlight the
+potential of leveraging the unified framework of smooth transformation
+models \citep{Hothorn_Moest_Buehlmann_2017} implemented in the \pkg{tram}
+\proglang{R}~add-on package.  Together with other add-on packages such as
+the \pkg{tramME} \citep{pkg:tramME} and \pkg{trtf} \citep{pkg:trtf}
+packages, the \pkg{tram} package \citep{pkg:tram} provides a unified
+maximum likelihood approach to survival analysis, effortlessly extending
+classical models to accommodate complex scenarios, thereby offering a
+versatile toolkit for the analysis of survival data.
+This toolkit extends to multiple event times per subject,
+allowing for the estimation of multivariate survival models using the
+\cmd{Mmlt} function in the \pkg{tram} package \citep{Klein_Hothorn_Barbanti_2020}.
+
+Throughout this tutorial, we present practical strategies for effectively
+addressing prominent challenges inherent to survival analysis in
+\proglang{R}.  These challenges include interval-censored outcomes,
+non-proportional or crossing hazards, dependent censoring, clustered observations
+or heterogeneous treatment effects.
+
+The comparative overview of implementations in 
+Supplementary Material~\ref{sec:supp} serves as a crucial validation tool, facilitating
+comparisons across multiple package implementations and allowing
+researchers to make informed decisions about the most suitable
+package for their specific analysis needs.
+
+The framework also provides the basis for many interesting extensions.  For
+instance, to address scenarios involving cured patients, a noteworthy
+extension involves cure mixture models.  The implementations of such
+models in the smooth transformation model framework could, for example,
+provide a fully parametric version of the semi-parametric cure mixture model
+proposed by \citet{Xie_Huang_Li_2022}, with a survival model similar
+to the model presented in Section~\ref{sec:SCOX}.
+Future work could also explore the implementation of
+collapsible models similar to the smooth accelerated failure time model
+discussed by \citet{Crowther_Royston_Clements_2022}.  Additionally,
+alternative strategies such as the marginalisation of hazard ratios, as
+suggested by \citet{Rhian_2021}, could also be explored further.
+
+In this tutorial we have presented different configurations of smooth
+transformation models for survival analysis.  The modular architecture of
+this framework not only provides different options, but also
+facilitates the combination of individual components.  For example, one can
+easily incorporate covariate-dependent hazard ratios coupled with random
+effects into a smooth transformation model in \pkg{tramME}.  This
+flexibility provides users with a unified toolkit to seamlessly address a spectrum of
+complex survival analysis tasks.
+
+\section*{Acknowledgements}
+This work was supported by the Swiss National Science
+Foundation [grant number 200021\_219384].
+
+\putbib
+\end{bibunit}
+
+%% supplementary material
+\newpage
+\begin{appendices}
+\begin{bibunit}
+
+\section[Comparative overview of R implementations]{Comparative overview of \proglang{R} implementations}\label{sec:supp}
+
+
+\definecolor{darkgray}{rgb}{0.66, 0.66, 0.66}
+
+% \renewenvironment{Schunk}{}{\vspace{-.9cm}} %% quickfix to avoid spacing after chunk
+% %% Schunk spacing quickfix
+% \newcommand{\Sspace}{\vspace{.9cm}}
+
+In the following, we compare the implementations of the models from the \pkg{tram}
+\citep{pkg:tram} and \pkg{tramME} \citep{pkg:tramME} packages shown in the tutorial, with
+alternative methods available in various established \proglang{R}~packages
+from CRAN.
+
+We fit the  models to the primary endpoint of disease-free survival, which
+comprises a mixture of exact times and right- and interval-censored event times (encoded in
+\var{iDFS}, an object of class `\code{Surv}').  In order to further compare the models
+with other implementations that cannot handle
+interval-censored outcomes, we treat the interval-censored observations as
+if they were observed exactly (encoded in \var{DFS}, also a `\code{Surv}'
+object).
+
+We contrast treatment effect estimates (Estimate) and corresponding standard
+errors (Std.~Error) estimated
+by the fitted models.  It is important to note the difference in
+interpretation of the estimates (Interpretation).  Additionally, we provide
+the in-sample log-likelihood (logLik) of the fitted models, with penalised or
+semi-parametric/partial likelihoods highlighted in grey. 
+%
+
+
+
+
+
+
+
+
+
+
+
+\subsection{Weibull models}
+
+The \pkg{survival} package \citep{pkg:survival}, the \pkg{icenReg}
+package \citep{pkg:icenReg,pkg:icenReg:JSS} and the \pkg{flexsurv} package \citep{pkg:flexsurv}
+provide alternative implementations of Weibull
+models.  Both the \pkg{survival} and \pkg{icenReg} package (specifying \code{model =
+"aft"}) implement accelerated failure time Weibull models, where the effect
+can be interpreted as log-acceleration factor (log-AF).  An alternative parametrisation of such models is in 
+terms of proportional hazards Weibull models, estimating
+log-hazard ratios (log-HRs), instead.  This is how the
+model, fitted by \cmd{Survreg}, is implemented in the \pkg{tram} package
+\citep{pkg:tram}, which can be directly compared to the analogous
+parametrisation in the \pkg{icenReg} (specifying \code{model = "ph"}) and the \pkg{flexsurv} package
+(with \code{dist = "weibullPH"}).  All Weibull
+models can handle interval-censoring, owing to the parametric nature of the
+models.
+
+The Weibull models can be fitted to the \emph{interval-censored outcomes} as follows:
+%
+\begin{Schunk}
+\begin{Sinput}
+R> tram::Survreg(iDFS ~ randarm, data = CAOsurv, dist = "weibull")
+R> icenReg::ic_par(iDFS ~ randarm, data = CAOsurv, dist = "weibull",
++    model = "ph")
+R> flexsurv::flexsurvreg(iDFS ~ randarm, data = CAOsurv,
++    dist = "weibullPH")
+R> survival::survreg(iDFS ~ randarm, data = CAOsurv, dist = "weibull")
+R> icenReg::ic_par(iDFS ~ randarm, data = CAOsurv, dist = "weibull",
++    model = "aft") 
+\end{Sinput}
+\end{Schunk}
+
+\begin{center}
+% latex table generated in R 4.5.1 by xtable 1.8-4 package
+% Tue Sep 16 16:59:32 2025
+\scalebox{0.8}{
+\begin{tabular}{lllrrr}
+  \toprule
+Function & Package & Interpretation & Estimate & Std. Error & logLik \\ 
+  \midrule
+\code{Survreg} & \pkg{tram} & log-HR & $ -0.229 $ & $ 0.106 $ & $-$2'281.17 \\ 
+  \code{ic\_par} & \pkg{icenReg} & log-HR & $ -0.229 $ & $ 0.106 $ & $-$2'281.17 \\ 
+  \code{flexsurvreg} & \pkg{flexsurv} & log-HR & $ -0.229 $ & $ 0.106 $ & $-$2'281.17 \\ 
+  \code{survreg} & \pkg{survival} & log-AF & $ 0.312 $ & $ 0.146 $ & $-$2'281.17 \\ 
+  \code{ic\_par} & \pkg{icenReg} & log-AF & $ 0.312 $ & $ 0.146 $ & $-$2'281.17 \\ 
+   \bottomrule
+\end{tabular}
+}
+
+\end{center}
+
+As expected, all packages provide equivalent model fits.
+
+\subsection{Flexible proportional hazards models}
+
+Flexible versions of the proportional hazards model are implemented in
+several packages, of which the following accommodate interval-censored
+outcomes.
+The \pkg{rstpm2} package
+\citep{pkg:rstpm2,Liu_Pawitan_Clements_2016} and the \pkg{flexsurv} package 
+provide parametric versions of the model by using splines (analogously to the
+approach discussed by \citet{Royston_Parmar_2002}). We set \code{k = 3} for the number 
+of knots in the spline for \cmd{flexsurvspline} from the \pkg{flexsurv} package
+Alternatively, the \pkg{icenReg} package \citep{pkg:icenReg} provides a
+semi-parametric implementation of the model that can handle interval-censoring.
+
+The corresponding models can be fitted to the \emph{interval-censored outcomes} as follows:
+%
+
+\begin{Schunk}
+\begin{Sinput}
+R> tram::Coxph(iDFS ~ randarm, data = CAOsurv, log_first = TRUE)
+R> rstpm2::stpm2(Surv(time = iDFStime, time2 = iDFStime2,
++    event = iDFSevent, type = "interval") ~ randarm, data = CAOsurv)
+R> flexsurv::flexsurvspline(iDFS ~ randarm, data = CAOsurv, k = 3)
+R> icenReg::ic_sp(iDFS ~ randarm, data = CAOsurv, model = "ph")
+\end{Sinput}
+\end{Schunk}
+
+\begin{center}
+% latex table generated in R 4.5.1 by xtable 1.8-4 package
+% Tue Sep 16 16:59:32 2025
+\scalebox{0.8}{
+\begin{tabular}{lllrrr}
+  \toprule
+Function & Package & Interpretation & Estimate & Std. Error & logLik \\ 
+  \midrule
+\code{Coxph} & \pkg{tram} & log-HR & $ -0.234 $ & $ 0.106 $ & $-$2'255.85 \\ 
+  \code{stpm2} & \pkg{rstpm2} & log-HR & $ -0.232 $ & $ 0.107 $ & $-$2'250.48 \\ 
+  \code{flexsurvspline} & \pkg{flexsurv} & log-HR & $ -0.231 $ & $ 0.106 $ & $-$2'254.34 \\ 
+  \code{ic\_sp} & \pkg{icenReg} & log-HR & $ -0.230 $ & $-$ & {\color{darkgray}$-$1'977.29} \\ 
+   \bottomrule
+\end{tabular}
+}
+
+\end{center}
+
+
+%
+The models fit similarly across all four packages.
+Due to the fact that the computations of the standard errors of \cmd{ic\_sp} from the
+\pkg{icenReg} package rely on computationally expensive bootstrap sampling,
+we did not report any standard errors for this approach.  Also the log-likelihood (in
+grey) of the semi-parametric model from the \pkg{icenReg} is not comparable
+to the otherwise fully parametric implementations.
+
+ The \pkg{ICsurv} package \citep{pkg:ICsurv}
+could also potentially handle interval-censored event times. The
+\pkg{TransModel} package \citep{pkg:TransModel,pkg:TransModel:JSS},
+featuring an alternative implementation of linear transformation model,
+could also serve as an interesting comparator. However, we encountered
+difficulties and errors when trying to fit the model using these two packages. 
+
+In scenarios where \emph{interval-censoring} is not taken into account, there are
+several other implementations available for fitting corresponding models. 
+The \cmd{coxph} function from the \pkg{survival} package provides a
+semi-parametric approach for exact or right-censored observations
+\citep{pkg:survival}. (Note, that again the likelihood of the fitted model is not
+comparable to the other fully parametric models and thus marked in grey).
+The \pkg{rms} package \citep{pkg:rms} implements a semi-parametric model, in line with
+the model from package \pkg{survival}.
+%
+\begin{Schunk}
+\begin{Sinput}
+R> tram::Coxph(DFS ~ randarm, data = CAOsurv, log_first = TRUE)
+R> survival::coxph(DFS ~ randarm, data = CAOsurv)
+R> rms::cph(DFS ~ randarm, data = CAOsurv)
+\end{Sinput}
+\end{Schunk}
+
+\begin{center}
+% latex table generated in R 4.5.1 by xtable 1.8-4 package
+% Tue Sep 16 16:59:32 2025
+\scalebox{0.8}{
+\begin{tabular}{lllrrr}
+  \toprule
+Function & Package & Interpretation & Estimate & Std. Error & logLik \\ 
+  \midrule
+\code{Coxph} & \pkg{tram} & log-HR & $ -0.231 $ & $ 0.106 $ & $-$3'277.59 \\ 
+  \code{coxph} & \pkg{survival} & log-HR & $ -0.228 $ & $ 0.106 $ & {\color{darkgray}$-$2'430.66} \\ 
+  \code{cph} & \pkg{rms} & log-HR & $ -0.228 $ & $ 0.106 $ & {\color{darkgray}$-$2'430.66} \\ 
+   \bottomrule
+\end{tabular}
+}
+
+\end{center}
+
+
+
+
+
+
+
+\subsection{Stratified proportional hazards models}
+
+For comparing stratified flexible proportional hazards models we can again
+utilize the model from the \pkg{rstpm2} and \pkg{flexsurv} packages,
+which employ stratified spline-basis functions. The two models can be fitted to the
+\emph{interval-censored event times} as follows
+
+\begin{Schunk}
+\begin{Sinput}
+R> tram::Coxph(iDFS | strat ~ randarm, data = CAOsurv,
++    log_first = TRUE)
+R> rstpm2::stpm2(Surv(time = iDFStime, time2 = iDFStime2,
++      event = iDFSevent, type = "interval") ~ randarm +
++      strata(strat), data = CAOsurv)
+\end{Sinput}
+\end{Schunk}
+
+\begin{center}
+% latex table generated in R 4.5.1 by xtable 1.8-4 package
+% Tue Sep 16 16:59:32 2025
+\scalebox{0.8}{
+\begin{tabular}{lllrrr}
+  \toprule
+Function & Package & Interpretation & Estimate & Std. Error & logLik \\ 
+  \midrule
+\code{Coxph} & \pkg{tram} & log-HR & $ -0.231 $ & $ 0.107 $ & $-$2'231.85 \\ 
+  \code{stpm2} & \pkg{rstpm2} & log-HR & $ -0.220 $ & $ 0.107 $ & $-$2'242.88 \\ 
+   \bottomrule
+\end{tabular}
+}
+
+\end{center}
+
+%
+The results from the two models are very similar.
+
+Now, \emph{ignoring interval-censoring}, we can, once again, contrast the implementation of
+the semi-parametric models from the
+\pkg{survival} package and the \pkg{rms} package:
+%
+\begin{Schunk}
+\begin{Sinput}
+R> tram::Coxph(DFS | strat ~ randarm, data = CAOsurv, log_first = TRUE)
+R> survival::coxph(DFS ~ randarm + strata(strat), data = CAOsurv)
+R> rms::cph(DFS ~ randarm + strat(strat), data = CAOsurv)
+\end{Sinput}
+\end{Schunk}
+
+\begin{center}
+% latex table generated in R 4.5.1 by xtable 1.8-4 package
+% Tue Sep 16 16:59:32 2025
+\scalebox{0.8}{
+\begin{tabular}{lllrrr}
+  \toprule
+Function & Package & Interpretation & Estimate & Std. Error & logLik \\ 
+  \midrule
+\code{Coxph} & \pkg{tram} & log-HR & $ -0.229 $ & $ 0.107 $ & $-$3'253.85 \\ 
+  \code{coxph} & \pkg{survival} & log-HR & $ -0.222 $ & $ 0.107 $ & {\color{darkgray}$-$2'089.54} \\ 
+  \code{cph} & \pkg{rms} & log-HR & $ -0.222 $ & $ 0.107 $ & {\color{darkgray}$-$2'089.54} \\ 
+   \bottomrule
+\end{tabular}
+}
+
+\end{center}
+
+%
+The three model fits are practically equivalent.
+
+We can proceed to compare the stratified version of the Weibull model, for which 
+we also will ignore interval-censoring due to the 
+fact that the utilised \pkg{eha} package \citep{pkg:eha} lacks support for interval-censored
+data.  Additionally, it is worth highlighting that there is a distinction
+from the model fitted using \cmd{survreg} from the \pkg{survival} package
+\citep{pkg:survival}.  This model only stratifies the scale parameter of the
+Weibull distribution, whereas the models from the \pkg{eha} package and the \pkg{tram} package 
+estimate both strata-dependent scale and shape terms. 
+The \code{survreg} function from the \pkg{survival} package fits an accelerated failure time
+Weibull model, while the \pkg{eha} package implements a proportional hazards Weibull model,
+analogously to the \cmd{Survreg} implementation from the \pkg{tram} package.
+The models can be fitted to the exact event times, \emph{ignoring interval-censoring},
+as follows
+%
+\begin{Schunk}
+\begin{Sinput}
+R> tram::Survreg(DFS | strat ~ randarm, data = CAOsurv)
+R> eha::phreg(DFS ~ randarm + strata(strat), data = CAOsurv)
+R> survival::survreg(DFS ~ randarm + strata(strat), data = CAOsurv)
+\end{Sinput}
+\end{Schunk}
+
+\begin{center}
+% latex table generated in R 4.5.1 by xtable 1.8-4 package
+% Tue Sep 16 16:59:33 2025
+\scalebox{0.8}{
+\begin{tabular}{lllrrr}
+  \toprule
+Function & Package & Interpretation & Estimate & Std. Error & logLik \\ 
+  \midrule
+\code{Survreg} & \pkg{tram} & log-HR & $ -0.219 $ & $ 0.107 $ & $-$3'277.35 \\ 
+  \code{phreg} & \pkg{eha} & log-HR & $ -0.219 $ & $ 0.107 $ & $-$3'277.35 \\ 
+  \code{survreg} & \pkg{survival} & log-AF & $ 0.274 $ & $ 0.133 $ & $-$3'280.87 \\ 
+   \bottomrule
+\end{tabular}
+}
+
+\end{center}
+
+
+%
+The fit of the \code{survreg} model from \pkg{survival} package is slightly different.
+In contrast, the parametrisation and fits of the model from the \pkg{eha} and 
+the \pkg{tram} are equivalent.
+
+\subsection{Non-proportional hazards models}
+
+To the best of our knowledge, there is currently no implementation  available that
+estimates an analogous model to the flexible 
+non-proportional (location-scale) hazards model implemented in \pkg{tram}.
+
+However we can contrast the implementation of the less-flexible Weibull model
+with the \pkg{gamlss} package \citep{pkg:gamlss,pkg:gamlss:JSS}
+using the \code{WEI2} distribution and the \pkg{gamlss.cens} package \citep{pkg:gamlss.cens} to account for
+\emph{interval-censoring}.
+%
+\begin{Schunk}
+\begin{Sinput}
+R> tram::Survreg(iDFS ~ randarm | randarm, data = CAOsurv,
++    remove_intercept = FALSE)
+R> gamlss::gamlss(formula = iDFS ~ randarm, sigma.fo = ~ randarm,
++    family = gamlss.cens::cens(family = "WEI2", type = "interval"),
++    data = CAOsurv[, c("iDFS", "randarm")], 
++    control = gamlss.control(n.cyc = 300, trace = FALSE))
+\end{Sinput}
+\end{Schunk}
+
+%
+Since the scale term in the \pkg{tram} package and the
+\pkg{gamlss} package are parameterised differently, we only show the estimates and standard errors of the
+location parameter below.
+%
+\begin{center}
+% latex table generated in R 4.5.1 by xtable 1.8-4 package
+% Tue Sep 16 16:59:33 2025
+\scalebox{0.8}{
+\begin{tabular}{llrrr}
+  \toprule
+Function & Package & Estimate & Std. Error & logLik \\ 
+  \midrule
+\code{Survreg} & \pkg{tram} & $ -0.849 $ & $ 0.536 $ & $-$2'280.47 \\ 
+  \code{gamlss} & \pkg{gamlss} & $ -0.948 $ & $ 0.542 $ & $-$2'280.53 \\ 
+   \bottomrule
+\end{tabular}
+}
+
+\end{center}
+
+
+%
+The two implementations provide almost equivalent model fits.
+
+The \pkg{mpr} package \citep{pkg:mpr} also offers an implementation for a
+non-proportional Weibull model, it, however, does not support interval-censored data. Thus we fit the 
+models \emph{ignoring interval-censoring}. 
+%
+\begin{Schunk}
+\begin{Sinput}
+R> tram::Survreg(DFS ~ randarm | randarm, data = CAOsurv,
++    remove_intercept = FALSE)
+R> mpr::mpr(DFS ~ list(~ randarm, ~ randarm), data = CAOsurv)
+\end{Sinput}
+\end{Schunk}
+
+%
+Again, we only show the estimates and standard errors of the location parameter below.
+%
+\begin{center}
+% latex table generated in R 4.5.1 by xtable 1.8-4 package
+% Tue Sep 16 16:59:33 2025
+\scalebox{0.8}{
+\begin{tabular}{llrrr}
+  \toprule
+Function & Package & Estimate & Std. Error & logLik \\ 
+  \midrule
+\code{Survreg} & \pkg{tram} & $ -0.976 $ & $ 0.568 $ & $-$3'290.43 \\ 
+  \code{mpr} & \pkg{mpr} & $ -0.975 $ & $ 0.567 $ & $-$3'290.43 \\ 
+   \bottomrule
+\end{tabular}
+}
+
+\end{center}
+
+
+%
+The two implementations also provide equivalent model fits.
+
+\subsection{Time-varying hazards model}
+
+We can compare the time-varying hazards model from 
+the \pkg{tram} and the \pkg{flexsurv} package \citep{pkg:flexsurv} which allows to 
+estimate time-varying covariate effects. We start by examining the models
+for the \emph{interval-censored event times}.
+%
+\begin{Schunk}
+\begin{Sinput}
+R> tram::Coxph(iDFS | randarm ~ 1, data = CAOsurv, log_first = TRUE)
+R> flexsurv::flexsurvspline(iDFS ~ randarm + gamma1(randarm) +
++      gamma2(randarm), data = CAOsurv, k = 3)
+\end{Sinput}
+\end{Schunk}
+
+%% TODO: pkg "dynsurv"
+%% TODO: pkg "polspline"
+%
+The in-sample log-likelihood is $-$2'252.95 for the \pkg{flexsurv} model 
+and $-$2'321.58 for the \pkg{tram} model. The estimated
+time-varying ratios of the cumulative hazards are shown in the plot below.
+%
+
+\begin{Schunk}
+
+
+{\centering \includegraphics{figure/TVAR-iDFS-plot-1} 
+
+}
+
+\end{Schunk}
+
+We will now explore the same models  \emph{ignoring interval-censoring}.
+%
+\begin{Schunk}
+\begin{Sinput}
+R> tram::Coxph(DFS | randarm ~ 1, data = CAOsurv, log_first = TRUE)
+R> flexsurv::flexsurvspline(DFS ~ randarm + gamma1(randarm) +
++      gamma2(randarm), data = CAOsurv, k = 3)
+\end{Sinput}
+\end{Schunk}
+
+%
+The in-sample log-likelihood is $-$3'267.27 for the \pkg{flexsurv} model
+and $-$3'274.16 for the \pkg{tram} model, with the computed time-varying ratios of the cumulative hazards shown below.
+%
+\begin{Schunk}
+
+
+{\centering \includegraphics{figure/TVAR-DFS-plot-1} 
+
+}
+
+\end{Schunk}
+%
+The time-varying effects estimated from \var{DFS} show good agreement, the ratios
+slightly differ when the models are estimated on the interval-censored data (\var{iDFS}).
+
+\subsection{Mixed-effects proportional hazards models}
+
+The implementation of a mixed-effects proportional
+hazards model with flexible log-cumulative baseline hazards for
+interval-censored event times is unique in the \pkg{tramME} package \citep{pkg:tramME,Tamasi_Hothorn_2021}. 
+While the \pkg{rstpm2} package
+also accommodates interval-censored event times,
+we were not able to fit the corresponding mixed-effects model to our data.
+
+Thus, to contrast the models with other implementations we, again,
+need to \emph{ignore interval-censoring}. We can then
+compare the fitted model with the
+fully parametric spline-based version from 
+the \pkg{rstpm2} package \citep{pkg:rstpm2,Liu_Pawitan_Clements_2017} and
+the semi-parametric model estimated by the
+\pkg{coxme} package \citep{pkg:coxme}, employing Gaussian random effects using a Laplace
+approximation \citep{Ripatti_Palmgren_2000}.
+%
+\begin{Schunk}
+\begin{Sinput}
+R> tramME::CoxphME(DFS ~ randarm + (1 | Block), data = CAOsurv,
++    log_first = TRUE)
+R> rstpm2::stpm2(Surv(DFStime, DFSevent) ~ randarm, data = CAOsurv,
++    cluster = "Block", RandDist = "LogN")
+R> coxme::coxme(DFS ~ randarm + (1 | Block), data = CAOsurv)
+\end{Sinput}
+\end{Schunk}
+
+\begin{center}
+% latex table generated in R 4.5.1 by xtable 1.8-4 package
+% Tue Sep 16 16:59:39 2025
+\scalebox{0.8}{
+\begin{tabular}{lllrrr}
+  \toprule
+Function & Package & Interpretation & Estimate & Std. Error & logLik \\ 
+  \midrule
+\code{CoxphME} & \pkg{tramME} & log-HR & $ -0.237 $ & $ 0.107 $ & $-$3'277.23 \\ 
+  \code{stpm2} & \pkg{rstpm2} & log-HR & $ -0.234 $ & $ 0.107 $ & $-$3'272.86 \\ 
+  \code{coxme} & \pkg{coxme} & log-HR & $ -0.231 $ & $ 0.107 $ & {\color{darkgray}$-$2'414.48} \\ 
+   \bottomrule
+\end{tabular}
+}
+
+\end{center}
+
+
+%
+The fitted models from the three packages agree very well.
+
+\subsection{Age-varying hazards model}
+
+We can compare the age-varying hazards model from 
+package \pkg{tramME} to the implementation in the \pkg{mgcv} package
+\citep{pkg:mgcv,Wood_2016} which estimates a smooth Cox model via partial likelihood maximisation.
+As the model from the \pkg{mgcv} package only accommodates right-censored observations
+we again fit the models \emph{ignoring interval-censoring}.
+
+\begin{Schunk}
+\begin{Sinput}
+R> tramME::CoxphME(DFS ~ randarm + s(age, by = as.ordered(randarm),
++      fx = TRUE, k = 6), data = CAOsurv, log_first = TRUE)
+R> mgcv::gam(DFStime ~ randarm + s(age, by = as.ordered(randarm),
++      fx = TRUE, k = 6), data = CAOsurv, family = cox.ph(),
++    weights = DFSevent)
+\end{Sinput}
+\end{Schunk}
+
+
+
+%
+The in-sample log-likelihood of the model from the package \pkg{mgcv} is $-$2'426.04 (partial log-likelihood)
+and $-$3'272.88 for the \pkg{tramME} model.
+The estimated age-varying hazard ratios and corresponding 95\%-confidence intervals
+are shown in the plot below.
+%
+\begin{Schunk}
+
+
+{\centering \includegraphics{figure/HTECOX-DFS-plot-1} 
+
+}
+
+\end{Schunk}
+%
+The hazard ratio curves and confidence intervals estimated by the two packages are equivalent.
+
+\subsection{Frailty proportional hazards models}
+
+For models featuring a gamma frailty, we can contrast implementations
+using a semi-parametric approach or the spline-based approach from the
+\pkg{rstpm2} package \citep{Liu_Pawitan_Clements_2017}.  The \cmd{coxph} model from the \pkg{survival} package uses a semi-parametric approach and
+estimates the frailty term using penalised regression \citep{Thernau_2003}.
+The \pkg{frailtyEM} \citep{pkg:frailtyEM,pkg:frailtyEM:JSS} and the \pkg{frailtypack} package \citep{pkg:frailtypack,pkg:frailtypack:JSS} also feature models with
+semi-parametric baseline hazards. Again we fit the models \emph{ignoring interval-censoring}.
+%
+\begin{Schunk}
+\begin{Sinput}
+R> tram::Coxph(DFS ~ randarm, data = CAOsurv, log_first = TRUE,
++    frailty = "Gamma")
+R> rstpm2::stpm2(Surv(DFStime, DFSevent) ~ randarm, data = CAOsurv,
++    cluster = "id", RandDist = "Gamma")
+R> survival::coxph(DFS ~ randarm + frailty(id, distribution = "gamma"),
++    data = CAOsurv)
+R> frailtyEM::emfrail(DFS ~ randarm + cluster(id), data = CAOsurv)
+R> frailtypack::frailtyPenal(DFS ~ randarm + cluster(id),
++    data = CAOsurv, RandDist = "Gamma", n.knots = 10, kappa = 1)
+\end{Sinput}
+\end{Schunk}
+
+\begin{center}
+% latex table generated in R 4.5.1 by xtable 1.8-4 package
+% Tue Sep 16 16:59:40 2025
+\scalebox{0.8}{
+\begin{tabular}{lllrrr}
+  \toprule
+Function & Package & Interpretation & Estimate & Std. Error & logLik \\ 
+  \midrule
+\code{Coxph} & \pkg{tram} & log-HR & $ -0.632 $ & $ 0.467 $ & $-$3'263.81 \\ 
+  \code{stpm2} & \pkg{rstpm2} & log-HR & $ -0.685 $ & $ 0.670 $ & $-$3'264.88 \\ 
+  \code{coxph} & \pkg{survival} & log-HR & $ -0.406 $ & $ 0.159 $ & {\color{darkgray}$-$1'944.22} \\ 
+  \code{emfrail} & \pkg{frailtyEM} & log-HR & $ -0.384 $ & $ 0.153 $ & {\color{darkgray}$-$2'430.45} \\ 
+  \code{frailtyPenal} & \pkg{frailtypack} & log-HR & $ -0.660 $ & $ 0.248 $ & {\color{darkgray}$-$3'259.82} \\ 
+   \bottomrule
+\end{tabular}
+}
+
+\end{center}
+
+
+
+The fitted models vary considerably across packages.
+
+\subsection{Flexible proportional odds models}
+
+We can compare the fit of the flexible proportional odds model with the implementation in 
+the \pkg{rstpm2} package \citep{pkg:rstpm2} and package \pkg{flexsurv} \citep{pkg:flexsurv}.
+The \code{Gprop.odds} function from
+package \pkg{timereg} \citep{pkg:timereg,pkg:timereg:JSS} can 
+also estimate a flexible proportional odds model using the partial likelihood, thus
+we again compare the models \emph{ignoring interval-censoring}.
+
+\begin{Schunk}
+\begin{Sinput}
+R> tram::Colr(DFS ~ randarm, data = CAOsurv, log_first = TRUE)
+R> rstpm2::stpm2(Surv(DFStime, DFSevent) ~ randarm, data = CAOsurv,
++    link.type = "PO")
+R> flexsurv::flexsurvspline(iDFS ~ randarm, data = CAOsurv, k = 3,
++    scale = "odds")
+R> timereg::Gprop.odds(DFS ~ prop(randarm), data = CAOsurv)
+\end{Sinput}
+\end{Schunk}
+
+\begin{center}
+% latex table generated in R 4.5.1 by xtable 1.8-4 package
+% Tue Sep 16 16:59:42 2025
+\scalebox{0.8}{
+\begin{tabular}{lllrrr}
+  \toprule
+Function & Package & Interpretation & Estimate & Std. Error & logLik \\ 
+  \midrule
+\code{Colr} & \pkg{tram} & log-OR & $ -0.297 $ & $ 0.125 $ & $-$3'276.28 \\ 
+  \code{stpm2} & \pkg{rstpm2} & log-OR & $ -0.294 $ & $ 0.125 $ & $-$3'272.44 \\ 
+  \code{flexsurvspline} & \pkg{flexsurv} & $-$log-OR & $ -0.294 $ & $ 0.124 $ & $-$2'247.78 \\ 
+  \code{Gprop.odds} & \pkg{timereg} & log-OR & $ -0.268 $ & $ 0.125 $ &  \\ 
+   \bottomrule
+\end{tabular}
+}
+
+\end{center}
+
+%
+The fitted models are practically equivalent among the four packages.
+Note, that we were not able to retrieve the in-sample log-likelihood from the model object of
+the \pkg{timereg} package and thus do not report it here.
+
+
+\subsection*{Computational details}
+\begin{itemize}\raggedright
+  \item R version 4.5.1 (2025-06-13), \verb|x86_64-pc-linux-gnu|
+  \item Running under: \verb|Debian GNU/Linux 12 (bookworm)|
+  \item Matrix products: default
+  \item BLAS:   \verb|/usr/local/lib/R/lib/libRblas.so|
+  \item LAPACK: \verb|/usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.11.0|
+  \item Base packages: base, datasets, graphics, grDevices, grid,
+    methods, parallel, splines, stats, utils
+  \item Other packages: ATR~0.1-1, basefun~1.2-3,
+    bdsmatrix~1.3-7, boot~1.3-31, coda~0.19-4.1, coin~1.4-3,
+    colorspace~2.1-1, coxme~2.2-22, doBy~4.7.0, eha~2.11.5,
+    fastGHQuad~1.0.1, flexsurv~2.3.2, frailtyEM~1.0.1,
+    frailtypack~3.7.0, gamlss~5.4-22, gamlss.cens~5.0-7,
+    gamlss.data~6.0-6, gamlss.dist~6.1-1, Hmisc~5.2-3,
+    icenReg~2.0.16, ICsurv~1.0.1, knitr~1.50, libcoin~1.0-10,
+    MASS~7.3-65, mgcv~1.9-3, mlt~1.6-7, mpr~1.0.6,
+    multcomp~1.4-28, mvtnorm~1.3-4, nlme~3.1-168,
+    optimx~2025-4.9, parfm~2.7.8, partykit~1.2-24, Rcpp~1.1.0,
+    rms~8.0-0, rstpm2~1.6.9, SparseGrid~0.8.2, survC1~1.0-3,
+    survival~3.8-3, TH.data~1.1-4, timereg~2.0.7, tram~1.2-4,
+    tramME~1.0.7, TransModel~2.3, trtf~0.4-3, variables~1.1-2,
+    xtable~1.8-4
+  \item Loaded via a namespace (and not attached):
+    alabama~2023.1.0, assertthat~0.2.1, backports~1.5.0,
+    base64enc~0.1-3, BB~2019.10-1, bbmle~1.0.25.1, broom~1.0.9,
+    checkmate~2.3.2, cli~3.6.5, cluster~2.1.8.1,
+    codetools~0.2-20, compiler~4.5.1, coneproj~1.20,
+    cowplot~1.2.0, data.table~1.17.8, Deriv~4.2.0, deSolve~1.40,
+    digest~0.6.37, dplyr~1.1.4, evaluate~1.0.4, expint~0.1-8,
+    expm~1.0-0, farver~2.1.2, fastmap~1.2.0, foreach~1.5.2,
+    foreign~0.8-90, Formula~1.2-5, future~1.67.0,
+    future.apply~1.20.0, generics~0.1.4, ggplot2~3.5.2,
+    globals~0.18.0, glue~1.8.0, gridExtra~2.3, gtable~0.3.6,
+    htmlTable~2.4.3, htmltools~0.5.8.1, htmlwidgets~1.6.4,
+    inum~1.0-5, iterators~1.0.14, lattice~0.22-7, lava~1.8.1,
+    lifecycle~1.0.4, listenv~0.9.1, magrittr~2.0.3, Matrix~1.7-3,
+    matrixcalc~1.0-6, MatrixModels~0.5-4, matrixStats~1.5.0,
+    microbenchmark~1.5.0, mnormt~2.1.1, modelr~0.1.11,
+    modeltools~0.2-24, msm~1.8.2, mstate~0.3.3, muhaz~1.2.6.4,
+    nloptr~2.2.1, nnet~7.3-20, numDeriv~2016.8-1.1,
+    orthopolynom~1.0-6.1, parallelly~1.45.1, pillar~1.11.0,
+    pkgconfig~2.0.3, polspline~1.1.25, polynom~1.4-1,
+    pracma~2.4.4, purrr~1.1.0, quadprog~1.5-8, quantreg~6.1,
+    R6~2.6.1, rbibutils~2.3, RColorBrewer~1.1-3, Rdpack~2.6.4,
+    reformulas~0.4.1, rlang~1.1.6, rmarkdown~2.29,
+    rootSolve~1.8.2.4, rpart~4.1.24, rstudioapi~0.17.1,
+    sandwich~3.1-1, scales~1.4.0, sn~2.1.1, SparseM~1.84-2,
+    statmod~1.5.0, stats4~4.5.1, stringi~1.8.7, stringr~1.5.1,
+    tibble~3.3.0, tidyr~1.3.1, tidyselect~1.2.1, TMB~1.9.17,
+    tools~4.5.1, vctrs~0.6.5, withr~3.0.2, xfun~0.52, zoo~1.8-14
+\end{itemize}
+
+
+
+
+\putbib
+\end{bibunit}
+\end{appendices}
+% \clearpage %% avoid affiliation to move to previous page
+
+\end{document}

@@ -1,5 +1,5 @@
 
-R version 4.4.3 (2025-02-28) -- "Trophy Case"
+R version 4.5.1 (2025-06-13) -- "Great Square Root"
 Copyright (C) 2025 The R Foundation for Statistical Computing
 Platform: x86_64-pc-linux-gnu
 
@@ -19,16 +19,20 @@ Type 'q()' to quit R.
 > ### "Smooth Transformation Models for Survival Analysis: A Tutorial Using R"
 > ###   by Sandra Siegfried, Balint Tamasi & Torsten Hothorn
 > 
-> # required packages
-> pkgs <- c("mlt", "tram",  "trtf", "SparseGrid", "ATR", "tramME", "multcomp",
-+   "coin", "TH.data", "survival", "colorspace", "xtable")
-> 
-> ix <- which(!sapply(pkgs, require, char = TRUE))
+> library("tram")
 Loading required package: mlt
 Loading required package: basefun
 Loading required package: variables
-Loading required package: tram
 Loading required package: mvtnorm
+> 
+> x <- vignette("survtram", package = "tram")
+> source(file.path(x$Dir, "doc", x$R), echo = TRUE)
+
+> pkgs <- c("mlt", "tram", "trtf", "SparseGrid", "ATR", 
++     "tramME", "multcomp", "coin", "TH.data", "survival", "colorspace", 
++     "xtable")
+
+> pkgs <- sapply(pkgs, require, character.only = TRUE)
 Loading required package: trtf
 Loading required package: partykit
 Loading required package: grid
@@ -64,161 +68,208 @@ The following object is masked from ‘package:variables’:
 
 Loading required package: colorspace
 Loading required package: xtable
-> if (length(ix) > 0) {
-+  install.packages(pkgs[ix], repos = "https://stat.ethz.ch/CRAN/")
-+  sapply(pkgs[ix], require, char = TRUE)
+
+> if (any(!pkgs)) {
++     cat(paste("Package(s)", paste(names(pkgs)[!pkgs], collapse = ", "), 
++         "not available, stop processing.", "\\end{doc ..." ... [TRUNCATED] 
+
+> if (!interactive() && .Platform$OS.type != "unix") {
++     cat("Vignette only compiled under Unix alikes.")
++     knitr::knit_exit()
 + }
-> 
+
 > set.seed(290875)
-> 
-> ## plotting
+
 > xlab <- "Time (in days)"
+
 > lxlab <- paste0(xlab, " on log-scale")
+
 > ylabS <- "Probability of survival"
+
 > ylablHaz <- "Log-cumulative hazard"
+
 > ylabcumHR <- expression(Lambda[1](t)/Lambda[0](t))
+
 > ylimS <- c(0, 1)
+
 > ylimHR <- c(0, 1.6)
+
 > q <- 0:2204
+
 > xlim <- c(0, max(q))
+
 > lwd <- 1.3
-> 
-> ## color
+
 > acol <- sequential_hcl(6, "BluYl")[1:5]
+
 > col <- acol[c(2, (length(acol)) - 1)]
-> lcol <- lighten(col, amount = .4) ## lighten color for overlaid lines 
-> 
-> ## aux
-> perm_test_biv.stram <-  function(object, seed = 1) {
-+   stopifnot(inherits(object, "stram"))
-+   fixed <- c(trt = 0, scl = 0)
-+   lhs <- object$call[[2]][[3]]
-+   if (!(length(lhs) == 3 & lhs[[2]] == lhs[[3]]))
-+     stop("Bivariate score perm test not applicable")
-+   names(fixed) <- names(coef(object))
-+   m0 <- update(object, fixed = fixed) ## uncond. model
-+   r <- resid(m0, what = "shifting")
-+   rs <- resid(m0, what = "scaling")
-+   set.seed(seed)
-+   
-+   formula <- as.formula(paste("r + rs ~", lhs[[2]]))
-+   pvalue(independence_test(formula, data = m0$data))
-+ }
-> 
-> ## formatting
+
+> lcol <- lighten(col, amount = 0.4)
+
+> perm_test_biv.stram <- function(object, seed = 1) {
++     stopifnot(inherits(object, "stram"))
++     fixed <- c(trt = 0, scl = 0)
++     lhs <- objec .... [TRUNCATED] 
+
 > big.mark <- "'"
+
 > frmt0 <- round
+
 > frmt <- function(digits, x, math = FALSE) {
-+   if (!is.numeric(x)) return(x)
-+     ret <- formatC(round(x, digits), digits = digits, format = "f", big.mark = big.mark) 
-+     if (math) ret <- paste("$", ret, "$")
-+     if (is.matrix(x)) {
-+         ret <- matrix(ret, nrow = nrow(x))
-+         dimnames(ret) <- dimnames(x)
-+     }
-+     ret
-+ }
-> 
-> frmt1 <- function(x, math = FALSE) frmt(1, x = x, math = math)
-> frmt2 <- function(x, math = FALSE) frmt(2, x = x, math = math)
-> frmt3 <- function(x, math = FALSE) frmt(3, x = x, math = math)
-> 
-> ## logLik
++     if (!is.numeric(x)) 
++         return(x)
++     ret <- formatC(round(x, digits), digits = digits, f .... [TRUNCATED] 
+
+> frmt1 <- function(x, math = FALSE) frmt(1, x = x, 
++     math = math)
+
+> frmt2 <- function(x, math = FALSE) frmt(2, x = x, 
++     math = math)
+
+> frmt3 <- function(x, math = FALSE) frmt(3, x = x, 
++     math = math)
+
 > frmtll <- function(x, math = FALSE, mark = FALSE) {
-+   if (!inherits(x, "logLik") && !is.numeric(x) && all(!is.na(x))) x <- logLik(x)
-+     if (is.na(x)) return("")
-+   ret <- frmt2(abs(x), math = FALSE)
-+   if (x < 0) ret <- paste0(ifelse(math, "$-$", "-"), ret)
-+   if (mark) ret <- paste0("{\\color{darkgray}", ret, "}")
-+   ret
-+ }
-> 
-> ## data
-> load(system.file("rda", "Primary_endpoint_data.rda", package = "TH.data"))
-> 
-> ## randomization arm
++     if (!inherits(x, "logLik") && !is.numeric(x) && all(!is.na(x))) 
++         x <- logLik(x)
+ .... [TRUNCATED] 
+
+> load(system.file("rda", "Primary_endpoint_data.rda", 
++     package = "TH.data"))
+
 > levs <- levels(CAOsurv$randarm)
+
 > trt <- with(CAOsurv, paste0("randarm", levs[2], collapse = ""))
+
 > nd1 <- data.frame(randarm = factor(levs, levels = levs))
-> 
-> ## strata
-> CAOsurv$strat <- with(CAOsurv, interaction(strat_t, strat_n))
+
+> CAOsurv$strat <- with(CAOsurv, interaction(strat_t, 
++     strat_n))
+
 > slevs <- levels(CAOsurv$strat)
-> nd2 <- data.frame(randarm = nd1$randarm[1], strat = factor(slevs, levels = slevs))
-> 
-> ## for pretty legends
+
+> nd2 <- data.frame(randarm = nd1$randarm[1], strat = factor(slevs, 
++     levels = slevs))
+
 > lslevs <- gsub("\\.", " : ", slevs)
+
 > lslevs <- gsub("cT4", "cT4    ", lslevs)
-> 
-> ## id
+
 > CAOsurv$id <- factor(1:nrow(CAOsurv))
-> 
-> ## ----pars, include = FALSE----------------------------------------------------
-> par_main <- expression(par(mgp = c(2.5, 1, 0), mar = c(4, 4, 1.5, 4), las = 1))
-> par_surv <- expression(par(mgp = c(2.5, 1, 0), mar = c(6, 6, .5, 4), las = 1))
-> 
-> 
-> 
-> ## ----packages, echo = FALSE---------------------------------------------------
+
+> library("knitr")
+
+> knitr::opts_chunk$set(results = "hide", echo = FALSE, 
++     purl = TRUE, tidy = FALSE, size = "small", error = FALSE, 
++     warning = FALSE, messa .... [TRUNCATED] 
+
+> opts_knit$set(global.par = TRUE)
+
+> knitr::render_sweave()
+
+> knitr::set_header(highlight = "")
+
+> options(prompt = "R> ", continue = "+  ", useFancyQuotes = FALSE)
+
+> options(width = 74)
+
+> frmtI <- function(x, math = FALSE) {
++     if (is.character(x)) 
++         return(x)
++     ret <- trimws(formatC(x, format = "fg", width = 7, big.ma .... [TRUNCATED] 
+
+> frmtN <- function(x, bound = 10, all = TRUE) {
++     ret <- round(x)
++     if (all | x <= bound) 
++         return(as.character(english::english(ret .... [TRUNCATED] 
+
+> frmtd <- function(date) format(date, format = "%b~%-d")
+
+> frmtD <- function(date) format(date, format = "%B~%-d")
+
+> toUpper <- function(x) gsub("\\b([[:lower:]])([[:lower:]]+)", 
++     "\\U\\1\\L\\2", x, perl = TRUE)
+
+> frmtp <- function(pv) paste("$p$ =", frmt3(pv))
+
+> frmtCI <- function(x, phantom = FALSE, math = FALSE) {
++     if (!isTRUE(nrow(x) > 1)) 
++         phantom <- FALSE
++     if (phantom) 
++         pha .... [TRUNCATED] 
+
+> ret.tram <- function(object, seed = 25, math = TRUE) {
++     mod0 <- object
++     if (inherits(object, "Survreg")) 
++         object <- as.mlt(objec .... [TRUNCATED] 
+
+> print.tram <- function(object) {
++     ret <- ret.tram(object)
++     cat("\\begin{center}")
++     cat("\n")
++     cat("\n")
++     print(xtable(ret,  .... [TRUNCATED] 
+
+> is.neg <- function(x) x < 0
+
+> lHR <- function(model, frmt = function(x) {
++     frmt3(x, math = FALSE)
++ }) {
++     stopifnot(inherits(model, c("tram", "mlt", "tramME")))
++     c .... [TRUNCATED] 
+
+> HR <- function(model, frmt = function(x) {
++     frmt3(x, math = FALSE)
++ }) frmt(exp(lHR(model, frmt = function(x) {
++     x
++ })))
+
+> par_main <- expression(par(mgp = c(2.5, 1, 0), mar = c(4, 
++     4, 1.5, 4), las = 1))
+
+> par_surv <- expression(par(mgp = c(2.5, 1, 0), mar = c(6, 
++     6, 0.5, 4), las = 1))
+
 > library("tram")
-> 
-> ## ----risk-tab-----------------------------------------------------------------
-> risktab <- function(ti, st) { ## time-index and survival time
-+   nrisk <- NULL
-+   for (t in ti) nrisk <- c(nrisk, sum(st >= t))
-+   return(nrisk)
+
+> risktab <- function(ti, st) {
++     nrisk <- NULL
++     for (t in ti) nrisk <- c(nrisk, sum(st >= t))
++     return(nrisk)
 + }
-> 
-> plot.risktab <- function(tvar, ti = seq(min(q), max(q), by = 500),
-+   cex = .8, at = -450) {
-+ mtext(levs[1], 1, line = 4, at = at, cex = cex)
-+ mtext(risktab(ti, CAOsurv[CAOsurv$randarm == levs[1], tvar]),
-+   side = 1, line = 4, at = ti, cex = cex)
-+ mtext(levs[2], 1, line = 5, at = at, cex = cex)
-+ mtext(risktab(ti, CAOsurv[CAOsurv$randarm == levs[2], tvar]),
-+   side = 1, line = 5, at = ti, cex = cex)
-+ }
-> 
-> ## ----surv-OS------------------------------------------------------------------
-> surv_OS <- survfit(OS ~ randarm, data = CAOsurv) ## KM
-> 
-> 
-> ## ----surv-iDFS----------------------------------------------------------------
-> surv_iDFS <- survfit(iDFS ~ randarm, data = CAOsurv) ## Turnbull
-> 
-> 
-> 
-> 
-> 
-> 
-> ## ----CAO-table, results = 'hide'----------------------------------------------
-> tab <- xtabs( ~ strat + randarm, data = CAOsurv)
-> tab <- rbind(tab, "Total" = colSums(tab))
-> 
-> 
-> 
-> ## ----surv-iDFS-plot-----------------------------------------------------------
+
+> plot.risktab <- function(tvar, ti = seq(min(q), max(q), 
++     by = 500), cex = 0.8, at = -450) {
++     mtext(levs[1], 1, line = 4, at = at, cex = c .... [TRUNCATED] 
+
+> surv_OS <- survfit(OS ~ randarm, data = CAOsurv)
+
+> surv_iDFS <- survfit(iDFS ~ randarm, data = CAOsurv)
+
+> tab <- xtabs(~strat + randarm, data = CAOsurv)
+
+> tab <- rbind(tab, Total = colSums(tab))
+
 > eval(par_surv)
-> plot(surv_iDFS, ylim = ylimS, xlim = xlim,
-+   col = lcol, lwd = lwd, xlab = xlab, ylab = ylabS)
-> legend("bottomright", legend = levs, col = col, bty = "n", lty = 1, lwd = 1, cex = .8)
+
+> plot(surv_iDFS, ylim = ylimS, xlim = xlim, col = lcol, 
++     lwd = lwd, xlab = xlab, ylab = ylabS)
+
+> legend("bottomright", legend = levs, col = col, bty = "n", 
++     lty = 1, lwd = 1, cex = 0.8)
+
 > plot.risktab(tvar = "iDFStime")
-> 
-> 
-> ## ----surv-OS-plot-------------------------------------------------------------
-> plot(surv_OS, ylim = ylimS, xlim = xlim,
-+   col = lcol, lwd = lwd, xlab = xlab, ylab = ylabS)
-> legend("bottomright", legend = levs, col = col, bty = "n", lty = 1, lwd = 1, cex = .8)
+
+> plot(surv_OS, ylim = ylimS, xlim = xlim, col = lcol, 
++     lwd = lwd, xlab = xlab, ylab = ylabS)
+
+> legend("bottomright", legend = levs, col = col, bty = "n", 
++     lty = 1, lwd = 1, cex = 0.8)
+
 > plot.risktab(tvar = "OStime")
-> 
-> 
-> 
-> ## ----WEI-model-fit, echo = FALSE, cache = TRUE--------------------------------
-> mw <- 
-+ Survreg(iDFS ~ randarm, data = CAOsurv, dist = "weibull")
-> 
-> 
-> ## ----WEI-summary, cache = TRUE, results = "hide", fig.show = 'hide'-----------
+
+> mw <- Survreg(iDFS ~ randarm, data = CAOsurv, dist = "weibull")
+
 > summary(mw)
 
   Weibull Linear Regression Model 
@@ -230,18 +281,20 @@ Coefficients:
                           Estimate Std. Error z value Pr(>|z|)  
 randarm5-FU + Oxaliplatin   0.2290     0.1065    2.15   0.0315 *
 ---
-Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 Log-Likelihood:
  -2281.171 (df = 3)
 Likelihood-ratio Test: Chisq = 4.651917 on 1 degrees of freedom; p = 0.03102
 
-> coef(mw, as.survreg = TRUE) ## same interpretation as "survreg"
+
+> coef(mw, as.survreg = TRUE)
               (Intercept) randarm5-FU + Oxaliplatin 
                 8.5021481                 0.3124244 
 attr(,"scale")
 log(iDFS) 
  1.364406 
+
 > score_test(mw)
 
 	Transformation Score Test
@@ -250,10 +303,11 @@ data:  Survreg(formula = iDFS ~ randarm, data = CAOsurv, dist = "weibull")
 Z = -2.1549, p-value = 0.03117
 alternative hypothesis: true  for randarm5-FU + Oxaliplatin is not equal to 0
 95 percent confidence interval:
- 0.02063417 0.43733189
+ 0.02063421 0.43733189
 sample estimates:
  for randarm5-FU + Oxaliplatin 
                       0.228982 
+
 
 > perm_test(mw)
 
@@ -263,21 +317,14 @@ data:  Survreg(formula = iDFS ~ randarm, data = CAOsurv, dist = "weibull")
 Z = -2.1105, p-value = 0.03482
 alternative hypothesis: true  for randarm5-FU + Oxaliplatin is not equal to 0
 95 percent confidence interval:
- 0.01605798 0.44169988
+ 0.01605791 0.44169982
 sample estimates:
  for randarm5-FU + Oxaliplatin 
                       0.228982 
 
-> # plot(as.mlt(mw), type = "survivor", newdata = nd1, col = col)
-> 
-> 
-> 
-> ## ----COX-model-fit, echo = FALSE, cache = TRUE--------------------------------
-> mc <-
-+ Coxph(iDFS ~ randarm, data = CAOsurv, log_first = TRUE)
-> 
-> 
-> ## ----COX-summary, cache = TRUE, results = "hide", fig.show = "hide"-----------
+
+> mc <- Coxph(iDFS ~ randarm, data = CAOsurv, log_first = TRUE)
+
 > summary(mc)
 
   Parametric Linear Cox Regression Model 
@@ -289,11 +336,12 @@ Coefficients:
                           Estimate Std. Error z value Pr(>|z|)  
 randarm5-FU + Oxaliplatin  -0.2335     0.1065  -2.193   0.0283 *
 ---
-Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 Log-Likelihood:
  -2255.852 (df = 8)
 Likelihood-ratio Test: Chisq = 4.838518 on 1 degrees of freedom; p = 0.02783
+
 
 > score_test(mc)
 
@@ -308,6 +356,7 @@ sample estimates:
 log-hazard ratio for randarm5-FU + Oxaliplatin 
                                     -0.2335355 
 
+
 > perm_test(mc)
 
 	Asymptotic Permutation Transformation Score Test
@@ -316,57 +365,65 @@ data:  Coxph(formula = iDFS ~ randarm, data = CAOsurv, log_first = TRUE)
 Z = 2.1922, p-value = 0.02837
 alternative hypothesis: true log-hazard ratio for randarm5-FU + Oxaliplatin is not equal to 0
 95 percent confidence interval:
- -0.44262164 -0.02464723
+ -0.4426216 -0.0246472
 sample estimates:
 log-hazard ratio for randarm5-FU + Oxaliplatin 
                                     -0.2335355 
 
-> # plot(as.mlt(mc), type = "survivor", newdata = nd1, col = col)
-> 
-> 
-> 
-> ## ----COX-lHaz, echo = FALSE---------------------------------------------------
-> ## confband
+
 > object <- as.mlt(mc)
-> newdata <- nd1[1,, drop = FALSE]
+
+> newdata <- nd1[1, , drop = FALSE]
+
 > K <- 20
+
 > cheat <- 200
+
 > y <- variable.names(object, "response")
+
 > q <- mkgrid(object, n = K)[[y]]
-> q[1] <- q[1] + 1 ## quick fix for log_first
+
+> q[1] <- q[1] + 1
+
 > nd <- newdata[rep(1, length(q)), , drop = FALSE]
+
 > nd[[y]] <- q
+
 > X <- model.matrix(object$model$model, data = nd)
+
 > cb <- confint(multcomp::glht(multcomp::parm(coef(object), 
-+   vcov(object)), linfct = X))$confint
++     vcov(object)), linfct = X))$confint
+
 > q <- mkgrid(object, n = cheat)[[y]]
-> q[1] <- q[1] + 1 ## quick fix for log_first 
+
+> q[1] <- q[1] + 1
+
 > nd <- newdata[rep(1, length(q)), , drop = FALSE]
+
 > nd[[y]] <- q
+
 > X <- model.matrix(object$model$model, data = nd)
+
 > cb <- confint(multcomp::glht(multcomp::parm(coef(object), 
-+   vcov(object)), linfct = X), calpha = attr(cb, 
-+         "calpha"))$confint
++     vcov(object)), linfct = X), calpha = attr(cb, "calpha"))$confint
+
 > cb <- cbind(q, cb)
-> 
-> ## ----COX-lHaz-plot------------------------------------------------------------
+
 > eval(par_main)
-> plot(cb[, "q"], cb[, "Estimate"], log = "x", type = "n",
-+   xlab = lxlab, ylab = ylablHaz, xlim = xlimlHaz <- range(cb[, "q"]),
-+   ylim = range(cb[, -1]))
-> 
-> polygon(c(cb[, "q"], rev(cb[, "q"])), c(cb[, "lwr"], rev(cb[, "upr"])),
-+   border = NA, col = rgb(.1, .1, .1, .1))
+
+> plot(cb[, "q"], cb[, "Estimate"], log = "x", type = "n", 
++     xlab = lxlab, ylab = ylablHaz, xlim = xlimlHaz <- range(cb[, 
++         "q"]), ylim  .... [TRUNCATED] 
+
+> polygon(c(cb[, "q"], rev(cb[, "q"])), c(cb[, "lwr"], 
++     rev(cb[, "upr"])), border = NA, col = rgb(0.1, 0.1, 0.1, 
++     0.1))
+
 > lines(cb[, "q"], cb[, "Estimate"], lwd = lwd)
-> 
-> 
-> 
-> ## ----STRAT-model-fit, cache = TRUE--------------------------------------------
-> mcst <- 
-+ Coxph(iDFS | strat ~ randarm, data = CAOsurv, log_first = TRUE)
-> 
-> 
-> ## ----STRAT-summary, cache = TRUE, results = "hide", fig.show = "hide"---------
+
+> mcst <- Coxph(iDFS | strat ~ randarm, data = CAOsurv, 
++     log_first = TRUE)
+
 > summary(mcst)
 
  (Stratified) Parametric Linear Cox Regression Model 
@@ -376,59 +433,53 @@ Coxph(formula = iDFS | strat ~ randarm, data = CAOsurv, log_first = TRUE)
 
 Coefficients:
                           Estimate Std. Error z value Pr(>|z|)  
-randarm5-FU + Oxaliplatin  -0.2314     0.1069  -2.166   0.0303 *
+randarm5-FU + Oxaliplatin  -0.2315     0.1069  -2.166   0.0303 *
 ---
-Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 Log-Likelihood:
- -2231.85 (df = 29)
-Likelihood-ratio Test: Chisq = 4.74923 on 1 degrees of freedom; p = 0.02931
+ -2231.848 (df = 29)
+Likelihood-ratio Test: Chisq = 4.752086 on 1 degrees of freedom; p = 0.02926
+
 
 > score_test(mcst)
 
 	Transformation Score Test
 
 data:  Coxph(formula = iDFS | strat ~ randarm, data = CAOsurv, log_first = TRUE)
-Z = 2.1834, p-value = 0.029
+Z = 2.1819, p-value = 0.02912
 alternative hypothesis: true log-hazard ratio for randarm5-FU + Oxaliplatin is not equal to 0
 95 percent confidence interval:
- -0.4396757 -0.0237613
+ -0.4395532 -0.0231335
 sample estimates:
 log-hazard ratio for randarm5-FU + Oxaliplatin 
-                                    -0.2313937 
+                                    -0.2314651 
+
 
 > perm_test(mcst)
 
 	Asymptotic Permutation Transformation Score Test
 
 data:  Coxph(formula = iDFS | strat ~ randarm, data = CAOsurv, log_first = TRUE)
-Z = 2.1656, p-value = 0.03035
+Z = 2.1654, p-value = 0.03036
 alternative hypothesis: true log-hazard ratio for randarm5-FU + Oxaliplatin is not equal to 0
 95 percent confidence interval:
- -0.44141108 -0.02199883
+ -0.44133005 -0.02201594
 sample estimates:
 log-hazard ratio for randarm5-FU + Oxaliplatin 
-                                    -0.2313937 
+                                    -0.2314651 
 
-> 
-> 
-> ## ----STRAT-lHaz-plot----------------------------------------------------------
-> plot(as.mlt(mcst), newdata = nd2, q = q, type = "trafo", log = "x",
-+   lty = lty <- 1:4, xlab = lxlab, ylab = ylablHaz, xlim = xlimlHaz,
-+   col = 1, lwd = lwd)
-> 
+
+> plot(as.mlt(mcst), newdata = nd2, q = q, type = "trafo", 
++     log = "x", lty = lty <- 1:4, xlab = lxlab, ylab = ylablHaz, 
++     xlim = xlimlHaz,  .... [TRUNCATED] 
+
 > legend("bottomright", legend = lslevs, title = "Stratum", 
-+   lty = lty, lwd = lwd, col = 1, bty = "n")
-> 
-> 
-> 
-> 
-> ## ----SCOX-model-fit, cache = TRUE---------------------------------------------
-> mcs <- 
-+ Coxph(iDFS ~ randarm | randarm, data = CAOsurv, log_first = TRUE)
-> 
-> 
-> ## ----SCOX-summary, cache = TRUE, results = "hide", fig.show = "hide"----------
++     lty = lty, lwd = lwd, col = 1, bty = "n")
+
+> mcs <- Coxph(iDFS ~ randarm | randarm, data = CAOsurv, 
++     log_first = TRUE)
+
 > summary(mcs)
 
   Shift-Scale Transformation Model 
@@ -445,124 +496,118 @@ Log-Likelihood:
  -2254.831 (df = 9)
 Likelihood-ratio Test: Chisq = 6.882057 on 2 degrees of freedom; p = 0.03203
 
+
 > confint(mcs)
                                    2.5 %    97.5 %
 randarm5-FU + Oxaliplatin     -0.3978055 0.2465392
 scl_randarm5-FU + Oxaliplatin -0.1060683 0.6845146
+
 > perm_test_biv.stram(mcs)
 [1] 0.01386631
 99 percent confidence interval:
  0.01386631 0.01386631 
 
-> # plot(as.mlt(mcs), type = "survivor", newdata = nd1, col = col)
-> 
-> ## ----SCOX-survplot, fig.show = "hide"-----------------------------------------
+
 > eval(par_surv)
-> plot(surv_iDFS, ylim = ylimS, xlim = xlim,
-+   col = lcol, lwd = lwd, xlab = xlab, ylab = ylabS)
-> legend("bottomright", legend = levs, col = col, bty = "n", lty = 1, lwd = 1, cex = .8)
+
+> plot(surv_iDFS, ylim = ylimS, xlim = xlim, col = lcol, 
++     lwd = lwd, xlab = xlab, ylab = ylabS)
+
+> legend("bottomright", legend = levs, col = col, bty = "n", 
++     lty = 1, lwd = 1, cex = 0.8)
+
 > plot.risktab(tvar = "iDFStime")
-> plot(as.mlt(mcs), type = "survivor", newdata = nd1, col = col, add = TRUE)
-> 
-> 
-> ## ----SCOX-HR-plot, echo = FALSE-----------------------------------------------
+
+> plot(as.mlt(mcs), type = "survivor", newdata = nd1, 
++     col = col, add = TRUE)
+
 > qHR <- seq(50, max(q), by = 1)
-> cumhaz <- predict(mcs, type = "cumhazard", newdata = nd1, q = qHR)
-> cumhr <- unname(cumhaz[, 2] / cumhaz[, 1])
-> plot(qHR, cumhr, type = "l", ylab = ylabcumHR, xlab = xlab,
-+   ylim = ylimHR, xlim = xlimHR <- range(qHR), lwd = lwd)
-> 
-> abline(h = exp(coef(mc)), lty = 2, lwd = 1) ## constant HR
-> abline(h = 1, lty = 3) ## HR = 1
-> 
-> 
-> 
-> 
-> ## ----TCOX-model-fit, cache = TRUE---------------------------------------------
-> mcv <- 
-+ Coxph(iDFS | randarm ~ 1, data = CAOsurv, log_first = TRUE)
-> 
-> ## ----TCOX-summary, cache = TRUE, results = "hide", fig.show = 'hide'----------
+
+> cumhaz <- predict(mcs, type = "cumhazard", newdata = nd1, 
++     q = qHR)
+
+> cumhr <- unname(cumhaz[, 2]/cumhaz[, 1])
+
+> plot(qHR, cumhr, type = "l", ylab = ylabcumHR, xlab = xlab, 
++     ylim = ylimHR, xlim = xlimHR <- range(qHR), lwd = lwd)
+
+> abline(h = exp(coef(mc)), lty = 2, lwd = 1)
+
+> abline(h = 1, lty = 3)
+
+> mcv <- Coxph(iDFS | randarm ~ 1, data = CAOsurv, log_first = TRUE)
+
 > logLik(mcv)
 'log Lik.' -2252.38 (df=14)
-> 
-> 
-> ## ----TCOX-HR, cache = TRUE----------------------------------------------------
+
 > mcv <- as.mlt(mcv)
-> 
-> ## grid (was n = 500, qmvnorm failed)
-> s <- mkgrid(mcv, 40)
-> s$iDFS <- s$iDFS[s$iDFS >= min(xlimHR) & s$iDFS <= max(xlimHR)]
+
+> s <- mkgrid(mcv, 39)
+
+> s$iDFS <- s$iDFS[s$iDFS >= min(xlimHR) & s$iDFS <= 
++     max(xlimHR)]
+
 > nd3 <- expand.grid(s)
-> 
-> ## confint
+
 > K <- model.matrix(mcv$model, data = nd3)
-> Kyes <- K[nd3$randarm == levels(nd3$randarm)[2],]
-> Kyes[,grep("Intercept", colnames(Kyes))] <- 0  
+
+> Kyes <- K[nd3$randarm == levels(nd3$randarm)[2], ]
+
+> Kyes[, grep("Intercept", colnames(Kyes))] <- 0
+
 > gh <- glht(parm(coef(mcv), vcov(mcv)), Kyes)
+
 > ci <- exp(confint(gh)$confint)
+
 > coxy <- s$iDFS
-> 
-> ## confint for constant HR
+
 > ci2 <- exp(confint(mc))
-> 
-> ## ----TCOX-HR-plot-------------------------------------------------------------
-> plot(coxy, ci[, "Estimate"], ylim = ylimHR, type = "n",
-+   xlim = xlimHR, xlab = xlab, ylab = ylabcumHR)
-> polygon(c(coxy, rev(coxy)), c(ci[,"lwr"], rev(ci[, "upr"])),
-+         border = NA, col = rgb(.1, .1, .1, .1))
+
+> plot(coxy, ci[, "Estimate"], ylim = ylimHR, type = "n", 
++     xlim = xlimHR, xlab = xlab, ylab = ylabcumHR)
+
+> polygon(c(coxy, rev(coxy)), c(ci[, "lwr"], rev(ci[, 
++     "upr"])), border = NA, col = rgb(0.1, 0.1, 0.1, 0.1))
+
 > lines(coxy, ci[, "Estimate"], lty = 1, lwd = lwd)
-> 
-> ## constant HR
-> polygon(c(coxy[c(1, length(coxy))], rev(coxy[c(1, length(coxy))])),
-+   rep(ci2, c(2, 2)), border = NA, col = rgb(.1, .1, .1, .1))
+
+> polygon(c(coxy[c(1, length(coxy))], rev(coxy[c(1, 
++     length(coxy))])), rep(ci2, c(2, 2)), border = NA, col = rgb(0.1, 
++     0.1, 0.1, 0.1))
+
 > abline(h = exp(coef(mc)), lty = 2, lwd = 1)
-> 
-> ## HR = 1
+
 > abline(h = 1, lty = 3)
-> 
-> 
-> ## ----DEPCENS-preproc, echo = FALSE--------------------------------------------
-> ## DepC: loss of follow-up (everyone else is admin censored) Mail TH 23-06-12
-> patnr_lofu <-c(1012, 2003, 3002, 3003, 6018, 7001, 7003, 7005, 7008, 7012, 10003,
-+               10012, 11018, 12003, 12014, 13028, 14002, 15001, 16001, 16004, 16005,
-+               16007, 16009, 18016, 18025, 21011, 21013, 21014, 21022, 21023, 21026,
-+               21027, 21029, 21043, 22003, 23008, 24008, 24021, 25001, 25004, 25005,
-+               25006, 26005, 26018, 27005, 27030, 27034, 29002, 30006, 30011, 31003,
-+               31004, 31005, 34001, 35011, 35014, 36017, 41004, 42001, 42003, 42005,
-+               42007, 42010, 44004, 44005, 45002, 45003, 45009, 45011, 46003, 49001,
-+               49003, 49011, 49012, 49015, 50001, 50003, 50004, 50007, 50011, 52004,
-+               54004, 56006, 56008, 59002, 59005, 68001, 70010, 71002, 73009, 74004,
-+               75002, 75004, 75005, 80003, 81001, 84005, 84007, 86002) 
+
+> patnr_lofu <- c(1012, 2003, 3002, 3003, 6018, 7001, 
++     7003, 7005, 7008, 7012, 10003, 10012, 11018, 12003, 12014, 
++     13028, 14002, 15001, 16 .... [TRUNCATED] 
+
 > ilofu <- with(CAOsurv, which(patnr %in% patnr_lofu))
+
 > CAOsurv$DepCevent <- CAOsurv$OSevent
-> CAOsurv$DepCevent <- factor(as.numeric(CAOsurv$DepCevent), levels = 0:2,
-+   labels = c("AdminC", "EoI", "DepC"))
+
+> CAOsurv$DepCevent <- factor(as.numeric(CAOsurv$DepCevent), 
++     levels = 0:2, labels = c("AdminC", "EoI", "DepC"))
+
 > CAOsurv$DepCevent[ilofu] <- "DepC"
-> 
-> 
-> ## ----DEPCENS-table, results = 'hide'------------------------------------------
-> CAOsurv$nDepCevent <- factor(as.character(CAOsurv$DepCevent),
-+   levels = c("AdminC", "EoI", "DepC"), 
-+   labels = c("Administrative censoring", "Event of interest", "Loss of follow-up"))
-> tab <- xtabs(~ nDepCevent + randarm, data = CAOsurv)
+
+> CAOsurv$nDepCevent <- factor(as.character(CAOsurv$DepCevent), 
++     levels = c("AdminC", "EoI", "DepC"), labels = c("Administrative censoring", 
++  .... [TRUNCATED] 
+
+> tab <- xtabs(~nDepCevent + randarm, data = CAOsurv)
+
 > tab
                           randarm
 nDepCevent                 5-FU 5-FU + Oxaliplatin
   Administrative censoring  469                466
   Event of interest         106                 96
   Loss of follow-up          48                 51
-> 
-> 
-> 
-> 
-> ## ----DEPCENS-model-fit, cache = TRUE------------------------------------------
-> md <- 
-+ Coxph(Surv(OStime, event = DepCevent) ~ randarm, data = CAOsurv,
-+   log_first = TRUE)
-> 
-> 
-> ## ----DEPCENS-summary, cache = TRUE, results = "hide", fig.show = 'hide'-------
+
+> md <- Coxph(Surv(OStime, event = DepCevent) ~ randarm, 
++     data = CAOsurv, log_first = TRUE)
+
 > summary(md)
 
  
@@ -572,71 +617,59 @@ Coxph(formula = Surv(OStime, event = DepCevent) ~ randarm, data = CAOsurv,
     log_first = TRUE)
 
 Coefficients:
-                                                 Estimate Std. Error z value
-Event_EoI.Event_EoI.Bs1(Event_EoI)               -2.21653    0.13540 -16.371
-Event_EoI.Event_EoI.Bs2(Event_EoI)               -2.05997    0.13959 -14.757
-Event_EoI.Event_EoI.Bs3(Event_EoI)               -1.79585    0.18034  -9.958
-Event_EoI.Event_EoI.Bs4(Event_EoI)               -1.42016    0.15026  -9.451
-Event_EoI.Event_EoI.Bs5(Event_EoI)               -1.42016    0.15026  -9.451
-Event_EoI.Event_EoI.Bs6(Event_EoI)               -1.42016    0.15026  -9.451
-Event_EoI.Event_EoI.Bs7(Event_EoI)               -0.92133    0.22849  -4.032
-Event_EoI.Event_EoI.randarm5-FU + Oxaliplatin    -0.04433    0.14209  -0.312
-Event_DepC.Event_DepC.(Intercept)               -12.31697    1.00139 -12.300
-Event_DepC.Event_DepC.log(Event_DepC)             1.36286    0.15568   8.754
-Event_DepC.Event_DepC.randarm5-FU + Oxaliplatin  -0.10004    0.20225  -0.495
-Event_DepC.Event_EoI.(Intercept)                 -0.16413    0.65440  -0.251
-                                                Pr(>|z|)    
-Event_EoI.Event_EoI.Bs1(Event_EoI)               < 2e-16 ***
-Event_EoI.Event_EoI.Bs2(Event_EoI)               < 2e-16 ***
-Event_EoI.Event_EoI.Bs3(Event_EoI)               < 2e-16 ***
-Event_EoI.Event_EoI.Bs4(Event_EoI)               < 2e-16 ***
-Event_EoI.Event_EoI.Bs5(Event_EoI)               < 2e-16 ***
-Event_EoI.Event_EoI.Bs6(Event_EoI)               < 2e-16 ***
-Event_EoI.Event_EoI.Bs7(Event_EoI)              5.52e-05 ***
-Event_EoI.Event_EoI.randarm5-FU + Oxaliplatin      0.755    
-Event_DepC.Event_DepC.(Intercept)                < 2e-16 ***
-Event_DepC.Event_DepC.log(Event_DepC)            < 2e-16 ***
-Event_DepC.Event_DepC.randarm5-FU + Oxaliplatin    0.621    
-Event_DepC.Event_EoI.(Intercept)                   0.802    
+                                                 Estimate Std. Error
+Event_EoI.Event_EoI.Bs1(Event_EoI)               -2.21653    0.13540
+Event_EoI.Event_EoI.Bs2(Event_EoI)               -2.05997    0.13959
+Event_EoI.Event_EoI.Bs3(Event_EoI)               -1.79585    0.18034
+Event_EoI.Event_EoI.Bs4(Event_EoI)               -1.42016    0.15026
+Event_EoI.Event_EoI.Bs5(Event_EoI)               -1.42016    0.15026
+Event_EoI.Event_EoI.Bs6(Event_EoI)               -1.42016    0.15026
+Event_EoI.Event_EoI.Bs7(Event_EoI)               -0.92133    0.22849
+Event_EoI.Event_EoI.randarm5-FU + Oxaliplatin    -0.04433    0.14209
+Event_DepC.Event_DepC.(Intercept)               -12.31697    1.00139
+Event_DepC.Event_DepC.log(Event_DepC)             1.36286    0.15568
+Event_DepC.Event_DepC.randarm5-FU + Oxaliplatin  -0.10004    0.20225
+Event_DepC.Event_EoI.(Intercept)                 -0.16413    0.65440
+                                                z value Pr(>|z|)    
+Event_EoI.Event_EoI.Bs1(Event_EoI)              -16.371  < 2e-16 ***
+Event_EoI.Event_EoI.Bs2(Event_EoI)              -14.757  < 2e-16 ***
+Event_EoI.Event_EoI.Bs3(Event_EoI)               -9.958  < 2e-16 ***
+Event_EoI.Event_EoI.Bs4(Event_EoI)               -9.451  < 2e-16 ***
+Event_EoI.Event_EoI.Bs5(Event_EoI)               -9.451  < 2e-16 ***
+Event_EoI.Event_EoI.Bs6(Event_EoI)               -9.451  < 2e-16 ***
+Event_EoI.Event_EoI.Bs7(Event_EoI)               -4.032 5.52e-05 ***
+Event_EoI.Event_EoI.randarm5-FU + Oxaliplatin    -0.312    0.755    
+Event_DepC.Event_DepC.(Intercept)               -12.300  < 2e-16 ***
+Event_DepC.Event_DepC.log(Event_DepC)             8.754  < 2e-16 ***
+Event_DepC.Event_DepC.randarm5-FU + Oxaliplatin  -0.495    0.621    
+Event_DepC.Event_EoI.(Intercept)                 -0.251    0.802    
 ---
-Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 Log-Likelihood:
  -3058.342 (df = 12)
 
+
 > confint(md)
                                                       2.5 %      97.5 %
-Event_EoI.Event_EoI.Bs1(Event_EoI)               -2.4819061  -1.9511570
-Event_EoI.Event_EoI.Bs2(Event_EoI)               -2.3335557  -1.7863795
-Event_EoI.Event_EoI.Bs3(Event_EoI)               -2.1493169  -1.4423813
-Event_EoI.Event_EoI.Bs4(Event_EoI)               -1.7146585  -1.1256539
-Event_EoI.Event_EoI.Bs5(Event_EoI)               -1.7146581  -1.1256545
-Event_EoI.Event_EoI.Bs6(Event_EoI)               -1.7146586  -1.1256539
-Event_EoI.Event_EoI.Bs7(Event_EoI)               -1.3691579  -0.4735118
+Event_EoI.Event_EoI.Bs1(Event_EoI)               -2.4819060  -1.9511571
+Event_EoI.Event_EoI.Bs2(Event_EoI)               -2.3335556  -1.7863796
+Event_EoI.Event_EoI.Bs3(Event_EoI)               -2.1493169  -1.4423814
+Event_EoI.Event_EoI.Bs4(Event_EoI)               -1.7146584  -1.1256540
+Event_EoI.Event_EoI.Bs5(Event_EoI)               -1.7146579  -1.1256546
+Event_EoI.Event_EoI.Bs6(Event_EoI)               -1.7146585  -1.1256540
+Event_EoI.Event_EoI.Bs7(Event_EoI)               -1.3691578  -0.4735119
 Event_EoI.Event_EoI.randarm5-FU + Oxaliplatin    -0.3228161   0.2341504
-Event_DepC.Event_DepC.(Intercept)               -14.2796678 -10.3542769
-Event_DepC.Event_DepC.log(Event_DepC)             1.0577238   1.6679942
+Event_DepC.Event_DepC.(Intercept)               -14.2796676 -10.3542772
+Event_DepC.Event_DepC.log(Event_DepC)             1.0577239   1.6679941
 Event_DepC.Event_DepC.randarm5-FU + Oxaliplatin  -0.4964366   0.2963597
-Event_DepC.Event_EoI.(Intercept)                 -1.4467422   1.1184726
-> 
-> 
-> ## ----COXME-install, echo = TRUE, eval = FALSE---------------------------------
-> # install.packages("tramME")
-> # library("tramME")
-> 
-> 
-> ## ----COXME-load---------------------------------------------------------------
+Event_DepC.Event_EoI.(Intercept)                 -1.4467413   1.1184717
+
 > library("tramME")
-> 
-> 
-> 
-> ## ----COXME-model-fit, cache = TRUE--------------------------------------------
-> mcME <- 
-+ CoxphME(iDFS ~ randarm + (1 | Block), data = CAOsurv,
-+   log_first = TRUE)
-> 
-> 
-> ## ----COXME-summary, cache = TRUE, results = "hide", fig.show = 'hide'---------
+
+> mcME <- CoxphME(iDFS ~ randarm + (1 | Block), data = CAOsurv, 
++     log_first = TRUE)
+
 > summary(mcME)
 
 Mixed-Effects Parametric Cox Regression Model
@@ -652,7 +685,7 @@ iDFS ~ randarm + (1 | Block)
                           Estimate Std. Error z value Pr(>|z|)  
 randarm5-FU + Oxaliplatin -0.23903    0.10709  -2.232  0.02561 *
 ---
-Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 	Random effects:
 	===============
@@ -665,6 +698,7 @@ Standard deviation:
 
 	Log-likelihood: -2255.537 (npar = 9)
 
+
 > confint(mcME)
                                  lwr         upr
 Bs1(iDFS)                 -2.4005700 -1.97823234
@@ -676,125 +710,75 @@ Bs6(iDFS)                 -1.0905888 -0.71557594
 Bs7(iDFS)                 -0.9676971 -0.66001095
 randarm5-FU + Oxaliplatin -0.4489286 -0.02913711
 Block|(Intercept)         -2.5352930 -0.01666400
-> 
-> 
-> 
-> 
-> ## ----COXME-margsurv, eval = FALSE---------------------------------------------
-> # ## computationally intensive
-> # if (!file.exists("ME-margdist.rda")) {
-> # mod <- mcME
-> # 
-> # ## A function to evaluate the joint cdf of the response and the random effects:
-> # ## Takes a vector of random effect and covariates values, evaluates the conditional
-> # ## distribution at these values and multiplies it with the pdf of the random effects
-> # jointCDF <- function(re, nd, mod) {
-> # nd <- nd[rep(1, length(re)), ]
-> # nd$Block <- seq(nrow(nd)) ## to take vector-valued REs
-> # pr <- predict(mod, newdata = nd, ranef = re, type = "distribution") *
-> # dnorm(re, 0, sd = sqrt(varcov(mod)[[1]][1, 1]))
-> # c(pr)
-> # }
-> # ## Marginalize the joint cdf by integrating out the random effects
-> # ## using adaptive quadrature
-> # marginalCDF <- function(nd, mod) {
-> # nd$cdf <- integrate(jointCDF, lower = -Inf, upper = Inf, nd = nd, mod = mod)$value
-> # nd
-> # }
-> # ## Set up the grid on which we evaluate the marginal distribution
-> # nd <- expand.grid(iDFS = 1:max(CAOsurv$DFStime), randarm = unique(CAOsurv$randarm))
-> # ## Calls marginalCDF on each row of nd
-> # ## (done in parallel to speed up computations)
-> # mp <- parallel::mclapply(split(nd, seq(nrow(nd))),
-> #   marginalCDF, mod = mod, mc.cores = 4)
-> # mp <- do.call("rbind", mp)
-> # save(mp, file = "ME-margdist.rda")
-> # } else load("ME-margdist.rda")
-> # mp$surv <- with(mp, 1 - cdf)
-> # 
-> # plot(surv_iDFS, ylim = ylimS, xlim = xlim,
-> #   col = lcol, lwd = lwd, xlab = xlab, ylab = ylabS)
-> # with(mp[mp$randarm == levs[1], ], lines(iDFS, surv, col = col[1], lwd = lwd))
-> # with(mp[mp$randarm == levs[2], ], lines(iDFS, surv, col = col[2], lwd = lwd))
-> # legend("bottomright", legend = levs, col = col, bty = "n", lty = 1, lwd = 1, cex = .8)
-> 
-> 
-> ## ----MCOX-preproc, echo = FALSE-----------------------------------------------
-> ### convert "exact" event dates to interval-censoring (+/- two days)
+
 > tmp <- CAOsurv$iDFS
+
 > exact <- tmp[, 3] == 1
+
 > tmp[exact, 2] <- tmp[exact, 1] + 2
+
 > tmp[exact, 1] <- pmax(tmp[exact, 1] - 2, 0)
+
 > tmp[exact, 3] <- 3
+
 > CAOsurv$iDFS2 <- tmp
-> 
-> 
-> ## ----MCOX-model-fit, cache = TRUE---------------------------------------------
-> mmc <- 
-+ mtram(Coxph(iDFS2 ~ randarm, data = CAOsurv, log_first = TRUE),
-+   formula = ~ (1 | Block), data = CAOsurv)
-> 
-> 
-> ## ----MCOX-FUN-----------------------------------------------------------------
-> ## marginal HR from "mtram"
-> ## <FIXME> reset seed on.exit </FIXME>
-> mHR.mtram <- function(object, with_confint = FALSE, seed = 1) {
-+   stopifnot(inherits(object, "mtram"))
-+   cf <- coef(object)
-+   cf <- cf[-grep("Bs", names(cf))]
-+   stopifnot(length(cf) == 2)
-+   mlHR <- cf[1] / sqrt(1 + cf["gamma1"]^2)
-+   ret <- mHR <- exp(mlHR)
-+   if (with_confint) {
-+     set.seed(seed)
-+     S <- vcov(object)
-+     rbeta <- rmvnorm(10000, mean = coef(object), sigma = S)
-+     s <- rbeta[,ncol(rbeta)]
-+     rbeta <- rbeta[,-ncol(rbeta)] / sqrt(s^2 + 1)
-+     ci <- quantile(exp(rbeta[, ncol(rbeta)]), prob = c(.025, .975))
-+     ret <- c(mHR, ci)
-+     ret <- as.array(t(ret))
-+   }
-+   return(ret)
-+ }
-> 
-> ## ----MCOX-summary, cache = TRUE, results = "hide", fig.show = 'hide'----------
+
+> mmc <- mtram(Coxph(iDFS2 ~ randarm, data = CAOsurv, 
++     log_first = TRUE), formula = ~(1 | Block), data = CAOsurv)
+
+> mHR.mtram <- function(object, with_confint = FALSE, 
++     seed = 1) {
++     stopifnot(inherits(object, "mtram"))
++     cf <- coef(object)
++     cf  .... [TRUNCATED] 
+
 > coef(mmc)
-               Bs1(iDFS2)                Bs2(iDFS2)                Bs3(iDFS2) 
-               -2.1352623                -1.7251906                -1.5101019 
-               Bs4(iDFS2)                Bs5(iDFS2)                Bs6(iDFS2) 
-               -1.3062949                -1.1114882                -0.8931227 
-               Bs7(iDFS2) randarm5-FU + Oxaliplatin                    gamma1 
-               -0.8064782                -0.2386027                 0.1739306 
+               Bs1(iDFS2)                Bs2(iDFS2) 
+               -2.1352623                -1.7251906 
+               Bs3(iDFS2)                Bs4(iDFS2) 
+               -1.5101019                -1.3062949 
+               Bs5(iDFS2)                Bs6(iDFS2) 
+               -1.1114882                -0.8931227 
+               Bs7(iDFS2) randarm5-FU + Oxaliplatin 
+               -0.8064782                -0.2386027 
+                   gamma1 
+                0.1739306 
+
 > sqrt(diag(vcov(mmc)))
-               Bs1(iDFS2)                Bs2(iDFS2)                Bs3(iDFS2) 
-               0.10665977                0.10980647                0.23130408 
-               Bs4(iDFS2)                Bs5(iDFS2)                Bs6(iDFS2) 
-               0.29286841                0.19529964                0.09328074 
-               Bs7(iDFS2) randarm5-FU + Oxaliplatin                    gamma1 
-               0.07616952                0.10736281                0.12087461 
+               Bs1(iDFS2)                Bs2(iDFS2) 
+               0.10665977                0.10980647 
+               Bs3(iDFS2)                Bs4(iDFS2) 
+               0.23130408                0.29286841 
+               Bs5(iDFS2)                Bs6(iDFS2) 
+               0.19529964                0.09328074 
+               Bs7(iDFS2) randarm5-FU + Oxaliplatin 
+               0.07616952                0.10736281 
+                   gamma1 
+               0.12087461 
+
 > (ci_MCOX <- mHR.mtram(mmc, with_confint = TRUE))
      randarm5-FU + Oxaliplatin      2.5%     97.5%
 [1,]                 0.7905128 0.6447846 0.9743397
-> 
-> 
-> 
-> ## ----HTECOX-model-fit, cache = TRUE-------------------------------------------
-> ma <- 
-+ CoxphME(iDFS ~ randarm + s(age, by = as.ordered(randarm),
+
+> ma <- CoxphME(iDFS ~ randarm + s(age, by = as.ordered(randarm), 
 +     fx = TRUE, k = 6), data = CAOsurv, log_first = TRUE)
+
 > nd <- model.frame(ma)[rep(2, 100), ]
-> nd$age <- seq(min(CAOsurv$age), max(CAOsurv$age), length.out = 100)
+
+> nd$age <- seq(min(CAOsurv$age), max(CAOsurv$age), 
++     length.out = 100)
+
 > xx <- model.matrix(ma, data = nd, type = "X", keep_sign = FALSE)$X
+
 > ip <- grep("randarm", names(bb <- coef(ma, with_baseline = TRUE)))
+
 > vc <- vcov(ma, parm = names(bb)[ip])
+
 > bb <- bb[ip]
-> 
-> ## NOTE: unadjusted
-> cb <- exp(confint(multcomp::glht(multcomp::parm(bb, vc), linfct = xx),
-+                   calpha = univariate_calpha())$confint)
-> 
-> ## ----HTECOX-summary, cache = TRUE, results = "hide", fig.show = 'hide'--------
+
+> cb <- exp(confint(multcomp::glht(multcomp::parm(bb, 
++     vc), linfct = xx), calpha = univariate_calpha())$confint)
+
 > summary(ma)
 
 Additive Parametric Cox Regression Model
@@ -811,7 +795,7 @@ iDFS ~ randarm + s(age, by = as.ordered(randarm), fx = TRUE,
                           Estimate Std. Error z value Pr(>|z|)  
 randarm5-FU + Oxaliplatin -0.24926    0.10743 -2.3202  0.02033 *
 ---
-Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 	Smooth shift terms:
 	===================
@@ -821,139 +805,95 @@ s(age):as.ordered(randarm)5-FU + Oxaliplatin   5
 
 	Log-likelihood: -2251.245 (npar = 13)
 
-> 
-> 
-> ## ----HTECOX-HR-plot-----------------------------------------------------------
-> ## Plot HR
-> plot(nd$age, cb[, "Estimate"], type = "n", ylab = "Hazard ratio", xlab = "Age (in years)",
-+      ylim = ylimHR)
-> polygon(c(nd$age, rev(nd$age)), c(cb[, "lwr"], rev(cb[, "upr"])),
-+         border = NA, col = rgb(.1, .1, .1, .1))
+
+> plot(nd$age, cb[, "Estimate"], type = "n", ylab = "Hazard ratio", 
++     xlab = "Age (in years)", ylim = ylimHR)
+
+> polygon(c(nd$age, rev(nd$age)), c(cb[, "lwr"], rev(cb[, 
++     "upr"])), border = NA, col = rgb(0.1, 0.1, 0.1, 0.1))
+
 > lines(nd$age, cb[, "Estimate"], lwd = lwd)
+
 > abline(h = 1, lty = 3)
-> rug(CAOsurv$age, lwd = 2, col = rgb(.1, .1, .1, .1))
-> 
-> 
-> ## ----TRT-load-install, echo = TRUE, eval = FALSE------------------------------
-> # install.packages("trtf")
-> # library("trtf")
-> 
-> ## ----TRT-load-----------------------------------------------------------------
+
+> rug(CAOsurv$age, lwd = 2, col = rgb(0.1, 0.1, 0.1, 
++     0.1))
+
 > library("trtf")
+
 > set.seed(4)
-> 
-> 
-> ## ----TRTF-model-fit, cache = TRUE, warning=TRUE-------------------------------
-> tr <-
-+ trafotree(Coxph(iDFS ~ randarm, data = CAOsurv, log_first = TRUE),
-+   formula = iDFS ~ randarm | age, data = CAOsurv,
-+   control = ctree_control(teststat = "maximum", minbucket = 40))
-> 
-> ## ----TRT-results, results = "hide", fig.show = 'hide'-------------------------
+
+> tr <- trafotree(Coxph(iDFS ~ randarm, data = CAOsurv, 
++     log_first = TRUE), formula = iDFS ~ randarm | age, data = CAOsurv, 
++     control = ctr .... [TRUNCATED] 
+
 > logLik(tr)
 'log Lik.' -2250.417 (df=16)
-> 
-> 
-> ## ----TRTF-surv-plot, fig.width = 10, fig.height = 6---------------------------
+
 > library("ATR")
-> plot(rotate(tr), tp_args = list(newdata = nd1, type = "survivor", col = col, lwd = lwd),
-+   terminal_panel = trtf:::node_mlt)
-> 
-> 
-> 
-> ## ----FRAILTY-model-fit, cache = TRUE------------------------------------------
-> mf <- 
-+ Coxph(iDFS ~ randarm, data = CAOsurv, log_first = TRUE, frailty = "Gamma")
-> 
-> 
-> ## ----FRAILTY-summary, cache = TRUE, results = "hide", fig.show = 'hide'-------
+
+> plot(rotate(tr), tp_args = list(newdata = nd1, type = "survivor", 
++     col = col, lwd = lwd), terminal_panel = trtf:::node_mlt)
+
+> mf <- Coxph(iDFS ~ randarm, data = CAOsurv, log_first = TRUE, 
++     frailty = "Gamma")
+
 > logLik(mf)
 'log Lik.' -2245.205 (df=8)
+
 > coef(mf)[trt]
 randarm5-FU + Oxaliplatin 
                -0.5828831 
+
 > coef(mf, addparm = TRUE)
  logrho 
 3.46065 
+
 > confint(mf, parm = c(trt, "logrho"))
                               2.5 %    97.5 %
 randarm5-FU + Oxaliplatin -1.446148 0.2803822
 logrho                           NA        NA
-> 
-> 
-> 
-> ## ----LOGIT-model-fit----------------------------------------------------------
-> ml <- 
-+ Colr(iDFS ~ randarm, data = CAOsurv, log_first = TRUE)
-> 
-> 
-> 
-> 
-> 
-> ## ----SS-setup, echo = FALSE---------------------------------------------------
-> ### -> mlt
-> # as.Surv.numeric <- function(object) Surv(object, rep(TRUE, length(object)))
-> 
-> ## ----SS, echo = TRUE----------------------------------------------------------
+
+> ml <- Colr(iDFS ~ randarm, data = CAOsurv, log_first = TRUE)
+
 > m <- as.mlt(Survreg(OS ~ randarm + age, data = CAOsurv, 
-+   dist = "weibull", support = c(.1, 80 * 365)))
-> 
-> 
-> ## ----SS-nd--------------------------------------------------------------------
++     dist = "weibull", support = c(0.1, 80 * 365)))
+
 > N <- 500
-> nd <- with(CAOsurv, data.frame(randarm = gl(2, N, labels = levels(randarm)),
-+   age = rnorm(N, mean = mean(age), sd = sd(age))))
-> 
-> 
-> ## ----SS-lOR, echo = TRUE------------------------------------------------------
+
+> nd <- with(CAOsurv, data.frame(randarm = gl(2, N, 
++     labels = levels(randarm)), age = rnorm(N, mean = mean(age), 
++     sd = sd(age))))
+
+> `coef<-` <- mlt::`coef<-`
+
 > cf <- coef(m)
-> cf["randarm5-FU + Oxaliplatin"] <- .25
+
+> cf["randarm5-FU + Oxaliplatin"] <- 0.25
+
 > coef(m) <- cf
+
 > nd$T <- as.Surv(simulate(m, newdata = nd, K = 1000))
-> 
-> 
-> ## ----SS-simC, echo = TRUE-----------------------------------------------------
-> cf["(Intercept)"] <- cf["(Intercept)"] + qlogis(.8)
+
+> cf["(Intercept)"] <- cf["(Intercept)"] + qlogis(0.8)
+
 > coef(m) <- cf
+
 > nd$C <- as.Surv(simulate(m, newdata = nd, K = 1000))
-> 
-> 
-> ## ----SS-OS, echo = TRUE, results = "asis"-------------------------------------
-> nd$nOS <- with(nd, Surv(time = pmin(T[, "time"], C[, "time"]),
-+   event = T[,"time"] < C[,"time"]))
-> 
-> ## ----SS-refit, results = "hide", fig.show = "hide"----------------------------
-> mean(nd$nOS[,"status"])
-[1] 0.193
-> levels(nd$randarm)[2] <- "innovative"
-> plot(survfit(nOS ~ randarm, data = nd), col = col, xlab = "Time (in days)", 
-+   ylab = "Probability of survival")
-> legend("topright", legend = levels(nd$randarm), col = col, lty = 1, bty = "n")
-> Survreg(nOS ~ randarm + age, data = nd, dist = "weibull")
 
-  Weibull Linear Regression Model 
-
-Call:
-Survreg(formula = nOS ~ randarm + age, data = nd, dist = "weibull")
-
-Coefficients:
-randarminnovative               age 
-       0.13104045       -0.02068752 
-
-Log-Likelihood:
- -1934.786 (df = 4)
-
-> 
-> 
-> ### Appendix
-> ## ----pkgs---------------------------------------------------------------------
-> ## additional packages
-> pkgs <- c("fastGHQuad", "icenReg", "TransModel", "rms", "ICsurv", "eha",
-+   "rstpm2", "flexsurv", "mpr", "gamlss", "gamlss.cens", 
-+   "coxme", "parfm", "frailtyEM", "frailtypack", "mgcv", "timereg")
-> 
-> ## ----install-pkgs-------------------------------------------------------------
-> ix <- which(!sapply(pkgs, require, char = TRUE))
+> nd$nOS <- with(nd, Surv(time = pmin(T[, "time"], C[, 
++     "time"]), event = T[, "time"] < C[, "time"]))
+R> 
+R> ### Appendix
+R> 
+R> ## ----pkgs---------------------------------------------------------------------
+R> ## additional packages
+R> pkgs <- c("fastGHQuad", "icenReg", "TransModel", "rms", "ICsurv", "eha",
++    "rstpm2", "flexsurv", "mpr", "gamlss", "gamlss.cens", 
++    "coxme", "parfm", "frailtyEM", "frailtypack", "mgcv", "timereg")
+R> 
+R> ## ----install-pkgs-------------------------------------------------------------
+R> ix <- which(!sapply(pkgs, require, char = TRUE))
 Loading required package: fastGHQuad
 Loading required package: Rcpp
 Loading required package: icenReg
@@ -962,79 +902,87 @@ Loading required package: TransModel
 Loading required package: rms
 Loading required package: Hmisc
 
-Attaching package: ‘Hmisc’
+Attaching package: 'Hmisc'
 
-The following objects are masked from ‘package:xtable’:
+The following objects are masked from 'package:xtable':
 
     label, label<-
 
-The following objects are masked from ‘package:base’:
+The following objects are masked from 'package:base':
 
     format.pval, units
 
 Loading required package: ICsurv
 Loading required package: eha
 
-Attaching package: ‘eha’
+Attaching package: 'eha'
 
-The following object is masked from ‘package:Hmisc’:
+The following object is masked from 'package:Hmisc':
 
     logrank
 
 Loading required package: rstpm2
 Loading required package: splines
 
-Attaching package: ‘rstpm2’
+Attaching package: 'rstpm2'
 
-The following object is masked from ‘package:survival’:
+The following object is masked _by_ '.GlobalEnv':
+
+    coef<-
+
+The following object is masked from 'package:survival':
 
     colon
 
-The following object is masked from ‘package:mlt’:
+The following object is masked from 'package:mlt':
 
     coef<-
 
 Loading required package: flexsurv
 
-Attaching package: ‘flexsurv’
+Attaching package: 'flexsurv'
 
-The following object is masked from ‘package:rstpm2’:
+The following object is masked from 'package:rstpm2':
 
     AICc
 
-The following objects are masked from ‘package:eha’:
+The following objects are masked from 'package:eha':
 
-    dgompertz, dllogis, hgompertz, Hgompertz, hllogis, Hllogis, hlnorm,
-    Hlnorm, hweibull, Hweibull, pgompertz, pllogis, qgompertz, qllogis,
-    rgompertz, rllogis
+    dgompertz, dllogis, hgompertz, Hgompertz, hllogis, Hllogis,
+    hlnorm, Hlnorm, hweibull, Hweibull, pgompertz, pllogis,
+    qgompertz, qllogis, rgompertz, rllogis
 
 Loading required package: mpr
 
-Attaching package: ‘mpr’
+Attaching package: 'mpr'
 
-The following objects are masked from ‘package:MASS’:
+The following objects are masked from 'package:MASS':
 
     addterm, dropterm
 
 Loading required package: gamlss
 Loading required package: gamlss.data
 
-Attaching package: ‘gamlss.data’
+Attaching package: 'gamlss.data'
 
-The following object is masked from ‘package:datasets’:
+The following object is masked from 'package:datasets':
 
     sleep
 
 Loading required package: gamlss.dist
 Loading required package: nlme
 
-Attaching package: ‘nlme’
+Attaching package: 'nlme'
 
-The following object is masked from ‘package:rstpm2’:
+The following object is masked _by_ '.GlobalEnv':
 
     coef<-
 
-The following object is masked from ‘package:mlt’:
+The following object is masked from 'package:rstpm2':
+
+    coef<-
+
+The following object is masked from 'package:mlt':
 
     coef<-
 
@@ -1047,26 +995,30 @@ Loading required package: gamlss.cens
 Loading required package: coxme
 Loading required package: bdsmatrix
 
-Attaching package: ‘bdsmatrix’
+Attaching package: 'bdsmatrix'
 
-The following object is masked from ‘package:base’:
+The following object is masked from 'package:base':
 
     backsolve
 
 Loading required package: parfm
 Loading required package: optimx
 
-Attaching package: ‘optimx’
+Attaching package: 'optimx'
 
-The following object is masked from ‘package:nlme’:
-
-    coef<-
-
-The following object is masked from ‘package:rstpm2’:
+The following object is masked _by_ '.GlobalEnv':
 
     coef<-
 
-The following object is masked from ‘package:mlt’:
+The following object is masked from 'package:nlme':
+
+    coef<-
+
+The following object is masked from 'package:rstpm2':
+
+    coef<-
+
+The following object is masked from 'package:mlt':
 
     coef<-
 
@@ -1074,439 +1026,444 @@ Loading required package: frailtyEM
 Loading required package: frailtypack
 Loading required package: boot
 
-Attaching package: ‘boot’
+Attaching package: 'boot'
 
-The following object is masked from ‘package:gamlss.data’:
+The following object is masked from 'package:gamlss.data':
 
     aids
 
-The following object is masked from ‘package:survival’:
+The following object is masked from 'package:survival':
 
     aml
 
 Loading required package: doBy
 
-Attaching package: ‘doBy’
+Attaching package: 'doBy'
 
-The following object is masked from ‘package:MASS’:
+The following object is masked from 'package:MASS':
 
     shoes
 
 Loading required package: survC1
 
-Attaching package: ‘frailtypack’
+Attaching package: 'frailtypack'
 
-The following object is masked from ‘package:survival’:
+The following object is masked from 'package:survival':
 
     cluster
 
 Loading required package: mgcv
-This is mgcv 1.9-1. For overview type 'help("mgcv-package")'.
+This is mgcv 1.9-3. For overview type 'help("mgcv-package")'.
+
+Attaching package: 'mgcv'
+
+The following object is masked from 'package:gamlss':
+
+    lp
+
 Loading required package: timereg
-> if (length(ix) > 0) {
-+    install.packages(pkgs[ix], repos = "https://stat.ethz.ch/CRAN/")
-+    sapply(pkgs[ix], require, char = TRUE)
-+ }
-> 
-> 
-> ## ----pkgs-setup---------------------------------------------------------------
-> `coef<-` <- mlt::`coef<-` ## masked by pkg rstpm2
-> Surv <- survival::Surv ## masked by eha
-> 
-> 
-> 
-> ## ----result-summary, include = FALSE------------------------------------------
-> frmtcall <- function(mod, call = NA, tex = TRUE) {
-+   pkg <- NA
-+   ## if call is specified
-+   if (!is.na(call)) {
-+   call <- rev(strsplit(call, "::")[[1]])
-+   pkg <- call[2]
-+   call <- call[1]
-+   } else {
-+   if (inherits(mod, "emfrail")) call <- attr(mod, "call")[[1]]
-+   else call <- mod$call[[1]]
-+   call <- as.character(call)
-+   if (length(call) > 1) {
-+     pkg <- call[2]
-+     call <- call[3]
-+   }}
-+   fct <- ifelse(tex, paste0("\\code{", gsub("_", "\\\\_", call), "}"), call)
-+   ret <- c("Call" = call, "Function" = fct)
-+   if (!is.na(pkg)) {
-+     pkg <- ifelse(tex, paste0("\\pkg{", gsub("_", "\\\\_", pkg), "}"), pkg)
-+     ret <- c("Call" = call, "Function" = fct, "Package" = pkg)
-+   }
-+   return(ret)
-+ }
-> 
-> logLik.aftreg <- logLik.phreg <- function(object) object$loglik[2]
-> logLik.stpm2 <- function(object) -object@minuslogl(object@coef)
-> logLik.mpr <- function(object) object$model$loglike
-> logLik.icenReg_fit <- function(object) summary(object)$llk
-> logLik.cox.aalen <- function(object) NA ## no reported logLik found
-> vcov.aftreg <- vcov.phreg <- function(object) object$var
-> vcov.stpm2 <- function(object) object@vcov
-> vcov.emfrail <- function(object) {
-+   vc <- object$var
-+   ncf <- names(object$coefficients)
-+   colnames(vc) <- c(ncf, (length(ncf) + 1):ncol(vc))
-+   rownames(vc) <- colnames(vc)
-+   return(vc)
-+ }
-> logLik.frailtyPenal <- function(object) object$logLikPenal ## pen. marg. logLik
-> vcov.frailtyPenal <- function(object) {
-+   vc <- matrix(object$varH)
-+   dimnames(vc) <- list(names(object$coef), names(object$coef))
-+   return(vc)
-+ }
-> coef.frailtyPenal <- function(object) object$coef
-> 
-> link.stpm2.po <- function (S) -logit(as.vector(S))
-> link.stpm2.ph <- function (S) log(-log(as.vector(S)))
-> 
-> tab <- function(mod, parm = trt, math = TRUE, mark = TRUE, tex = TRUE) {
-+   ll <- logLik(mod)
-+   
-+   if (inherits(mod, "mpr")) cf <- coef(mod)[[1]][parm <- paste(parm, "b", sep = ".")]
-+   else cf <- coef(mod)
-+   if (inherits(mod, "cox.aalen")) cf <- cf[, "Coef."]
-+   cf <- ifelse(length(cf) > 1, cf[parm], cf)
-+   if (inherits(mod, "tram")) cf <- c(1, -1)[mod$negative + 1] * cf
-+   
-+   if (inherits(mod, "ic_ph") | inherits(mod, "ic_po")) se <- ifelse(math, "$-$", NA)
-+   else {
-+     vc <- vcov(mod)
-+     se <- ifelse(sum(dim(vc)) > 2, sqrt(vc[parm, parm]), sqrt(vc))
-+   }
-+   
-+   call <- NA
-+   if (inherits(mod, "stpm2")) call <- "rstpm2::stpm2"
-+   if (inherits(mod, "cox.aalen")) call <- "timereg::Gprop.odds"
-+   call <- frmtcall(mod, call = call, tex = tex)
-+   
-+   cfint <- switch(call["Call"],
-+     "coxph" = "log-HR", "Coxph" = "log-HR", "CoxphME" = "log-HR", 
-+     "gam" = ifelse(mod$family$family == "Cox PH", "log-HR", NA),
-+     "coxme" = "log-HR", "frailtyPenal" = "log-HR", "emfrail" = "log-HR",
-+     "survreg" = "log-AF", "Survreg" = "log-HR",
-+     "stpm2" = ifelse(identical(mod@link$link, link.stpm2.ph, ignore.environment = TRUE),
-+       "log-HR", ifelse(identical(mod@link$link, link.stpm2.po, ignore.environment = TRUE), 
-+         "log-OR", NA)),
-+     "flexsurvspline" = switch(mod$scale, "hazard" = "log-HR", "odds" = "$-$log-OR"), 
-+     "flexsurvreg" = switch(mod$call$dist, "weibullPH" = "log-HR", "weibull" = "log-AF"),
-+     "ic_par" = switch(mod$call$model, "ph" = "log-HR", "aft" = "log-AF"), 
-+     "ic_sp" = switch(mod$call$model, "ph" = "log-HR", "po" = "$-$log-OR", "aft" = "log-AF"), 
-+     "cph" = "log-HR", "phreg" = "log-HR", "Gprop.odds" = "log-OR", "Colr" = "log-OR")
-+   if (inherits(mod, c("stram", "mpr", "gamlss"))) cfint <- NA
-+   if (is.null(cfint)) cfint <- NA
-+   
-+   mark <- ifelse(mark && call["Call"] %in% c("gam", "coxph", "coxme", "cph", "ic_sp", "ic_ph", "ic_po", 
-+     "cox.aalen", "emfrail", "frailtyPenal"), TRUE, FALSE)
-+   ret <- c(cfint, frmt3(cf, math = math), frmt3(se, math = math),
-+     frmtll(ll, mark = mark, math = math))
-+   names(ret) <- n <- c("Interpretation", "Estimate", "Std. Error", "logLik")
-+   c(call[-1], ret)
-+ }
-> 
-> print.results <- function(objects) {
-+   ret <- lapply(objects, function(x) tab(x, math = FALSE, mark = FALSE, tex = FALSE))
-+   data.frame(do.call("rbind", ret), check.names = FALSE)
-+ }
-> 
-> 
-> 
-> 
-> ## ----WEI-iDFS-fit, cache = TRUE-----------------------------------------------
-> mwi1 <- tram::Survreg(iDFS ~ randarm, data = CAOsurv, dist = "weibull")
-> mwi2 <- icenReg::ic_par(iDFS ~ randarm, data = CAOsurv, dist = "weibull",
-+   model = "ph")
-> mwi3 <- flexsurv::flexsurvreg(iDFS ~ randarm, data = CAOsurv,
-+   dist = "weibullPH")
-> mwi4 <- survival::survreg(iDFS ~ randarm, data = CAOsurv, dist = "weibull")
-> mwi5 <- icenReg::ic_par(iDFS ~ randarm, data = CAOsurv, dist = "weibull",
-+   model = "aft") 
-> 
-> 
-> ## ----WEI-iDFS-results---------------------------------------------------------
-> print.results(list(mwi1, mwi2, mwi3, mwi4, mwi5))
+R> if (length(ix) > 0) {
++     install.packages(pkgs[ix], repos = "https://stat.ethz.ch/CRAN/")
++     sapply(pkgs[ix], require, char = TRUE)
++  }
+R> 
+R> 
+R> ## ----pkgs-setup---------------------------------------------------------------
+R> `coef<-` <- mlt::`coef<-` ## masked by pkg rstpm2
+R> Surv <- survival::Surv ## masked by eha
+R> 
+R> 
+R> 
+R> ## ----result-summary, include = FALSE------------------------------------------
+R> frmtcall <- function(mod, call = NA, tex = TRUE) {
++    pkg <- NA
++    ## if call is specified
++    if (!is.na(call)) {
++    call <- rev(strsplit(call, "::")[[1]])
++    pkg <- call[2]
++    call <- call[1]
++    } else {
++    if (inherits(mod, "emfrail")) call <- attr(mod, "call")[[1]]
++    else call <- mod$call[[1]]
++    call <- as.character(call)
++    if (length(call) > 1) {
++      pkg <- call[2]
++      call <- call[3]
++    }}
++    fct <- ifelse(tex, paste0("\\code{", gsub("_", "\\\\_", call), "}"), call)
++    ret <- c("Call" = call, "Function" = fct)
++    if (!is.na(pkg)) {
++      pkg <- ifelse(tex, paste0("\\pkg{", gsub("_", "\\\\_", pkg), "}"), pkg)
++      ret <- c("Call" = call, "Function" = fct, "Package" = pkg)
++    }
++    return(ret)
++  }
+R> 
+R> logLik.aftreg <- logLik.phreg <- function(object) object$loglik[2]
+R> logLik.stpm2 <- function(object) -object@minuslogl(object@coef)
+R> logLik.mpr <- function(object) object$model$loglike
+R> logLik.icenReg_fit <- function(object) summary(object)$llk
+R> logLik.cox.aalen <- function(object) NA ## no reported logLik found
+R> vcov.aftreg <- vcov.phreg <- function(object) object$var
+R> vcov.stpm2 <- function(object) object@vcov
+R> vcov.emfrail <- function(object) {
++    vc <- object$var
++    ncf <- names(object$coefficients)
++    colnames(vc) <- c(ncf, (length(ncf) + 1):ncol(vc))
++    rownames(vc) <- colnames(vc)
++    return(vc)
++  }
+R> logLik.frailtyPenal <- function(object) object$logLikPenal ## pen. marg. logLik
+R> vcov.frailtyPenal <- function(object) {
++    vc <- matrix(object$varH)
++    dimnames(vc) <- list(names(object$coef), names(object$coef))
++    return(vc)
++  }
+R> coef.frailtyPenal <- function(object) object$coef
+R> 
+R> link.stpm2.po <- function (S) -logit(as.vector(S))
+R> link.stpm2.ph <- function (S) log(-log(as.vector(S)))
+R> 
+R> tab <- function(mod, parm = trt, math = TRUE, mark = TRUE, tex = TRUE) {
++    ll <- logLik(mod)
++    
++    if (inherits(mod, "mpr")) cf <- coef(mod)[[1]][parm <- paste(parm, "b", sep = ".")]
++    else cf <- coef(mod)
++    if (inherits(mod, "cox.aalen")) cf <- cf[, "Coef."]
++    cf <- ifelse(length(cf) > 1, cf[parm], cf)
++    if (inherits(mod, "tram")) cf <- c(1, -1)[mod$negative + 1] * cf
++    
++    if (inherits(mod, "ic_ph") | inherits(mod, "ic_po")) se <- ifelse(math, "$-$", NA)
++    else {
++      vc <- vcov(mod)
++      se <- ifelse(sum(dim(vc)) > 2, sqrt(vc[parm, parm]), sqrt(vc))
++    }
++    
++    call <- NA
++    if (inherits(mod, "stpm2")) call <- "rstpm2::stpm2"
++    if (inherits(mod, "cox.aalen")) call <- "timereg::Gprop.odds"
++    call <- frmtcall(mod, call = call, tex = tex)
++    
++    cfint <- switch(call["Call"],
++      "coxph" = "log-HR", "Coxph" = "log-HR", "CoxphME" = "log-HR", 
++      "gam" = ifelse(mod$family$family == "Cox PH", "log-HR", NA),
++      "coxme" = "log-HR", "frailtyPenal" = "log-HR", "emfrail" = "log-HR",
++      "survreg" = "log-AF", "Survreg" = "log-HR",
++      "stpm2" = ifelse(identical(mod@link$link, link.stpm2.ph, ignore.environment = TRUE),
++        "log-HR", ifelse(identical(mod@link$link, link.stpm2.po, ignore.environment = TRUE), 
++          "log-OR", NA)),
++      "flexsurvspline" = switch(mod$scale, "hazard" = "log-HR", "odds" = "$-$log-OR"), 
++      "flexsurvreg" = switch(mod$call$dist, "weibullPH" = "log-HR", "weibull" = "log-AF"),
++      "ic_par" = switch(mod$call$model, "ph" = "log-HR", "aft" = "log-AF"), 
++      "ic_sp" = switch(mod$call$model, "ph" = "log-HR", "po" = "$-$log-OR", "aft" = "log-AF"), 
++      "cph" = "log-HR", "phreg" = "log-HR", "Gprop.odds" = "log-OR", "Colr" = "log-OR")
++    if (inherits(mod, c("stram", "mpr", "gamlss"))) cfint <- NA
++    if (is.null(cfint)) cfint <- NA
++    
++    mark <- ifelse(mark && call["Call"] %in% c("gam", "coxph", "coxme", "cph", "ic_sp", "ic_ph", "ic_po", 
++      "cox.aalen", "emfrail", "frailtyPenal"), TRUE, FALSE)
++    ret <- c(cfint, frmt3(cf, math = math), frmt3(se, math = math),
++      frmtll(ll, mark = mark, math = math))
++    names(ret) <- n <- c("Interpretation", "Estimate", "Std. Error", "logLik")
++    c(call[-1], ret)
++  }
+R> 
+R> print.results <- function(objects) {
++    ret <- lapply(objects, function(x) tab(x, math = FALSE, mark = FALSE, tex = FALSE))
++    data.frame(do.call("rbind", ret), check.names = FALSE)
++  }
+R> 
+R> 
+R> 
+R> 
+R> ## ----WEI-iDFS-fit, cache = TRUE-----------------------------------------------
+R> mwi1 <- tram::Survreg(iDFS ~ randarm, data = CAOsurv, dist = "weibull")
+R> mwi2 <- icenReg::ic_par(iDFS ~ randarm, data = CAOsurv, dist = "weibull",
++    model = "ph")
+R> mwi3 <- flexsurv::flexsurvreg(iDFS ~ randarm, data = CAOsurv,
++    dist = "weibullPH")
+R> mwi4 <- survival::survreg(iDFS ~ randarm, data = CAOsurv, dist = "weibull")
+R> mwi5 <- icenReg::ic_par(iDFS ~ randarm, data = CAOsurv, dist = "weibull",
++    model = "aft") 
+R> 
+R> 
+R> ## ----WEI-iDFS-results---------------------------------------------------------
+R> print.results(list(mwi1, mwi2, mwi3, mwi4, mwi5))
      Function  Package Interpretation Estimate Std. Error    logLik
 1     Survreg     tram         log-HR   -0.229      0.106 -2'281.17
 2      ic_par  icenReg         log-HR   -0.229      0.106 -2'281.17
 3 flexsurvreg flexsurv         log-HR   -0.229      0.106 -2'281.17
 4     survreg survival         log-AF    0.312      0.146 -2'281.17
 5      ic_par  icenReg         log-AF    0.312      0.146 -2'281.17
-> 
-> 
-> ## ----preproc-interval, results = "hide"---------------------------------------
-> ## is needed for "rstpm2" package
-> CAOsurv$iDFSevent <- as.numeric(CAOsurv$DFSevent)
-> ic <- with(CAOsurv, which(is.finite(iDFStime2) &  iDFStime2 > iDFStime))
-> CAOsurv$iDFSevent[ic] <- 3
-> table(CAOsurv$iDFSevent)
+R> 
+R> 
+R> ## ----preproc-interval, results = "hide"---------------------------------------
+R> ## is needed for "rstpm2" package
+R> CAOsurv$iDFSevent <- as.numeric(CAOsurv$DFSevent)
+R> ic <- with(CAOsurv, which(is.finite(iDFStime2) &  iDFStime2 > iDFStime))
+R> CAOsurv$iDFSevent[ic] <- 3
+R> table(CAOsurv$iDFSevent)
 
   0   1   3 
 879 144 213 
-> with(CAOsurv, all.equal(Surv(time = iDFStime, time2 = iDFStime2, event = iDFSevent,
-+     type = "interval"), iDFS)) ## check
+R> with(CAOsurv, all.equal(Surv(time = iDFStime, time2 = iDFStime2, event = iDFSevent,
++      type = "interval"), iDFS)) ## check
 [1] TRUE
-> 
-> 
-> ## ----Cox-iDFS-fit, echo = FALSE, cache = TRUE---------------------------------
-> mci1 <- tram::Coxph(iDFS ~ randarm, data = CAOsurv, log_first = TRUE)
-> mci2 <- rstpm2::stpm2(Surv(time = iDFStime, time2 = iDFStime2,
-+   event = iDFSevent, type = "interval") ~ randarm, data = CAOsurv)
-> mci3 <- flexsurv::flexsurvspline(iDFS ~ randarm, data = CAOsurv, k = 3)
+R> 
+R> 
+R> ## ----Cox-iDFS-fit, echo = FALSE, cache = TRUE---------------------------------
+R> mci1 <- tram::Coxph(iDFS ~ randarm, data = CAOsurv, log_first = TRUE)
+R> mci2 <- rstpm2::stpm2(Surv(time = iDFStime, time2 = iDFStime2,
++    event = iDFSevent, type = "interval") ~ randarm, data = CAOsurv)
+R> mci3 <- flexsurv::flexsurvspline(iDFS ~ randarm, data = CAOsurv, k = 3)
 There were 25 warnings (use warnings() to see them)
-> mci4 <- icenReg::ic_sp(iDFS ~ randarm, data = CAOsurv, model = "ph")
-> 
-> 
-> ## ----Cox-iDFS-tab-print-------------------------------------------------------
-> print.results(list(mci1, mci2, mci3, mci4))
+R> mci4 <- icenReg::ic_sp(iDFS ~ randarm, data = CAOsurv, model = "ph")
+R> 
+R> 
+R> ## ----Cox-iDFS-tab-print-------------------------------------------------------
+R> print.results(list(mci1, mci2, mci3, mci4))
         Function  Package Interpretation Estimate Std. Error    logLik
 1          Coxph     tram         log-HR   -0.234      0.106 -2'255.85
 2          stpm2   rstpm2         log-HR   -0.232      0.107 -2'250.48
 3 flexsurvspline flexsurv         log-HR   -0.231      0.106 -2'254.34
 4          ic_sp  icenReg         log-HR   -0.230       <NA> -1'977.29
-> 
-> 
-> 
-> 
-> ## ----Cox-DFS-fit, echo = FALSE, cache = TRUE----------------------------------
-> mc1 <- tram::Coxph(DFS ~ randarm, data = CAOsurv, log_first = TRUE)
-> mc2 <- survival::coxph(DFS ~ randarm, data = CAOsurv)
-> mc3 <- rms::cph(DFS ~ randarm, data = CAOsurv)
-> 
-> 
-> ## ----Cox-DFS-results, eval = TRUE---------------------------------------------
-> print.results(list(mc1, mc2, mc3))
+R> 
+R> 
+R> 
+R> 
+R> ## ----Cox-DFS-fit, echo = FALSE, cache = TRUE----------------------------------
+R> mc1 <- tram::Coxph(DFS ~ randarm, data = CAOsurv, log_first = TRUE)
+R> mc2 <- survival::coxph(DFS ~ randarm, data = CAOsurv)
+R> mc3 <- rms::cph(DFS ~ randarm, data = CAOsurv)
+R> 
+R> 
+R> ## ----Cox-DFS-results, eval = TRUE---------------------------------------------
+R> print.results(list(mc1, mc2, mc3))
   Function  Package Interpretation Estimate Std. Error    logLik
 1    Coxph     tram         log-HR   -0.231      0.106 -3'277.59
 2    coxph survival         log-HR   -0.228      0.106 -2'430.66
 3      cph      rms         log-HR   -0.228      0.106 -2'430.66
-> 
-> 
-> 
-> 
-> 
-> 
-> 
-> 
-> ## ----STRAT-iDFS-fit, cache = TRUE---------------------------------------------
-> mstci1 <- tram::Coxph(iDFS | strat ~ randarm, data = CAOsurv, log_first = TRUE)
-> mstci2 <- rstpm2::stpm2(Surv(time = iDFStime, time2 = iDFStime2, event = iDFSevent,
-+     type = "interval") ~ randarm + strata(strat), data = CAOsurv)
-> mstci3 <- NULL
-> #mstci3 <- flexsurv::flexsurvspline(iDFS ~ randarm + gamma1(strat) + gamma2(strat),
-> #  data = CAOsurv, k = 3, control=list(ndeps=rep(1e-09,12)))
-> ## COMMENT: "flexsurv" package: look at plot(model)
-> ## control: necessary for flexsurv 2.3; see email by Nov 4
-> ##          by Chris Jackson
-> ##          however, the hessian is singular, so we exclude this model
-> ##          for the time being.
-> 
-> 
-> ## ----STRAT-iDFS-results-------------------------------------------------------
-> print.results(list(mstci1, mstci2))##, mstci3))
+R> 
+R> 
+R> 
+R> 
+R> 
+R> 
+R> 
+R> 
+R> ## ----STRAT-iDFS-fit, cache = TRUE---------------------------------------------
+R> mstci1 <- tram::Coxph(iDFS | strat ~ randarm, data = CAOsurv, log_first = TRUE)
+R> mstci2 <- rstpm2::stpm2(Surv(time = iDFStime, time2 = iDFStime2, event = iDFSevent,
++      type = "interval") ~ randarm + strata(strat), data = CAOsurv)
+R> # mstci3 <- flexsurv::flexsurvspline(iDFS ~ randarm + gamma1(strat) + gamma2(strat),
+R> #  data = CAOsurv, k = 3, control=list(ndeps=rep(1e-09,12)))
+R> ## control: necessary for flexsurv 2.3; see email by Nov 4
+R> ##          by Chris Jackson
+R> ##          however, the hessian is singular, so we exclude this model
+R> ##          for the time being.
+R> 
+R> 
+R> ## ----STRAT-iDFS-results-------------------------------------------------------
+R> print.results(list(mstci1, mstci2))##, mstci3))
   Function Package Interpretation Estimate Std. Error    logLik
 1    Coxph    tram         log-HR   -0.231      0.107 -2'231.85
 2    stpm2  rstpm2         log-HR   -0.220      0.107 -2'242.88
-> 
-> 
-> 
-> ## ----STRAT-DFS-fit, cache = TRUE----------------------------------------------
-> mstc1 <- tram::Coxph(DFS | strat ~ randarm, data = CAOsurv, log_first = TRUE)
-> mstc2 <- survival::coxph(DFS ~ randarm + strata(strat), data = CAOsurv)
-> mstc3 <- rms::cph(DFS ~ randarm + strat(strat), data = CAOsurv)
-> 
-> 
-> ## ----STRAT-DFS-results--------------------------------------------------------
-> print.results(list(mstc1, mstc2, mstc3))
+R> 
+R> 
+R> 
+R> ## ----STRAT-DFS-fit, cache = TRUE----------------------------------------------
+R> mstc1 <- tram::Coxph(DFS | strat ~ randarm, data = CAOsurv, log_first = TRUE)
+R> mstc2 <- survival::coxph(DFS ~ randarm + strata(strat), data = CAOsurv)
+R> mstc3 <- rms::cph(DFS ~ randarm + strat(strat), data = CAOsurv)
+R> 
+R> 
+R> ## ----STRAT-DFS-results--------------------------------------------------------
+R> print.results(list(mstc1, mstc2, mstc3))
   Function  Package Interpretation Estimate Std. Error    logLik
 1    Coxph     tram         log-HR   -0.229      0.107 -3'253.85
 2    coxph survival         log-HR   -0.222      0.107 -2'089.54
 3      cph      rms         log-HR   -0.222      0.107 -2'089.54
-> 
-> 
-> 
-> ## ----STRAT-Wei-iDFS-fit, echo = FALSE, cache = TRUE---------------------------
-> mstw1 <- tram::Survreg(DFS | strat ~ randarm, data = CAOsurv)
-> mstw2 <- eha::phreg(DFS ~ randarm + strata(strat), data = CAOsurv)
-> mstw3 <- survival::survreg(DFS ~ randarm + strata(strat), data = CAOsurv)
-> 
-> 
-> ## ----STRAT-Wei-iDFS-results---------------------------------------------------
-> print.results(list(mstw1, mstw2, mstw3))
+R> 
+R> 
+R> 
+R> ## ----STRAT-Wei-iDFS-fit, echo = FALSE, cache = TRUE---------------------------
+R> mstw1 <- tram::Survreg(DFS | strat ~ randarm, data = CAOsurv)
+R> mstw2 <- eha::phreg(DFS ~ randarm + strata(strat), data = CAOsurv)
+R> mstw3 <- survival::survreg(DFS ~ randarm + strata(strat), data = CAOsurv)
+R> 
+R> 
+R> ## ----STRAT-Wei-iDFS-results---------------------------------------------------
+R> print.results(list(mstw1, mstw2, mstw3))
   Function  Package Interpretation Estimate Std. Error    logLik
 1  Survreg     tram         log-HR   -0.219      0.107 -3'277.35
 2    phreg      eha         log-HR   -0.219      0.107 -3'277.35
 3  survreg survival         log-AF    0.274      0.133 -3'280.87
-> 
-> 
-> 
-> 
-> ## ----LS-iDFS-Wei-fit, cache = TRUE--------------------------------------------
-> mswi1 <- tram::Survreg(iDFS ~ randarm | randarm, data = CAOsurv,
-+   remove_intercept = FALSE)
-> tmp <- CAOsurv[, c("iDFS", "randarm")] ## NA in other columns prompts error
-> gen.cens(family = "WEI2", type = "interval")
+R> 
+R> 
+R> 
+R> 
+R> ## ----LS-iDFS-Wei-fit, cache = TRUE--------------------------------------------
+R> mswi1 <- tram::Survreg(iDFS ~ randarm | randarm, data = CAOsurv,
++    remove_intercept = FALSE)
+R> tmp <- CAOsurv[, c("iDFS", "randarm")] ## NA in other columns prompts error
+R> gen.cens(family = "WEI2", type = "interval")
 A censored family of distributions from WEI2 has been generated 
  and saved under the names:  
  dWEI2ic pWEI2ic qWEI2ic WEI2ic 
 The type of censoring is interval  
-> mswi2 <- gamlss::gamlss(formula = iDFS ~ randarm, sigma.fo = ~ randarm,
-+   family = gamlss.cens::cens(family = "WEI2", type = "interval"),
-+   data = tmp, control = gamlss.control(n.cyc = 300, trace = FALSE))
-> 
-> 
-> 
-> ## ----LS-iDFS-results----------------------------------------------------------
-> print.results(list(mswi1, mswi2))
+R> mswi2 <- gamlss::gamlss(formula = iDFS ~ randarm, sigma.fo = ~ randarm,
++    family = gamlss.cens::cens(family = "WEI2", type = "interval"),
++    data = tmp, control = gamlss.control(n.cyc = 300, trace = FALSE))
+R> 
+R> 
+R> 
+R> ## ----LS-iDFS-results----------------------------------------------------------
+R> print.results(list(mswi1, mswi2))
   Function Package Interpretation Estimate Std. Error    logLik
 1  Survreg    tram           <NA>   -0.849      0.536 -2'280.47
 2   gamlss  gamlss           <NA>   -0.948      0.542 -2'280.53
-> 
-> 
-> 
-> 
-> ## ----LS-DFS-fit, echo = FALSE, cache = TRUE-----------------------------------
-> msw1 <- tram::Survreg(DFS ~ randarm | randarm, data = CAOsurv,
-+   remove_intercept = FALSE)
-> msw2 <- mpr::mpr(DFS ~ list(~ randarm, ~ randarm), data = CAOsurv)
-> 
-> 
-> 
-> ## ----LS-DFS-results-----------------------------------------------------------
-> print.results(list(msw1, msw2))
+R> 
+R> 
+R> 
+R> 
+R> ## ----LS-DFS-fit, echo = FALSE, cache = TRUE-----------------------------------
+R> msw1 <- tram::Survreg(DFS ~ randarm | randarm, data = CAOsurv,
++    remove_intercept = FALSE)
+R> msw2 <- mpr::mpr(DFS ~ list(~ randarm, ~ randarm), data = CAOsurv)
+R> 
+R> 
+R> 
+R> ## ----LS-DFS-results-----------------------------------------------------------
+R> print.results(list(msw1, msw2))
   Function Package Interpretation Estimate Std. Error    logLik
 1  Survreg    tram           <NA>   -0.976      0.568 -3'290.43
 2      mpr     mpr           <NA>   -0.975      0.567 -3'290.43
-> 
-> 
-> 
-> 
-> ## ----TVAR-iDFS-fit, cache = TRUE----------------------------------------------
-> mcvi1 <- tram::Coxph(iDFS | randarm ~ 1, data = CAOsurv)
-> mcvi2 <- flexsurv::flexsurvspline(iDFS ~ randarm +
-+     gamma1(randarm) + gamma2(randarm), data = CAOsurv, k = 3)
+R> 
+R> 
+R> 
+R> 
+R> ## ----TVAR-iDFS-fit, cache = TRUE----------------------------------------------
+R> mcvi1 <- tram::Coxph(iDFS | randarm ~ 1, data = CAOsurv)
+R> mcvi2 <- flexsurv::flexsurvspline(iDFS ~ randarm +
++      gamma1(randarm) + gamma2(randarm), data = CAOsurv, k = 3)
 There were 22 warnings (use warnings() to see them)
-> 
-> 
-> 
-> ## ----TVAR-iDFS-plot, fig.width = 6, fig.height = 3----------------------------
-> ## cumHR from "tram"
-> xlim.tvar <- c(100, max(q))
-> 
-> y <- variable.names(mcvi1, "response")
-> s <- mkgrid(mcvi1, n = 50)
-> s[[y]] <- s[[y]][s[[y]] > xlim[1] & s[[y]] < xlim[2]]
-> 
-> cumhaz <- predict(as.mlt(mcvi1), newdata = s, type = "cumhazard")
-> cumhr <- cumhaz[,2] / cumhaz[,1]
-> 
-> par(mgp = c(2.5, 1, 0), mar = c(4, 4, 1.5, 4))
-> plot(s[[y]], cumhr, ylim = ylimHR, type = "l",
-+      xlab = xlab, ylab = ylabcumHR, las = 1, lwd = lwd)
-> abline(h = 1, lty = 3)
-> 
-> ## cumHR from "flexsurvspline"
-> cumhaz <- predict(mcvi2, type = "cumhaz", newdata =  nd1)
-> cumhr <- unlist(unname(cumhaz[[1]][[2]][2] /  cumhaz[[1]][[1]][2]))
-> t <- unlist(unname(cumhaz[[1]][[1]][1]))
-> ret <- as.data.frame(cbind(t, cumhr))
-> ret <- ret[ret$t > xlim.tvar[1] & ret$t < xlim.tvar[2], ]
-> lines(ret$t, ret$cumhr, lty = 2, lwd = 2, col = col2 <- "darkgrey")
-> legend("topright", lty = 1:2, lwd = 2, col = c("black", col2),
-+   legend = c(bquote("package:"~bold("tram")), bquote("package:"~bold("flexsurv"))),
-+   bty = "n")
-> 
-> 
-> 
-> ## ----TVAR-DFS-fit, cache = TRUE-----------------------------------------------
-> mcv1 <- tram::Coxph(DFS | randarm ~ 1, data = CAOsurv, log_first = TRUE)
-> mcv2 <- flexsurv::flexsurvspline(DFS ~ randarm + gamma1(randarm) + gamma2(randarm),
-+   data = CAOsurv, k = 3)
-> 
-> 
-> ## ----TVAR-DFS-plot, fig.width = 6, fig.height = 3-----------------------------
-> ## cumHR from "tram"
-> xlim.tvar <- c(100, max(q))
-> 
-> y <- variable.names(mcv1, "response")
-> s <- mkgrid(mcv1, n = 50)
-> s[[y]] <- s[[y]][s[[y]] > xlim[1] & s[[y]] < xlim[2]]
-> 
-> cumhaz <- predict(as.mlt(mcv1), newdata = s, type = "cumhazard")
-> cumhr <- cumhaz[,2] / cumhaz[,1]
-> 
-> par(mgp = c(2.5, 1, 0), mar = c(4, 4, 1.5, 4))
-> plot(s[[y]], cumhr, ylim = ylimHR, type = "l",
-+      xlab = xlab, ylab =  ylabcumHR, las = 1, lwd = lwd)
-> abline(h = 1, lty = 3)
-> 
-> ## cumHR from "flexsurvspline"
-> cumhaz <- predict(mcv2, type = "cumhaz", newdata =  nd1)
-> cumhr <- unlist(unname(cumhaz[[1]][[2]][2] /  cumhaz[[1]][[1]][2]))
-> t <- unlist(unname(cumhaz[[1]][[1]][1]))
-> ret <- as.data.frame(cbind(t, cumhr))
-> ret <- ret[ret$t > xlim.tvar[1] & ret$t < xlim.tvar[2], ]
-> lines(ret$t, ret$cumhr, lty = 2, lwd = 2, col = col2 <- "darkgrey")
-> legend("topright", lty = 1:2, lwd = 2, col = c("black", col2),
-+   legend = c(bquote("package:"~bold("tram")), bquote("package:"~bold("flexsurv"))),
-+   bty = "n")
-> 
-> 
-> 
-> ## ----MIXED-DFS-fit, cache = TRUE----------------------------------------------
-> mcME1 <- tramME::CoxphME(DFS ~ randarm + (1 | Block), data = CAOsurv, log_first = TRUE)
-> mcME2 <- rstpm2::stpm2(Surv(DFStime, DFSevent) ~ randarm, data = CAOsurv,
-+   cluster = "Block", RandDist = "LogN")
-> mcME3 <- coxme::coxme(DFS ~ randarm + (1 | Block), data = CAOsurv)
-> 
-> 
-> ## ----MIXED-DFS-results--------------------------------------------------------
-> print.results(list(mcME1, mcME2, mcME3))
+R> 
+R> 
+R> 
+R> ## ----TVAR-iDFS-plot, fig.width = 6, fig.height = 3----------------------------
+R> ## cumHR from "tram"
+R> xlim.tvar <- c(100, max(q))
+R> 
+R> y <- variable.names(mcvi1, "response")
+R> s <- mkgrid(mcvi1, n = 50)
+R> s[[y]] <- s[[y]][s[[y]] > xlim[1] & s[[y]] < xlim[2]]
+R> 
+R> cumhaz <- predict(as.mlt(mcvi1), newdata = s, type = "cumhazard")
+R> cumhr <- cumhaz[,2] / cumhaz[,1]
+R> 
+R> par(mgp = c(2.5, 1, 0), mar = c(4, 4, 1.5, 4))
+R> plot(s[[y]], cumhr, ylim = ylimHR, type = "l",
++       xlab = xlab, ylab = ylabcumHR, las = 1, lwd = lwd)
+R> abline(h = 1, lty = 3)
+R> 
+R> ## cumHR from "flexsurvspline"
+R> cumhaz <- predict(mcvi2, type = "cumhaz", newdata =  nd1)
+R> cumhr <- unlist(unname(cumhaz[[1]][[2]][2] /  cumhaz[[1]][[1]][2]))
+R> t <- unlist(unname(cumhaz[[1]][[1]][1]))
+R> ret <- as.data.frame(cbind(t, cumhr))
+R> ret <- ret[ret$t > xlim.tvar[1] & ret$t < xlim.tvar[2], ]
+R> lines(ret$t, ret$cumhr, lty = 2, lwd = 2, col = col2 <- "darkgrey")
+R> legend("topright", lty = 1:2, lwd = 2, col = c("black", col2),
++    legend = c(bquote("package:"~bold("tram")), bquote("package:"~bold("flexsurv"))),
++    bty = "n")
+R> 
+R> 
+R> 
+R> ## ----TVAR-DFS-fit, cache = TRUE-----------------------------------------------
+R> mcv1 <- tram::Coxph(DFS | randarm ~ 1, data = CAOsurv, log_first = TRUE)
+R> mcv2 <- flexsurv::flexsurvspline(DFS ~ randarm + gamma1(randarm) + gamma2(randarm),
++    data = CAOsurv, k = 3)
+R> 
+R> 
+R> ## ----TVAR-DFS-plot, fig.width = 6, fig.height = 3-----------------------------
+R> ## cumHR from "tram"
+R> xlim.tvar <- c(100, max(q))
+R> 
+R> y <- variable.names(mcv1, "response")
+R> s <- mkgrid(mcv1, n = 50)
+R> s[[y]] <- s[[y]][s[[y]] > xlim[1] & s[[y]] < xlim[2]]
+R> 
+R> cumhaz <- predict(as.mlt(mcv1), newdata = s, type = "cumhazard")
+R> cumhr <- cumhaz[,2] / cumhaz[,1]
+R> 
+R> par(mgp = c(2.5, 1, 0), mar = c(4, 4, 1.5, 4))
+R> plot(s[[y]], cumhr, ylim = ylimHR, type = "l",
++       xlab = xlab, ylab =  ylabcumHR, las = 1, lwd = lwd)
+R> abline(h = 1, lty = 3)
+R> 
+R> ## cumHR from "flexsurvspline"
+R> cumhaz <- predict(mcv2, type = "cumhaz", newdata =  nd1)
+R> cumhr <- unlist(unname(cumhaz[[1]][[2]][2] /  cumhaz[[1]][[1]][2]))
+R> t <- unlist(unname(cumhaz[[1]][[1]][1]))
+R> ret <- as.data.frame(cbind(t, cumhr))
+R> ret <- ret[ret$t > xlim.tvar[1] & ret$t < xlim.tvar[2], ]
+R> lines(ret$t, ret$cumhr, lty = 2, lwd = 2, col = col2 <- "darkgrey")
+R> legend("topright", lty = 1:2, lwd = 2, col = c("black", col2),
++    legend = c(bquote("package:"~bold("tram")), bquote("package:"~bold("flexsurv"))),
++    bty = "n")
+R> 
+R> 
+R> 
+R> ## ----MIXED-DFS-fit, cache = TRUE----------------------------------------------
+R> mcME1 <- tramME::CoxphME(DFS ~ randarm + (1 | Block), data = CAOsurv, log_first = TRUE)
+R> mcME2 <- rstpm2::stpm2(Surv(DFStime, DFSevent) ~ randarm, data = CAOsurv,
++    cluster = "Block", RandDist = "LogN")
+R> mcME3 <- coxme::coxme(DFS ~ randarm + (1 | Block), data = CAOsurv)
+R> 
+R> 
+R> ## ----MIXED-DFS-results--------------------------------------------------------
+R> print.results(list(mcME1, mcME2, mcME3))
   Function Package Interpretation Estimate Std. Error    logLik
 1  CoxphME  tramME         log-HR   -0.237      0.107 -3'277.23
 2    stpm2  rstpm2         log-HR   -0.234      0.107 -3'272.86
 3    coxme   coxme         log-HR   -0.231      0.107 -2'414.48
-> 
-> 
-> 
-> 
-> ## ----HTECOX-DFS-fit-----------------------------------------------------------
-> ma1 <- CoxphME(DFS ~ randarm +
-+     s(age, by = as.ordered(randarm), fx = TRUE, k = 6),
-+                data = CAOsurv, log_first = TRUE)
-> ma2 <- gam(DFStime ~ randarm +
-+     s(age, by = as.ordered(randarm), fx = TRUE, k = 6),
-+                data = CAOsurv, family = cox.ph(), weights = DFSevent)
-> 
-> 
-> ## ----HTECOX-DFS-results-------------------------------------------------------
-> print.results(list(ma1, ma2))
+R> 
+R> 
+R> 
+R> 
+R> ## ----HTECOX-DFS-fit-----------------------------------------------------------
+R> ma1 <- CoxphME(DFS ~ randarm +
++      s(age, by = as.ordered(randarm), fx = TRUE, k = 6),
++                 data = CAOsurv, log_first = TRUE)
+R> ma2 <- gam(DFStime ~ randarm +
++      s(age, by = as.ordered(randarm), fx = TRUE, k = 6),
++                 data = CAOsurv, family = cox.ph(), weights = DFSevent)
+R> 
+R> 
+R> ## ----HTECOX-DFS-results-------------------------------------------------------
+R> print.results(list(ma1, ma2))
   Function Interpretation Estimate Std. Error    logLik
 1  CoxphME         log-HR   -0.247      0.107 -3'272.88
 2      gam         log-HR   -0.244      0.107 -2'426.04
-> 
-> 
-> ## ----HTECOX-DFS-plot----------------------------------------------------------
-> nd <- model.frame(ma1)[rep(2, 100), ]
-> nd$age <- seq(min(CAOsurv$age), max(CAOsurv$age), length.out = 100)
-> xx <- model.matrix(ma1, data = nd, type = "X", keep_sign = FALSE)$X
-> ip <- grep("randarm", names(bb <- coef(ma1, with_baseline = TRUE)))
-> vc <- vcov(ma1, parm = names(bb)[ip])
-> bb <- bb[ip]
-> 
-> cb1 <- exp(confint(multcomp::glht(multcomp::parm(bb, vc), linfct = xx),
-+                   calpha = univariate_calpha())$confint)
-> 
-> plot(nd$age, cb1[, "Estimate"], type = "n", ylab = "Hazard ratio", xlab = "Age (in years)",
-+      ylim = ylimHR)
-> matlines(nd$age, cb1, lwd = lwd, col = 1, lty = 1)
-> abline(h = 1, lty = 3)
-> 
-> summary(ma2)
+R> 
+R> 
+R> ## ----HTECOX-DFS-plot----------------------------------------------------------
+R> nd <- model.frame(ma1)[rep(2, 100), ]
+R> nd$age <- seq(min(CAOsurv$age), max(CAOsurv$age), length.out = 100)
+R> xx <- model.matrix(ma1, data = nd, type = "X", keep_sign = FALSE)$X
+R> ip <- grep("randarm", names(bb <- coef(ma1, with_baseline = TRUE)))
+R> vc <- vcov(ma1, parm = names(bb)[ip])
+R> bb <- bb[ip]
+R> 
+R> cb1 <- exp(confint(multcomp::glht(multcomp::parm(bb, vc), linfct = xx),
++                    calpha = univariate_calpha())$confint)
+R> 
+R> plot(nd$age, cb1[, "Estimate"], type = "n", ylab = "Hazard ratio", xlab = "Age (in years)",
++       ylim = ylimHR)
+R> matlines(nd$age, cb1, lwd = lwd, col = 1, lty = 1)
+R> abline(h = 1, lty = 3)
+R> 
+R> summary(ma2)
 
 Family: Cox PH 
 Link function: identity 
@@ -1519,148 +1476,128 @@ Parametric coefficients:
                           Estimate Std. Error z value Pr(>|z|)  
 randarm5-FU + Oxaliplatin  -0.2436     0.1074  -2.268   0.0233 *
 ---
-Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 Approximate significance of smooth terms:
                                              edf Ref.df Chi.sq p-value  
 s(age):as.ordered(randarm)5-FU + Oxaliplatin   5      5  10.41  0.0645 .
 ---
-Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 Deviance explained = 0.756%
 -REML = 2429.5  Scale est. = 1         n = 1236
-> 
-> nd2 <- model.frame(ma2)[rep(2, 100), ]
-> nd2$age <- seq(min(CAOsurv$age), max(CAOsurv$age), length.out = 100)
-> pr <- predict(ma2, newdata = nd2, type = "link", se.fit = TRUE)
-> 
-> matlines(nd2$age, exp(c(pr$fit) + qnorm(0.975) * pr$se.fit %o% c(0, -1, 1)),
-+          col = col2, lwd = lwd, lty = 2)
-> 
-> legend("bottomright", lty = 1:2, lwd = 2, col = c("black", col2),
-+   legend = c(bquote("package:"~bold("tramME")), bquote("package:"~bold("mgcv"))),
-+   bty = "n")
-> 
-> 
-> 
-> ## ----FRAILTY-DFS-fit, cache = TRUE--------------------------------------------
-> mfc1 <- tram::Coxph(DFS ~ randarm, data = CAOsurv, log_first = TRUE, frailty = "Gamma")
-> mfc2 <- rstpm2::stpm2(Surv(DFStime, DFSevent) ~ randarm, data = CAOsurv,
-+   cluster = "id", RandDist = "Gamma")
-> mfc3 <- survival::coxph(DFS ~ randarm + frailty(id, distribution = "gamma"), data = CAOsurv)
-> mfc4 <- frailtyEM::emfrail(DFS ~ randarm + cluster(id), data = CAOsurv)
-> mfc5 <- frailtypack::frailtyPenal(DFS ~ randarm + cluster(id), data = CAOsurv,
-+   RandDist = "Gamma", n.knots = 10, kappa = 1)
+R> 
+R> nd2 <- model.frame(ma2)[rep(2, 100), ]
+R> nd2$age <- seq(min(CAOsurv$age), max(CAOsurv$age), length.out = 100)
+R> pr <- predict(ma2, newdata = nd2, type = "link", se.fit = TRUE)
+R> 
+R> matlines(nd2$age, exp(c(pr$fit) + qnorm(0.975) * pr$se.fit %o% c(0, -1, 1)),
++           col = col2, lwd = lwd, lty = 2)
+R> 
+R> legend("bottomright", lty = 1:2, lwd = 2, col = c("black", col2),
++    legend = c(bquote("package:"~bold("tramME")), bquote("package:"~bold("mgcv"))),
++    bty = "n")
+R> 
+R> 
+R> 
+R> ## ----FRAILTY-DFS-fit, cache = TRUE--------------------------------------------
+R> mfc1 <- tram::Coxph(DFS ~ randarm, data = CAOsurv, log_first = TRUE, frailty = "Gamma")
+R> mfc2 <- rstpm2::stpm2(Surv(DFStime, DFSevent) ~ randarm, data = CAOsurv,
++    cluster = "id", RandDist = "Gamma")
+R> mfc3 <- survival::coxph(DFS ~ randarm + frailty(id, distribution = "gamma"), data = CAOsurv)
+R> mfc4 <- frailtyEM::emfrail(DFS ~ randarm + cluster(id), data = CAOsurv)
+R> mfc5 <- frailtypack::frailtyPenal(DFS ~ randarm + cluster(id), data = CAOsurv,
++    RandDist = "Gamma", n.knots = 10, kappa = 1)
 
 Be patient. The program is computing ... 
 The program took 0.13 seconds 
-> 
-> 
-> ## ----FRAILTY-DFS-results------------------------------------------------------
-> print.results(list(mfc1, mfc2, mfc3, mfc4, mfc5))
+R> 
+R> 
+R> ## ----FRAILTY-DFS-results------------------------------------------------------
+R> print.results(list(mfc1, mfc2, mfc3, mfc4, mfc5))
       Function     Package Interpretation Estimate Std. Error    logLik
 1        Coxph        tram         log-HR   -0.632      0.467 -3'263.81
 2        stpm2      rstpm2         log-HR   -0.685      0.670 -3'264.88
 3        coxph    survival         log-HR   -0.406      0.159 -1'944.22
 4      emfrail   frailtyEM         log-HR   -0.384      0.153 -2'430.45
 5 frailtyPenal frailtypack         log-HR   -0.660      0.248 -3'259.82
-> 
-> 
-> 
-> 
-> ## ----Colr-DFS-fit, cache = TRUE-----------------------------------------------
-> mo1 <- tram::Colr(DFS ~ randarm, data = CAOsurv, log_first = TRUE)
-> mo2 <- rstpm2::stpm2(Surv(DFStime, DFSevent) ~ randarm, data = CAOsurv, link.type = "PO")
-> mo3 <- flexsurv::flexsurvspline(iDFS ~ randarm, data = CAOsurv, k = 3, scale = "odds")
+R> 
+R> 
+R> 
+R> 
+R> ## ----Colr-DFS-fit, cache = TRUE-----------------------------------------------
+R> mo1 <- tram::Colr(DFS ~ randarm, data = CAOsurv, log_first = TRUE)
+R> mo2 <- rstpm2::stpm2(Surv(DFStime, DFSevent) ~ randarm, data = CAOsurv, link.type = "PO")
+R> mo3 <- flexsurv::flexsurvspline(iDFS ~ randarm, data = CAOsurv, k = 3, scale = "odds")
 There were 38 warnings (use warnings() to see them)
-> mo4 <- timereg::Gprop.odds(DFS ~ prop(randarm), data = CAOsurv)
+R> mo4 <- timereg::Gprop.odds(DFS ~ prop(randarm), data = CAOsurv)
 Simulations start N= 500 
-> 
-> 
-> ## ----Colr-DFS-results---------------------------------------------------------
-> print.results(list(mo1, mo2, mo3, mo4))
+R> 
+R> 
+R> ## ----Colr-DFS-results---------------------------------------------------------
+R> print.results(list(mo1, mo2, mo3, mo4))
         Function  Package Interpretation Estimate Std. Error    logLik
 1           Colr     tram         log-OR   -0.297      0.125 -3'276.28
 2          stpm2   rstpm2         log-OR   -0.294      0.125 -3'272.44
 3 flexsurvspline flexsurv      $-$log-OR   -0.294      0.124 -2'247.78
 4     Gprop.odds  timereg         log-OR   -0.268      0.125          
-> 
-> 
-> ## ----session, results = "markup"----------------------------------------------
-> sessionInfo()
-R version 4.4.3 (2025-02-28)
-Platform: x86_64-pc-linux-gnu
-Running under: Debian GNU/Linux 12 (bookworm)
-
-Matrix products: default
-BLAS:   /usr/local/lib/R/lib/libRblas.so 
-LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.11.0
-
-locale:
- [1] LC_CTYPE=en_GB.UTF-8       LC_NUMERIC=C              
- [3] LC_TIME=en_GB.UTF-8        LC_COLLATE=en_GB.UTF-8    
- [5] LC_MONETARY=en_GB.UTF-8    LC_MESSAGES=en_GB.UTF-8   
- [7] LC_PAPER=en_GB.UTF-8       LC_NAME=C                 
- [9] LC_ADDRESS=C               LC_TELEPHONE=C            
-[11] LC_MEASUREMENT=en_GB.UTF-8 LC_IDENTIFICATION=C       
-
-time zone: Europe/Berlin
-tzcode source: system (glibc)
-
-attached base packages:
- [1] parallel  splines   grid      stats     graphics  grDevices utils    
- [8] datasets  methods   base     
-
-other attached packages:
- [1] timereg_2.0.6     mgcv_1.9-1        frailtypack_3.7.0 survC1_1.0-3     
- [5] doBy_4.6.25       boot_1.3-31       frailtyEM_1.0.1   parfm_2.7.7      
- [9] optimx_2024-12.2  coxme_2.2-22      bdsmatrix_1.3-7   gamlss.cens_5.0-7
-[13] gamlss_5.4-22     nlme_3.1-167      gamlss.dist_6.1-1 gamlss.data_6.0-6
-[17] mpr_1.0.6         flexsurv_2.3.2    rstpm2_1.6.6.1    eha_2.11.5       
-[21] ICsurv_1.0.1      rms_7.0-0         Hmisc_5.2-2       TransModel_2.3   
-[25] icenReg_2.0.16    coda_0.19-4.1     fastGHQuad_1.0.1  Rcpp_1.0.14      
-[29] xtable_1.8-4      colorspace_2.1-1  coin_1.4-3        multcomp_1.4-28  
-[33] TH.data_1.1-3     MASS_7.3-64       survival_3.8-3    tramME_1.0.7     
-[37] ATR_0.1-1         SparseGrid_0.8.2  trtf_0.4-3        partykit_1.2-24  
-[41] libcoin_1.0-10    tram_1.2-1        mvtnorm_1.3-3     mlt_1.6-3        
-[45] basefun_1.2-2     variables_1.1-1  
-
-loaded via a namespace (and not attached):
- [1] rstudioapi_0.17.1    magrittr_2.0.3       modeltools_0.2-23   
- [4] nloptr_2.1.1         rmarkdown_2.29       vctrs_0.6.5         
- [7] minqa_1.2.8          base64enc_0.1-3      htmltools_0.5.8.1   
-[10] polspline_1.1.25     polynom_1.4-1        broom_1.0.7         
-[13] deSolve_1.40         Formula_1.2-5        parallelly_1.42.0   
-[16] pracma_2.4.4         htmlwidgets_1.6.4    sandwich_3.1-1      
-[19] rootSolve_1.8.2.4    zoo_1.8-13           TMB_1.9.16          
-[22] alabama_2023.1.0     lifecycle_1.0.4      iterators_1.0.14    
-[25] pkgconfig_2.0.3      Matrix_1.7-2         R6_2.6.1            
-[28] fastmap_1.2.0        future_1.34.0        rbibutils_2.3       
-[31] digest_0.6.37        numDeriv_2016.8-1.1  compiler_4.4.3      
-[34] microbenchmark_1.5.0 withr_3.0.2          htmlTable_2.4.3     
-[37] backports_1.5.0      BB_2019.10-1         lava_1.8.1          
-[40] quantreg_6.00        tools_4.4.3          foreign_0.8-88      
-[43] mstate_0.3.3         future.apply_1.11.3  nnet_7.3-20         
-[46] glue_1.8.0           quadprog_1.5-8       inum_1.0-5          
-[49] checkmate_2.3.2      cluster_2.1.8        generics_0.1.3      
-[52] orthopolynom_1.0-6.1 gtable_0.3.6         tidyr_1.3.1         
-[55] sn_2.1.1             data.table_1.17.0    Deriv_4.1.6         
-[58] foreach_1.5.2        pillar_1.10.1        stringr_1.5.1       
-[61] dplyr_1.1.4          lattice_0.22-6       SparseM_1.84-2      
-[64] tidyselect_1.2.1     muhaz_1.2.6.4        expint_0.1-8        
-[67] knitr_1.50           reformulas_0.4.0     gridExtra_2.3       
-[70] stats4_4.4.3         xfun_0.51            expm_1.0-0          
-[73] statmod_1.5.0        matrixStats_1.5.0    stringi_1.8.4       
-[76] evaluate_1.0.3       codetools_0.2-20     msm_1.8.2           
-[79] bbmle_1.0.25.1       coneproj_1.20        tibble_3.2.1        
-[82] cli_3.6.4            rpart_4.1.24         Rdpack_2.6.2        
-[85] munsell_0.5.1        modelr_0.1.11        globals_0.16.3      
-[88] MatrixModels_0.5-3   assertthat_0.2.1     ggplot2_3.5.1       
-[91] listenv_0.9.1        lme4_1.1-36          matrixcalc_1.0-6    
-[94] scales_1.3.0         purrr_1.0.4          rlang_1.1.5         
-[97] cowplot_1.1.3        mnormt_2.1.1        
-> 
-> 
+R> 
+R> 
+R> ## ----session, results = "asis"------------------------------------------------
+R> toLatex(sessionInfo(), locale = FALSE)
+\begin{itemize}\raggedright
+  \item R version 4.5.1 (2025-06-13), \verb|x86_64-pc-linux-gnu|
+  \item Running under: \verb|Debian GNU/Linux 12 (bookworm)|
+  \item Matrix products: default
+  \item BLAS:   \verb|/usr/local/lib/R/lib/libRblas.so|
+  \item LAPACK: \verb|/usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.11.0|
+  \item Base packages: base, datasets, graphics, grDevices, grid,
+    methods, parallel, splines, stats, utils
+  \item Other packages: ATR~0.1-1, basefun~1.2-3,
+    bdsmatrix~1.3-7, boot~1.3-31, coda~0.19-4.1, coin~1.4-3,
+    colorspace~2.1-1, coxme~2.2-22, doBy~4.7.0, eha~2.11.5,
+    fastGHQuad~1.0.1, flexsurv~2.3.2, frailtyEM~1.0.1,
+    frailtypack~3.7.0, gamlss~5.4-22, gamlss.cens~5.0-7,
+    gamlss.data~6.0-6, gamlss.dist~6.1-1, Hmisc~5.2-3,
+    icenReg~2.0.16, ICsurv~1.0.1, knitr~1.50, libcoin~1.0-10,
+    MASS~7.3-65, mgcv~1.9-3, mlt~1.6-7, mpr~1.0.6,
+    multcomp~1.4-28, mvtnorm~1.3-4, nlme~3.1-168,
+    optimx~2025-4.9, parfm~2.7.8, partykit~1.2-24, Rcpp~1.1.0,
+    rms~8.0-0, rstpm2~1.6.9, SparseGrid~0.8.2, survC1~1.0-3,
+    survival~3.8-3, TH.data~1.1-4, timereg~2.0.7, tram~1.2-4,
+    tramME~1.0.7, TransModel~2.3, trtf~0.4-3, variables~1.1-2,
+    xtable~1.8-4
+  \item Loaded via a namespace (and not attached):
+    alabama~2023.1.0, assertthat~0.2.1, backports~1.5.0,
+    base64enc~0.1-3, BB~2019.10-1, bbmle~1.0.25.1, broom~1.0.9,
+    checkmate~2.3.2, cli~3.6.5, cluster~2.1.8.1,
+    codetools~0.2-20, compiler~4.5.1, coneproj~1.20,
+    cowplot~1.2.0, data.table~1.17.8, Deriv~4.2.0, deSolve~1.40,
+    digest~0.6.37, dplyr~1.1.4, evaluate~1.0.4, expint~0.1-8,
+    expm~1.0-0, farver~2.1.2, fastmap~1.2.0, foreach~1.5.2,
+    foreign~0.8-90, Formula~1.2-5, future~1.67.0,
+    future.apply~1.20.0, generics~0.1.4, ggplot2~3.5.2,
+    globals~0.18.0, glue~1.8.0, gridExtra~2.3, gtable~0.3.6,
+    htmlTable~2.4.3, htmltools~0.5.8.1, htmlwidgets~1.6.4,
+    inum~1.0-5, iterators~1.0.14, lattice~0.22-7, lava~1.8.1,
+    lifecycle~1.0.4, listenv~0.9.1, lme4~1.1-37, magrittr~2.0.3,
+    Matrix~1.7-3, matrixcalc~1.0-6, MatrixModels~0.5-4,
+    matrixStats~1.5.0, microbenchmark~1.5.0, minqa~1.2.8,
+    mnormt~2.1.1, modelr~0.1.11, modeltools~0.2-24, msm~1.8.2,
+    mstate~0.3.3, muhaz~1.2.6.4, nloptr~2.2.1, nnet~7.3-20,
+    numDeriv~2016.8-1.1, orthopolynom~1.0-6.1, parallelly~1.45.1,
+    pillar~1.11.0, pkgconfig~2.0.3, polspline~1.1.25,
+    polynom~1.4-1, pracma~2.4.4, purrr~1.1.0, quadprog~1.5-8,
+    quantreg~6.1, R6~2.6.1, rbibutils~2.3, RColorBrewer~1.1-3,
+    Rdpack~2.6.4, reformulas~0.4.1, rlang~1.1.6, rmarkdown~2.29,
+    rootSolve~1.8.2.4, rpart~4.1.24, rstudioapi~0.17.1,
+    sandwich~3.1-1, scales~1.4.0, sn~2.1.1, SparseM~1.84-2,
+    statmod~1.5.0, stats4~4.5.1, stringi~1.8.7, stringr~1.5.1,
+    tibble~3.3.0, tidyr~1.3.1, tidyselect~1.2.1, TMB~1.9.17,
+    tools~4.5.1, vctrs~0.6.5, withr~3.0.2, xfun~0.52, zoo~1.8-14
+\end{itemize}
+R> 
+R> 
 > proc.time()
    user  system elapsed 
-150.501   0.480 152.029 
+154.137   0.397 154.622 

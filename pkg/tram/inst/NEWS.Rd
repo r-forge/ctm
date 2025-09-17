@@ -5,6 +5,7 @@
 \section{Changes in Version 1.2-4 (2025-08-18)}{
   \itemize{
     \item{\code{summary.tram} now works for univariate models.}
+    \item{New \code{survtram} vignette.}
   }
 }
 
