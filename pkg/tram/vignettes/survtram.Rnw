@@ -2034,7 +2034,7 @@ patients from all blocks are depicted in Figure~\ref{fig:COXME}.
 \begin{Schunk}
 
 
-{\centering \includegraphics{figure/COXME-margsurv-plot-1} 
+{\centering \includegraphics{figure/COXME-margsurv-plot-1.pdf} 
 
 }
 
