@@ -604,10 +604,6 @@ few related packages.
 \IfFileExists{upquote.sty}{\usepackage{upquote}}{}
 \begin{document}
 
-%% main
-\begin{bibunit}
-
-%
 
 <<survtram-pkgs, echo = FALSE, results = "hide", message = FALSE, warning = FALSE>>=
 # required packages
@@ -621,17 +617,15 @@ if (any(!pkgs))
 {
     cat(paste("Package(s)", paste(names(pkgs)[!pkgs], collapse = ", "), 
         "not available, stop processing.",
-        "\\putbib\n",
-        "\\end{bibunit}\n",
         "\\end{document}\n"))
     knitr::knit_exit()
 }
-if (!interactive() && .Platform$OS.type != "unix")
-{
-    cat("Vignette only compiled under Unix alikes.")
-    knitr::knit_exit()
-}
 @
+
+%% main
+\begin{bibunit}
+
+%
 
 
 <<setup, echo = FALSE, results = "hide", message = FALSE, warning = FALSE>>=
