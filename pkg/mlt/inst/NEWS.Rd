@@ -2,11 +2,17 @@
 \name{NEWS}
 \title{NEWS file for the mlt package}
 
-\section{Changes in Version 1.6-7 (2025-08-18)}{
+\section{Changes in Version 1.6-7 (2025-09-18)}{
   \subsection{Bugfixes}{
     \itemize{
       \item{\code{summary.mmlt} works now.}
       \item{Improved error messages in \code{mmlt}.}
+    }
+  }
+  \subsection{Other Changes}{
+    \itemize{
+      \item{\code{mltoptim()} defaults changed for \code{auglag} and 
+            \code{constrOptim}.}
     }
   }
 }
