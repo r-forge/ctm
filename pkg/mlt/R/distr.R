@@ -51,7 +51,10 @@
                  return(-expm1(-exp(x)))
              return(ret)             
          },
-         q = function(p) log(-log1p(- p)),
+         q = function(p, log.p = FALSE) {
+                if (log.p) p <- exp(p)
+                log(-log1p(- p))
+         },
          d = function(x, log = FALSE) {
              ret <- x - exp(x)
              if (!log) return(exp(ret))
@@ -84,7 +87,10 @@
                  return(exp(-exp(-x)))
              -expm1(-exp(-x))
          },
-         q = function(p) -log(-log(p)),
+         q = function(p, log.p = FALSE) {
+                if (!log.p) p <- log(p)
+                -log(-p)
+         },
          d = function(x, log = FALSE) {
              ret <- - x - exp(-x)
              if (!log) return(exp(ret))
@@ -115,7 +121,11 @@
             if (!lower.tail && !log.p)
                 return(ifelse(x < 0, log1p(- .5 * exp(x)), log(.5) - x))
          },
-         q = function(p) ifelse(p < 0.5, log(2 * p), -log(2 * (1 - p))),
+         q = function(p, log.p = FALSE) {
+             if (log.p) p <- exp(p)
+             ### <FIXME> handle log.p better
+             ifelse(p < 0.5, log(2 * p), -log(2 * (1 - p)))
+         },
          d = function(x, log = FALSE) {
              if (log)
                  return(log(.5) - abs(x))
@@ -159,8 +169,10 @@
                  return(1 - ret)
              return(ret)
          },
-         q = function(p)
-             log((1 - p)^(-exp(logrho)) - 1) - logrho,
+         q = function(p, log.p = FALSE) {
+             if (log.p) p <- exp(p)
+             log((1 - p)^(-exp(logrho)) - 1) - logrho
+         },
          d = .d <- function(x, log = FALSE) {
              ret <- x + (-exp(-logrho) - 1) * log(exp(x + logrho) + 1)
              if (!log) return(exp(ret))
