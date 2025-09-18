@@ -641,10 +641,16 @@
     }
 
     todistr <- model$todistr
-    Z <- todistr$q(pmax(.01, pmin(pstart, .99))) - offset
+    ### <TH> this makes sure we obtain the ML solution
+    ###      under a completely random outcome, ie the correct
+    ###      solution for an unconditional model
+    Z <- todistr$q(log(pstart), log.p = TRUE) - offset
 
     X <- X * sqrt(weights)
     Z <- Z * sqrt(weights)
+    X <- X[is.finite(Z),,drop = FALSE]
+    Z <- Z[is.finite(Z)]
+    ### </TH>
 
     dvec <- crossprod(X, Z)
     Dmat <- crossprod(X)
