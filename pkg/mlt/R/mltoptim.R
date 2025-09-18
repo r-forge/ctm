@@ -1,9 +1,9 @@
 
-mltoptim <- function(auglag = list(maxtry = 5, kkt2.check = hessian), 
-                     spg = list(maxit = 10000, quiet = TRUE, checkGrad = FALSE),
+mltoptim <- function(auglag = list(maxtry = 5L, kkt2.check = hessian, maxit = 1000L), 
+                     spg = list(maxit = 10000L, quiet = TRUE, checkGrad = FALSE),
                      nloptr = list(algorithm = "NLOPT_LD_MMA", xtol_rel = 1.0e-8, maxeval = 1000L),
-                     constrOptim = list(method = "BFGS", control = list(), mu = 1e-04, outer.iterations = 100, 
-                                        outer.eps = 1e-05, hessian = hessian),
+                     constrOptim = list(method = "BFGS", control = list(maxit = 1000), mu = 1e-01, 
+                                        outer.iterations = 1000L, outer.eps = 1e-05, hessian = hessian),
                      trace = FALSE, hessian = FALSE) 
 {
     ret <- list()
