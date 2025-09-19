@@ -7,6 +7,12 @@
     \itemize{
       \item{\code{summary.mmlt} works now.}
       \item{Improved error messages in \code{mmlt}.}
+      \item{\code{R(, as.R.interval = TRUE)} produces correct empirical
+            likelihood for numeric outcomes.}
+      \item{\code{auglag} sometimes returns solutions violating the
+            inequality constraints; try to avoid and detect this.}
+      \item{\code{mmlt} only uses optimisers able to approximate the
+            Hessian by default.}
     }
   }
   \subsection{Other Changes}{
