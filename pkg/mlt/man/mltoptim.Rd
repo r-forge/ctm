@@ -7,7 +7,7 @@
   Define optimisers and their control parameters
 }
 \usage{
-mltoptim(auglag = list(maxtry = 5L, kkt2.check = hessian, maxit = 1000L), 
+mltoptim(auglag = list(maxtry = 2L, kkt2.check = hessian, maxit = 1000L), 
          spg = list(maxit = 10000L, quiet = TRUE, checkGrad = FALSE),
          nloptr = list(algorithm = "NLOPT_LD_MMA", xtol_rel = 1.0e-8, maxeval = 1000L),
          constrOptim = list(method = "BFGS", control = list(maxit = 1000), mu = 1e-01, 
@@ -19,8 +19,8 @@ mltoptim(auglag = list(maxtry = 5L, kkt2.check = hessian, maxit = 1000L),
 \arguments{
   \item{auglag}{
   A list with control parameters for the \code{\link[alabama]{auglag}} optimiser.
-  \code{maxtry} is the number of times the algorithm is started on random starting
-  values in case it failed with the precomputed ones.
+  \code{maxtry} is the number of times the algorithm is re-started 
+  in case it failed.
 }
   \item{spg}{
   A list with control parameters for the \code{\link[BB]{BBoptim}} optimiser (calling

@@ -13,7 +13,7 @@
 }
 \usage{
 mmlt(..., formula = ~ 1, data, conditional = FALSE, theta = NULL, fixed = NULL,
-     scale = FALSE, optim = mltoptim(hessian = TRUE), 
+     scale = FALSE, optim = mltoptim(hessian = TRUE)[c("auglag", "constrOptim")], 
      args = list(seed = 1, M = 1000), dofit = TRUE, domargins = TRUE)
 \method{coef}{cmmlt}(object, newdata, 
      type = c("all", "conditional", "Lambdapar", "Lambda", "Lambdainv", 
