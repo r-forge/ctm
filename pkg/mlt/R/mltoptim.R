@@ -1,5 +1,5 @@
 
-mltoptim <- function(auglag = list(maxtry = 5L, kkt2.check = hessian, maxit = 1000L), 
+mltoptim <- function(auglag = list(maxtry = 2L, kkt2.check = hessian, maxit = 1000L), 
                      spg = list(maxit = 10000L, quiet = TRUE, checkGrad = FALSE),
                      nloptr = list(algorithm = "NLOPT_LD_MMA", xtol_rel = 1.0e-8, maxeval = 1000L),
                      constrOptim = list(method = "BFGS", control = list(maxit = 1000), mu = 1e-01, 
@@ -16,7 +16,11 @@ mltoptim <- function(auglag = list(maxtry = 5L, kkt2.check = hessian, maxit = 10
             atheta <- theta
             if (!is.null(ui)) {
                 for (tr in 1:maxtry) {
-                    ret <- try(alabama::auglag(par = atheta, fn = f, gr = g, hin = function(par) ui %*% par - ci, hin.jac = function(par) ui,
+                    ci0 <- ci
+                    ci0[ci0 == 0] <- sqrt(.Machine$double.eps)
+                    ret <- try(alabama::auglag(par = atheta, fn = f, gr = g, 
+                                               hin = function(par) ui %*% par - ci0, 
+                                               hin.jac = function(par) ui,
                                                control.outer = control))
                     rtn <- c("par", "convergence", "value")
                     if ("hessian" %in% names(ret)) {
@@ -24,10 +28,12 @@ mltoptim <- function(auglag = list(maxtry = 5L, kkt2.check = hessian, maxit = 10
                         rtn <- c(rtn, "optim_hessian")
                     }
                     ret <- ret[rtn]
-                    atheta <- runif(length(atheta))
+                    atheta <- ret$par # runif(length(atheta))
                     names(atheta) <- names(theta)
+                    if (any(ui %*% ret$par - ci < 0))
+                        ret$convergence <- 1L
                     if (inherits(ret, "try-error")) next()
-                    if (ret$convergence == 0) break()
+                    if (ret$convergence == 0L) break()
                 }
             } else { 
                 control <- spg
