@@ -476,6 +476,8 @@ Details on the estimation of the mixed continuous-discrete likelihood are given 
 
 Here, we fit the model
 <<CAO-Mmlt, echo = TRUE>>=
+### results in the paper were produced using M = 250
+### to reduce CRAN checking times, we use M = 50 here
 m <- Mmlt(mage, msex, mecog, mentf, mT, mN, mpCR,
           data = CAOsurv, args = list(type = "ghalton", M = 50))
 prm <- "ypT0ypN0.randarm5-FU + Oxaliplatin"
