@@ -27,7 +27,7 @@ asvar.Surv <- function(object, name, prob = c(.1, .9), support = NULL, bounds = 
     if (is.null(bounds)) bounds <- c(0, Inf)
     if (is.null(support)) {
         ### <FIXME> this might takes ages for the Turnbull estimator ("interval2")
-        ###         to come back to us </FIXME>k 
+        ###         to come back to us </FIXME>
         support <- quantile(sf <- survfit(y ~ 1, data = data.frame(y = object)), probs = prob)$quantile
         first <- min(sf$time[sf$n.event > 0])
         last <- max(sf$time[sf$n.event > 0])
