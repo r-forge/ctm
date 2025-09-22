@@ -644,7 +644,7 @@
     ### <TH> this makes sure we obtain the ML solution
     ###      under a completely random outcome, ie the correct
     ###      solution for an unconditional model
-    Z <- todistr$q(log(pstart), log.p = TRUE) - offset
+    Z <- todistr$q(pmin(0, log(pstart)), log.p = TRUE) - offset
 
     X <- X * sqrt(weights)
     Z <- Z * sqrt(weights)
