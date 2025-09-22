@@ -1,6 +1,6 @@
 
-R version 4.4.1 (2024-06-14) -- "Race for Your Life"
-Copyright (C) 2024 The R Foundation for Statistical Computing
+R version 4.5.1 (2025-06-13) -- "Great Square Root"
+Copyright (C) 2025 The R Foundation for Statistical Computing
 Platform: x86_64-pc-linux-gnu
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
@@ -133,4 +133,4 @@ x              0.017333 -0.018485  0.03730
 > 
 > proc.time()
    user  system elapsed 
-  0.961   0.076   1.033 
+  1.231   0.063   1.290 

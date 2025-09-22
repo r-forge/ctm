@@ -1,7 +1,7 @@
 
-R Under development (unstable) (2020-01-08 r77640) -- "Unsuffered Consequences"
-Copyright (C) 2020 The R Foundation for Statistical Computing
-Platform: x86_64-pc-linux-gnu (64-bit)
+R version 4.5.1 (2025-06-13) -- "Great Square Root"
+Copyright (C) 2025 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
@@ -80,7 +80,7 @@ Loading required package: variables
 > w <- drop((Xprime %*% coef(mod))^2)
 > H3 <- crossprod(X) + crossprod(Xprime * w, Xprime)
 > max(abs(H3 - H2))
-[1] 9.886
+[1] 9.884
 > 
 > cov2cor(vcov(mod))
              Bs1(waiting) Bs2(waiting) Bs3(waiting) Bs4(waiting) Bs5(waiting)
@@ -90,13 +90,13 @@ Bs3(waiting)       0.9032      -0.9793       1.0000      -0.9835       0.9383
 Bs4(waiting)      -0.8310       0.9310      -0.9835       1.0000      -0.9837
 Bs5(waiting)       0.7514      -0.8628       0.9383      -0.9837       1.0000
 Bs6(waiting)      -0.6650       0.7788      -0.8678       0.9358      -0.9824
-Bs7(waiting)       0.5742      -0.6830       0.7767      -0.8583       0.9286
+Bs7(waiting)       0.5741      -0.6830       0.7767      -0.8583       0.9286
 Bs8(waiting)      -0.4756       0.5730      -0.6626       0.7479      -0.8313
-Bs9(waiting)       0.3573      -0.4341       0.5080      -0.5821       0.6607
+Bs9(waiting)       0.3573      -0.4341       0.5079      -0.5821       0.6607
              Bs6(waiting) Bs7(waiting) Bs8(waiting) Bs9(waiting)
-Bs1(waiting)      -0.6650       0.5742      -0.4756       0.3573
+Bs1(waiting)      -0.6650       0.5741      -0.4756       0.3573
 Bs2(waiting)       0.7788      -0.6830       0.5730      -0.4341
-Bs3(waiting)      -0.8678       0.7767      -0.6626       0.5080
+Bs3(waiting)      -0.8678       0.7767      -0.6626       0.5079
 Bs4(waiting)       0.9358      -0.8583       0.7479      -0.5821
 Bs5(waiting)      -0.9824       0.9286      -0.8313       0.6607
 Bs6(waiting)       1.0000      -0.9795       0.9080      -0.7427
@@ -131,4 +131,4 @@ Bs9(waiting)      -0.7427       0.8292      -0.9214       1.0000
 > 
 > proc.time()
    user  system elapsed 
-  4.940   0.172   5.110 
+  1.351   0.072   1.427 

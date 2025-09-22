@@ -3,6 +3,7 @@ library("mlt")
 library("eha")
 library("survival")
 set.seed(29)
+options(digits = 4)
 
 ## ************** Exponential - AFT *********************************
 
