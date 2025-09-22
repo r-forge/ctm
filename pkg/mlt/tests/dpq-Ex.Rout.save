@@ -1,7 +1,7 @@
 
-R version 4.2.2 (2022-10-31) -- "Innocent and Trusting"
-Copyright (C) 2022 The R Foundation for Statistical Computing
-Platform: x86_64-pc-linux-gnu (64-bit)
+R version 4.5.1 (2025-06-13) -- "Great Square Root"
+Copyright (C) 2025 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
@@ -76,7 +76,7 @@ prob         1      2      3
 
 > 
 > simulate(mod, nsim = 1, seed = 291, interpolate = FALSE)
- [1] -0.98947         0.97474        -0.78103         1.58963       
+ [1] -0.98947         0.97475        -0.78103         1.58963       
  [5]  0.16146         1.04445        (2.198,    Inf]  1.56490       
  [9] -0.37026         0.85677        -0.59923        -0.30236       
 [13]  0.65478         0.34240         1.01619         1.06508       
@@ -288,4 +288,4 @@ Levels: 1 < 2 < 3
 > 
 > proc.time()
    user  system elapsed 
-  3.175   0.056   3.225 
+  2.490   0.043   2.528 

@@ -1,7 +1,7 @@
 
-R version 3.4.3 (2017-11-30) -- "Kite-Eating Tree"
-Copyright (C) 2017 The R Foundation for Statistical Computing
-Platform: x86_64-pc-linux-gnu (64-bit)
+R version 4.5.1 (2025-06-13) -- "Great Square Root"
+Copyright (C) 2025 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
@@ -33,14 +33,14 @@ Loading required package: variables
 'log Lik.' -259.6152 (df=4)
 > vcov(fm1)
                (Intercept):g1        y:g1 (Intercept):g2        y:g2
-(Intercept):g1     0.08823089 -0.03935633     0.00000000  0.00000000
-y:g1              -0.03935633  0.01979935     0.00000000  0.00000000
+(Intercept):g1     0.08823089 -0.03935632     0.00000000  0.00000000
+y:g1              -0.03935632  0.01979934     0.00000000  0.00000000
 (Intercept):g2     0.00000000  0.00000000     0.01091145 -0.00136613
 y:g2               0.00000000  0.00000000    -0.00136613  0.00204762
 > cf1 <- coef(fm1)
 > 1 / cf1[c(2, 4)] 
      y:g1      y:g2 
-0.5025271 1.5626449 
+0.5025272 1.5626449 
 > -cf1[c(1, 3)] / cf1[c(2,4)]
 (Intercept):g1 (Intercept):g2 
      1.9877592      0.6671799 
@@ -63,12 +63,12 @@ y:(Intercept)           -0.01979935
 y:g2                     0.02184697
 > (cf2 <- coef(fm2))
 (Intercept):(Intercept)           y:(Intercept)          (Intercept):g2 
-              -3.955527                1.989943                3.528571 
+              -3.955528                1.989943                3.528573 
                    y:g2 
-              -1.350002 
+              -1.350003 
 > c(cf1[1:2], cf1[3:4] - cf1[1:2])
 (Intercept):g1           y:g1 (Intercept):g2           y:g2 
-     -3.955526       1.989942       3.528571      -1.350002 
+     -3.955526       1.989942       3.528570      -1.350001 
 > 
 > 1 / cf2[2]
 y:(Intercept) 
@@ -78,10 +78,10 @@ y:(Intercept)
 > 
 > -cf2[1] / cf2[2]
 (Intercept):(Intercept) 
-               1.987759 
+                1.98776 
 > -sum(cf2[c(1, 3)]) / sum(cf2[c(2, 4)])
-[1] 0.6671799
+[1] 0.6671798
 > 
 > proc.time()
    user  system elapsed 
-  2.996   0.052   3.053 
+  0.608   0.056   0.660 

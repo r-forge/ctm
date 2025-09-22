@@ -1,7 +1,7 @@
 
-R Under development (unstable) (2020-01-08 r77640) -- "Unsuffered Consequences"
-Copyright (C) 2020 The R Foundation for Statistical Computing
-Platform: x86_64-pc-linux-gnu (64-bit)
+R version 4.5.1 (2025-06-13) -- "Great Square Root"
+Copyright (C) 2025 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
@@ -44,7 +44,7 @@ Loading required package: variables
 > m <- ctm(response = Bb, shifting = s, todist = "MinExtrVal")
 > (cf1 <- coef(opt <- mlt(m, data = mydata)))
   Bs1(y)   Bs2(y)   Bs3(y)   Bs4(y)   Bs5(y)   Bs6(y)       g2       g3 
--2.57065  1.10359  1.10359  1.10359  1.10359  1.80043  0.93238  1.26275 
+-2.57070  1.10361  1.10361  1.10361  1.10361  1.80041  0.93239  1.26277 
 > coef(cph <- coxph(Surv(y, rep(TRUE, nrow(mydata))) ~ g, data = mydata))
      g2      g3 
 0.69981 1.02270 
@@ -68,7 +68,7 @@ Loading required package: variables
 > m <- ctm(response = logBb, shifting = s, todist = "MinExtrVal")
 > (cf1 <- coef(opt <- mlt(m, data = mydata)))
   Bs1(y)   Bs2(y)   Bs3(y)   Bs4(y)   Bs5(y)   Bs6(y)       g2       g3 
--0.11781  0.19444  0.75901  0.90914  0.90914  1.65722  0.74255  1.03796 
+-0.11781  0.19444  0.75909  0.90916  0.90916  1.65721  0.74256  1.03796 
 > ## sample from this model
 > sam <- simulate(opt, newdata = data.frame(g = gf), nsim = 100)
 > nd <- data.frame(y = unlist(sam), g = rep(gf, length(sam)))
@@ -92,7 +92,7 @@ Loading required package: variables
 > mydata <- data.frame(y = Surv(y, sample(0:1, length(y), replace = TRUE)), g = g)
 > coef(opt <- mlt(m, data = mydata, scale = TRUE))
   Bs1(y)   Bs2(y)   Bs3(y)   Bs4(y)   Bs5(y)   Bs6(y)       g2       g3 
--0.80017 -0.50675 -0.30211  0.25437  0.25437  1.20222  0.66696  1.19417 
+-0.80045 -0.50704 -0.30222  0.25427  0.25427  1.20216  0.66718  1.19453 
 > coef(cph <- coxph(y ~ g, data = mydata))
      g2      g3 
 0.59631 1.15907 
@@ -101,14 +101,14 @@ Loading required package: variables
 > mydata <- data.frame(y = Surv(y, sample(0:1, length(y), replace = TRUE), type = "left"), g = g)
 > coef(opt <- mlt(m, data = mydata, scale = TRUE))
  Bs1(y)  Bs2(y)  Bs3(y)  Bs4(y)  Bs5(y)  Bs6(y)      g2      g3 
-0.43810 0.64728 1.05050 1.05050 1.05050 1.79448 0.48891 0.66483 
+0.43803 0.64721 1.05047 1.05047 1.05047 1.79439 0.48901 0.66488 
 > 
 > ### interval censoring
 > mydata <- data.frame(y = Surv(y, y + 1, sample(0:3, length(y), replace = TRUE), type = "interval"), 
 +                      g = g)
 > coef(opt <- mlt(m, data = mydata, scale = TRUE))
   Bs1(y)   Bs2(y)   Bs3(y)   Bs4(y)   Bs5(y)   Bs6(y)       g2       g3 
--0.48006 -0.18524  0.26866  0.57464  0.57464  1.27249  0.80125  0.98864 
+-0.48006 -0.18524  0.26865  0.57464  0.57464  1.27249  0.80125  0.98864 
 > 
 > ### uncensored, time-varying coefficients in both groups
 > mydata <- data.frame(y = y, g = g)
@@ -116,17 +116,18 @@ Loading required package: variables
 +            interacting = as.basis(~ g, data = mydata),
 +            todist = "MinExtrVal")
 > ## IGNORE_RDIFF_BEGIN
-> coef(opt <- mlt(m, data = mydata, maxit = 5000, scale = TRUE))
+> op <- mltoptim(spg = list(maxit = 5000, quiet = TRUE, checkGrad = FALSE))
+> coef(opt <- mlt(m, data = mydata, optim = op, scale = TRUE))
 Bs1(y):(Intercept) Bs2(y):(Intercept) Bs3(y):(Intercept) Bs4(y):(Intercept) 
-          -0.12803            0.13945            0.78392            0.84534 
+          -0.12121            0.14666            0.78554            0.84895 
 Bs5(y):(Intercept) Bs6(y):(Intercept)          Bs1(y):g2          Bs2(y):g2 
-           0.84534            1.63634            0.75303            0.80550 
+           0.84895            1.63756            0.74605            0.79807 
          Bs3(y):g2          Bs4(y):g2          Bs5(y):g2          Bs6(y):g2 
-           0.78385            0.72242            0.72242            2.69068 
+           0.78078            0.71736            0.71736            2.68216 
          Bs1(y):g3          Bs2(y):g3          Bs3(y):g3          Bs4(y):g3 
-           1.09857            1.16732            0.52285            1.44570 
+           1.08983            1.15789            0.51901            1.75576 
          Bs5(y):g3          Bs6(y):g3 
-           4.97138            9.20660 
+           1.75576           28.10028 
 > ## IGNORE_RDIFF_END
 > coef(cph <- coxph(Surv(y, rep(TRUE, nrow(mydata))) ~ g, data = mydata))
      g2      g3 
@@ -147,4 +148,4 @@ Bs5(y):(Intercept) Bs6(y):(Intercept)          Bs1(y):g2          Bs2(y):g2
 > 
 > proc.time()
    user  system elapsed 
-  3.612   0.172   3.868 
+  1.167   0.068   1.230 

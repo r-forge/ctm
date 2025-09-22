@@ -1,7 +1,7 @@
 
-R version 4.1.2 (2021-11-01) -- "Bird Hippie"
-Copyright (C) 2021 The R Foundation for Statistical Computing
-Platform: x86_64-pc-linux-gnu (64-bit)
+R version 4.5.1 (2025-06-13) -- "Great Square Root"
+Copyright (C) 2025 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
@@ -33,11 +33,11 @@ Loading required package: variables
 > s2ml <- sqrt(var(y) * (n - 1) / n)
 > 1 / coef(o)[2] - s2ml
            y 
-6.498866e-08 
+-9.06738e-09 
 > 
 > -coef(o)[1] / coef(o)[2] - mean(y)
   (Intercept) 
--2.102483e-07 
+-1.238858e-08 
 > 
 > x <- runif(n, max = 2 * pi)
 > y <- rnorm(n, sin(x), .25)
@@ -80,4 +80,4 @@ In c.basis(bresponse = function (data, deriv = 0L)  :
 > 
 > proc.time()
    user  system elapsed 
-  1.933   0.119   2.028 
+  0.931   0.079   1.006 
