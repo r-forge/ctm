@@ -144,16 +144,6 @@ R.Surv <- function(object, as.R.ordered = FALSE, as.R.interval = FALSE, ...) {
                        tleft = object[, "start"])
     )
     attr(ret, "prob") <- function(weights) {
-        if (attr(object, "type") == "interval") {
-            ### Turnbull estimation takes tooo looong
-            ### fall back to Kaplan-Meier
-            left <- object[,1]
-            right <- object[,2]
-            left[!is.finite(left)] <- right[!is.finite(left)]
-            left <- left + ifelse(is.finite(right - left), (right - left) / 2, 0)
-            right <- c(0, 1)[is.finite(right) + 1L]
-            object <- Surv(time = left, event = right)
-        }
         ### FIXME: subsetting doesn't change this fct
         if (length(weights) == NROW(object)) {
             sf <- survival::survfit(object ~ 1, subset = weights > 0, weights = weights)
