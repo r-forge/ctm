@@ -476,9 +476,8 @@ Details on the estimation of the mixed continuous-discrete likelihood are given 
 
 Here, we fit the model
 <<CAO-Mmlt, echo = TRUE>>=
-m <- Mmlt(mT, mN, mentf, mage, msex, mecog, mpCR, 
-          data = CAOsurv, args = list(type = "ghalton", M = 250), 
-          optim = mltoptim(hessian = TRUE)["constrOptim"])
+m <- Mmlt(mage, msex, mecog, mentf, mT, mN, mpCR,
+          data = CAOsurv, args = list(type = "ghalton", M = 50))
 prm <- "ypT0ypN0.randarm5-FU + Oxaliplatin"
 exp(coef(m)[prm])
 @
