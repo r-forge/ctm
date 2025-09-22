@@ -50,3 +50,9 @@ stopifnot(max(abs(lg$dd2d(x) - mlt:::.MinExtrVal()$dd2d(x))) < tol)
 
 stopifnot(max(abs(lg$q(p) - mlt:::.MinExtrVal()$q(p))) < tol)
 
+### log.p in quantile
+prb <- 1:9 / 10
+d <- eval(formals(mlt:::.distr)$which)
+q1 <- sapply(d, function(w) mlt:::.distr(which = w)$q(prb))
+q2 <- sapply(d, function(w) mlt:::.distr(which = w)$q(log(prb), log.p = TRUE))
+stopifnot(all.equal(q1, q2))
