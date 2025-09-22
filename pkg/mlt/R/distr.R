@@ -218,7 +218,8 @@
                  return(1 - ret)
              return(ret)
          },
-         q = function(p) {
+         q = function(p, log.p = FALSE) {
+             if (log.p) p <- exp(p)
              theta <- exp(logtheta)
              log((-log1p(- p) + 2 * theta)^2 / (4 * theta) - theta)
          },
@@ -273,8 +274,10 @@
                  return(1 - ret)
              return(ret)
          },
-         q = function(p)
-             log(-log1p(-p)) / plogis(logitalpha),
+         q = function(p, log.p = FALSE) {
+             if (log.p) p <- exp(p)
+             log(-log1p(-p)) / plogis(logitalpha)
+         },
          d = .d <- function(x, log = FALSE) {
              alpha <- plogis(logitalpha)
              ret <- plogis(logitalpha, log.p = TRUE) + 
@@ -320,8 +323,11 @@
                  return(plogis(logitrho) * d$p(x))
              return(1 - plogis(logitrho) * d$p(x))
          },
-         q = function(p)
-             d$q(p / plogis(logitrho)),
+         q = function(p, log.p = FALSE) {
+             if (log.p) 
+                 return(d$q(p - plogis(logitrho, log.p = TRUE), log.p = TRUE))
+             d$q(p / plogis(logitrho))
+         },
          d = .d <- function(x, log = FALSE) {
              if (log)
                  return(plogis(logitrho, log.p = TRUE) + d$d(x, log = TRUE))
@@ -343,7 +349,10 @@
 
 .distr <- function(which = c("Normal", "Logistic",
                              "MinExtrVal", "MaxExtrVal", "Exponential", 
-                             "Laplace", "Cauchy")) {
+                             "Laplace", "Cauchy", "GammaFrailty",
+                             "InvGaussFrailty", "PositiveStableFrailty"
+                             # , "CureRate" <FIXME>
+                             )) {
     which <- match.arg(which)
     do.call(paste(".", which, sep = ""), list())
 }
