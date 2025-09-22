@@ -9,7 +9,7 @@
 }
 \usage{
 Mmlt(..., formula = ~ 1, data, conditional = FALSE, theta = NULL, fixed = NULL,
-     scale = FALSE, optim = mltoptim(hessian = TRUE), 
+     scale = FALSE, optim = mltoptim(hessian = TRUE)[c("auglag", "constrOptim")], 
      args = list(seed = 1, type = c("MC", "ghalton"), M = 1000), 
      fit = c("jointML", "pseudo", "ACS", "sequential", "none"),
              ACSiter = 2)
