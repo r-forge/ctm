@@ -1,6 +1,6 @@
 
-R version 4.4.2 (2024-10-31) -- "Pile of Leaves"
-Copyright (C) 2024 The R Foundation for Statistical Computing
+R version 4.5.1 (2025-06-13) -- "Great Square Root"
+Copyright (C) 2025 The R Foundation for Statistical Computing
 Platform: x86_64-pc-linux-gnu
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
@@ -57,7 +57,7 @@ Reaction
       -9.82        0.41 
 > coef(sleep_LMmer)[c("(Intercept)", "Days")]
 (Intercept)        Days 
-      -9.82        0.41 
+      -9.83        0.41 
 > 
 > 
 > ## ----mtram-sleep_varparm------------------------------------------------------
@@ -74,9 +74,9 @@ gamma1 gamma2 gamma3
 [1,]  565   11
 [2,]   11   33
 > cov2cor(sleep_LMmer$G * (1 / sdinv)^2)
-      [,1]  [,2]
-[1,] 1.000 0.082
-[2,] 0.082 1.000
+     [,1] [,2]
+[1,] 1.00 0.08
+[2,] 0.08 1.00
 > unclass(VarCorr(sleep_lmer))$Subject
             (Intercept) Days
 (Intercept)         565   11
@@ -109,4 +109,4 @@ Days              0.081 1.000
 > 
 > proc.time()
    user  system elapsed 
-  4.688   0.059   4.745 
+  4.180   0.068   4.244 

@@ -1,5 +1,5 @@
 
-R version 4.5.1 (2025-06-13) -- "Great Square Root"
+R Under development (unstable) (2025-09-22 r88866) -- "Unsuffered Consequences"
 Copyright (C) 2025 The R Foundation for Statistical Computing
 Platform: x86_64-pc-linux-gnu
 
@@ -179,4 +179,4 @@ Coefficients: 30.945 38.878 42.517 -0.015081 -0.0591 -0.12127 -0.053832 -0.47681
 > 
 > proc.time()
    user  system elapsed 
-  0.845   0.080   0.927 
+  0.872   0.052   0.927 

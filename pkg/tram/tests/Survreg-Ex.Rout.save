@@ -1,7 +1,7 @@
 
-R version 4.1.2 (2021-11-01) -- "Bird Hippie"
-Copyright (C) 2021 The R Foundation for Statistical Computing
-Platform: x86_64-pc-linux-gnu (64-bit)
+R version 4.5.1 (2025-06-13) -- "Great Square Root"
+Copyright (C) 2025 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
@@ -20,6 +20,7 @@ Type 'q()' to quit R.
 Loading required package: mlt
 Loading required package: basefun
 Loading required package: variables
+Loading required package: mvtnorm
 > library("survival")
 > 
 > ### Windows diffs...
@@ -59,7 +60,7 @@ Survreg(formula = tfm, data = GBSG2, dist = "weibull")
 
 Coefficients:
   pnodes      age 
--0.06311  0.00433 
+-0.06311  0.00432 
 
 Log-Likelihood:
  -2609 (df = 4)
@@ -79,7 +80,7 @@ Survreg(formula = tfm, data = GBSG2, dist = "weibull")
 Coefficients:
        Estimate Std. Error z value Pr(>|z|)    
 pnodes -0.06311    0.00674   -9.36   <2e-16 ***
-age     0.00433    0.00582    0.74     0.46    
+age     0.00432    0.00582    0.74     0.46    
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -112,7 +113,7 @@ Survreg(formula = tfms, data = GBSG2, dist = "weibull")
 
 Coefficients:
    pnodes       age 
--0.061906  0.000259 
+-0.061908  0.000257 
 
 Log-Likelihood:
  -2604 (df = 6)
@@ -122,7 +123,7 @@ Error in coef.Lm(object, as.lm = as.survreg, ...) :
   cannot compute scaled coefficients with strata
 > Smod$invscale
  log(Surv(time, cens)):horThno log(Surv(time, cens)):horThyes 
-                         0.743                          0.737 
+                         0.743                          0.736 
 > summary(Smod)
 
  (Stratified) Weibull Linear Regression Model 
@@ -132,8 +133,8 @@ Survreg(formula = tfms, data = GBSG2, dist = "weibull")
 
 Coefficients:
         Estimate Std. Error z value Pr(>|z|)    
-pnodes -0.061906   0.006641   -9.32   <2e-16 ***
-age     0.000259   0.005975    0.04     0.97    
+pnodes -0.061908   0.006641   -9.32   <2e-16 ***
+age     0.000257   0.005975    0.04     0.97    
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -205,7 +206,7 @@ Survreg(formula = tfms, data = GBSG2, dist = "exponential")
 
 Coefficients:
    pnodes       age 
--0.055711  0.000456 
+-0.055711  0.000455 
 
 Log-Likelihood:
  -2620 (df = 4)
@@ -226,7 +227,7 @@ Survreg(formula = tfms, data = GBSG2, dist = "exponential")
 Coefficients:
         Estimate Std. Error z value Pr(>|z|)    
 pnodes -0.055711   0.006686   -8.33   <2e-16 ***
-age     0.000456   0.005941    0.08     0.94    
+age     0.000455   0.005941    0.08     0.94    
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -298,7 +299,7 @@ Survreg(formula = tfms, data = GBSG2, dist = "rayleigh")
 
 Coefficients:
    pnodes       age 
--0.073082 -0.000173 
+-0.073082 -0.000174 
 
 Log-Likelihood:
  -2642 (df = 4)
@@ -319,7 +320,7 @@ Survreg(formula = tfms, data = GBSG2, dist = "rayleigh")
 Coefficients:
         Estimate Std. Error z value Pr(>|z|)    
 pnodes -0.073082   0.006383  -11.45   <2e-16 ***
-age    -0.000173   0.006014   -0.03     0.98    
+age    -0.000174   0.006014   -0.03     0.98    
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -349,8 +350,8 @@ Call:
 Survreg(formula = tfm, data = GBSG2, dist = "lognormal")
 
 Coefficients:
- pnodes     age 
--0.0602  0.0079 
+  pnodes      age 
+-0.06023  0.00789 
 
 Log-Likelihood:
  -2588 (df = 4)
@@ -367,7 +368,7 @@ Survreg(formula = tfm, data = GBSG2, dist = "lognormal")
 Coefficients:
        Estimate Std. Error z value Pr(>|z|)    
 pnodes -0.06023    0.00773   -7.79  6.4e-15 ***
-age     0.00790    0.00432    1.83    0.068 .  
+age     0.00789    0.00432    1.83    0.068 .  
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -525,7 +526,7 @@ Survreg(formula = tfms, data = GBSG2, dist = "loglogistic")
 
 Coefficients:
        Estimate Std. Error z value Pr(>|z|)    
-pnodes -0.10926    0.01434   -7.62  2.5e-14 ***
+pnodes -0.10927    0.01434   -7.62  2.5e-14 ***
 age     0.00680    0.00774    0.88     0.38    
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
@@ -561,7 +562,7 @@ Survreg(formula = Surv(durable, durable > 0, type = "left") ~
 
 Coefficients:
      age    quant 
--0.02318 -0.00817 
+-0.02319 -0.00817 
 
 Log-Likelihood:
  -28.9 (df = 4)
@@ -578,7 +579,7 @@ Survreg(formula = Surv(durable, durable > 0, type = "left") ~
 
 Coefficients:
       Estimate Std. Error z value Pr(>|z|)
-age   -0.02318    0.03855   -0.60     0.55
+age   -0.02319    0.03855   -0.60     0.55
 quant -0.00817    0.01074   -0.76     0.45
 
 Log-Likelihood:
@@ -588,4 +589,4 @@ Likelihood-ratio Test: Chisq = 1.1 on 2 degrees of freedom; p = 0.576
 > 
 > proc.time()
    user  system elapsed 
-  5.288   0.196   5.465 
+   1.17    0.06    1.23 

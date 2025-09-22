@@ -1,6 +1,6 @@
 
-R version 4.4.1 (2024-06-14) -- "Race for Your Life"
-Copyright (C) 2024 The R Foundation for Statistical Computing
+R version 4.5.1 (2025-06-13) -- "Great Square Root"
+Copyright (C) 2025 The R Foundation for Statistical Computing
 Platform: x86_64-pc-linux-gnu
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
@@ -519,7 +519,7 @@ In .mmlt_setup(models = models, formula = formula, dofit = dofit,  :
 > 
 > coef(b1)
 Bs1(Y1) Bs2(Y1)      X1      X2      X3 
-   0.52    6.09   -4.35   -1.43   -0.66 
+   0.52    6.10   -4.35   -1.43   -0.66 
 > coef(b2)
 (Intercept)          Y2          X1          X2          X3 
       -0.18        0.53        0.34        1.06        1.20 
@@ -556,7 +556,7 @@ Bs1(Y1) Bs2(Y1)      X1      X2      X3
 > 
 > coef(b1)
 Bs1(Y1) Bs2(Y1)      X1      X2      X3 
-   0.52    6.09   -4.35   -1.43   -0.66 
+   0.52    6.10   -4.35   -1.43   -0.66 
 > coef(b2)
 (Intercept)          Y2          X1          X2          X3 
       -0.18        0.53        0.34        1.06        1.20 
@@ -1040,4 +1040,4 @@ y.4.x.1   0.072   0.070   0.111   0.122
 > 
 > proc.time()
    user  system elapsed 
- 33.988   0.091  34.102 
+ 31.587   0.059  31.669 

@@ -266,10 +266,10 @@ Likelihood-ratio Test: Chisq = 4.651917 on 1 degrees of freedom; p = 0.03102
 
 > coef(mw, as.survreg = TRUE)
               (Intercept) randarm5-FU + Oxaliplatin 
-                8.5021481                 0.3124244 
+                8.5021487                 0.3124241 
 attr(,"scale")
 log(iDFS) 
- 1.364406 
+ 1.364408 
 
 > score_test(mw)
 
@@ -279,10 +279,10 @@ data:  Survreg(formula = iDFS ~ randarm, data = CAOsurv, dist = "weibull")
 Z = -2.1549, p-value = 0.03117
 alternative hypothesis: true  for randarm5-FU + Oxaliplatin is not equal to 0
 95 percent confidence interval:
- 0.02063417 0.43733189
+ 0.02063428 0.43733189
 sample estimates:
  for randarm5-FU + Oxaliplatin 
-                      0.228982 
+                     0.2289814 
 
 
 > perm_test(mw)
@@ -296,7 +296,7 @@ alternative hypothesis: true  for randarm5-FU + Oxaliplatin is not equal to 0
  0.01605798 0.44169988
 sample estimates:
  for randarm5-FU + Oxaliplatin 
-                      0.228982 
+                     0.2289814 
 
 
 > mc <- Coxph(iDFS ~ randarm, data = CAOsurv, log_first = TRUE)
@@ -310,13 +310,13 @@ Coxph(formula = iDFS ~ randarm, data = CAOsurv, log_first = TRUE)
 
 Coefficients:
                           Estimate Std. Error z value Pr(>|z|)  
-randarm5-FU + Oxaliplatin  -0.2335     0.1065  -2.193   0.0283 *
+randarm5-FU + Oxaliplatin  -0.2336     0.1065  -2.193   0.0283 *
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 Log-Likelihood:
  -2255.852 (df = 8)
-Likelihood-ratio Test: Chisq = 4.838518 on 1 degrees of freedom; p = 0.02783
+Likelihood-ratio Test: Chisq = 4.838503 on 1 degrees of freedom; p = 0.02783
 
 
 > score_test(mc)
@@ -327,10 +327,10 @@ data:  Coxph(formula = iDFS ~ randarm, data = CAOsurv, log_first = TRUE)
 Z = 2.1977, p-value = 0.02797
 alternative hypothesis: true log-hazard ratio for randarm5-FU + Oxaliplatin is not equal to 0
 95 percent confidence interval:
- -0.44190310 -0.02516832
+ -0.44190273 -0.02516834
 sample estimates:
 log-hazard ratio for randarm5-FU + Oxaliplatin 
-                                    -0.2335355 
+                                    -0.2335505 
 
 
 > perm_test(mc)
@@ -341,10 +341,10 @@ data:  Coxph(formula = iDFS ~ randarm, data = CAOsurv, log_first = TRUE)
 Z = 2.1922, p-value = 0.02837
 alternative hypothesis: true log-hazard ratio for randarm5-FU + Oxaliplatin is not equal to 0
 95 percent confidence interval:
- -0.44262164 -0.02464723
+ -0.44262104 -0.02464719
 sample estimates:
 log-hazard ratio for randarm5-FU + Oxaliplatin 
-                                    -0.2335355 
+                                    -0.2335505 
 
 
 > object <- as.mlt(mc)
@@ -409,13 +409,13 @@ Coxph(formula = iDFS | strat ~ randarm, data = CAOsurv, log_first = TRUE)
 
 Coefficients:
                           Estimate Std. Error z value Pr(>|z|)  
-randarm5-FU + Oxaliplatin  -0.2318     0.1069  -2.169   0.0301 *
+randarm5-FU + Oxaliplatin  -0.2317     0.1069  -2.168   0.0302 *
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 Log-Likelihood:
- -2231.849 (df = 29)
-Likelihood-ratio Test: Chisq = 4.751128 on 1 degrees of freedom; p = 0.02928
+ -2231.848 (df = 29)
+Likelihood-ratio Test: Chisq = 4.752268 on 1 degrees of freedom; p = 0.02926
 
 
 > score_test(mcst)
@@ -423,13 +423,13 @@ Likelihood-ratio Test: Chisq = 4.751128 on 1 degrees of freedom; p = 0.02928
 	Transformation Score Test
 
 data:  Coxph(formula = iDFS | strat ~ randarm, data = CAOsurv, log_first = TRUE)
-Z = 2.1823, p-value = 0.02908
+Z = 2.1821, p-value = 0.0291
 alternative hypothesis: true log-hazard ratio for randarm5-FU + Oxaliplatin is not equal to 0
 95 percent confidence interval:
- -0.43960480 -0.02342139
+ -0.43974846 -0.02355431
 sample estimates:
 log-hazard ratio for randarm5-FU + Oxaliplatin 
-                                    -0.2317847 
+                                    -0.2316719 
 
 
 > perm_test(mcst)
@@ -440,10 +440,10 @@ data:  Coxph(formula = iDFS | strat ~ randarm, data = CAOsurv, log_first = TRUE)
 Z = 2.1655, p-value = 0.03035
 alternative hypothesis: true log-hazard ratio for randarm5-FU + Oxaliplatin is not equal to 0
 95 percent confidence interval:
- -0.44168602 -0.02166398
+ -0.44176414 -0.02127351
 sample estimates:
 log-hazard ratio for randarm5-FU + Oxaliplatin 
-                                    -0.2317847 
+                                    -0.2316719 
 
 
 > plot(as.mlt(mcst), newdata = nd2, q = q, type = "trafo", 
@@ -465,23 +465,23 @@ Coxph(formula = iDFS ~ randarm | randarm, data = CAOsurv, log_first = TRUE)
 
 Coefficients:
                               Estimate Std. Error z value Pr(>|z|)
-randarm5-FU + Oxaliplatin     -0.07563    0.16438  -0.460    0.645
-scl_randarm5-FU + Oxaliplatin  0.28922    0.20168   1.434    0.152
+randarm5-FU + Oxaliplatin      -0.0756     0.1644  -0.460    0.646
+scl_randarm5-FU + Oxaliplatin   0.2893     0.2017   1.434    0.152
 
 Log-Likelihood:
  -2254.831 (df = 9)
-Likelihood-ratio Test: Chisq = 6.882057 on 2 degrees of freedom; p = 0.03203
+Likelihood-ratio Test: Chisq = 6.882043 on 2 degrees of freedom; p = 0.03203
 
 
 > confint(mcs)
                                    2.5 %    97.5 %
-randarm5-FU + Oxaliplatin     -0.3978055 0.2465392
-scl_randarm5-FU + Oxaliplatin -0.1060683 0.6845146
+randarm5-FU + Oxaliplatin     -0.3977818 0.2465750
+scl_randarm5-FU + Oxaliplatin -0.1060296 0.6845534
 
 > perm_test_biv.stram(mcs)
-[1] 0.01386631
+[1] 0.01387056
 99 percent confidence interval:
- 0.01386631 0.01386631 
+ 0.01387056 0.01387056 
 
 
 > eval(par_surv)
@@ -594,30 +594,30 @@ Coxph(formula = Surv(OStime, event = DepCevent) ~ randarm, data = CAOsurv,
 
 Coefficients:
                                                  Estimate Std. Error
-Event_EoI.Event_EoI.Bs1(Event_EoI)               -2.21653    0.13540
-Event_EoI.Event_EoI.Bs2(Event_EoI)               -2.05997    0.13959
-Event_EoI.Event_EoI.Bs3(Event_EoI)               -1.79585    0.18034
-Event_EoI.Event_EoI.Bs4(Event_EoI)               -1.42016    0.15026
-Event_EoI.Event_EoI.Bs5(Event_EoI)               -1.42016    0.15026
-Event_EoI.Event_EoI.Bs6(Event_EoI)               -1.42016    0.15026
-Event_EoI.Event_EoI.Bs7(Event_EoI)               -0.92133    0.22849
-Event_EoI.Event_EoI.randarm5-FU + Oxaliplatin    -0.04433    0.14209
-Event_DepC.Event_DepC.(Intercept)               -12.31697    1.00139
-Event_DepC.Event_DepC.log(Event_DepC)             1.36286    0.15568
-Event_DepC.Event_DepC.randarm5-FU + Oxaliplatin  -0.10004    0.20225
-Event_DepC.Event_EoI.(Intercept)                 -0.16413    0.65440
+Event_EoI.Event_EoI.Bs1(Event_EoI)               -2.21652    0.13534
+Event_EoI.Event_EoI.Bs2(Event_EoI)               -2.05996    0.13953
+Event_EoI.Event_EoI.Bs3(Event_EoI)               -1.79585    0.18029
+Event_EoI.Event_EoI.Bs4(Event_EoI)               -1.42008    0.15019
+Event_EoI.Event_EoI.Bs5(Event_EoI)               -1.42008    0.15018
+Event_EoI.Event_EoI.Bs6(Event_EoI)               -1.42008    0.15019
+Event_EoI.Event_EoI.Bs7(Event_EoI)               -0.92178    0.22833
+Event_EoI.Event_EoI.randarm5-FU + Oxaliplatin    -0.04431    0.14210
+Event_DepC.Event_DepC.(Intercept)               -12.31711    1.00126
+Event_DepC.Event_DepC.log(Event_DepC)             1.36283    0.15565
+Event_DepC.Event_DepC.randarm5-FU + Oxaliplatin  -0.10052    0.20227
+Event_DepC.Event_EoI.(Intercept)                 -0.16407    0.65409
                                                 z value Pr(>|z|)    
-Event_EoI.Event_EoI.Bs1(Event_EoI)              -16.371  < 2e-16 ***
-Event_EoI.Event_EoI.Bs2(Event_EoI)              -14.757  < 2e-16 ***
-Event_EoI.Event_EoI.Bs3(Event_EoI)               -9.958  < 2e-16 ***
-Event_EoI.Event_EoI.Bs4(Event_EoI)               -9.451  < 2e-16 ***
-Event_EoI.Event_EoI.Bs5(Event_EoI)               -9.451  < 2e-16 ***
-Event_EoI.Event_EoI.Bs6(Event_EoI)               -9.451  < 2e-16 ***
-Event_EoI.Event_EoI.Bs7(Event_EoI)               -4.032 5.52e-05 ***
+Event_EoI.Event_EoI.Bs1(Event_EoI)              -16.377  < 2e-16 ***
+Event_EoI.Event_EoI.Bs2(Event_EoI)              -14.763  < 2e-16 ***
+Event_EoI.Event_EoI.Bs3(Event_EoI)               -9.961  < 2e-16 ***
+Event_EoI.Event_EoI.Bs4(Event_EoI)               -9.455  < 2e-16 ***
+Event_EoI.Event_EoI.Bs5(Event_EoI)               -9.456  < 2e-16 ***
+Event_EoI.Event_EoI.Bs6(Event_EoI)               -9.455  < 2e-16 ***
+Event_EoI.Event_EoI.Bs7(Event_EoI)               -4.037 5.41e-05 ***
 Event_EoI.Event_EoI.randarm5-FU + Oxaliplatin    -0.312    0.755    
-Event_DepC.Event_DepC.(Intercept)               -12.300  < 2e-16 ***
-Event_DepC.Event_DepC.log(Event_DepC)             8.754  < 2e-16 ***
-Event_DepC.Event_DepC.randarm5-FU + Oxaliplatin  -0.495    0.621    
+Event_DepC.Event_DepC.(Intercept)               -12.302  < 2e-16 ***
+Event_DepC.Event_DepC.log(Event_DepC)             8.756  < 2e-16 ***
+Event_DepC.Event_DepC.randarm5-FU + Oxaliplatin  -0.497    0.619    
 Event_DepC.Event_EoI.(Intercept)                 -0.251    0.802    
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
@@ -628,18 +628,18 @@ Log-Likelihood:
 
 > confint(md)
                                                       2.5 %      97.5 %
-Event_EoI.Event_EoI.Bs1(Event_EoI)               -2.4819061  -1.9511570
-Event_EoI.Event_EoI.Bs2(Event_EoI)               -2.3335557  -1.7863795
-Event_EoI.Event_EoI.Bs3(Event_EoI)               -2.1493169  -1.4423813
-Event_EoI.Event_EoI.Bs4(Event_EoI)               -1.7146585  -1.1256539
-Event_EoI.Event_EoI.Bs5(Event_EoI)               -1.7146581  -1.1256545
-Event_EoI.Event_EoI.Bs6(Event_EoI)               -1.7146586  -1.1256539
-Event_EoI.Event_EoI.Bs7(Event_EoI)               -1.3691579  -0.4735118
-Event_EoI.Event_EoI.randarm5-FU + Oxaliplatin    -0.3228161   0.2341504
-Event_DepC.Event_DepC.(Intercept)               -14.2796678 -10.3542769
-Event_DepC.Event_DepC.log(Event_DepC)             1.0577238   1.6679942
-Event_DepC.Event_DepC.randarm5-FU + Oxaliplatin  -0.4964366   0.2963597
-Event_DepC.Event_EoI.(Intercept)                 -1.4467422   1.1184726
+Event_EoI.Event_EoI.Bs1(Event_EoI)               -2.4817898  -1.9512492
+Event_EoI.Event_EoI.Bs2(Event_EoI)               -2.3334353  -1.7864831
+Event_EoI.Event_EoI.Bs3(Event_EoI)               -2.1492159  -1.4424910
+Event_EoI.Event_EoI.Bs4(Event_EoI)               -1.7144439  -1.1257242
+Event_EoI.Event_EoI.Bs5(Event_EoI)               -1.7144391  -1.1257290
+Event_EoI.Event_EoI.Bs6(Event_EoI)               -1.7144442  -1.1257238
+Event_EoI.Event_EoI.Bs7(Event_EoI)               -1.3693058  -0.4742558
+Event_EoI.Event_EoI.randarm5-FU + Oxaliplatin    -0.3228171   0.2341997
+Event_DepC.Event_DepC.(Intercept)               -14.2795450 -10.3546674
+Event_DepC.Event_DepC.log(Event_DepC)             1.0577649   1.6678987
+Event_DepC.Event_DepC.randarm5-FU + Oxaliplatin  -0.4969602   0.2959141
+Event_DepC.Event_EoI.(Intercept)                 -1.4460664   1.1179192
 
 > library("tramME")
 
@@ -677,15 +677,15 @@ Standard deviation:
 
 > confint(mcME)
                                  lwr         upr
-Bs1(iDFS)                 -2.4005700 -1.97823234
-Bs2(iDFS)                 -1.9933773 -1.55085217
-Bs3(iDFS)                 -1.9953661 -1.06463902
-Bs4(iDFS)                 -1.9086972 -0.74669036
-Bs5(iDFS)                 -1.5193692 -0.74550813
-Bs6(iDFS)                 -1.0905888 -0.71557594
-Bs7(iDFS)                 -0.9676971 -0.66001095
-randarm5-FU + Oxaliplatin -0.4489286 -0.02913711
-Block|(Intercept)         -2.5352930 -0.01666400
+Bs1(iDFS)                 -2.4005713 -1.97823306
+Bs2(iDFS)                 -1.9933789 -1.55085340
+Bs3(iDFS)                 -1.9953670 -1.06463968
+Bs4(iDFS)                 -1.9086996 -0.74669209
+Bs5(iDFS)                 -1.5193709 -0.74550909
+Bs6(iDFS)                 -1.0905884 -0.71557561
+Bs7(iDFS)                 -0.9676973 -0.66001090
+randarm5-FU + Oxaliplatin -0.4489287 -0.02913714
+Block|(Intercept)         -2.5353231 -0.01664409
 
 > tmp <- CAOsurv$iDFS
 
@@ -710,31 +710,31 @@ Block|(Intercept)         -2.5352930 -0.01666400
 
 > coef(mmc)
                Bs1(iDFS2)                Bs2(iDFS2) 
-               -2.1352623                -1.7251906 
+               -2.1352629                -1.7251909 
                Bs3(iDFS2)                Bs4(iDFS2) 
-               -1.5101019                -1.3062949 
+               -1.5101020                -1.3062956 
                Bs5(iDFS2)                Bs6(iDFS2) 
-               -1.1114882                -0.8931227 
+               -1.1114883                -0.8931230 
                Bs7(iDFS2) randarm5-FU + Oxaliplatin 
-               -0.8064782                -0.2386027 
+               -0.8064784                -0.2386023 
                    gamma1 
                 0.1739306 
 
 > sqrt(diag(vcov(mmc)))
                Bs1(iDFS2)                Bs2(iDFS2) 
-               0.10665977                0.10980647 
+               0.10665981                0.10980651 
                Bs3(iDFS2)                Bs4(iDFS2) 
-               0.23130408                0.29286841 
+               0.23130416                0.29286851 
                Bs5(iDFS2)                Bs6(iDFS2) 
-               0.19529963                0.09328074 
+               0.19529970                0.09328078 
                Bs7(iDFS2) randarm5-FU + Oxaliplatin 
-               0.07616952                0.10736281 
+               0.07616954                0.10736281 
                    gamma1 
-               0.12087460 
+               0.12087479 
 
 > (ci_MCOX <- mHR.mtram(mmc, with_confint = TRUE))
      randarm5-FU + Oxaliplatin      2.5%     97.5%
-[1,]                 0.7905128 0.6447846 0.9743397
+[1,]                 0.7905131 0.6447848 0.9743401
 
 > ma <- CoxphME(iDFS ~ randarm + s(age, by = as.ordered(randarm), 
 +     fx = TRUE, k = 6), data = CAOsurv, log_first = TRUE)
@@ -819,15 +819,15 @@ s(age):as.ordered(randarm)5-FU + Oxaliplatin   5
 
 > coef(mf)[trt]
 randarm5-FU + Oxaliplatin 
-               -0.5828831 
+               -0.5827938 
 
 > coef(mf, addparm = TRUE)
- logrho 
-3.46065 
+  logrho 
+3.461317 
 
 > confint(mf, parm = c(trt, "logrho"))
                               2.5 %    97.5 %
-randarm5-FU + Oxaliplatin -1.446148 0.2803822
+randarm5-FU + Oxaliplatin -1.446267 0.2806789
 logrho                           NA        NA
 
 > ml <- Colr(iDFS ~ randarm, data = CAOsurv, log_first = TRUE)
@@ -863,4 +863,4 @@ logrho                           NA        NA
  *** Run successfully completed ***
 > proc.time()
    user  system elapsed 
- 95.241   0.315  95.594 
+100.668   0.203 100.888 

@@ -119,21 +119,21 @@ Warning in trellis.par.set(list(plot.symbol = list(col = 1, pch = 20, cex = 0.7)
 
 > coef(Lm_BH_1, as.lm = TRUE)
   (Intercept)          crim            zn         indus         chas1 
- 3.636982e+01 -1.062027e-01  4.772448e-02  2.324320e-02  2.691722e+00 
+ 3.636803e+01 -1.061956e-01  4.772391e-02  2.324310e-02  2.691723e+00 
           nox            rm           age           dis           rad 
--1.774153e+01  3.789503e+00  5.738338e-04 -1.501794e+00  3.037523e-01 
+-1.773996e+01  3.789593e+00  5.730907e-04 -1.501730e+00  3.037478e-01 
           tax       ptratio             b         lstat 
--1.270440e-02 -9.238719e-01  9.228803e-03 -5.306558e-01 
+-1.270434e-02 -9.238752e-01  9.229321e-03 -5.306540e-01 
 attr(,"scale")
    cmedv 
-4.637222 
+4.637175 
 
 > summary(lm_BH)$sigma
 [1] 4.702737
 
 > 1/coef(Lm_BH_1, with_baseline = TRUE)["cmedv"]
    cmedv 
-4.637222 
+4.637175 
 
 > BostonHousing2$y <- with(BostonHousing2, Surv(cmedv, 
 +     cmedv < 50))
@@ -142,17 +142,17 @@ attr(,"scale")
 +     rm + age + dis + rad + tax + ptratio + b + lstat, data = BostonHousing2)
 
 > logLik(Lm_BH_2)
-'log Lik.' -1496.301 (df=15)
+'log Lik.' -1496.083 (df=15)
 
 > Lm_BH_3 <- Lm(y | 0 + chas ~ crim + zn + indus + nox + 
 +     rm + age + dis + rad + tax + ptratio + b + lstat, data = BostonHousing2)
 
 > logLik(Lm_BH_3)
-'log Lik.' -1478.452 (df=16)
+'log Lik.' -1478.45 (df=16)
 
 > 1/coef(Lm_BH_3, with_baseline = TRUE)[c(2, 4)]
  y:chas0  y:chas1 
-4.132790 7.156278 
+4.132769 7.156537 
 
 > summary(glht(as.mlt(Lm_BH_3), linfct = c("y:chas0 - y:chas1 = 0")))
 
@@ -163,7 +163,7 @@ Fit: Lm(formula = y | 0 + chas ~ crim + zn + indus + nox + rm + age +
 
 Linear Hypotheses:
                        Estimate Std. Error z value Pr(>|z|)    
-y:chas0 - y:chas1 == 0  0.10223    0.01497   6.829 8.55e-12 ***
+y:chas0 - y:chas1 == 0  0.10224    0.01497    6.83 8.52e-12 ***
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 (Adjusted p values reported -- single-step method)
@@ -187,7 +187,7 @@ Warning in model.matrix.box_bases(object = list(iresponse = function (data,  :
   use scale = TRUE in as.basis.formula with sumcontr = TRUE
 
 > logLik(Lm_BH_4)
-'log Lik.' -1300.693 (df=28)
+'log Lik.' -1310.324 (df=28)
 
 > BC_BH_1 <- BoxCox(y ~ chas + crim + zn + indus + nox + 
 +     rm + age + dis + rad + tax + ptratio + b + lstat, data = BostonHousing2)
@@ -205,7 +205,7 @@ Warning in model.matrix.box_bases(object = list(iresponse = function (data,  :
 +     nox + rm + age + dis + rad + tax + ptratio + b + lstat, data = BostonHousing2)
 
 > logLik(BC_BH_2)
-'log Lik.' -1319.249 (df=26)
+'log Lik.' -1319.25 (df=26)
 
 > nd <- model.frame(BC_BH_2)[1:2, -1]
 
@@ -228,7 +228,7 @@ Warning in model.matrix.box_bases(object = list(iresponse = function (data,  :
 +     nox + rm + age + dis + rad + tax + ptratio + b + lstat, data = BostonHousing2)
 
 > logLik(Colr_BH_1)
-'log Lik.' -1292.479 (df=26)
+'log Lik.' -1292.48 (df=26)
 
 > round(cbind(exp(coef(Colr_BH_1)), exp(confint(Colr_BH_1))), 
 +     3)
@@ -236,15 +236,15 @@ Warning in model.matrix.box_bases(object = list(iresponse = function (data,  :
 crim       1.085  1.056     1.115
 zn         0.990  0.980     0.999
 indus      0.973  0.933     1.015
-nox     1089.607 59.159 20068.834
-rm         0.209  0.136     0.323
+nox     1006.812 54.775 18506.018
+rm         0.206  0.133     0.318
 age        1.010  1.000     1.021
-dis        1.659  1.424     1.934
-rad        0.883  0.841     0.927
+dis        1.655  1.420     1.928
+rad        0.884  0.842     0.928
 tax        1.007  1.004     1.009
-ptratio    1.494  1.359     1.643
+ptratio    1.490  1.356     1.638
 b          0.994  0.992     0.996
-lstat      1.323  1.256     1.394
+lstat      1.322  1.255     1.392
 
 > nd <- BostonHousing2
 
@@ -325,10 +325,10 @@ Warning in model.matrix.box_bases(object = list(iresponse = function (data,  :
 
 > c(coef(Survreg_GBSG2_1), coef(survreg_GBSG2_1)["horThyes"]/survreg_GBSG2_1$scale)
  horThyes  horThyes 
-0.3932393 0.3932403 
+0.3932258 0.3932403 
 
 > exp(-rev(confint(Survreg_GBSG2_1)))
-[1] 0.5284035 0.8619280
+[1] 0.5284108 0.8619393
 
 > nd <- data.frame(horTh = factor(c("no", "yes")))
 
@@ -353,9 +353,9 @@ Warning in model.matrix.box_bases(object = list(iresponse = function (data,  :
 
 > coef(Survreg_GBSG2_2, with_baseline = TRUE)
            (Intercept):horThno  log(Surv(time, cens)):horThno 
-                     -9.736006                       1.279324 
+                     -9.736041                       1.279328 
           (Intercept):horThyes log(Surv(time, cens)):horThyes 
-                    -10.273829                       1.299109 
+                    -10.273872                       1.299116 
 
 > c(1/survreg_GBSG2_2$scale, -coef(survreg_GBSG2_2)/survreg_GBSG2_2$scale)
         no        yes    horThno   horThyes 
@@ -368,7 +368,7 @@ Warning in model.matrix.box_bases(object = list(iresponse = function (data,  :
 
 > coef(Coxph_GBSG2_1)
   horThyes 
--0.3713396 
+-0.3713416 
 
 > Coxph_GBSG2_2 <- Coxph(Surv(time, cens) | 0 + horTh ~ 
 +     1, data = GBSG2)
@@ -531,7 +531,7 @@ tempwarm
 +     b + lstat, data =  .... [TRUNCATED] 
 
 > logLik(BC_BH_4)
-'log Lik.' -1287.824 (df=77)
+'log Lik.' -1287.636 (df=77)
 
 > library("ATR")
 
@@ -546,7 +546,7 @@ tempwarm
 
 > coef(Coxph_GBSG2_1)
   horThyes 
--0.3713396 
+-0.3713416 
 
 > Coxph_GBSG2_3 <- trafotree(Coxph_GBSG2_1, formula = Surv(time, 
 +     cens) ~ horTh | age + menostat + tsize + tgrade + pnodes + 
@@ -557,7 +557,7 @@ tempwarm
 
 > coef(Coxph_GBSG2_3)[, "horThyes"]
           2           4           5 
--0.49230886 -0.46964355  0.08513886 
+-0.49230886 -0.46957455  0.08514053 
 
 > nd <- data.frame(horTh = sort(unique(GBSG2$horTh)))
 
@@ -592,7 +592,7 @@ Number of terminal nodes: 3
 
 > coef(Coxph_GBSG2_4)[, "horThyes"]
          2          4          5 
--0.5629356 -0.1296880 -0.5547282 
+-0.5629348 -0.1296877 -0.5547098 
 
 > sessionInfo()
 R version 4.5.1 (2025-06-13)
@@ -641,4 +641,4 @@ loaded via a namespace (and not attached):
  *** Run successfully completed ***
 > proc.time()
    user  system elapsed 
-  7.532   0.119   7.727 
+  8.633   0.199   8.830 

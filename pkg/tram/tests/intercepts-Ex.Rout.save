@@ -1,7 +1,7 @@
 
-R version 4.3.1 (2023-06-16) -- "Beagle Scouts"
-Copyright (C) 2023 The R Foundation for Statistical Computing
-Platform: x86_64-pc-linux-gnu (64-bit)
+R version 4.5.1 (2025-06-13) -- "Great Square Root"
+Copyright (C) 2025 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
@@ -53,7 +53,7 @@ Loading required package: mvtnorm
 > m2 <- Survreg(y ~ xx | xx, data = d, remove_intercept = FALSE)
 > coef(as.mlt(m2))
      log(y) (Intercept)          xx      scl_xx 
-       1.38        1.86       -0.10       -0.04 
+       1.39        1.88       -0.10       -0.03 
 > sqrt(diag(vcov(m2)))
 (Intercept)          xx      scl_xx 
         1.1         0.2         0.2 
@@ -144,7 +144,7 @@ Bs1(y) Bs2(y)     xx  scl_x
 > m2 <- Coxph(y ~ xx | xx, data = d, scale_shift = TRUE, log_first = TRUE, order = OR)
 > coef(as.mlt(m2))
 Bs1(y) Bs2(y)     xx scl_xx 
- -1.68   1.00   0.05  -0.04 
+ -1.69   1.00   0.05  -0.04 
 > sqrt(diag(vcov(m2)))
     xx scl_xx 
    0.1    0.2 
@@ -152,4 +152,4 @@ Bs1(y) Bs2(y)     xx scl_xx
 > 
 > proc.time()
    user  system elapsed 
-   1.41    0.03    1.44 
+   1.10    0.06    1.15 

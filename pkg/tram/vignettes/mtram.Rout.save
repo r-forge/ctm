@@ -110,7 +110,7 @@ Warning in trellis.par.set(list(plot.symbol = list(col = 1, pch = 20, cex = 0.7)
 
 > coef(sleep_LMmer)["Reaction"]
   Reaction 
-0.03907741 
+0.03908086 
 
 > fixef(sleep_lmer) * c(-1, 1) * sdinv
 (Intercept)        Days 
@@ -118,24 +118,24 @@ Warning in trellis.par.set(list(plot.symbol = list(col = 1, pch = 20, cex = 0.7)
 
 > coef(sleep_LMmer)[c("(Intercept)", "Days")]
 (Intercept)        Days 
- -9.8243917   0.4089265 
+ -9.8252286   0.4091449 
 
 > sleep_lmer@theta
 [1] 0.92919061 0.01816575 0.22264321
 
 > coef(sleep_LMmer)[-(1:3)]
     gamma1     gamma2     gamma3 
-0.92901066 0.01843056 0.22280431 
+0.92896850 0.01792155 0.22290416 
 
 > sleep_LMmer$G * (1/sdinv)^2
          [,1]     [,2]
-[1,] 565.2580 11.21410
-[2,]  11.2141 32.73513
+[1,] 565.2067 10.90390
+[2,]  10.9039 32.75216
 
 > cov2cor(sleep_LMmer$G * (1/sdinv)^2)
            [,1]       [,2]
-[1,] 1.00000000 0.08243925
-[2,] 0.08243925 1.00000000
+[1,] 1.00000000 0.08014162
+[2,] 0.08014162 1.00000000
 
 > unclass(VarCorr(sleep_lmer))$Subject
             (Intercept)     Days
@@ -164,17 +164,17 @@ Days         0.08132109 1.00000000
 +     data = sleepstudy)
 
 > logLik(sleep_LMmer_I)
-'log Lik.' -213.3648 (df=6)
+'log Lik.' -213.4053 (df=6)
 
 > coef(sleep_LMmer_I)
- (Intercept)   Reaction_I         Days       gamma1       gamma2 
--10.55102463   0.04217345   0.42564319   1.02172116   0.05196110 
-      gamma3 
-  0.22344596 
+  (Intercept)    Reaction_I          Days        gamma1        gamma2 
+-10.658245919   0.042214155   0.453828174   0.963560216   0.008524802 
+       gamma3 
+  0.237131485 
 
 > coef(sleep_LMmer)
 (Intercept)    Reaction        Days      gamma1      gamma2      gamma3 
--9.82439168  0.03907741  0.40892652  0.92901066  0.01843056  0.22280431 
+-9.82522859  0.03908086  0.40914489  0.92896850  0.01792155  0.22290416 
 
 > sleep_BC <- BoxCox(Reaction ~ Days, data = sleepstudy)
 
@@ -255,8 +255,8 @@ Days         0.08132109 1.00000000
 
 > cov2cor(sleep_BCmer$G)
            [,1]       [,2]
-[1,]  1.0000000 -0.1946629
-[2,] -0.1946629  1.0000000
+[1,]  1.0000000 -0.1946338
+[2,] -0.1946338  1.0000000
 
 > library("mvtnorm")
 
@@ -274,15 +274,15 @@ Days         0.08132109 1.00000000
 
 > quantile(ret[1, ], c(0.025, 0.5, 0.975))
      2.5%       50%     97.5% 
-0.8232198 2.5746149 5.2175834 
+0.8231869 2.5743472 5.2170115 
 
 > quantile(ret[2, ], c(0.025, 0.5, 0.975))
       2.5%        50%      97.5% 
-0.01696463 0.05198217 0.11157233 
+0.01696440 0.05198142 0.11156854 
 
 > quantile(ret[3, ], c(0.025, 0.5, 0.975))
       2.5%        50%      97.5% 
--0.6380038 -0.1825544  0.4109880 
+-0.6379678 -0.1825300  0.4110025 
 
 > sleep_C <- Colr(Reaction ~ Days, data = sleepstudy)
 
@@ -519,9 +519,9 @@ treatmentterbinafine:time              0.0009595152
 
 > vcov(toenail_mtram_RI)[1:4, 1:4]
                             (Intercept) treatmentterbinafine          time
-(Intercept)                0.0522671032          0.045693346  0.0008720032
+(Intercept)                0.0522671032          0.045693346  0.0008720033
 treatmentterbinafine       0.0456933463          0.094460326  0.0013347660
-time                       0.0008720032          0.001334766  0.0004235916
+time                       0.0008720033          0.001334766  0.0004235916
 treatmentterbinafine:time -0.0013559040         -0.002708974 -0.0003895272
                           treatmentterbinafine:time
 (Intercept)                           -0.0013559040
@@ -803,7 +803,7 @@ laserActive:time12 weeks 29.5454666 10.26785879  85.0162253
              laserActive              time7 weeks             time12 weeks 
                0.1040042                0.5184702                0.7806349 
  laserActive:time7 weeks laserActive:time12 weeks 
-             130.6995028               41.9850808 
+             130.6997515               41.9851549 
 
 > neck_Colr <- Colr(vas ~ laser * time, data = pain_df, 
 +     bounds = c(0, 1), support = c(0, 1), extrapolate = TRUE)
@@ -846,11 +846,11 @@ laserActive:time12 weeks 29.5454666 10.26785879  85.0162253
 +     quantile(exp(x), prob = c(0.025, 0.5, 0.975))
 + }))
                               2.5%        50%      97.5%
-laserActive              0.1136359  0.2445009  0.5149658
-time7 weeks              0.4534649  0.6898312  1.0443951
-time12 weeks             0.5540465  0.8534378  1.3152460
-laserActive:time7 weeks  7.9313696 15.6453788 33.7751913
-laserActive:time12 weeks 4.3891978  8.4366700 17.2166870
+laserActive              0.1136343  0.2444975  0.5149586
+time7 weeks              0.4534637  0.6898295  1.0443928
+time12 weeks             0.5540432  0.8534327  1.3152380
+laserActive:time7 weeks  7.9314043 15.6454379 33.7752873
+laserActive:time12 weeks 4.3892576  8.4367941 17.2169604
 
 > beta <- coef(neck_Colrmer)[8:12]
 
@@ -858,35 +858,35 @@ laserActive:time12 weeks 4.3891978  8.4366700 17.2166870
 
 > (std_beta <- cbind(beta/sqrt(1 + alpha^2)))
                                [,1]
-laserActive              -1.4103130
-time7 weeks              -0.3700945
-time12 weeks             -0.1603065
-laserActive:time7 weeks   2.7556704
-laserActive:time12 weeks  2.1411043
+laserActive              -1.4103256
+time7 weeks              -0.3700969
+time12 weeks             -0.1603120
+laserActive:time7 weeks   2.7556741
+laserActive:time12 weeks  2.1411193
 
 > ctr_mat <- matrix(c(1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 
 +     1, 0, 0, 0, 1), nrow = 3, byrow = TRUE)
 
 > ctr_mat %*% std_beta
            [,1]
-[1,] -1.4103130
-[2,]  1.3453573
-[3,]  0.7307912
+[1,] -1.4103256
+[2,]  1.3453485
+[3,]  0.7307938
 
 > (ci_emp <- t(apply(ctr_mat %*% t(rbeta[, 8:12]), 1, 
 +     function(x) {
 +         quantile(x, prob = c(0.025, 0.5, 0.975))
 +     })))
-            2.5%        50%      97.5%
-[1,] -2.17475624 -1.4085364 -0.6636548
-[2,]  0.60017722  1.3460335  2.1439221
-[3,] -0.02721477  0.7305284  1.5064479
+           2.5%        50%      97.5%
+[1,] -2.1747698 -1.4085503 -0.6636688
+[2,]  0.6001684  1.3460249  2.1439143
+[3,] -0.0272141  0.7305299  1.5064512
 
 > PI(-ci_emp, link = "logistic")
           2.5%       50%     97.5%
-[1,] 0.8136459 0.7202626 0.6090104
-[2,] 0.4011563 0.2883831 0.1896406
-[3,] 0.5045357 0.3803706 0.2664875
+[1,] 0.8136473 0.7202646 0.6090127
+[2,] 0.4011577 0.2883843 0.1896415
+[3,] 0.5045356 0.3803704 0.2664870
 
 > nd <- expand.grid(time = unique(pain_df$time), laser = unique(pain_df$laser))
 
@@ -899,9 +899,9 @@ laserActive:time12 weeks  2.1411043
 +     ], reference = nd[4:6, ], one2one = TRUE, conf.level = 0.95))[1:3, 
 +     1:3]
      Estimate       lwr       upr
-4-1 0.7205063 0.5840627 0.8277760
-5-2 0.2884774 0.1749464 0.4327279
-6-3 0.3803291 0.2446181 0.5354264
+4-1 0.7205080 0.5840648 0.8277773
+5-2 0.2884786 0.1749473 0.4327294
+6-3 0.3803287 0.2446178 0.5354260
 
 > dir <- system.file("rda", package = "TH.data")
 
@@ -960,9 +960,9 @@ laserActive:time12 weeks  2.1411043
 
 > (cf <- coef(CAO_SR_mtram))
               (Intercept)                log(iDFS2) 
-               -6.3072093                 0.7423852 
+               -6.3072094                 0.7423852 
 randarm5-FU + Oxaliplatin                    gamma1 
-                0.2331123                 0.1696021 
+                0.2331123                 0.1696022 
 
 > (OR <- exp(-cf["randarm5-FU + Oxaliplatin"]/sqrt(cf["gamma1"]^2 + 
 +     1)))
@@ -993,20 +993,20 @@ randarm5-FU + Oxaliplatin
 
 > (cf <- coef(CAO_SR_2_mtram))
 (Intercept):strat_ncN0:strat_tcT1-3  log(iDFS2):strat_ncN0:strat_tcT1-3 
-                         -7.8971992                           0.9603570 
+                         -7.8971973                           0.9603566 
 (Intercept):strat_ncN+:strat_tcT1-3  log(iDFS2):strat_ncN+:strat_tcT1-3 
-                         -6.2305620                           0.7210083 
+                         -6.2305579                           0.7210080 
   (Intercept):strat_ncN0:strat_tcT4    log(iDFS2):strat_ncN0:strat_tcT4 
-                         -3.0492763                           0.3715057 
+                         -3.0492786                           0.3715060 
   (Intercept):strat_ncN+:strat_tcT4    log(iDFS2):strat_ncN+:strat_tcT4 
-                         -4.8260324                           0.6222421 
+                         -4.8260186                           0.6222404 
           randarm5-FU + Oxaliplatin                              gamma1 
-                          0.2242823                           0.1490952 
+                          0.2242830                           0.1490976 
 
 > (OR_2 <- exp(-cf["randarm5-FU + Oxaliplatin"]/sqrt(cf["gamma1"]^2 + 
 +     1)))
 randarm5-FU + Oxaliplatin 
-                0.8010513 
+                0.8010508 
 
 > S <- vcov(CAO_SR_2_mtram)
 
@@ -1020,13 +1020,13 @@ randarm5-FU + Oxaliplatin
 > quantile(exp(-rbeta[, ncol(rbeta)]), prob = c(0.025, 
 +     0.5, 0.975))
      2.5%       50%     97.5% 
-0.6529846 0.8040061 0.9834478 
+0.6529842 0.8040055 0.9834471 
 
 > CAO_Cox_2 <- Coxph(iDFS2 | 0 + strat_n:strat_t ~ randarm, 
 +     data = CAOsurv, support = c(1, 1700), log_first = TRUE, order = 4)
 
 > logLik(CAO_Cox_2)
-'log Lik.' -2021.91 (df=21)
+'log Lik.' -2021.878 (df=21)
 
 > CAO_Cox_2_mtram <- mtram(CAO_Cox_2, ~(1 | Block), 
 +     data = CAOsurv)
@@ -1036,27 +1036,27 @@ randarm5-FU + Oxaliplatin
 
 > coef(CAO_Cox_2_mtram)
 Bs1(iDFS2):strat_ncN0:strat_tcT1-3 Bs2(iDFS2):strat_ncN0:strat_tcT1-3 
-                       -67.9685048                         -3.4314347 
+                       -68.9198590                         -3.4017279 
 Bs3(iDFS2):strat_ncN0:strat_tcT1-3 Bs4(iDFS2):strat_ncN0:strat_tcT1-3 
-                        -3.4314277                         -2.3232197 
+                        -3.4008716                         -2.3298802 
 Bs5(iDFS2):strat_ncN0:strat_tcT1-3 Bs1(iDFS2):strat_ncN+:strat_tcT1-3 
-                        -0.7868623                        -31.3068990 
+                        -0.7869216                        -31.2171273 
 Bs2(iDFS2):strat_ncN+:strat_tcT1-3 Bs3(iDFS2):strat_ncN+:strat_tcT1-3 
-                        -3.8678017                         -3.8677633 
+                        -3.8729261                         -3.8711276 
 Bs4(iDFS2):strat_ncN+:strat_tcT1-3 Bs5(iDFS2):strat_ncN+:strat_tcT1-3 
-                        -1.4422081                         -0.9327259 
+                        -1.4414211                         -0.9327611 
   Bs1(iDFS2):strat_ncN0:strat_tcT4   Bs2(iDFS2):strat_ncN0:strat_tcT4 
-                        -2.7917943                         -2.7917942 
+                        -2.7924639                         -2.7924563 
   Bs3(iDFS2):strat_ncN0:strat_tcT4   Bs4(iDFS2):strat_ncN0:strat_tcT4 
-                        -1.8205778                         -0.6356197 
+                        -1.8191229                         -0.6361198 
   Bs5(iDFS2):strat_ncN0:strat_tcT4   Bs1(iDFS2):strat_ncN+:strat_tcT4 
-                        -0.3166817                        -40.8201591 
+                        -0.3167125                        -40.8902142 
   Bs2(iDFS2):strat_ncN+:strat_tcT4   Bs3(iDFS2):strat_ncN+:strat_tcT4 
-                        -2.2297444                         -2.2297433 
+                        -2.2279587                         -2.2279584 
   Bs4(iDFS2):strat_ncN+:strat_tcT4   Bs5(iDFS2):strat_ncN+:strat_tcT4 
-                        -0.3402088                         -0.3352392 
+                        -0.3415698                         -0.3351074 
          randarm5-FU + Oxaliplatin                             gamma1 
-                        -0.2365469                          0.1613293 
+                        -0.2364857                          0.1617533 
 
 > S <- vcov(CAO_Cox_2_mtram)
 
@@ -1070,7 +1070,7 @@ Bs4(iDFS2):strat_ncN+:strat_tcT1-3 Bs5(iDFS2):strat_ncN+:strat_tcT1-3
 > quantile(exp(rbeta[, ncol(rbeta)]), prob = c(0.025, 
 +     0.5, 0.975))
      2.5%       50%     97.5% 
-0.6419135 0.7942075 0.9742260 
+0.6423020 0.7942520 0.9729294 
 
 > nd <- CAOsurv[1:2, ]
 
@@ -1082,26 +1082,26 @@ Bs4(iDFS2):strat_ncN+:strat_tcT1-3 Bs5(iDFS2):strat_ncN+:strat_tcT1-3
 > (CAO_Cox_PI <- PI(tmp, newdata = nd[2, ], reference = nd[1, 
 +     ], one2one = TRUE, conf.level = 0.95))[1, ]
  Estimate       lwr       upr 
-0.5581180 0.5061150 0.6088769 
+0.5580992 0.5061012 0.6088538 
 
 > ci_man <- quantile(-rbeta[, ncol(rbeta)], prob = c(0.025, 
 +     0.5, 0.975))
 
 > (CAO_Cox_PIm <- PI(ci_man, link = "minimum extreme value"))
      2.5%       50%     97.5% 
-0.5065276 0.5573491 0.6090455 
+0.5068605 0.5573353 0.6089014 
 
 > CAO_Cox_2_tramME <- CoxphME(iDFS2 | 0 + strat_n:strat_t ~ 
 +     randarm + (1 | Block), data = CAOsurv, log_first = TRUE)
 
 > exp(coef(CAO_Cox_2_tramME))
 randarm5-FU + Oxaliplatin 
-                0.7906074 
+                0.7906066 
 
 > exp(confint(CAO_Cox_2_tramME, parm = "randarm5-FU + Oxaliplatin", 
 +     estimate = TRUE))
                                 lwr       upr       est
-randarm5-FU + Oxaliplatin 0.6406383 0.9756833 0.7906074
+randarm5-FU + Oxaliplatin 0.6406377 0.9756823 0.7906066
 
 > sessionInfo()
 R version 4.5.1 (2025-06-13)
@@ -1188,4 +1188,4 @@ loaded via a namespace (and not attached):
  *** Run successfully completed ***
 > proc.time()
    user  system elapsed 
- 78.760   0.407  79.239 
+ 74.800   0.398  75.248 

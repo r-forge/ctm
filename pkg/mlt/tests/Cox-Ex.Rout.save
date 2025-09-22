@@ -1,5 +1,5 @@
 
-R version 4.5.1 (2025-06-13) -- "Great Square Root"
+R Under development (unstable) (2025-09-22 r88866) -- "Unsuffered Consequences"
 Copyright (C) 2025 The R Foundation for Statistical Computing
 Platform: x86_64-pc-linux-gnu
 
@@ -119,15 +119,15 @@ Loading required package: variables
 > op <- mltoptim(spg = list(maxit = 5000, quiet = TRUE, checkGrad = FALSE))
 > coef(opt <- mlt(m, data = mydata, optim = op, scale = TRUE))
 Bs1(y):(Intercept) Bs2(y):(Intercept) Bs3(y):(Intercept) Bs4(y):(Intercept) 
-          -0.12121            0.14666            0.78554            0.84895 
+          -0.12106            0.14686            0.78551            0.84890 
 Bs5(y):(Intercept) Bs6(y):(Intercept)          Bs1(y):g2          Bs2(y):g2 
-           0.84895            1.63756            0.74605            0.79807 
+           0.84890            1.63749            0.74606            0.79808 
          Bs3(y):g2          Bs4(y):g2          Bs5(y):g2          Bs6(y):g2 
-           0.78078            0.71736            0.71736            2.68216 
+           0.78065            0.71725            0.71725            2.68674 
          Bs1(y):g3          Bs2(y):g3          Bs3(y):g3          Bs4(y):g3 
-           1.08983            1.15789            0.51901            1.75576 
+           1.09052            1.15872            0.52007            1.66512 
          Bs5(y):g3          Bs6(y):g3 
-           1.75576           28.10028 
+           1.66512           32.38785 
 > ## IGNORE_RDIFF_END
 > coef(cph <- coxph(Surv(y, rep(TRUE, nrow(mydata))) ~ g, data = mydata))
      g2      g3 
@@ -148,4 +148,4 @@ Bs5(y):(Intercept) Bs6(y):(Intercept)          Bs1(y):g2          Bs2(y):g2
 > 
 > proc.time()
    user  system elapsed 
-  1.167   0.068   1.230 
+  1.224   0.059   1.278 

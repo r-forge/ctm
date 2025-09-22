@@ -1,7 +1,7 @@
 
-R version 3.4.3 (2017-11-30) -- "Kite-Eating Tree"
-Copyright (C) 2017 The R Foundation for Statistical Computing
-Platform: x86_64-pc-linux-gnu (64-bit)
+R version 4.5.1 (2025-06-13) -- "Great Square Root"
+Copyright (C) 2025 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
@@ -21,6 +21,7 @@ Type 'q()' to quit R.
 Loading required package: mlt
 Loading required package: basefun
 Loading required package: variables
+Loading required package: mvtnorm
 > 
 > ### Windows diffs...
 > options(digits = 3)
@@ -114,6 +115,34 @@ Likelihood-ratio Test: Chisq = 170 on 6 degrees of freedom; p = <2e-16
 > attr(ll, "nobs") <- NULL
 > cmp(ll, logLik(house.plr2))
 > 
+> set.seed(129)
+> 
+> if (require("TH.data")) {
++ 
++     ### blood loss data
++     load(system.file("rda", "bloodloss.rda", package = "TH.data"))
++     sMBL <- sort(unique(blood$MBL))
++     blood$MBLc <- cut(blood$MBL, breaks = c(-Inf, sMBL), ordered_result = TRUE)
++ 
++     op <- mltoptim()
++     ### spg: worked
++     m2 <- Polr(MBLc ~ 1, data = blood, method = "probit", optim = op[2])
++     ### constrOptim: changed defaults in mlt 1.6-7
++     m4 <- Polr(MBLc ~ 1, data = blood, method = "probit", optim = op[4])
++ 
++     cmp(logLik(m2), logLik(m4))
++ 
++ }
+Loading required package: TH.data
+Loading required package: survival
+
+Attaching package: 'TH.data'
+
+The following object is masked from 'package:MASS':
+
+    geyser
+
+> 
 > proc.time()
    user  system elapsed 
-  1.700   0.064   1.762 
+  0.683   0.067   0.745 
