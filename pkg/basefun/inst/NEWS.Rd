@@ -2,6 +2,16 @@
 \name{NEWS}
 \title{NEWS file for the basefun package}
 
+\section{Changes in Version 1.2-4 (2025-09-23)}{
+  \itemize{
+    \item{Allow prior transformations more general than
+          \code{log} in \code{Bernstein_basis} via its new
+          \code{fun} argument.}
+    \item{Fix problem when computing the second derivatives
+          of Bernstein polynomials after log-transformation.}
+  }
+}
+
 \section{Changes in Version 1.2-3 (2025-05-09)}{
   \itemize{
     \item{\code{rep} to \code{rep_len}.}

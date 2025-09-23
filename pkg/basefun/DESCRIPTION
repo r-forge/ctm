@@ -1,12 +1,12 @@
 Package: basefun
 Title: Infrastructure for Computing with Basis Functions
-Version: 1.2-3
-Date: 2025-05-09
+Version: 1.2-4
+Date: 2025-09-23
 Authors@R: person("Torsten", "Hothorn", role = c("aut", "cre"),
                   email = "Torsten.Hothorn@R-project.org", comment = c(ORCID = "0000-0001-8301-0471"))  
 Description: Some very simple infrastructure for basis functions.
 Depends: variables (>= 1.1-0), R (>= 3.2.0)
 Imports: stats, polynom, Matrix, orthopolynom, methods
-Suggests: quadprog
+Suggests: quadprog, numDeriv
 URL: http://ctm.R-forge.R-project.org
 License: GPL-2

@@ -1,7 +1,7 @@
 
-R version 3.6.0 (2019-04-26) -- "Planting of a Tree"
-Copyright (C) 2019 The R Foundation for Statistical Computing
-Platform: x86_64-pc-linux-gnu (64-bit)
+R version 4.5.1 (2025-06-13) -- "Great Square Root"
+Copyright (C) 2025 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
@@ -116,7 +116,7 @@ Loading required package: variables
 > 
 > try(model.matrix(b3, data = data.frame(x = x), deriv = c(x = 3)))
 Error in object(data = data, deriv = deriv, integrate = integrate) : 
-  deriv > 2 not implemented for log_first
+  deriv > 2 not implemented
 > 
 > xv <- numeric_var("lx", support = log(c(.3, .7)), bounds = log(c(0.01, .99)))
 > b2 <- Bernstein_basis(xv, order = 6, extrapolate = TRUE)
@@ -138,9 +138,9 @@ Error in object(data = data, deriv = deriv, integrate = integrate) :
 > 
 > try(model.matrix(b3, data = data.frame(x = x), deriv = c(x = 3)))
 Error in object(data = data, deriv = deriv, integrate = integrate) : 
-  deriv > 2 not implemented for log_first
+  deriv > 2 not implemented
 > 
 > 
 > proc.time()
    user  system elapsed 
-  1.071   0.044   1.107 
+  0.693   0.052   0.740 

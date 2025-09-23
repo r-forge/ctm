@@ -10,7 +10,7 @@
 Bernstein_basis(var, order = 2, ui = c("none", "increasing", "decreasing", 
                                        "cyclic", "zerointegral", "positive",
                                        "negative", "concave", "convex"),
-                extrapolate = FALSE, log_first = FALSE)
+                extrapolate = FALSE, log_first = FALSE, fun = NULL)
 }
 \arguments{
   \item{var}{a \code{\link[variables]{numeric_var}} object}
@@ -25,6 +25,9 @@ Bernstein_basis(var, order = 2, ui = c("none", "increasing", "decreasing",
                    support as \code{c(1, q)}$, ie putting the first 
                    basis function of the polynomial on
                    \code{log(1)}.}
+  \item{fun}{a list of functions for transforming the input data, typically
+             of length three: the monotone transformation and its first two
+             derivatives.}
 }
 \details{
   \code{Bernstein_basis} returns a function for the evaluation of
