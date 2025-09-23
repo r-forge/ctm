@@ -24,7 +24,27 @@ Bernstein_basis <- function(var, order = 2,
                             ui = c("none", "increasing", "decreasing", 
                                    "cyclic", "zerointegral", "positive", 
                                    "negative", "concave", "convex"),
-                            extrapolate = FALSE, log_first = FALSE) {
+                            extrapolate = FALSE, log_first = FALSE, 
+                            fun = NULL) {
+
+    ### keep interface in tram stable
+    if (!is.logical(log_first)) {
+        fun <- log_first
+        log_first <- FALSE
+    }
+
+    if (log_first) {
+       if (!is.null(fun))
+           warning("Argument fun ignored")
+       fun <- list(log, 
+                   function(x) 1 / x, 
+                   function(x) - 1 / x^2)
+    } else {
+       if (!is.null(fun)) {
+           if (is.function(fun)) fun <- list(fun)
+           stopifnot(all(sapply(fun, is.function)))
+       }
+    }
 
     zeroint <- FALSE
     ui <- match.arg(ui, several.ok = TRUE)
@@ -40,10 +60,11 @@ Bernstein_basis <- function(var, order = 2,
 
     s <- os <- support(var)
     b <- ob <- bounds(var)
-    if (log_first) {
-        stopifnot(bounds(var)[[1]][1] > .Machine$double.eps)
-        s <- lapply(s, log)
-        b <- lapply(b, log)
+    if (!is.null(fun)) {
+        s <- lapply(s, fun[[1]])
+        stopifnot(all(!is.na(s[[1]])))
+        b <- lapply(b, fun[[1]])
+        stopifnot(all(!is.na(b[[1]])))
     }    
 
     constr <- switch(ui,
@@ -54,14 +75,17 @@ Bernstein_basis <- function(var, order = 2,
         "decreasing" = list(ui = -diff(Diagonal(order + 1), differences = 1),
                             ci = rep_len(0, order)),
         "increasing.positive" = {
-            tmp <- Bernstein_basis(var, order = order, extrapolate = FALSE)
+            tmp <- Bernstein_basis(var, order = order, 
+                                   extrapolate = FALSE, fun = fun)
             tmpdf <- as.data.frame(mkgrid(var))
             B0 <- model.matrix(tmp, data = tmpdf)[1,]
             list(ui = rbind(B0, diff(Diagonal(order + 1), differences = 1)), 
-                        ci = rep_len(0, order + 1))
+                            ci = rep_len(0, order + 1))
         },
-        "positive" = list(ui = Diagonal(order + 1), ci = rep_len(0, order + 1)),
-        "negative" = list(ui = -Diagonal(order + 1), ci = rep_len(0, order + 1)),
+        "positive" = list(ui = Diagonal(order + 1), 
+                          ci = rep_len(0, order + 1)),
+        "negative" = list(ui = -Diagonal(order + 1), 
+                          ci = rep_len(0, order + 1)),
         ### doi:10.1016/j.csda.2012.02.018
         "convex" = list(ui = diff(Diagonal(order + 1), differences = 2), 
                         ci = rep_len(0, order - 1)),
@@ -72,9 +96,8 @@ Bernstein_basis <- function(var, order = 2,
 
     ### linear extrapolation, f''(support) = 0
     if (extrapolate) {
-        os[[1]] <- range(os[[1]])
         tmp <- Bernstein_basis(var, order = order, extrapolate = FALSE,
-                               log_first = log_first)
+                               fun = fun)
         tmpdf <- as.data.frame(os)
         left <- os[[1]][1] > ob[[1]][1]
         right <- os[[1]][2] < ob[[1]][2]
@@ -83,7 +106,7 @@ Bernstein_basis <- function(var, order = 2,
             if (!left && right) tmpdf <- tmpdf[-1,,drop = FALSE]
             dr <- 2
             names(dr) <- names(os)
-            B0 <- model.matrix(tmp, data = tmpdf, deriv = dr)
+            B0 <- model.matrix(tmp, data = tmpdf, deriv = dr, fun = fun)
             ### <FIXME> we don't have infrastructure for equality
             ### constraints, so use <= and >= 
             ### </FIXME>
@@ -107,7 +130,7 @@ Bernstein_basis <- function(var, order = 2,
             x <- data[[varname]]
         }
         ox <- x
-        if (log_first) x <- log(x)
+        if (!is.null(fun)) x <- fun[[1]](x)
 
         ### applies to all basis functions
         ### deriv = -1 => 0
@@ -123,25 +146,25 @@ Bernstein_basis <- function(var, order = 2,
         stopifnot(all(x >= 0 & x <= 1))
 
         X <- do.call("cbind", lapply(0:order, function(j) 
-                     .Bx(x, j, order, deriv = max(c(0, deriv)), integrate = integrate)))
+                     .Bx(x, j, order, deriv = max(c(0, deriv)), 
+                         integrate = integrate)))
 
         if (deriv < 0) {
             X[] <- 0
-        } else{
-            if (!log_first && deriv > 0) {
-                X <- X * (1 / diff(support)^deriv)
-            } else {
-                if (log_first && deriv > 0) {
-                    X <- switch(as.character(deriv),
-                        "1" = {
-                            X * (1 / diff(support)^deriv) / ox
-                        },
-                        "2" = {
-                            X1 <- do.call("cbind", lapply(0:order, function(j) 
-                               .Bx(x, j, order, deriv = 1L, integrate = integrate)))
-                            (X - X1) / (ox^2)
-                        },
-                        stop("deriv > 2 not implemented for log_first"))
+        } else {
+            if (deriv > 0) {
+                X <- X / (diff(support)^deriv)
+                if (!is.null(fun)) {
+                    if (deriv == 1L) {
+                        X <- X * fun[[2]](ox)
+                    } else if (deriv == 2L) {
+                        X1 <- do.call("cbind", lapply(0:order, function(j) 
+                            .Bx(x, j, order, deriv = 1L, 
+                                integrate = integrate))) / diff(support)
+                        X <- -(X1 * fun[[2]](ox)^2 + X * fun[[3]](ox))
+                    } else {
+                        stop("deriv > 2 not implemented")
+                    }
                 }
                 ### do nothing for deriv == 0
             }
@@ -155,7 +178,8 @@ Bernstein_basis <- function(var, order = 2,
             ### theta_order = -sum(gamma), adjust constraints
             if (deriv == 0L && !is.null(constr$ui)) {
                 ui <- constr$ui
-                ui <- ui[, -ncol(ui), drop = FALSE] - as(ui[, ncol(ui), drop = TRUE], "sparseVector")
+                ui <- ui[, -ncol(ui), drop = FALSE] - 
+                      as(ui[, ncol(ui), drop = TRUE], "sparseVector")
                 constr$ui <- ui
             }
         }
@@ -165,8 +189,9 @@ Bernstein_basis <- function(var, order = 2,
     }
 
     attr(basis, "variables") <- var
-    attr(basis, "intercept") <- zeroint ### FIXME: Bernstein has implicit intercept unless zeroint
-    attr(basis, "log_first") <- log_first
+    attr(basis, "intercept") <- zeroint ### FIXME: Bernstein has implicit 
+                                        ### intercept unless zeroint
+    attr(basis, "fun") <- fun
 
     class(basis) <- c("Bernstein_basis", "basis", class(basis))
     return(basis)
@@ -199,10 +224,11 @@ model.matrix.Bernstein_basis <- function(object, data,
     data[[varname]][large] <- s[2]
     ret <- object(data = data, deriv = deriv, integrate = integrate)
 
+   fun <- attr(object, "fun")
     if (any(small)) {
         dsmall <- data.frame(x = rep_len(s[1], sum(small)))
         names(dsmall) <- varname
-        if (!attr(object, "log_first")) {
+        if (is.null(fun)) {
             xdiff <- x[small] - s[1]
             ret[small,] <- switch(as.character(deriv),
                 "0" = {
@@ -214,7 +240,7 @@ model.matrix.Bernstein_basis <- function(object, data,
                 },
                 0)
         } else {
-            xdiff <- (log(x[small]) - log(s[1]))
+            xdiff <- (fun[[1]](x[small]) - fun[[1]](s[1]))
             ret[small,] <- switch(as.character(deriv),
                 "0" = {
                     object(data = dsmall, deriv = deriv) +
@@ -226,7 +252,8 @@ model.matrix.Bernstein_basis <- function(object, data,
                     object(data = dsmall, deriv = deriv) * s[1] / x[small]
                 },
                 "2" = {
-                    -object(data = dsmall, deriv = deriv - 1L) * s[1] / (x[small]^2)
+                    - object(data = dsmall, deriv = deriv - 1L) * s[1] / 
+                      (x[small]^2)
                 },
                 stop("deriv >= 2 not implemented"))
         } 
@@ -234,7 +261,7 @@ model.matrix.Bernstein_basis <- function(object, data,
     if (any(large)) {
         dlarge <- data.frame(x = rep_len(s[2], sum(large)))
         names(dlarge) <- varname
-        if (!attr(object, "log_first")) {
+        if (is.null(fun)) {
             xdiff <- x[large] - s[2]
             ret[large,] <- switch(as.character(deriv),
                 "0" = {
@@ -246,7 +273,7 @@ model.matrix.Bernstein_basis <- function(object, data,
                 },
                 0)
         } else {
-            xdiff <- (log(x[large]) - log(s[2]))
+            xdiff <- (fun[[1]](x[large]) - fun[[1]](s[2]))
             ret[large,] <- switch(as.character(deriv),
                 "0" = {
                     object(data = dlarge, deriv = deriv) +
@@ -258,7 +285,8 @@ model.matrix.Bernstein_basis <- function(object, data,
                     object(data = dlarge, deriv = deriv) * s[2] / x[large]
                 },
                 "2" = {
-                    -object(data = dlarge, deriv = deriv - 1L) * s[2] / (x[large]^2)
+                    - object(data = dlarge, deriv = deriv - 1L) * s[2] / 
+                      (x[large]^2)
                 },
                 stop("deriv >= 2 not implemented"))
         } 
