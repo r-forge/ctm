@@ -90,35 +90,35 @@ w100 -0.3901577 0.4864919
 
 > (cf1 <- coef(m)["y.w100"])
       y.w100 
--0.001682994 
+-0.001668928 
 
 > sqrt(diag(vcov(m))["y.w100"])
    y.w100 
-0.1747481 
+0.1747482 
 
 > lambda <- c(unclass(coef(m, type = "Lambdapar")))
 
 > sqrt(2/nrow(immun) * ((1 + lambda^2) * cf1^2 + 8)/(4 * 
 +     (1 + lambda^2)))
    y.w100 
-0.1745791 
+0.1745792 
 
 > confint(m)["y.w100", ]
-    2.5 %    97.5 % 
--0.344183  0.340817 
+     2.5 %     97.5 % 
+-0.3441692  0.3408313 
 
 > coef(m, type = "Corr")
 , , 1
 
           y         x
-y 1.0000000 0.6248544
-x 0.6248544 1.0000000
+y 1.0000000 0.6248541
+x 0.6248541 1.0000000
 
 
 > Omega <- as.array(coef(m, type = "Lambda"))[, , 1]
 
 > 1 - Omega[nrow(Omega), ncol(Omega)]^(-2)
-[1] 0.390443
+[1] 0.3904427
 
 > mad <- BoxCoxME(y ~ w + s(x), data = immun)
 
@@ -266,16 +266,16 @@ Treatment8 virgin 1.342623 2.970175
 
 > (cf1 <- coef(m)["survival.Treatment8 virgin"])
 survival.Treatment8 virgin 
-                  2.048251 
+                  2.048255 
 
 > (ci1 <- confint(m)["survival.Treatment8 virgin", ])
    2.5 %   97.5 % 
-1.430688 2.665815 
+1.430691 2.665819 
 
 > Omega <- as.array(coef(m, type = "Lambda"))[, , 1]
 
 > 1 - Omega[nrow(Omega), ncol(Omega)]^(-2)
-[1] 0.6714097
+[1] 0.6714107
 
 > q <- 0:100
 
@@ -359,4 +359,4 @@ NULL
  *** Run successfully completed ***
 > proc.time()
    user  system elapsed 
- 38.266   0.139  38.410 
+ 38.480   0.116  38.692 

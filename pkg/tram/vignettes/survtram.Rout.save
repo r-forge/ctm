@@ -409,13 +409,13 @@ Coxph(formula = iDFS | strat ~ randarm, data = CAOsurv, log_first = TRUE)
 
 Coefficients:
                           Estimate Std. Error z value Pr(>|z|)  
-randarm5-FU + Oxaliplatin  -0.2317     0.1069  -2.168   0.0302 *
+randarm5-FU + Oxaliplatin  -0.2312     0.1069  -2.163   0.0305 *
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 Log-Likelihood:
  -2231.848 (df = 29)
-Likelihood-ratio Test: Chisq = 4.752268 on 1 degrees of freedom; p = 0.02926
+Likelihood-ratio Test: Chisq = 4.75183 on 1 degrees of freedom; p = 0.02927
 
 
 > score_test(mcst)
@@ -423,13 +423,13 @@ Likelihood-ratio Test: Chisq = 4.752268 on 1 degrees of freedom; p = 0.02926
 	Transformation Score Test
 
 data:  Coxph(formula = iDFS | strat ~ randarm, data = CAOsurv, log_first = TRUE)
-Z = 2.1821, p-value = 0.0291
+Z = 2.1783, p-value = 0.02938
 alternative hypothesis: true log-hazard ratio for randarm5-FU + Oxaliplatin is not equal to 0
 95 percent confidence interval:
- -0.43974846 -0.02355431
+ -0.4396970 -0.0236895
 sample estimates:
 log-hazard ratio for randarm5-FU + Oxaliplatin 
-                                    -0.2316719 
+                                    -0.2312035 
 
 
 > perm_test(mcst)
@@ -437,13 +437,13 @@ log-hazard ratio for randarm5-FU + Oxaliplatin
 	Asymptotic Permutation Transformation Score Test
 
 data:  Coxph(formula = iDFS | strat ~ randarm, data = CAOsurv, log_first = TRUE)
-Z = 2.1655, p-value = 0.03035
+Z = 2.1652, p-value = 0.03037
 alternative hypothesis: true log-hazard ratio for randarm5-FU + Oxaliplatin is not equal to 0
 95 percent confidence interval:
- -0.44176414 -0.02127351
+ -0.4419796 -0.0219237
 sample estimates:
 log-hazard ratio for randarm5-FU + Oxaliplatin 
-                                    -0.2316719 
+                                    -0.2312035 
 
 
 > plot(as.mlt(mcst), newdata = nd2, q = q, type = "trafo", 
@@ -479,9 +479,9 @@ randarm5-FU + Oxaliplatin     -0.3977818 0.2465750
 scl_randarm5-FU + Oxaliplatin -0.1060296 0.6845534
 
 > perm_test_biv.stram(mcs)
-[1] 0.01387056
+[1] 0.0138706
 99 percent confidence interval:
- 0.01387056 0.01387056 
+ 0.0138706 0.0138706 
 
 
 > eval(par_surv)
@@ -634,7 +634,7 @@ Event_EoI.Event_EoI.Bs3(Event_EoI)               -2.1492159  -1.4424910
 Event_EoI.Event_EoI.Bs4(Event_EoI)               -1.7144439  -1.1257242
 Event_EoI.Event_EoI.Bs5(Event_EoI)               -1.7144391  -1.1257290
 Event_EoI.Event_EoI.Bs6(Event_EoI)               -1.7144442  -1.1257238
-Event_EoI.Event_EoI.Bs7(Event_EoI)               -1.3693058  -0.4742558
+Event_EoI.Event_EoI.Bs7(Event_EoI)               -1.3693059  -0.4742558
 Event_EoI.Event_EoI.randarm5-FU + Oxaliplatin    -0.3228171   0.2341997
 Event_DepC.Event_DepC.(Intercept)               -14.2795450 -10.3546674
 Event_DepC.Event_DepC.log(Event_DepC)             1.0577649   1.6678987
@@ -863,4 +863,4 @@ logrho                           NA        NA
  *** Run successfully completed ***
 > proc.time()
    user  system elapsed 
-100.668   0.203 100.888 
+ 99.880   0.244 100.655 

@@ -531,7 +531,7 @@ tempwarm
 +     b + lstat, data =  .... [TRUNCATED] 
 
 > logLik(BC_BH_4)
-'log Lik.' -1287.636 (df=77)
+'log Lik.' -1287.756 (df=77)
 
 > library("ATR")
 
@@ -621,24 +621,24 @@ attached base packages:
 other attached packages:
  [1] ATR_0.1-1           trtf_0.4-3          partykit_1.2-24    
  [4] libcoin_1.0-10      quantreg_6.1        SparseM_1.84-2     
- [7] colorspace_2.1-1    ordinal_2023.12-4.1 multcomp_1.4-28    
+ [7] colorspace_2.1-2    ordinal_2023.12-4.1 multcomp_1.4-28    
 [10] TH.data_1.1-4       mlbench_2.1-6       lattice_0.22-7     
-[13] MASS_7.3-65         survival_3.8-3      tram_1.2-4         
-[16] mvtnorm_1.3-4       mlt_1.6-6           basefun_1.2-3      
+[13] MASS_7.3-65         survival_3.8-3      tram_1.2-5         
+[16] mvtnorm_1.3-4       mlt_1.6-7           basefun_1.2-4      
 [19] variables_1.1-2    
 
 loaded via a namespace (and not attached):
- [1] Matrix_1.7-3         coneproj_1.20        ucminf_1.2.2        
+ [1] Matrix_1.7-4         coneproj_1.20        ucminf_1.2.2        
  [4] compiler_4.5.1       rpart_4.1.24         Rcpp_1.1.0          
  [7] MatrixModels_0.5-4   orthopolynom_1.0-6.1 splines_4.5.1       
 [10] alabama_2023.1.0     Formula_1.2-5        knitr_1.50          
 [13] inum_1.0-5           nloptr_2.2.1         BB_2019.10-1        
-[16] xfun_0.52            quadprog_1.5-8       polynom_1.4-1       
-[19] sandwich_3.1-1       nlme_3.1-168         evaluate_1.0.4      
+[16] xfun_0.53            quadprog_1.5-8       polynom_1.4-1       
+[19] sandwich_3.1-1       nlme_3.1-168         evaluate_1.0.5      
 [22] numDeriv_2016.8-1.1  codetools_0.2-20     zoo_1.8-14          
 [25] tools_4.5.1         
 
  *** Run successfully completed ***
 > proc.time()
    user  system elapsed 
-  8.633   0.199   8.830 
+  7.440   0.154   7.672 

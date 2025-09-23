@@ -2,12 +2,19 @@
 \name{NEWS}
 \title{NEWS file for the tram package}
 
+\section{Changes in Version 1.2-5 (2025-09-23)}{
+  \itemize{
+    \item{Adapt to \pkg{mlt} 1.6-7 changes.}
+    \item{Bring back reference output.}
+  }
+}
+
 \section{Changes in Version 1.2-4 (2025-09-23)}{
   \itemize{
     \item{\code{summary.tram} now works for univariate models.}
     \item{New \code{survtram} vignette.}
     \item{Ship without reference output allowing a more
-          substantial mlt update soon.} 
+          substantial \pkg{mlt} update soon.} 
   }
 }
 
