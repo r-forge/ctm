@@ -141,7 +141,7 @@ tram <- function(formula, data, subset, weights, offset, cluster, na.action = na
 
     rvar <- asvar(td$response, td$rname, prob = prob, support = support,
                   bounds = bounds, add = add, sparse_nlevels = sparse_nlevels)
-    if (!is.null(rvar$bounds) && log_first) {
+    if (!is.null(rvar$bounds) && isTRUE(log_first)) {
         if (rvar$bounds[1] < sqrt(.Machine$double.eps)) 
             rvar$bounds[1] <- sqrt(.Machine$double.eps)
     }
