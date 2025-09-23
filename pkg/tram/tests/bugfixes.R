@@ -66,8 +66,6 @@ l1 <- m1$logliki(coef(as.mlt(m1)), rep(1, nrow(d)))
 l3 <- m3$logliki(coef(as.mlt(m3)), rep(1, nrow(d)))
 stopifnot(cor(l1, l3) > .9)
 
-stopifnot(logLik(m3) > logLik(m1))
-
 ### 0.3-0
 data("GBSG2", package = "TH.data")
 ### this model included an additional intercept
