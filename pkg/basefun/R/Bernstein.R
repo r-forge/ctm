@@ -192,6 +192,7 @@ Bernstein_basis <- function(var, order = 2,
     attr(basis, "intercept") <- zeroint ### FIXME: Bernstein has implicit 
                                         ### intercept unless zeroint
     attr(basis, "fun") <- fun
+    attr(basis, "log_first") <- log_first
 
     class(basis) <- c("Bernstein_basis", "basis", class(basis))
     return(basis)
