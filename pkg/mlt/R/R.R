@@ -144,6 +144,22 @@ R.Surv <- function(object, as.R.ordered = FALSE, as.R.interval = FALSE, ...) {
                        tleft = object[, "start"])
     )
     attr(ret, "prob") <- function(weights) {
+        if (attr(object, "type") == "interval") {
+            ### Turnbull estimation takes tooo looong
+            ### maybe fall back to Kaplan-Meier?
+            if (FALSE) {
+            time1 <- object[,"time1"]
+            time2 <- object[,"time2"]
+            status <- object[,"status"]
+            ### status = 3 means interval
+            time1[status == 3L] <- time1[status == 3L] + 
+                (time2[status == 3] - time1[status == 3]) / 2
+            status[status == 3] <- 1L
+            ### status = 2 is left censoring: FIXME
+            status[status == 2] <- 0L
+            object <- Surv(time = time1, event = status)
+            }
+        }
         ### FIXME: subsetting doesn't change this fct
         if (length(weights) == NROW(object)) {
             sf <- survival::survfit(object ~ 1, subset = weights > 0, weights = weights)
