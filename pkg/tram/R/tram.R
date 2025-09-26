@@ -316,6 +316,7 @@ tram <- function(formula, data, subset, weights, offset, cluster, na.action = na
         nullret <- do.call("mlt", args)
         nulllogLik <- logLik(nullret)
         fulllogLik <- logLik(ret)
+        ret$nullmodel <- nullret
         ret$LRtest <- c(LRstat = -2 * (nulllogLik - fulllogLik), 
                         df = attr(fulllogLik, "df") - attr(nulllogLik, "df"))
     }
