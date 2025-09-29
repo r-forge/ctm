@@ -21,8 +21,6 @@ ll <- logLik(house.plr)
 attr(ll, "nobs") <- NULL
 cmp(ll, logLik(house.plr2))
 
-set.seed(129)
-
 if (require("TH.data")) {
 
     ### blood loss data
@@ -30,12 +28,14 @@ if (require("TH.data")) {
     sMBL <- sort(unique(blood$MBL))
     blood$MBLc <- cut(blood$MBL, breaks = c(-Inf, sMBL), ordered_result = TRUE)
 
-    op <- mltoptim()
-    ### spg: worked
-    m2 <- Polr(MBLc ~ 1, data = blood, method = "probit", optim = op[2])
-    ### constrOptim: changed defaults in mlt 1.6-7
-    m4 <- Polr(MBLc ~ 1, data = blood, method = "probit", optim = op[4])
+    op <- mltoptim()[c("auglag", "nlminb")]
+    m <- lapply(1:length(op), function(i) 
+        Polr(MBLc ~ 1, data = blood, method = "probit", optim = op[i])
+    )
+    stopifnot(all(diff(sapply(m, logLik)) < 1e-5))
 
-    cmp(logLik(m2), logLik(m4))
-
+    m <- lapply(1:length(op), function(i) 
+        Polr(MBLc ~ IOL + DAUER.ap + FET.GEW, data = blood, method = "probit", optim = op[i])
+    )
+    stopifnot(all(diff(sapply(m, logLik)) < 1e-5))
 }
