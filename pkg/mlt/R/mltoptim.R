@@ -1,51 +1,81 @@
 
-mltoptim <- function(auglag = list(maxtry = 5L, kkt2.check = hessian, maxit = 1000L), 
-                     spg = list(maxit = 10000L, quiet = TRUE, checkGrad = FALSE),
-                     nloptr = list(algorithm = "NLOPT_LD_MMA", xtol_rel = 1.0e-8, maxeval = 1000L),
-                     constrOptim = list(method = "BFGS", control = list(maxit = 1000), mu = 1e-01, 
-                                        outer.iterations = 1000L, outer.eps = 1e-05, hessian = hessian),
-                     trace = FALSE, hessian = FALSE) 
+mltoptim <- function(
+    auglag = list(
+        kkt2.check = hessian,         ### turn off/on numerical hessian
+               eps = abstol,          ### absolute tolerance for _parameter_ updates 
+             itmax = 1000L,           ### max number of outer iterations
+            method = "BFGS",          ### inner algorithm
+             maxit = 500L             ### max number of inner (BFGS) iterations    
+        ), 
+    spg = list(
+              ftol = abstol,          ### absolute tolerance for _neg. logLik_
+             quiet = TRUE,            ### don't talk
+         checkGrad = FALSE            ### don't check analytical gradient
+    ),
+    nloptr = list(
+         algorithm = "NLOPT_LD_MMA",  ### inner algorithm 
+          ftol_rel = reltol,          ### relative change for _neg. logLik_
+          ftol_abs = abstol,          ### absolute tolerance for _neg. logLik_
+           maxeval = 1000L            ### max number of evaluations
+    ),
+    constrOptim = list(
+            method = "BFGS",          ### inner algorithm 	
+             maxit = 1000L,           ### max number of inner (BFGS) iterations 
+  outer.iterations = 500L,            ### max number of outer iterations
+         outer.eps = reltol,          ### relative change for _neg. logLik_          
+           hessian = hessian          ### turn off/on numerical hessian
+    ),        
+    nlminb = list(
+  checkconstraints = TRUE,            ### return -Inf if violated
+          iter.max = 1000L,           ### max number of iterations 
+          eval.max = 1500L,           ### max number of function evaluations
+           rel.tol = reltol,          ### relative change for _neg. logLik_
+           abs.tol = 0.0,             ### absolute tolerance (nll is not >= 0) 
+            xf.tol = 1e-10
+    ),  
+  abstol = 1e-07, 
+  reltol = 1e-6, 
+   trace = FALSE, 
+ hessian = FALSE) 
 {
     ret <- list()
+
     if (!is.null(auglag))
-        ret$auglag <- function(theta, f, g, ui = NULL, ci = NULL) {
+        ret$auglag <- function(theta, f, g, ui = NULL, ci = NULL, ...) {
             control <- auglag
             maxtry <- control$maxtry
             control$maxtry <- NULL
             control$trace <- trace
             atheta <- theta
             if (!is.null(ui)) {
-                for (tr in 1:maxtry) {
-                    ret <- try(alabama::auglag(par = atheta, fn = f, gr = g, hin = function(par) ui %*% par - ci, hin.jac = function(par) ui,
-                                               control.outer = control))
-                    rtn <- c("par", "convergence", "value")
-                    if ("hessian" %in% names(ret)) {
-                        ret$optim_hessian <- ret$hessian
-                        rtn <- c(rtn, "optim_hessian")
-                    }
-                    ret <- ret[rtn]
-                    atheta <- runif(length(atheta))
-                    names(atheta) <- names(theta)
-                    if (inherits(ret, "try-error")) next()
-                    if (ret$convergence == 0) break()
+                ret <- try(alabama::auglag(par = atheta, fn = f, gr = g, 
+                    hin = function(par) ui %*% par - ci, hin.jac = function(par) ui,
+                    control.outer = control))
+                if (inherits(ret, "try-error"))
+                    return(list(par = theta, convergence = 1))
+                rtn <- c("par", "convergence", "value")
+                if ("hessian" %in% names(ret)) {
+                    ret$optim_hessian <- ret$hessian
+                    rtn <- c(rtn, "optim_hessian")
                 }
+                ret <- ret[rtn]
             } else { 
                 control <- spg
                 control$trace <- trace
                 quiet <- control$quiet
                 control$quiet <- NULL
                 ret <- try(BBoptim(par = theta, fn = f, gr = g, control = control, quiet = quiet))
+                if (inherits(ret, "try-error"))
+                    return(list(par = theta, convergence = 1))
                 ### we often only use this part for generating starting
                 ### values, so refrain from issuing a warning
                 # if (hessian)
                 #    warning("Cannot compute Hessian using BB::BBoptim")
             }
-            if (inherits(ret, "try-error"))
-                ret <- list(par = theta, convergence = 1)
             return(ret)
         }
     if (!is.null(spg))
-        ret$spg <- function(theta, f, g, ui = NULL, ci = NULL) {
+        ret$spg <- function(theta, f, g, ui = NULL, ci = NULL, ...) {
             control <- spg
             control$trace <- trace
             quiet <- control$quiet
@@ -64,7 +94,7 @@ mltoptim <- function(auglag = list(maxtry = 5L, kkt2.check = hessian, maxit = 10
             return(ret)
         }
     if (!is.null(nloptr))
-        ret$nloptr <- function(theta, f, g, ui = NULL, ci = NULL) {
+        ret$nloptr <- function(theta, f, g, ui = NULL, ci = NULL, ...) {
             control <- nloptr
             if (trace) control$print_level <- 2
             atheta <- theta
@@ -83,8 +113,8 @@ mltoptim <- function(auglag = list(maxtry = 5L, kkt2.check = hessian, maxit = 10
                 } else {
                     ret$convergence <- 0L
                     ### some tolerance criterion reached
-                    if (ret$status > 1)
-                        warning(ret$message)
+                    # if (ret$status > 1)
+                    #   warning(ret$message)
                 }
             } else { 
                 control$algorithm <- "NLOPT_LD_LBFGS"
@@ -99,8 +129,8 @@ mltoptim <- function(auglag = list(maxtry = 5L, kkt2.check = hessian, maxit = 10
                 } else {
                     ret$convergence <- 0L
                     ### some tolerance criterion reached
-                    if (ret$status > 1)
-                        warning(ret$message)
+                    # if (ret$status > 1)
+                    #    warning(ret$message)
                 }
             }
             if (inherits(ret, "try-error")) {
@@ -114,9 +144,11 @@ mltoptim <- function(auglag = list(maxtry = 5L, kkt2.check = hessian, maxit = 10
             return(ret)
         }
     if (!is.null(constrOptim))
-        ret$constrOptim <- function(theta, f, g, ui = NULL, ci = NULL) {
+        ret$constrOptim <- function(theta, f, g, ui = NULL, ci = NULL, ...) {
             control <- constrOptim$control
             control$trace <- trace
+            control[c("mu", "method", "outer.iterations", "outer.eps",
+                      "hessian")] <- NULL
             if (!is.null(ui)) {
                 ret <- try(stats::constrOptim(theta = theta, f = f, grad = g,
                                               ui = ui, ci = ci, mu = constrOptim$mu, 
@@ -145,5 +177,37 @@ mltoptim <- function(auglag = list(maxtry = 5L, kkt2.check = hessian, maxit = 10
             return(ret)
 
         }
-    return(ret)
+    if (!is.null(nlminb)) {
+        ret$nlminb <- function(theta, f, g, h, ui = NULL, ci = NULL) {
+            control <- nlminb
+            control$trace <- trace
+            objfun <- f
+            if (control$checkconstraints) {
+                objfun <- function(theta) {
+                    if (any(ui %*% ret$par - ci < 0))
+                        return(-Inf)
+                    return(f(theta))
+                }
+            }
+            control$checkconstraints <- NULL
+            ### _unconstraint optimisation_
+            ret <- try(stats::nlminb(start = theta, objective = f, gradient = g, hessian = h,
+                                     control = control))
+            if (inherits(ret, "try-error")) {
+                return(list(par = theta, convergence = 1))
+            } else {
+                ### check constraints
+                if (!is.null(ui)) {
+                    if (any(ui %*% ret$par - ci < 0))
+                        warning("nlminb result violates inequality constraints")
+                }
+            }
+            ret$value <- ret$objective
+            rtn <- c("par", "convergence", "value", "optim_hessian")
+            return(ret[rtn])
+        }
+    }
+    if (hessian)
+        return(ret[c("auglag", "constrOptim")])
+    return(ret[c("auglag", "spg", "nloptr", "constrOptim", "nlminb")])
 }
