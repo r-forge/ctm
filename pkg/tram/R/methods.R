@@ -117,7 +117,7 @@ vcov.tram <- function(object, with_baseline = FALSE, complete = FALSE, ...)
     ret <- solve(H)
     if (inherits(ret, "try-error"))
         return(vcov(as.mlt(object))[shift, shift])
-    if (any(diag(ret) < 0))
+    if (isTRUE(any(diag(ret) < 0))) ### there might be NAs
         return(vcov(as.mlt(object))[shift, shift])
     nm <- cf
     nm <- nm[!nm %in% names(object$fixed)]
