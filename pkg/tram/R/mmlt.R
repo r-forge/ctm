@@ -1,7 +1,7 @@
 
 Mmlt <- function(..., formula = ~ 1, data, conditional = FALSE, 
-                 theta = NULL, fixed = NULL, scale = FALSE,
-                 optim = mltoptim(hessian = TRUE)[c("auglag", "constrOptim")], 
+                 theta = NULL, fixed = NULL, scaleparm = FALSE,
+                 optim = mltoptim(hessian = TRUE),
                  args = list(seed = 1, type = c("MC", "ghalton"), M = 1000), 
                  fit = c("jointML", "pseudo", "ACS", "sequential", "none"),
                  ACSiter = 2)
@@ -13,14 +13,14 @@ Mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
     if (fit %in% c("none", "jointML", "pseudo")) {
         ret <- switch(fit, 
             "none" = mmlt(..., formula = formula, data = data, conditional = conditional, 
-                          theta = theta, fixed = fixed, scale = scale,
+                          theta = theta, fixed = fixed, scaleparm = scaleparm,
                           optim = optim, args = args,
                           dofit = FALSE),
             "jointML" = mmlt(..., formula = formula, data = data, conditional = conditional, 
-                          theta = theta, fixed = fixed, scale = scale,
+                          theta = theta, fixed = fixed, scaleparm = scaleparm,
                           optim = optim, args = args),
             "pseudo" = mmlt(..., formula = formula, data = data, conditional = conditional, 
-                          theta = theta, fixed = fixed, scale = scale,
+                          theta = theta, fixed = fixed, scaleparm = scaleparm,
                           optim = optim, args = args, domargins = FALSE))
         ret$call <- call
         class(ret) <- c("Mmlt", class(ret))
@@ -62,7 +62,7 @@ Mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
 
     ### ACS: start with Lambda parameters, keep margins fix
     ret <- mmlt(..., formula = formula, data = data, conditional = conditional, 
-               theta = theta, fixed = fixed, scale = scale,
+               theta = theta, fixed = fixed, scaleparm = scaleparm,
                optim = optim, args = args, domargins = FALSE)
 
     cf <- coef(ret)
@@ -78,13 +78,13 @@ Mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
         theta <- coef(ret)[mn]  ### marginal parameters
         fixed <- coef(ret)[Ln]  ### Lambda parameters
         ret <- mmlt(..., formula = formula, data = data, conditional = conditional, 
-                    theta = theta, fixed = fixed, scale = scale,
+                    theta = theta, fixed = fixed, scaleparm = scaleparm,
                     optim = optim, args = args)
         ### update Lambda given marginal parameters
         theta <- coef(ret)[Ln]	### Lambda parameters
         fixed <- coef(ret)[mn]  ### marginal parameters
         ret <- mmlt(..., formula = formula, data = data, conditional = conditional, 
-                    theta = theta, fixed = fixed, scale = scale,
+                    theta = theta, fixed = fixed, scaleparm = scaleparm,
                     optim = optim, args = args)
     }
     ret$call <- call
