@@ -1,5 +1,5 @@
 
-R Under development (unstable) (2025-09-22 r88866) -- "Unsuffered Consequences"
+R version 4.5.1 (2025-06-13) -- "Great Square Root"
 Copyright (C) 2025 The R Foundation for Statistical Computing
 Platform: x86_64-pc-linux-gnu
 
@@ -53,7 +53,7 @@ In c.basis(bresponse = function (data, deriv = 0L)  :
 > o <- mlt(m, data = d)
 > 1 / coef(o)[2]
      y 
-0.2613 
+0.2608 
 > p <- predict(Bb,
 +              newdata = data.frame(x = x), coef = coef(o)[-(1:2)])
 > plot(x, y)
@@ -79,4 +79,4 @@ In c.basis(bresponse = function (data, deriv = 0L)  :
 > 
 > proc.time()
    user  system elapsed 
-  0.922   0.072   1.001 
+  0.921   0.064   0.980 

@@ -148,4 +148,4 @@ Bs5(y):(Intercept) Bs6(y):(Intercept)          Bs1(y):g2          Bs2(y):g2
 > 
 > proc.time()
    user  system elapsed 
-  1.193   0.056   1.244 
+  1.138   0.068   1.201 
