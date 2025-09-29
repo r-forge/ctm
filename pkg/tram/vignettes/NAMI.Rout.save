@@ -133,19 +133,19 @@ x 0.6248541 1.0000000
 > Omega <- as.array(coef(m, type = "Lambda"))[, , 1]
 
 > 1 - Omega[nrow(Omega), ncol(Omega)]^(-2)
-[1] 0.5120753
+[1] 0.5121276
 
 > (cf1 <- coef(m)["y.w100"])
-    y.w100 
-0.03015259 
+   y.w100 
+0.0298195 
 
 > confint(m)["y.w100", ]
      2.5 %     97.5 % 
--0.2789758  0.3392810 
+-0.2792883  0.3389273 
 
 > pnorm(cf1/sqrt(2))
    y.w100 
-0.5085052 
+0.5084113 
 
 > load(system.file("rda", "Primary_endpoint_data.rda", 
 +     package = "TH.data"))
@@ -170,12 +170,12 @@ randarm5-FU + Oxaliplatin
 
 > exp(coef(mpCR)["randarm5-FU + Oxaliplatin"])
 randarm5-FU + Oxaliplatin 
-                 1.421517 
+                 1.421518 
 
 > exp(confint(glht(mpCR, coef. = function(...) coef(..., 
 +     fixed = FALSE)), calpha = univariate_calpha())$confint)
-                          Estimate     lwr      upr
-randarm5-FU + Oxaliplatin 1.421517 1.03659 1.949382
+                          Estimate      lwr      upr
+randarm5-FU + Oxaliplatin 1.421518 1.036591 1.949384
 attr(,"conf.level")
 [1] 0.95
 attr(,"calpha")
@@ -204,14 +204,14 @@ attr(,"calpha")
 
 > exp(coef(m)[prm])
 ypT0ypN0.randarm5-FU + Oxaliplatin 
-                           1.40158 
+                          1.401745 
 
 > ci <- confint(glht(m, coef. = function(...) coef(..., 
 +     fixed = FALSE)), calpha = univariate_calpha())$confint
 
 > exp(ci[prm, -1])
      lwr      upr 
-1.022364 1.921456 
+1.022535 1.921585 
 
 > mr <- as.array(coef(m, type = "Cor"))["ypT0ypN0", 
 +     , 1]
@@ -223,19 +223,19 @@ ypT0ypN0.randarm5-FU + Oxaliplatin
 
 > (mr <- mr[i])
     ecog_o 
--0.1512811 
+-0.1520201 
 
 > Omega <- as.array(coef(m, type = "Lambda"))[, , 1]
 
 > 1 - Omega[nrow(Omega), ncol(Omega)]^(-2)
-[1] 0.03009771
+[1] 0.03038266
 
 > sqrt(vcov(mpCR))
                           randarm5-FU + Oxaliplatin
-randarm5-FU + Oxaliplatin                 0.1611193
+randarm5-FU + Oxaliplatin                 0.1611192
 
 > sqrt(vcov(m)[prm, prm])
-[1] 0.1609636
+[1] 0.1609381
 
 > data("FruitFlies", package = "Stat2Data")
 
@@ -359,4 +359,4 @@ NULL
  *** Run successfully completed ***
 > proc.time()
    user  system elapsed 
- 38.480   0.116  38.692 
+ 39.406   0.142  39.553 
