@@ -70,10 +70,10 @@ Compris <- function(formula, data, subset, weights, na.action, offset,
                                                 "Colr" = "loglogistic", 
                                                 "BoxCox" = "lognormal"),
                     NPlogLik = FALSE, theta = NULL,
-                    optim = mltoptim(auglag = list(maxtry = 5)), 
+                    optim = mltoptim(hessian = TRUE),
                     args = list(seed = 1, type = c("MC", "ghalton"), M = 1000),
                     fit = c("jointML", "none"),
-                    scale = FALSE, ...)
+                    scaleparm = FALSE, ...)
 {
 
     call <- match.call()
@@ -119,7 +119,7 @@ Compris <- function(formula, data, subset, weights, na.action, offset,
     m$data <- tmp
     m$optim <- optim
     m$theta <- theta
-    m$scale <- scale
+    m$scaleparm <- scaleparm
     m$args <- args
     m$fit <- match.arg(fit)
     ret <- do.call("Mmlt", m)
