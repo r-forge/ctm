@@ -113,7 +113,7 @@ tram <- function(formula, data, subset, weights, offset, cluster, na.action = na
                  LRtest = TRUE, 
                  prob = c(.1, .9), support = NULL, bounds = NULL, add = c(0, 0), order = 6, negative =
                  TRUE, remove_intercept = TRUE, 
-                 scale = TRUE, scale_shift = FALSE, extrapolate = FALSE, log_first = FALSE, 
+                 scaleparm = is.null(isX), scale_shift = FALSE, extrapolate = FALSE, log_first = FALSE, 
                  sparse_nlevels = Inf, model_only = FALSE, 
                  constraints = NULL, ...) 
 {
@@ -286,7 +286,7 @@ tram <- function(formula, data, subset, weights, offset, cluster, na.action = na
     args$data <- td$mf
     args$weights <- td$weights
     args$offset <- td$offset
-    args$scale <- scale
+    args$scaleparm <- scaleparm
     args$fixed <- fixed
     ret <- do.call("mlt", args)
     ret$terms <- td$mt
@@ -312,7 +312,12 @@ tram <- function(formula, data, subset, weights, offset, cluster, na.action = na
             args$fixed <- fixed
         }
         args$model <- nullmodel
-        args$theta <- NULL
+        cf <- coef(as.mlt(ret))
+        ### use coefficients of full model as starting value
+        nm <- names(coef(nullmodel))
+        if (!is.null(fixed))
+            nm <- nm[!nm %in% names(fixed)]
+        args$theta <- cf[nm]
         nullret <- do.call("mlt", args)
         nulllogLik <- logLik(nullret)
         fulllogLik <- logLik(ret)
