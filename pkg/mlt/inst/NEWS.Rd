@@ -2,7 +2,22 @@
 \name{NEWS}
 \title{NEWS file for the mlt package}
 
-\section{Changes in Version 1.6-7 (2025-09-18)}{
+\section{Changes in Version 1.7-0 (2025-09-29)}{
+  \subsection{Features}{
+    \itemize{
+      \item{\code{mltoptim()} features \code{nlminb}.}
+      \item{\code{mltoptim()} defaults changed for all algorithms.}
+      \item{\code{mltoptim()} refrains from generating random starting
+            values now. Consequently, results are fully reproducible in the absence of
+            user-defined seeds.}
+      \item{The log-likelihood for infeasible parameter configurations
+            is now always \code{-Inf}.}
+      \item{Argument \code{scale} was renamed to \code{scaleparm} because
+            of a conflict in \code{tram::Survreg}.}
+      \item{Parameter scaling is disabled for location-scale and
+            multivariate models where we compute the Hessian numerically.}
+    }
+  }
   \subsection{Bugfixes}{
     \itemize{
       \item{\code{summary.mmlt} works now.}
@@ -11,12 +26,6 @@
             likelihood for numeric outcomes.}
       \item{\code{mmlt} only uses optimisers able to approximate the
             Hessian by default.}
-    }
-  }
-  \subsection{Other Changes}{
-    \itemize{
-      \item{\code{mltoptim()} defaults changed for \code{auglag} and 
-            \code{constrOptim}.}
     }
   }
 }
