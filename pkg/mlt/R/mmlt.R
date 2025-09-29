@@ -92,7 +92,7 @@
 .mget <- function(models, j = 1, parm, newdata = NULL,
                   what = c("trafo", "dtrafo", "z", "zleft", 
                            "dzleft", "zright", "dzright", "zprime", 
-                           "trafoprime", "estfun", "scale"), ...) {
+                           "trafoprime", "estfun", "scaleparm"), ...) {
 
     what <- match.arg(what)
 
@@ -103,7 +103,7 @@
         return(ret)
     }
 
-    if (what == "scale") {
+    if (what == "scaleparm") {
         cf <- coef(models$models[[j]], fixed = TRUE)
         parsc <- models$models[[j]]$parsc
         cf[] <- 1
@@ -119,7 +119,7 @@
     if (!is.null(newdata)) {
         tmp <- mlt(tmp$model, data = newdata,
                    fixed = tmp$fixed, theta = prm,
-                   scale = tmp$scale, dofit = FALSE)
+                   scaleparm = tmp$scaleparm, dofit = FALSE)
     }
 
 
@@ -519,7 +519,7 @@
     gt1 <- scl >= 1.1
     scl[gt1] <- 1 / scl[gt1]
     scl[lt1] <- 1
-    scl <- c(do.call("c", .mget(models, j = 1:J, parm = NULL, what = "scale")), 
+    scl <- c(do.call("c", .mget(models, j = 1:J, parm = NULL, what = "scaleparm")), 
              scl)
     names(scl) <- parnames
     ret$scl <- scl
@@ -551,7 +551,7 @@
 
 .mmlt_optimfct <- function(loglik, score, scl, ui, ci, parnames, dofit) {
 
-    optimfct <- function(theta, weights, subset, scale = FALSE, optim, fixed = NULL, ...) {
+    optimfct <- function(theta, weights, subset, scaleparm = FALSE, optim, fixed = NULL, ...) {
 
         eparnames <- parnames
         if (!is.null(fixed)) eparnames <- parnames[!(parnames %in% names(fixed))]
@@ -589,7 +589,7 @@
             ui <- ui[, !parnames %in% names(fixed), drop = FALSE]
             ci <- ci - d
         }
-        if (!scale) scl[] <- 1
+        if (!scaleparm) scl[] <- 1
         start <- theta / scl[eparnames]
         ### check if any non-fixed parameters come with constraints
         if (any(abs(ui) > 0) && any(ci > -Inf)) {
@@ -621,7 +621,7 @@
 
 
 .mmlt_fit <- function(object, weights, subset = NULL, theta = NULL, 
-                      scale = FALSE, optim, fixed = NULL, ...)
+                      scaleparm = FALSE, optim, fixed = NULL, ...)
 {
 
     if (!is.null(fixed)) 
@@ -637,7 +637,7 @@
 
     ### BBoptim issues a warning in case of unsuccessful convergence
     ret <- try(optimfct(theta, weights = weights, fixed = fixed,
-        subset = subset, scale = scale, optim = optim, ...))
+        subset = subset, scaleparm = scaleparm, optim = optim, ...))
 
     cls <- class(object)
     object[names(ret)] <- NULL
@@ -646,7 +646,7 @@
     object$fixed <- fixed
     object$theta <- theta ### starting value
     object$subset <- subset
-    object$scale <- scale ### scaling yes/no
+    object$scaleparm <- scaleparm ### scaling yes/no
     object$weights <- weights
     object$optim <- optim
     ll <- object$loglik
@@ -680,8 +680,8 @@
 
 
 mmlt <- function(..., formula = ~ 1, data, conditional = FALSE, 
-                 theta = NULL, fixed = NULL, scale = FALSE,
-                 optim = mltoptim(hessian = TRUE)[c("auglag", "constrOptim")],  ### provides hessian
+                 theta = NULL, fixed = NULL, scaleparm = FALSE,
+                 optim = mltoptim(hessian = TRUE),  ### provides hessian
                  args = list(seed = 1, M = 1000), 
                  dofit = TRUE, domargins = TRUE)
 {
@@ -709,7 +709,7 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
             nm <- lapply(models$models, function(mod) {
                 ret <- mlt(mod$model, data = tmp, theta = coef(as.mlt(mod), fixed = FALSE), 
                            fixed = mod$fixed, 
-                           scale = FALSE, ### because dofit = FALSE
+                           scaleparm = FALSE, ### because dofit = FALSE
                            weights = mod$weights[idx],
                            offset = mod$offset[idx], dofit = FALSE)
                 ret
