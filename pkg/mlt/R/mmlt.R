@@ -6,7 +6,9 @@
 
 .models <- function(..., strict = TRUE) {
 
-    m <- lapply(list(...), function(x) as.mlt(x))
+    ### ... may contain junk when arguments were not fully matched
+    ismlt <- sapply(list(...), function(x) inherits(x, "mlt"))
+    m <- lapply(list(...)[ismlt], function(x) as.mlt(x))
     # nm <- abbreviate(sapply(m, function(x) x$model$response), 4)
     nm <- sapply(m, function(x) x$model$response)
     J <- length(m)
