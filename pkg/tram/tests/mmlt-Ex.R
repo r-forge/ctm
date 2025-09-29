@@ -530,7 +530,7 @@ fx <- c("Y5.Y3.(Intercept)" = 0, "Y5.Y4.(Intercept)" = 0)
 
 for (i in 1:nrow(args)) {
     print(i)
-    m0$scale <- args$scale[i]
+    m0$scaleparm <- args$scale[i]
     m0$dofit <- args$dofit[i]
     m0$domargins <- args$domargins[i]
     m0$conditional <- args$conditional[i]
