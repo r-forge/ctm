@@ -17,7 +17,7 @@ mtram <- function(object, formula, data,
                   grd = SparseGrid::createSparseGrid(type = "KPU", dimension = length(rt$cnms[[1]]), 
                                                      k = 10),
                   tol = .Machine$double.eps,
-                  optim = mltoptim(auglag = list(maxtry = 5)),
+                  optim = mltoptim(hessian = TRUE),
                   ...) {
 
     call <- match.call()
