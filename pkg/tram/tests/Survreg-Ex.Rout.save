@@ -589,4 +589,4 @@ Likelihood-ratio Test: Chisq = 1.1 on 2 degrees of freedom; p = 0.576
 > 
 > proc.time()
    user  system elapsed 
-  1.117   0.068   1.180 
+  1.119   0.063   1.178 
