@@ -413,7 +413,9 @@
         }
 
         he = function(beta) {
-             ret <- 0
+            if ("bscaling" %in% Assign[2,])
+                stop("Analytical Hessian not available for location-scale models")
+            ret <- 0
             if (is.matrix(beta)) {
                 beta_ex <- beta[es$full_ex,,drop = FALSE]
                 beta_nex <- beta[es$full_nex,,drop = FALSE]
@@ -465,9 +467,10 @@
     }
 
     optimfct <- function(theta, weights, subset = NULL, offset = NULL, 
-                         scale = FALSE, optim, ...) {
+                         scaleparm = FALSE, optim, ...) {
         of <- .ofuns(weights = weights, subset = subset, 
                      offset = offset, ...)
+        inweights <- weights
 
         ### N contributions to the log-likelihood, UNWEIGHTED
         logliki <- function(beta, weights = NULL)
@@ -485,7 +488,7 @@
         hessian <- function(beta, weights) 
             .ofuns(weights = weights, offset = offset)$he(beta)
 
-        if (scale) {
+        if (scaleparm) {
             Ytmp <- Y
             Ytmp[!is.finite(Ytmp)] <- NA
             sc <- apply(abs(Ytmp[, !fix, drop = FALSE]), 2, max, na.rm = TRUE)
@@ -505,17 +508,26 @@
                 ## ret[names(sc)] <- ret[names(sc)] * sc
                 ret
             }
+            h <- function(gamma) {
+                hessian(gamma * sc, weights) * sc^2
+            }
             theta <- theta / sc
             if (!is.null(ui))
                 ui <- t(t(ui) * sc)
         } else {
             f <- function(gamma) loglikfct(gamma, weights)
             g <- function(gamma) scorefct(gamma, weights)
+            h <- function(gamma) hessian(gamma, weights)
         }
 
         if (dofit) {
             for (i in 1:length(optim)) {
-                ret <- optim[[i]](theta, f, g, ui, ci)
+                if (i > 1) {
+                    msg <- paste(names(optim)[i - 1], "did not converge, trying", names(optim)[i], sep = " ")
+                    warning(msg)
+                }
+                ret <- optim[[i]](theta = theta, f = f, g = g, ui = ui, ci = ci, 
+                                  h = h)
                 if (ret$convergence == 0) break()
             }
         } else {
@@ -530,12 +542,21 @@
 #        if (!is.null(ui)) 
 #            ret$df <- ret$df - sum(ui %*% ret$par - ci < .Machine$double.eps)
         ### </FIXME>
-        if (scale) ret$par <- ret$par * sc
+        if (scaleparm) ret$par <- ret$par * sc
 
         if (SCALE) {
             ret$hessian <- function(beta, weights) {
-                # warning("Analytical Hessian not available, using numerical approximation")
-                ret <- numDeriv::hessian(loglikfct, beta, weights = weights)
+                H <- ret$optim_hessian
+                if (!scaleparm && !is.null(H) && 
+                    max(c(abs(beta - ret$par), 
+                          abs(weights - inweights))) < .Machine$double.eps) {
+                    ret <- H
+                } else {
+                    # warning("Analytical Hessian not available, using numerical approximation")
+                    ### this may fail because numDeriv can't deal with -Inf
+                    ### values of the target function
+                    ret <- numDeriv::hessian(loglikfct, beta, weights = weights)
+                }
                 rownames(ret) <- colnames(ret) <- names(beta)
                 return(ret)
             }
@@ -559,7 +580,7 @@
         ret$trafo <- function(beta, weights) of$trafo(beta)
         ret$trafoprime <- function(beta, weights) of$trafoprime(beta)
 
-        if (scale) ret$parsc <- sc
+        if (scaleparm) ret$parsc <- sc
 
         return(ret)
     }
@@ -700,14 +721,14 @@
 }
 
 .mlt_fit <- function(object, weights, subset = NULL, offset = NULL, 
-                     theta = NULL, scale = FALSE, optim, fixed = NULL, ...) {
+                     theta = NULL, scaleparm = FALSE, optim, fixed = NULL, ...) {
 
     if (is.null(theta))
         stop(sQuote("mlt"), "needs suitable starting values")
 
     ### BBoptim issues a warning in case of unsuccessful convergence
     ret <- try(object$optimfct(theta, weights = weights, 
-        subset = subset, offset = offset, scale = scale, 
+        subset = subset, offset = offset, scaleparm = scaleparm, 
         optim = optim, ...))    
 
     cls <- class(object)
@@ -716,7 +737,7 @@
     object$coef[] <- object$parm(ret$par) ### [] preserves names
     object$theta <- theta ### starting value
     object$subset <- subset
-    object$scale <- scale ### scaling yes/no
+    object$scaleparm <- scaleparm ### scaling yes/no
     object$weights <- weights
     object$offset <- offset
     object$optim <- optim
@@ -726,8 +747,8 @@
 }
 
 mlt <- function(model, data, weights = NULL, offset = NULL, fixed = NULL,
-                theta = NULL, pstart = NULL, scale = FALSE,
-                dofit = TRUE, optim = mltoptim()) {
+                theta = NULL, pstart = NULL, scaleparm = !has_scale(model),
+                dofit = TRUE, optim = mltoptim(hessian = has_scale(model))) {
 
     vars <- as.vars(model)
     response <- variable.names(model, "response")
@@ -772,7 +793,7 @@ mlt <- function(model, data, weights = NULL, offset = NULL, fixed = NULL,
     args$offset <- offset
     args$theta <- theta
     args$subset <- NULL ### only available in update()
-    args$scale <- scale
+    args$scaleparm <- scaleparm
     args$optim <- optim
     args$fixed <- fixed
     ret <- do.call(".mlt_fit", args)
@@ -796,7 +817,7 @@ update.mlt_fit <- function(object, weights = stats::weights(object),
         strt <- strt[!names(strt) %in% names(fixed)]
         return(mlt(object$model, data = object$data, weights = weights,
             offset = offset, theta = strt, fixed = fixed,
-            scale = object$scale, optim = object$optim))
+            scaleparm = object$scaleparm, optim = object$optim))
     }
 
     stopifnot(length(weights) == NROW(object$data))
@@ -816,7 +837,7 @@ update.mlt_fit <- function(object, weights = stats::weights(object),
     args$subset <- subset
     args$offset <- offset
     args$theta <- theta
-    args$scale <- object$scale
+    args$scaleparm <- object$scaleparm
     args$optim <- object$optim
     ret <- do.call(".mlt_fit", args)
     ret$call <- match.call()
@@ -838,7 +859,7 @@ fmlt <- function(object, frailty = c("Gamma", "InvGauss", "PositiveStable"),
                weights = weights(object),
                offset = object$offset, 
                theta = coef(object), fixed = object$fixed, 
-               scale = object$scale, optim = object$optim)
+               scaleparm = object$scaleparm, optim = object$optim)
     class(ret) <- c("fmlt", class(ret))
     ret
 }
@@ -862,7 +883,7 @@ cmlt <- function(object, interval = fr$support, ...) {
     ret <- mlt(model = model, data = object$data, weights = weights(object),
                offset = object$offset, 
                theta = coef(object), fixed = object$fixed, 
-               scale = object$scale, optim = object$optim)
+               scaleparm = object$scaleparm, optim = object$optim)
     class(ret) <- c("fmlt", class(ret))
     ret
 }
