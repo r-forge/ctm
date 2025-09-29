@@ -115,8 +115,6 @@ Likelihood-ratio Test: Chisq = 170 on 6 degrees of freedom; p = <2e-16
 > attr(ll, "nobs") <- NULL
 > cmp(ll, logLik(house.plr2))
 > 
-> set.seed(129)
-> 
 > if (require("TH.data")) {
 + 
 +     ### blood loss data
@@ -124,14 +122,16 @@ Likelihood-ratio Test: Chisq = 170 on 6 degrees of freedom; p = <2e-16
 +     sMBL <- sort(unique(blood$MBL))
 +     blood$MBLc <- cut(blood$MBL, breaks = c(-Inf, sMBL), ordered_result = TRUE)
 + 
-+     op <- mltoptim()
-+     ### spg: worked
-+     m2 <- Polr(MBLc ~ 1, data = blood, method = "probit", optim = op[2])
-+     ### constrOptim: changed defaults in mlt 1.6-7
-+     m4 <- Polr(MBLc ~ 1, data = blood, method = "probit", optim = op[4])
++     op <- mltoptim()[c("auglag", "nlminb")]
++     m <- lapply(1:length(op), function(i) 
++         Polr(MBLc ~ 1, data = blood, method = "probit", optim = op[i])
++     )
++     stopifnot(all(diff(sapply(m, logLik)) < 1e-5))
 + 
-+     cmp(logLik(m2), logLik(m4))
-+ 
++     m <- lapply(1:length(op), function(i) 
++         Polr(MBLc ~ IOL + DAUER.ap + FET.GEW, data = blood, method = "probit", optim = op[i])
++     )
++     stopifnot(all(diff(sapply(m, logLik)) < 1e-5))
 + }
 Loading required package: TH.data
 Loading required package: survival
@@ -145,4 +145,4 @@ The following object is masked from 'package:MASS':
 > 
 > proc.time()
    user  system elapsed 
-  0.718   0.056   0.777 
+  3.434   0.077   3.510 

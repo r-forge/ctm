@@ -206,7 +206,7 @@ Survreg(formula = tfms, data = GBSG2, dist = "exponential")
 
 Coefficients:
    pnodes       age 
--0.055711  0.000455 
+-0.055711  0.000446 
 
 Log-Likelihood:
  -2620 (df = 4)
@@ -227,7 +227,7 @@ Survreg(formula = tfms, data = GBSG2, dist = "exponential")
 Coefficients:
         Estimate Std. Error z value Pr(>|z|)    
 pnodes -0.055711   0.006686   -8.33   <2e-16 ***
-age     0.000455   0.005941    0.08     0.94    
+age     0.000446   0.005941    0.07     0.94    
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -299,7 +299,7 @@ Survreg(formula = tfms, data = GBSG2, dist = "rayleigh")
 
 Coefficients:
    pnodes       age 
--0.073082 -0.000174 
+-0.073080 -0.000174 
 
 Log-Likelihood:
  -2642 (df = 4)
@@ -319,7 +319,7 @@ Survreg(formula = tfms, data = GBSG2, dist = "rayleigh")
 
 Coefficients:
         Estimate Std. Error z value Pr(>|z|)    
-pnodes -0.073082   0.006383  -11.45   <2e-16 ***
+pnodes -0.073080   0.006383  -11.45   <2e-16 ***
 age    -0.000174   0.006014   -0.03     0.98    
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
@@ -589,4 +589,4 @@ Likelihood-ratio Test: Chisq = 1.1 on 2 degrees of freedom; p = 0.576
 > 
 > proc.time()
    user  system elapsed 
-  1.280   0.052   1.326 
+  1.117   0.068   1.180 
