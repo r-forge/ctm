@@ -45,7 +45,7 @@ Loading required package: tramME
 
 > options(prompt = "R> ", continue = "+  ", useFancyQuotes = FALSE)
 
-> options(width = 75)
+> options(width = 75, digits = 4)
 
 > frmt1 <- function(x, digits = 1) {
 +     if (!is.numeric(x)) 
@@ -69,56 +69,56 @@ Loading required package: tramME
 > m0 <- Lm(y ~ w, data = immun)
 
 > coef(m0)
-      w100 
-0.04816709 
+   w100 
+0.04817 
 
 > sqrt(vcov(m0))
-          w100
-w100 0.2236392
+       w100
+w100 0.2236
 
 > sqrt(2/nrow(immun) * (coef(m0)^2/4 + 2))
-     w100 
-0.2236392 
+  w100 
+0.2236 
 
 > confint(m0)
-          2.5 %    97.5 %
-w100 -0.3901577 0.4864919
+       2.5 % 97.5 %
+w100 -0.3902 0.4865
 
 > m1 <- BoxCox(x ~ 1, data = immun)
 
 > m <- Mmlt(m0, m1, formula = ~1, data = immun)
 
 > (cf1 <- coef(m)["y.w100"])
-      y.w100 
--0.001668928 
+   y.w100 
+-0.001669 
 
 > sqrt(diag(vcov(m))["y.w100"])
-   y.w100 
-0.1747482 
+y.w100 
+0.1747 
 
 > lambda <- c(unclass(coef(m, type = "Lambdapar")))
 
 > sqrt(2/nrow(immun) * ((1 + lambda^2) * cf1^2 + 8)/(4 * 
 +     (1 + lambda^2)))
-   y.w100 
-0.1745792 
+y.w100 
+0.1746 
 
 > confint(m)["y.w100", ]
-     2.5 %     97.5 % 
--0.3441692  0.3408313 
+  2.5 %  97.5 % 
+-0.3442  0.3408 
 
 > coef(m, type = "Corr")
 , , 1
 
-          y         x
-y 1.0000000 0.6248541
-x 0.6248541 1.0000000
+       y      x
+y 1.0000 0.6249
+x 0.6249 1.0000
 
 
 > Omega <- as.array(coef(m, type = "Lambda"))[, , 1]
 
 > 1 - Omega[nrow(Omega), ncol(Omega)]^(-2)
-[1] 0.3904427
+[1] 0.3904
 
 > mad <- BoxCoxME(y ~ w + s(x), data = immun)
 
@@ -133,19 +133,19 @@ x 0.6248541 1.0000000
 > Omega <- as.array(coef(m, type = "Lambda"))[, , 1]
 
 > 1 - Omega[nrow(Omega), ncol(Omega)]^(-2)
-[1] 0.5121276
+[1] 0.5121
 
 > (cf1 <- coef(m)["y.w100"])
-   y.w100 
-0.0298195 
+ y.w100 
+0.02982 
 
 > confint(m)["y.w100", ]
-     2.5 %     97.5 % 
--0.2792883  0.3389273 
+  2.5 %  97.5 % 
+-0.2793  0.3389 
 
 > pnorm(cf1/sqrt(2))
-   y.w100 
-0.5084113 
+y.w100 
+0.5084 
 
 > load(system.file("rda", "Primary_endpoint_data.rda", 
 +     package = "TH.data"))
@@ -158,28 +158,28 @@ x 0.6248541 1.0000000
 
 > exp(coef(mg_w)["randarm5-FU + Oxaliplatin"])
 randarm5-FU + Oxaliplatin 
-                 1.421517 
+                    1.422 
 
 > exp(confint(glht(mg_w), calpha = univariate_calpha())$confint[2, 
 +     -1])
-     lwr      upr 
-1.036590 1.949382 
+  lwr   upr 
+1.037 1.949 
 
 > mpCR <- Polr(ypT0ypN0 ~ randarm, data = CAOsurv, na.action = na.pass, 
 +     method = "logistic")
 
 > exp(coef(mpCR)["randarm5-FU + Oxaliplatin"])
 randarm5-FU + Oxaliplatin 
-                 1.421518 
+                    1.422 
 
 > exp(confint(glht(mpCR, coef. = function(...) coef(..., 
 +     fixed = FALSE)), calpha = univariate_calpha())$confint)
-                          Estimate      lwr      upr
-randarm5-FU + Oxaliplatin 1.421518 1.036591 1.949384
+                          Estimate   lwr   upr
+randarm5-FU + Oxaliplatin    1.422 1.037 1.949
 attr(,"conf.level")
 [1] 0.95
 attr(,"calpha")
-[1] 1.959964
+[1] 1.96
 
 > mage <- BoxCox(age ~ 1, data = CAOsurv)
 
@@ -197,21 +197,24 @@ attr(,"calpha")
 
 > mN <- Polr(strat_n ~ 1, data = CAOsurv, method = "probit")
 
+> fastoptH <- mltoptim(abstol = 0.001, reltol = 0.001, 
++     hessian = TRUE)
+
 > m <- Mmlt(mage, msex, mecog, mentf, mT, mN, mpCR, 
-+     data = CAOsurv, args = list(type = "ghalton", M = 50))
++     data = CAOsurv, args = list(type = "ghalton", M = 50), optim = fastoptH)
 
 > prm <- "ypT0ypN0.randarm5-FU + Oxaliplatin"
 
 > exp(coef(m)[prm])
 ypT0ypN0.randarm5-FU + Oxaliplatin 
-                          1.401745 
+                             1.403 
 
 > ci <- confint(glht(m, coef. = function(...) coef(..., 
 +     fixed = FALSE)), calpha = univariate_calpha())$confint
 
 > exp(ci[prm, -1])
-     lwr      upr 
-1.022535 1.921585 
+  lwr   upr 
+1.023 1.923 
 
 > mr <- as.array(coef(m, type = "Cor"))["ypT0ypN0", 
 +     , 1]
@@ -222,20 +225,20 @@ ypT0ypN0.randarm5-FU + Oxaliplatin
 [1] "ecog_o"
 
 > (mr <- mr[i])
-    ecog_o 
--0.1520201 
+ecog_o 
+-0.152 
 
 > Omega <- as.array(coef(m, type = "Lambda"))[, , 1]
 
 > 1 - Omega[nrow(Omega), ncol(Omega)]^(-2)
-[1] 0.03038266
+[1] 0.03038
 
 > sqrt(vcov(mpCR))
                           randarm5-FU + Oxaliplatin
-randarm5-FU + Oxaliplatin                 0.1611192
+randarm5-FU + Oxaliplatin                    0.1611
 
 > sqrt(vcov(m)[prm, prm])
-[1] 0.1609381
+[1] 0.1609
 
 > data("FruitFlies", package = "Stat2Data")
 
@@ -254,11 +257,11 @@ randarm5-FU + Oxaliplatin                 0.1611192
 
 > coef(coxph_w)
 Treatment8 virgin 
-         2.156399 
+            2.156 
 
 > confint(coxph_w)
-                     2.5 %   97.5 %
-Treatment8 virgin 1.342623 2.970175
+                  2.5 % 97.5 %
+Treatment8 virgin 1.343   2.97
 
 > xmod <- BoxCox(Thorax ~ 1, data = flies)
 
@@ -266,16 +269,16 @@ Treatment8 virgin 1.342623 2.970175
 
 > (cf1 <- coef(m)["survival.Treatment8 virgin"])
 survival.Treatment8 virgin 
-                  2.048255 
+                     2.048 
 
 > (ci1 <- confint(m)["survival.Treatment8 virgin", ])
-   2.5 %   97.5 % 
-1.430691 2.665819 
+ 2.5 % 97.5 % 
+ 1.431  2.666 
 
 > Omega <- as.array(coef(m, type = "Lambda"))[, , 1]
 
 > 1 - Omega[nrow(Omega), ncol(Omega)]^(-2)
-[1] 0.6714107
+[1] 0.6714
 
 > q <- 0:100
 
@@ -359,4 +362,4 @@ NULL
  *** Run successfully completed ***
 > proc.time()
    user  system elapsed 
- 39.406   0.142  39.553 
+ 31.264   0.108  31.384 

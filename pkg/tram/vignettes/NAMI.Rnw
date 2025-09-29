@@ -127,7 +127,7 @@ knitr::render_sweave()  # use Sweave environments
 knitr::set_header(highlight = '')  # do not \usepackage{Sweave}
 ## R settings
 options(prompt = "R> ", continue = "+  ", useFancyQuotes = FALSE)  # JSS style
-options(width = 75)
+options(width = 75, digits = 4)
 
 frmt1 <- function(x, digits = 1) {
     if (!is.numeric(x)) return(x)
@@ -478,8 +478,12 @@ Here, we fit the model
 <<CAO-Mmlt, echo = TRUE>>=
 ### results in the paper were produced using M = 250
 ### to reduce CRAN checking times, we use M = 50 here
+### we also speed up things by allowing the optimiser to
+### stop early
+fastoptH <- mltoptim(abstol = 1e-3, reltol = 1e-3, hessian = TRUE)
 m <- Mmlt(mage, msex, mecog, mentf, mT, mN, mpCR,
-          data = CAOsurv, args = list(type = "ghalton", M = 50))
+          data = CAOsurv, args = list(type = "ghalton", M = 50),
+          optim = fastoptH)
 prm <- "ypT0ypN0.randarm5-FU + Oxaliplatin"
 exp(coef(m)[prm])
 @

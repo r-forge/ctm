@@ -44,7 +44,8 @@ knitr::render_sweave()  # use Sweave environments
 knitr::set_header(highlight = '')  # do not \usepackage{Sweave}
 ## R settings
 options(prompt = "R> ", continue = "+  ", useFancyQuotes = FALSE)  # JSS style
-options(width = 75)
+options(width = 75, digits = 4)
+
 library("colorspace")
 col <- diverge_hcl(2, h = c(246, 40), c = 96, l = c(65, 90))
 fill <- diverge_hcl(2, h = c(246, 40), c = 96, l = c(65, 90), alpha = .3)

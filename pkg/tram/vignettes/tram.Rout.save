@@ -68,7 +68,7 @@ Warning in trellis.par.set(list(plot.symbol = list(col = 1, pch = 20, cex = 0.7)
 
 > options(prompt = "R> ", continue = "+  ", useFancyQuotes = FALSE)
 
-> options(width = 75)
+> options(width = 75, digits = 4)
 
 > library("colorspace")
 
@@ -104,36 +104,36 @@ Warning in trellis.par.set(list(plot.symbol = list(col = 1, pch = 20, cex = 0.7)
 +     rm + age + dis + rad + tax + ptratio + b + lstat, data = BostonHousing2)
 
 > logLik(lm_BH)
-'log Lik.' -1494.245 (df=15)
+'log Lik.' -1494 (df=15)
 
 > logLik(Lm_BH_1)
-'log Lik.' -1494.245 (df=15)
+'log Lik.' -1494 (df=15)
 
 > coef(lm_BH)
-  (Intercept)          crim            zn         indus         chas1 
- 3.637189e+01 -1.062004e-01  4.772368e-02  2.325237e-02  2.691727e+00 
-          nox            rm           age           dis           rad 
--1.774262e+01  3.789395e+00  5.749168e-04 -1.501794e+00  3.037606e-01 
-          tax       ptratio             b         lstat 
--1.270462e-02 -9.239118e-01  9.228445e-03 -5.306619e-01 
+(Intercept)        crim          zn       indus       chas1         nox 
+  3.637e+01  -1.062e-01   4.772e-02   2.325e-02   2.692e+00  -1.774e+01 
+         rm         age         dis         rad         tax     ptratio 
+  3.789e+00   5.749e-04  -1.502e+00   3.038e-01  -1.270e-02  -9.239e-01 
+          b       lstat 
+  9.228e-03  -5.307e-01 
 
 > coef(Lm_BH_1, as.lm = TRUE)
-  (Intercept)          crim            zn         indus         chas1 
- 3.636803e+01 -1.061956e-01  4.772391e-02  2.324310e-02  2.691723e+00 
-          nox            rm           age           dis           rad 
--1.773996e+01  3.789593e+00  5.730907e-04 -1.501730e+00  3.037478e-01 
-          tax       ptratio             b         lstat 
--1.270434e-02 -9.238752e-01  9.229321e-03 -5.306540e-01 
+(Intercept)        crim          zn       indus       chas1         nox 
+  3.637e+01  -1.062e-01   4.772e-02   2.324e-02   2.692e+00  -1.774e+01 
+         rm         age         dis         rad         tax     ptratio 
+  3.790e+00   5.731e-04  -1.502e+00   3.037e-01  -1.270e-02  -9.239e-01 
+          b       lstat 
+  9.229e-03  -5.307e-01 
 attr(,"scale")
-   cmedv 
-4.637175 
+cmedv 
+4.637 
 
 > summary(lm_BH)$sigma
-[1] 4.702737
+[1] 4.703
 
 > 1/coef(Lm_BH_1, with_baseline = TRUE)["cmedv"]
-   cmedv 
-4.637175 
+cmedv 
+4.637 
 
 > BostonHousing2$y <- with(BostonHousing2, Surv(cmedv, 
 +     cmedv < 50))
@@ -142,17 +142,17 @@ attr(,"scale")
 +     rm + age + dis + rad + tax + ptratio + b + lstat, data = BostonHousing2)
 
 > logLik(Lm_BH_2)
-'log Lik.' -1496.083 (df=15)
+'log Lik.' -1496 (df=15)
 
 > Lm_BH_3 <- Lm(y | 0 + chas ~ crim + zn + indus + nox + 
 +     rm + age + dis + rad + tax + ptratio + b + lstat, data = BostonHousing2)
 
 > logLik(Lm_BH_3)
-'log Lik.' -1478.45 (df=16)
+'log Lik.' -1478 (df=16)
 
 > 1/coef(Lm_BH_3, with_baseline = TRUE)[c(2, 4)]
- y:chas0  y:chas1 
-4.132769 7.156537 
+y:chas0 y:chas1 
+  4.133   7.157 
 
 > summary(glht(as.mlt(Lm_BH_3), linfct = c("y:chas0 - y:chas1 = 0")))
 
@@ -163,7 +163,7 @@ Fit: Lm(formula = y | 0 + chas ~ crim + zn + indus + nox + rm + age +
 
 Linear Hypotheses:
                        Estimate Std. Error z value Pr(>|z|)    
-y:chas0 - y:chas1 == 0  0.10224    0.01497    6.83 8.52e-12 ***
+y:chas0 - y:chas1 == 0    0.102      0.015    6.83  8.5e-12 ***
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 (Adjusted p values reported -- single-step method)
@@ -187,13 +187,13 @@ Warning in model.matrix.box_bases(object = list(iresponse = function (data,  :
   use scale = TRUE in as.basis.formula with sumcontr = TRUE
 
 > logLik(Lm_BH_4)
-'log Lik.' -1310.324 (df=28)
+'log Lik.' -1310 (df=28)
 
 > BC_BH_1 <- BoxCox(y ~ chas + crim + zn + indus + nox + 
 +     rm + age + dis + rad + tax + ptratio + b + lstat, data = BostonHousing2)
 
 > logLik(BC_BH_1)
-'log Lik.' -1324.651 (df=20)
+'log Lik.' -1325 (df=20)
 
 > nd <- model.frame(BC_BH_1)[1, -1, drop = FALSE]
 
@@ -205,7 +205,7 @@ Warning in model.matrix.box_bases(object = list(iresponse = function (data,  :
 +     nox + rm + age + dis + rad + tax + ptratio + b + lstat, data = BostonHousing2)
 
 > logLik(BC_BH_2)
-'log Lik.' -1319.25 (df=26)
+'log Lik.' -1319 (df=26)
 
 > nd <- model.frame(BC_BH_2)[1:2, -1]
 
@@ -228,7 +228,7 @@ Warning in model.matrix.box_bases(object = list(iresponse = function (data,  :
 +     nox + rm + age + dis + rad + tax + ptratio + b + lstat, data = BostonHousing2)
 
 > logLik(Colr_BH_1)
-'log Lik.' -1292.48 (df=26)
+'log Lik.' -1292 (df=26)
 
 > round(cbind(exp(coef(Colr_BH_1)), exp(confint(Colr_BH_1))), 
 +     3)
@@ -315,20 +315,20 @@ Warning in model.matrix.box_bases(object = list(iresponse = function (data,  :
 +     data = GBSG2)
 
 > logLik(Survreg_GBSG2_1)
-'log Lik.' -2632.096 (df=3)
+'log Lik.' -2632 (df=3)
 
 > survreg_GBSG2_1 <- survreg(Surv(time, cens) ~ horTh, 
 +     data = GBSG2)
 
 > logLik(survreg_GBSG2_1)
-'log Lik.' -2632.096 (df=3)
+'log Lik.' -2632 (df=3)
 
 > c(coef(Survreg_GBSG2_1), coef(survreg_GBSG2_1)["horThyes"]/survreg_GBSG2_1$scale)
- horThyes  horThyes 
-0.3932258 0.3932403 
+horThyes horThyes 
+  0.3932   0.3932 
 
 > exp(-rev(confint(Survreg_GBSG2_1)))
-[1] 0.5284108 0.8619393
+[1] 0.5284 0.8619
 
 > nd <- data.frame(horTh = factor(c("no", "yes")))
 
@@ -343,38 +343,38 @@ Warning in model.matrix.box_bases(object = list(iresponse = function (data,  :
 +     horTh ~ 1, data = GBSG2)
 
 > logLik(Survreg_GBSG2_2)
-'log Lik.' -2632.086 (df=4)
+'log Lik.' -2632 (df=4)
 
 > survreg_GBSG2_2 <- survreg(Surv(time, cens) ~ strata(horTh) + 
 +     horTh - 1, data = GBSG2)
 
 > logLik(survreg_GBSG2_2)
-'log Lik.' -2632.086 (df=4)
+'log Lik.' -2632 (df=4)
 
 > coef(Survreg_GBSG2_2, with_baseline = TRUE)
            (Intercept):horThno  log(Surv(time, cens)):horThno 
-                     -9.736041                       1.279328 
+                        -9.736                          1.279 
           (Intercept):horThyes log(Surv(time, cens)):horThyes 
-                    -10.273872                       1.299116 
+                       -10.274                          1.299 
 
 > c(1/survreg_GBSG2_2$scale, -coef(survreg_GBSG2_2)/survreg_GBSG2_2$scale)
-        no        yes    horThno   horThyes 
-  1.279328   1.299123  -9.736037 -10.273925 
+      no      yes  horThno horThyes 
+   1.279    1.299   -9.736  -10.274 
 
 > Coxph_GBSG2_1 <- Coxph(Surv(time, cens) ~ horTh, data = GBSG2)
 
 > logLik(Coxph_GBSG2_1)
-'log Lik.' -2623.16 (df=8)
+'log Lik.' -2623 (df=8)
 
 > coef(Coxph_GBSG2_1)
-  horThyes 
--0.3713416 
+horThyes 
+ -0.3713 
 
 > Coxph_GBSG2_2 <- Coxph(Surv(time, cens) | 0 + horTh ~ 
 +     1, data = GBSG2)
 
 > logLik(Coxph_GBSG2_2)
-'log Lik.' -2622.05 (df=14)
+'log Lik.' -2622 (df=14)
 
 > plot(survfit(Surv(time, cens) ~ horTh, data = GBSG2), 
 +     col = col, ylab = "Probability", xlab = "Survival Time")
@@ -393,84 +393,84 @@ Warning in model.matrix.box_bases(object = list(iresponse = function (data,  :
 > polr_wine <- polr(rating ~ temp + contact, data = wine)
 
 > logLik(polr_wine)
-'log Lik.' -86.49192 (df=6)
+'log Lik.' -86.49 (df=6)
 
 > coef(polr_wine)
   tempwarm contactyes 
-  2.503073   1.527786 
+     2.503      1.528 
 
 > clm_wine_1 <- clm(rating ~ temp + contact, data = wine)
 
 > logLik(clm_wine_1)
-'log Lik.' -86.49192 (df=6)
+'log Lik.' -86.49 (df=6)
 
 > coef(clm_wine_1)
        1|2        2|3        3|4        4|5   tempwarm contactyes 
- -1.344383   1.250809   3.466887   5.006404   2.503102   1.527798 
+    -1.344      1.251      3.467      5.006      2.503      1.528 
 
 > Polr_wine_1 <- Polr(rating ~ temp + contact, data = wine)
 
 > logLik(Polr_wine_1)
-'log Lik.' -86.49192 (df=6)
+'log Lik.' -86.49 (df=6)
 
 > coef(Polr_wine_1, with_baseline = TRUE)
    rating1    rating2    rating3    rating4   tempwarm contactyes 
- -1.344380   1.250812   3.466896   5.006424   2.503109   1.527802 
+    -1.344      1.251      3.467      5.006      2.503      1.528 
 
 > clm_wine_2 <- clm(rating ~ temp, nominal = ~contact, 
 +     data = wine)
 
 > logLik(clm_wine_2)
-'log Lik.' -86.20855 (df=9)
+'log Lik.' -86.21 (df=9)
 
 > coef(clm_wine_2)
 1|2.(Intercept) 2|3.(Intercept) 3|4.(Intercept) 4|5.(Intercept) 
-      -1.323043        1.246444        3.550044        4.660247 
+         -1.323           1.246           3.550           4.660 
  1|2.contactyes  2|3.contactyes  3|4.contactyes  4|5.contactyes 
-      -1.615059       -1.511567       -1.674756       -1.050623 
+         -1.615          -1.512          -1.675          -1.051 
        tempwarm 
-       2.519045 
+          2.519 
 
 > Polr_wine_2 <- Polr(rating | 1 + contact ~ temp, data = wine)
 
 > logLik(Polr_wine_2)
-'log Lik.' -86.20855 (df=9)
+'log Lik.' -86.21 (df=9)
 
 > coef(Polr_wine_2, with_baseline = TRUE)
 rating1:(Intercept) rating2:(Intercept) rating3:(Intercept) 
-          -1.323037            1.246441            3.550041 
+             -1.323               1.246               3.550 
 rating4:(Intercept)  rating1:contactyes  rating2:contactyes 
-           4.660252           -1.615083           -1.511569 
+              4.660              -1.615              -1.512 
  rating3:contactyes  rating4:contactyes            tempwarm 
-          -1.674757           -1.050634            2.519041 
+             -1.675              -1.051               2.519 
 
 > clm_wine_3 <- clm(rating ~ temp, nominal = ~contact, 
 +     data = wine, link = "probit")
 
 > logLik(clm_wine_3)
-'log Lik.' -85.32668 (df=9)
+'log Lik.' -85.33 (df=9)
 
 > coef(clm_wine_3)
 1|2.(Intercept) 2|3.(Intercept) 3|4.(Intercept) 4|5.(Intercept) 
-     -0.7829404       0.7521184       2.1322657       2.7543749 
+        -0.7829          0.7521          2.1323          2.7544 
  1|2.contactyes  2|3.contactyes  3|4.contactyes  4|5.contactyes 
-     -0.8229143      -0.8892051      -1.0093661      -0.5818493 
+        -0.8229         -0.8892         -1.0094         -0.5818 
        tempwarm 
-      1.5113822 
+         1.5114 
 
 > Polr_wine_3 <- Polr(rating | 1 + contact ~ temp, data = wine, 
 +     method = "probit")
 
 > logLik(Polr_wine_3)
-'log Lik.' -85.32668 (df=9)
+'log Lik.' -85.33 (df=9)
 
 > coef(clm_wine_3)
 1|2.(Intercept) 2|3.(Intercept) 3|4.(Intercept) 4|5.(Intercept) 
-     -0.7829404       0.7521184       2.1322657       2.7543749 
+        -0.7829          0.7521          2.1323          2.7544 
  1|2.contactyes  2|3.contactyes  3|4.contactyes  4|5.contactyes 
-     -0.8229143      -0.8892051      -1.0093661      -0.5818493 
+        -0.8229         -0.8892         -1.0094         -0.5818 
        tempwarm 
-      1.5113822 
+         1.5114 
 
 > erating <- wine$rating
 
@@ -513,16 +513,16 @@ rating4:(Intercept)  rating1:contactyes  rating2:contactyes
 +     method = "probit")
 
 > logLik(Polr_wine_4)
-'log Lik.' -80.25516 (df=9)
+'log Lik.' -80.26 (df=9)
 
 > coef(Polr_wine_4)
 tempwarm 
-1.514888 
+   1.515 
 
 > BC_BH_0 <- BoxCox(y ~ 1, data = BostonHousing2)
 
 > logLik(BC_BH_0)
-'log Lik.' -1743.478 (df=7)
+'log Lik.' -1743 (df=7)
 
 > library("trtf")
 
@@ -531,7 +531,7 @@ tempwarm
 +     b + lstat, data =  .... [TRUNCATED] 
 
 > logLik(BC_BH_4)
-'log Lik.' -1287.756 (df=77)
+'log Lik.' -1288 (df=77)
 
 > library("ATR")
 
@@ -542,22 +542,22 @@ tempwarm
 > Coxph_GBSG2_1 <- Coxph(Surv(time, cens) ~ horTh, data = GBSG2)
 
 > logLik(Coxph_GBSG2_1)
-'log Lik.' -2623.16 (df=8)
+'log Lik.' -2623 (df=8)
 
 > coef(Coxph_GBSG2_1)
-  horThyes 
--0.3713416 
+horThyes 
+ -0.3713 
 
 > Coxph_GBSG2_3 <- trafotree(Coxph_GBSG2_1, formula = Surv(time, 
 +     cens) ~ horTh | age + menostat + tsize + tgrade + pnodes + 
 +     progrec + es .... [TRUNCATED] 
 
 > logLik(Coxph_GBSG2_3)
-'log Lik.' -2578.824 (df=24)
+'log Lik.' -2579 (df=24)
 
 > coef(Coxph_GBSG2_3)[, "horThyes"]
-          2           4           5 
--0.49230886 -0.46957455  0.08514053 
+       2        4        5 
+-0.49231 -0.46957  0.08514 
 
 > nd <- data.frame(horTh = sort(unique(GBSG2$horTh)))
 
@@ -581,18 +581,18 @@ Fitted party:
 [1] root
 |   [2] pnodes <= 3: Inf (n = 376)
 |   [3] pnodes > 3
-|   |   [4] progrec <= 20: 624.000 (n = 144)
-|   |   [5] progrec > 20: 1701.000 (n = 166)
+|   |   [4] progrec <= 20: 624 (n = 144)
+|   |   [5] progrec > 20: 1701 (n = 166)
 
 Number of inner nodes:    2
 Number of terminal nodes: 3
 
 > logLik(Coxph_GBSG2_4)
-'log Lik.' -2564.799 (df=24)
+'log Lik.' -2565 (df=24)
 
 > coef(Coxph_GBSG2_4)[, "horThyes"]
-         2          4          5 
--0.5629348 -0.1296877 -0.5547098 
+      2       4       5 
+-0.5629 -0.1297 -0.5547 
 
 > sessionInfo()
 R version 4.5.1 (2025-06-13)
@@ -641,4 +641,4 @@ loaded via a namespace (and not attached):
  *** Run successfully completed ***
 > proc.time()
    user  system elapsed 
-  7.583   0.143   7.799 
+  7.118   0.114   7.299 

@@ -743,7 +743,7 @@ opts_knit$set(global.par = TRUE)
 knitr::render_sweave()  # use Sweave environments
 knitr::set_header(highlight = "")  # do not \usepackage{Sweave}
 options(prompt = "R> ", continue = "+  ", useFancyQuotes = FALSE)  # JSS style
-options(width = 74)
+options(width = 75, digits = 4)
 
 ## format
 frmtI <- function(x, math = FALSE) {
@@ -1606,9 +1606,18 @@ band estimated by the model.} \label{fig:COX}
 To further accommodate for varying log-cumulative baseline hazard functions $\Haznul(\ry \mid \rs)$
 across patient strata $\rs$ (here identified by $\code{strat}$), we can fit
 a stratified model (Section~\ref{sec:STRAT}).
+
+For the package vignette only, we speed things up a bit allowing the
+optimiser to stop early:
+<<fastopt>>=
+fastopt <- mltoptim(abstol = 1e-3, reltol = 1e-3)
+fastoptH <- mltoptim(abstol = 1e-3, reltol = 1e-3, hessian = TRUE)
+@
+%
 %
 <<STRAT-model, echo = TRUE, eval = FALSE, purl = FALSE>>=
-Coxph(iDFS | strat ~ randarm, data = CAOsurv, log_first = TRUE)
+Coxph(iDFS | strat ~ randarm, data = CAOsurv, log_first = TRUE, 
+      optim = fastopt)
 @
 <<STRAT-model-fit, cache = TRUE>>=
 mcst <- 
@@ -1875,9 +1884,11 @@ The model accommodating dependent censoring can also be fitted using the
 \cmd{Coxph} function by appropriately specifying the event in the
 `\code{Surv}' object.
 %
+Again, we stop the optimiser early in order to save time for the vignette
+compilation
 <<DEPCENS-model, echo = TRUE, eval = FALSE, purl = FALSE>>=
 Coxph(Surv(OStime, event = DepCevent) ~ randarm, data = CAOsurv,
-  log_first = TRUE)
+  log_first = TRUE, optim = fastoptH)
 @
 <<DEPCENS-model-fit, cache = TRUE>>=
 md <- 
@@ -2111,6 +2122,7 @@ event times by treating them as interval-censored, accomplished by adding a
 4-day window (stored in the object \code{iDFS2} of class `\code{Surv}', 
 see Section~5 of the \code{mtram} package vignette by \citet{pkg:tram} for details).
 %
+Again, for the package vignette only we stop the optimisation early
 <<MCOX-preproc, echo = FALSE>>=
 ### convert "exact" event dates to interval-censoring (+/- two days)
 tmp <- CAOsurv$iDFS
@@ -2122,7 +2134,7 @@ CAOsurv$iDFS2 <- tmp
 @
 <<MCOX-model, echo = TRUE, eval = FALSE, purl = FALSE>>=
 mtram(Coxph(iDFS2 ~ randarm, data = CAOsurv, log_first = TRUE),
-  formula = ~ (1 | Block), data = CAOsurv)
+  formula = ~ (1 | Block), data = CAOsurv, optim = fastoptH)
 @
 <<MCOX-model-fit, cache = TRUE>>=
 mmc <- 
