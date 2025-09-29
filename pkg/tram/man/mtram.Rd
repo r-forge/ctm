@@ -10,7 +10,7 @@
 mtram(object, formula, data,
       grd = SparseGrid::createSparseGrid(type = "KPU", 
                 dimension = length(rt$cnms[[1]]), k = 10), 
-      tol = .Machine$double.eps, optim = mltoptim(auglag = list(maxtry = 5)),
+      tol = .Machine$double.eps, optim = mltoptim(hessian = TRUE),
       ...)
 }
 \arguments{

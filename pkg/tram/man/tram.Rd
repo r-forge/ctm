@@ -17,7 +17,7 @@ tram(formula, data, subset, weights, offset, cluster, na.action = na.omit,
      LRtest = TRUE, prob = c(0.1, 0.9), support = NULL, 
      bounds = NULL, add = c(0, 0), order = 6, 
      negative = TRUE, remove_intercept = TRUE, 
-     scale = TRUE, scale_shift = FALSE, extrapolate = FALSE, 
+     scaleparm = is.null(isX), scale_shift = FALSE, extrapolate = FALSE, 
      log_first = FALSE, sparse_nlevels = Inf,
      model_only = FALSE, constraints = NULL, ...)
 tram_data(formula, data, subset, weights, offset, cluster, na.action = na.omit) 
@@ -96,9 +96,11 @@ tram_data(formula, data, subset, weights, offset, cluster, na.action = na.omit)
   standard errors. Note that linear scale predictors are always fitted
   without intercept.
   }
-  \item{scale}{logical defining if variables in the linear predictor shall
+  \item{scaleparm}{logical defining if variables in the linear predictor shall
                be scaled. Scaling is internally used for model estimation,
-               rescaled coefficients are reported in model output.
+               rescaled coefficients are reported in model output. The
+               default is the use rescaling except for location-scale models, where we
+               compute the numerical Hessian.
   }
   \item{scale_shift}{a logical choosing between two different model types in
           the presence of a \code{scaling} term, see \code{\link[mlt]{ctm}}.

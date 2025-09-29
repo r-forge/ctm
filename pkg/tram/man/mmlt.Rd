@@ -8,11 +8,12 @@
   or a mix of continuous and discrete outcomes
 }
 \usage{
-Mmlt(..., formula = ~ 1, data, conditional = FALSE, theta = NULL, fixed = NULL,
-     scale = FALSE, optim = mltoptim(hessian = TRUE)[c("auglag", "constrOptim")], 
+Mmlt(..., formula = ~ 1, data, conditional = FALSE, 
+     theta = NULL, fixed = NULL, scaleparm = FALSE,
+     optim = mltoptim(hessian = TRUE),
      args = list(seed = 1, type = c("MC", "ghalton"), M = 1000), 
      fit = c("jointML", "pseudo", "ACS", "sequential", "none"),
-             ACSiter = 2)
+     ACSiter = 2)
 }
 \arguments{
   \item{\dots}{marginal transformation models, one for each response, for
@@ -36,7 +37,7 @@ gives the same likelihood but different parameter estimates.
 or a logical (for \code{coef}) indicating to also return fixed parameters
 (only when \code{type = "all"}).
 }
-  \item{scale}{a logical indicating if (internal) scaling shall be applied
+  \item{scaleparm}{a logical indicating if (internal) scaling shall be applied
           to the model coefficients.
 }
   \item{optim}{a list of optimisers as returned by \code{\link[mlt]{mltoptim}}
