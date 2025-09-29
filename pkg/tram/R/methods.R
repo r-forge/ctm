@@ -547,7 +547,7 @@ perm_test.tram <- function(object, parm = names(coef(object)),
         theta <- theta[names(theta) != parm]
         w <- object$weights
         m0 <- mlt(object$model, data = object$data, weights = object$weights,
-                  offset = off, scale = object$scale, fixed = fx,
+                  offset = off, scaleparm = object$scaleparm, fixed = fx,
                   optim = object$optim, theta = theta)
 
         cf <- coef(m1)
@@ -719,7 +719,7 @@ perm_test.tram <- function(object, parm = names(coef(object)),
         if (length(thetafix) > length(theta))
             fx <- thetafix[-names(theta)]
         m0 <- mlt(object$model, data = object$data, weights = object$weights,
-                  offset = off, scale = object$scale, fixed = fx,
+                  offset = off, scaleparm = object$scaleparm, fixed = fx,
                   optim = object$optim, theta = theta)
         
         if (length(list(...)) == 0) {
