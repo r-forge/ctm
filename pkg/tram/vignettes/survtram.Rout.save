@@ -327,7 +327,7 @@ data:  Coxph(formula = iDFS ~ randarm, data = CAOsurv, log_first = TRUE)
 Z = 2.1977, p-value = 0.02797
 alternative hypothesis: true log-hazard ratio for randarm5-FU + Oxaliplatin is not equal to 0
 95 percent confidence interval:
- -0.44190273 -0.02516834
+ -0.44196203 -0.02516834
 sample estimates:
 log-hazard ratio for randarm5-FU + Oxaliplatin 
                                     -0.2335505 
@@ -341,7 +341,7 @@ data:  Coxph(formula = iDFS ~ randarm, data = CAOsurv, log_first = TRUE)
 Z = 2.1922, p-value = 0.02837
 alternative hypothesis: true log-hazard ratio for randarm5-FU + Oxaliplatin is not equal to 0
 95 percent confidence interval:
- -0.44262104 -0.02464719
+ -0.44262167 -0.02464719
 sample estimates:
 log-hazard ratio for randarm5-FU + Oxaliplatin 
                                     -0.2335505 
@@ -415,7 +415,7 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 Log-Likelihood:
  -2231.848 (df = 29)
-Likelihood-ratio Test: Chisq = 4.75183 on 1 degrees of freedom; p = 0.02927
+Likelihood-ratio Test: Chisq = 4.753069 on 1 degrees of freedom; p = 0.02925
 
 
 > score_test(mcst)
@@ -465,8 +465,8 @@ Coxph(formula = iDFS ~ randarm | randarm, data = CAOsurv, log_first = TRUE)
 
 Coefficients:
                               Estimate Std. Error z value Pr(>|z|)
-randarm5-FU + Oxaliplatin      -0.0756     0.1644  -0.460    0.646
-scl_randarm5-FU + Oxaliplatin   0.2893     0.2017   1.434    0.152
+randarm5-FU + Oxaliplatin     -0.07561    0.16440  -0.460    0.646
+scl_randarm5-FU + Oxaliplatin  0.28925    0.20169   1.434    0.152
 
 Log-Likelihood:
  -2254.831 (df = 9)
@@ -475,13 +475,13 @@ Likelihood-ratio Test: Chisq = 6.882043 on 2 degrees of freedom; p = 0.03203
 
 > confint(mcs)
                                    2.5 %    97.5 %
-randarm5-FU + Oxaliplatin     -0.3977818 0.2465750
-scl_randarm5-FU + Oxaliplatin -0.1060296 0.6845534
+randarm5-FU + Oxaliplatin     -0.3978299 0.2466017
+scl_randarm5-FU + Oxaliplatin -0.1060447 0.6845472
 
 > perm_test_biv.stram(mcs)
-[1] 0.0138706
+[1] 0.01387088
 99 percent confidence interval:
- 0.0138706 0.0138706 
+ 0.01387088 0.01387088 
 
 
 > eval(par_surv)
@@ -659,7 +659,7 @@ iDFS ~ randarm + (1 | Block)
 	=========================
 
                           Estimate Std. Error z value Pr(>|z|)  
-randarm5-FU + Oxaliplatin -0.23903    0.10709  -2.232  0.02561 *
+randarm5-FU + Oxaliplatin -0.23903    0.10709 -2.2321  0.02561 *
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -669,7 +669,7 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 Grouping factor: Block (362 levels)
 Standard deviation:
 (Intercept) 
-    0.27916 
+    0.27915 
 
 
 	Log-likelihood: -2255.537 (npar = 9)
@@ -677,15 +677,15 @@ Standard deviation:
 
 > confint(mcME)
                                  lwr         upr
-Bs1(iDFS)                 -2.4005713 -1.97823306
-Bs2(iDFS)                 -1.9933789 -1.55085340
-Bs3(iDFS)                 -1.9953670 -1.06463968
-Bs4(iDFS)                 -1.9086996 -0.74669209
-Bs5(iDFS)                 -1.5193709 -0.74550909
-Bs6(iDFS)                 -1.0905884 -0.71557561
-Bs7(iDFS)                 -0.9676973 -0.66001090
-randarm5-FU + Oxaliplatin -0.4489287 -0.02913714
-Block|(Intercept)         -2.5353231 -0.01664409
+Bs1(iDFS)                 -2.4005684 -1.97823045
+Bs2(iDFS)                 -1.9933752 -1.55084989
+Bs3(iDFS)                 -1.9953680 -1.06464102
+Bs4(iDFS)                 -1.9086955 -0.74668786
+Bs5(iDFS)                 -1.5193690 -0.74550705
+Bs6(iDFS)                 -1.0905863 -0.71557364
+Bs7(iDFS)                 -0.9676947 -0.66000884
+randarm5-FU + Oxaliplatin -0.4489301 -0.02913873
+Block|(Intercept)         -2.5353935 -0.01660629
 
 > tmp <- CAOsurv$iDFS
 
@@ -802,6 +802,8 @@ s(age):as.ordered(randarm)5-FU + Oxaliplatin   5
 > tr <- trafotree(Coxph(iDFS ~ randarm, data = CAOsurv, 
 +     log_first = TRUE), formula = iDFS ~ randarm | age, data = CAOsurv, 
 +     control = ctr .... [TRUNCATED] 
+Warning in doTest(lev, teststat = teststat, pvalue = pvalue, lower = TRUE,  :
+  cmvnorm: completion with ERROR > EPS
 
 > logLik(tr)
 'log Lik.' -2250.417 (df=16)
@@ -863,4 +865,4 @@ logrho                           NA        NA
  *** Run successfully completed ***
 > proc.time()
    user  system elapsed 
- 99.880   0.244 100.655 
+ 93.941   0.182  94.165 
