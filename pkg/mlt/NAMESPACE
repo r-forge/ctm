@@ -17,7 +17,7 @@ importFrom("stats", "simulate", "variable.names", "model.matrix", "logLik",
            "complete.cases", "dexp", "pexp", "qexp",
            "approx", "optimise", "spline", "update",
            "dcauchy", "pcauchy", "qcauchy", "rnorm", "var", "optim",
-           "constrOptim")
+           "constrOptim", "optimHess")
 
 importFrom("quadprog", "solve.QP")
 importFrom("coneproj", "qprog")
