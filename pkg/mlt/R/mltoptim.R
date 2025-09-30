@@ -22,8 +22,13 @@ mltoptim <- function(
             method = "BFGS",          ### inner algorithm 	
              maxit = 1000L,           ### max number of inner (BFGS) iterations 
   outer.iterations = 500L,            ### max number of outer iterations
-         outer.eps = reltol,          ### relative change for _neg. logLik_          
-           hessian = hessian          ### turn off/on numerical hessian
+         outer.eps = reltol          ### relative change for _neg. logLik_          
+    ),        
+    optim = list(
+  checkconstraints = TRUE,            ### return -Inf if violated
+            method = "BFGS",          ### inner algorithm 	
+             maxit = 1000L,           ### max number of inner (BFGS) iterations 
+            reltol = reltol          ### relative change for _neg. logLik_          
     ),        
     nlminb = list(
   checkconstraints = TRUE,            ### return -Inf if violated
@@ -147,15 +152,14 @@ mltoptim <- function(
         ret$constrOptim <- function(theta, f, g, ui = NULL, ci = NULL, ...) {
             control <- constrOptim$control
             control$trace <- trace
-            control[c("mu", "method", "outer.iterations", "outer.eps",
-                      "hessian")] <- NULL
+            control[c("mu", "method", "outer.iterations", "outer.eps")] <- NULL
             if (!is.null(ui)) {
                 ret <- try(stats::constrOptim(theta = theta, f = f, grad = g,
                                               ui = ui, ci = ci, mu = constrOptim$mu, 
                                               control = control, method = constrOptim$method,
                                               outer.iterations = constrOptim$outer.iterations, 
                                               outer.eps = constrOptim$outer.eps, 
-                                              hessian = constrOptim$hessian))
+                                              hessian = hessian))
                 rtn <- c("par", "convergence", "value")
                 if ("hessian" %in% names(ret)) {
                     ret$optim_hessian <- ret$hessian
@@ -165,7 +169,7 @@ mltoptim <- function(
                 ret <- try(stats::optim(par = theta, fn = f, gr = g,
                                         control = control, 
                                         method = constrOptim$method,
-                                        hessian = constrOptim$hessian))
+                                        hessian = hessian))
                 rtn <- c("par", "convergence", "value")
                 if ("hessian" %in% names(ret)) {
                     ret$optim_hessian <- ret$hessian
@@ -177,28 +181,63 @@ mltoptim <- function(
             return(ret)
 
         }
+    if (!is.null(optim)) {
+        ret$optim <- function(theta, f, g, h, ui = NULL, ci = NULL) {
+            control <- optim
+            control$trace <- trace
+            objfun <- f
+            if (!is.null(ui) && control$checkconstraints) {
+                objfun <- function(theta) {
+                    if (any(ui %*% theta - ci < -.Machine$double.eps^(1/3)))
+                        return(-Inf)
+                    return(f(theta))
+                }
+            }
+            control$checkconstraints <- NULL
+            method <- control$method
+            control$method <- NULL
+            ### _unconstraint optimisation_
+            ret <- try(stats::optim(par = theta, fn = objfun, gr = g, method = method,
+                                    control = control, hessian = hessian))
+            if (inherits(ret, "try-error")) {
+                return(list(par = theta, convergence = 1))
+            } else {
+                ### check constraints
+                if (!is.null(ui)) {
+                    if (any(ui %*% ret$par - ci < -.Machine$double.eps^(1/3)))
+                        warning("optim result violates inequality constraints")
+                }
+            }
+            rtn <- c("par", "convergence", "value")
+            if ("hessian" %in% names(ret)) {
+                ret$optim_hessian <- ret$hessian
+                rtn <- c(rtn, "optim_hessian")
+            }
+            return(ret[rtn])
+        }
+    }
     if (!is.null(nlminb)) {
         ret$nlminb <- function(theta, f, g, h, ui = NULL, ci = NULL) {
             control <- nlminb
             control$trace <- trace
             objfun <- f
-            if (control$checkconstraints) {
+            if (!is.null(ui) && control$checkconstraints) {
                 objfun <- function(theta) {
-                    if (any(ui %*% ret$par - ci < 0))
+                    if (any(ui %*% theta - ci < -.Machine$double.eps^(1/3)))
                         return(-Inf)
                     return(f(theta))
                 }
             }
             control$checkconstraints <- NULL
             ### _unconstraint optimisation_
-            ret <- try(stats::nlminb(start = theta, objective = f, gradient = g, hessian = h,
+            ret <- try(stats::nlminb(start = theta, objective = objfun, gradient = g, hessian = h,
                                      control = control))
             if (inherits(ret, "try-error")) {
                 return(list(par = theta, convergence = 1))
             } else {
                 ### check constraints
                 if (!is.null(ui)) {
-                    if (any(ui %*% ret$par - ci < 0))
+                    if (any(ui %*% ret$par - ci < -.Machine$double.eps^(1/3)))
                         warning("nlminb result violates inequality constraints")
                 }
             }
@@ -208,6 +247,6 @@ mltoptim <- function(
         }
     }
     if (hessian)
-        return(ret[c("auglag", "constrOptim")])
-    return(ret[c("auglag", "spg", "nloptr", "constrOptim", "nlminb")])
+        return(ret[c("auglag", "constrOptim", "optim")])
+    return(ret[c("auglag", "spg", "nloptr", "constrOptim", "nlminb", "optim")])
 }

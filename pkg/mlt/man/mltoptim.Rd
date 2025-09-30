@@ -10,10 +10,10 @@
 mltoptim(
    auglag = list(
         kkt2.check = hessian,         ### turn off/on numerical hessian
-               eps = abstol,          ### absolute tolerance for _parameter_ updates
+               eps = abstol,          ### absolute tolerance for _parameter_ updates 
              itmax = 1000L,           ### max number of outer iterations
             method = "BFGS",          ### inner algorithm
-             maxit = 500L             ### max number of inner (BFGS) iterations    
+             maxit = 500L             ### max number of inner (BFGS) iterations
         ), 
     spg = list(
               ftol = abstol,          ### absolute tolerance for _neg. logLik_
@@ -30,8 +30,13 @@ mltoptim(
             method = "BFGS",          ### inner algorithm       
              maxit = 1000L,           ### max number of inner (BFGS) iterations 
   outer.iterations = 500L,            ### max number of outer iterations
-         outer.eps = reltol,          ### relative change for _neg. logLik_          
-           hessian = hessian          ### turn off/on numerical hessian
+         outer.eps = reltol          ### relative change for _neg. logLik_          
+    ),        
+    optim = list(
+  checkconstraints = TRUE,            ### return -Inf if violated
+            method = "BFGS",          ### inner algorithm       
+             maxit = 1000L,           ### max number of inner (BFGS) iterations 
+            reltol = reltol          ### relative change for _neg. logLik_          
     ),        
     nlminb = list(
   checkconstraints = TRUE,            ### return -Inf if violated
@@ -64,6 +69,10 @@ mltoptim(
   A list with control parameters for the \code{\link[stats]{constrOptim}}
   optimiser. 
 }
+  \item{optim}{
+  A list with control parameters for the \code{\link[stats]{optim}}
+  optimiser producing an unconstrained fit.
+}
   \item{nlminb}{
   A list with control parameters for the \code{\link[stats]{nlminb}}
   optimiser producing an unconstrained fit.
@@ -90,12 +99,14 @@ mltoptim(
   Adding further such functions is a way to add more optimisers to \code{\link{mlt}}.
   The first one in this list converging  defines the resulting model.
 
-  All procedures except \code{nlminb} perform constained optimisation. The 
+  All procedures except \code{optim} and \code{nlminb} perform constained optimisation. The 
   model is only defined for parameters meeting the constraints. For
   parameter configurations not meeting the constraints, the resulting
   log-likelihood is \code{-Inf}. This, however, does not mean that
   unconstraint optimisation will always produce parameter estimates 
-  which lead to valid models.
+  which lead to valid models, so one should always check the unconstrained
+  (but probably faster obtained) result against the (slower) constrained
+  solution.
 
 }
 \examples{
@@ -106,9 +117,9 @@ mltoptim(
   ctmm <- ctm(response = Bernstein_basis(dist, order = 4, ui = "increasing"),
               shifting = ~ speed, data = cars)
 
-  ### use auglag with kkt2.check = TRUE => the numerically determined
+  ### the numerically determined
   ### hessian is returned as "optim_hessian" slot
-  op <- mltoptim(auglag = list(maxtry = 5, kkt2.check = TRUE))[1]
+  op <- mltoptim(hessian = TRUE)
   mltm <- mlt(ctmm, data = cars, scale = FALSE, optim = op)
 
   ### compare analytical and numerical hessian

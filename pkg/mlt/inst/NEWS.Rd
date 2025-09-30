@@ -5,7 +5,8 @@
 \section{Changes in Version 1.7-0 (2025-09-29)}{
   \subsection{Features}{
     \itemize{
-      \item{\code{mltoptim()} features \code{nlminb}.}
+      \item{\code{mltoptim()} features \code{nlminb} for unconstrained optimisation.}
+      \item{\code{mltoptim()} features \code{optim} for unconstrained optimisation.}
       \item{\code{mltoptim()} defaults changed for all algorithms.}
       \item{\code{mltoptim()} refrains from generating random starting
             values now. Consequently, results are fully reproducible in the absence of
