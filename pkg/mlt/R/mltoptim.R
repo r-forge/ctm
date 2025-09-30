@@ -105,6 +105,7 @@ mltoptim <- function(
             atheta <- theta
             if (!is.null(ui)) {
                 mui <- -ui
+                ### <FIXME> replace with nloptr::auglag </FIXME>
                 ret <- try(nloptr::nloptr(
                     x0 = atheta, 
                     eval_f = f, 
