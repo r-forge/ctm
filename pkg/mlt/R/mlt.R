@@ -13,13 +13,15 @@
     N <- length(eY$which) * length(iY$which)
 
     if (is.null(eY)) {
-        Y <- iY$Yleft
+        Y <- Yt <- iY$Yleft
     } else {
-        Y <- eY$Y
+        Y <- Yt <- eY$Y
+        if (!is.null(iY)) Yt <- rbind(Yt, iY$Yleft)
     }
     Assign <- attr(Y, "Assign")
     SCALE <- "bscaling" %in% Assign[2,]
     if (SCALE) Z <- model.matrix(model$model$bscaling, data = data)
+    ### <FIXME> fixed current does not apply to scale terms in Z </FIXME>
 
     ui <- attr(Y, "constraint")$ui
     ci <- attr(Y, "constraint")$ci
@@ -29,10 +31,20 @@
         if (length(fixed) == 0) fixed <- NULL
     }
 
+    ### check for constant columns and fix corresponding parameters
+    const <- NULL
+    cYt <- which(colSums(abs(Yt)) < .Machine$double.eps)
+    if (length(cYt)) {
+        nf <- rep.int(0, length(cYt))
+        names(nf) <- colnames(Yt)[cYt]
+        fixed <- c(fixed, nf)
+    }
+
     if (!is.null(fixed)) {
-        stopifnot(all(names(fixed) %in% colnames(Y)))
-        fix <- colnames(Y) %in% names(fixed)
-        fixed <- fixed[colnames(Y)[fix]]
+        if (!all(names(fixed) %in% colnames(Yt)))
+            stop("Fixing parameters failed, maybe they apply to scale terms?")
+        fix <- colnames(Yt) %in% names(fixed)
+        fixed <- fixed[colnames(Yt)[fix]]
 
         ### adjust contrasts a fixed parameter contributes to
         ci <- ci - c(as(ui[, fix, drop = FALSE], "matrix") %*% fixed)
@@ -789,7 +801,7 @@ mlt <- function(model, data, weights = NULL, offset = NULL, fixed = NULL,
             pstart <- attr(y, "prob")(weights)(y$approxy) ### y$rank / max(y$rank)
         theta <- .mlt_start(model = model, data = data, y = y, 
                             pstart = pstart, offset = offset, 
-                            fixed = fixed, weights = weights)
+                            fixed = s$fixed, weights = weights)
     }
 
     args <- list()
