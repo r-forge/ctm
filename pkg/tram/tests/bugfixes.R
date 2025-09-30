@@ -236,3 +236,42 @@ m <- Coxph(Surv(time, cens) | horTh ~ age | pnodes, data = GBSG2)
 model.matrix(m, data = GBSG2[1:10,], what = "shifting")
 model.matrix(m, data = GBSG2[1:10,], what = "scaling")
 model.matrix(m, data = GBSG2[1:10,], what = "interacting")
+
+### check numerically approximated Hessians when analytic Hessian is
+### not available
+N <- 100
+x <- runif(N)
+y <- rnorm(N)
+d <- data.frame(x = x, y = y)
+
+### no scaling, optimHess
+m1 <- Colr(y ~ x | x, data = d, scaleparm = TRUE, 
+  optim = mltoptim(hessian = FALSE))
+### no scaling, Hessian from auglag
+m2 <- Colr(y ~ x | x, data = d, scaleparm = TRUE, 
+  optim = mltoptim(hessian = TRUE))
+### scaling, optimHess
+m3 <- Colr(y ~ x | x, data = d, scaleparm = FALSE, 
+  optim = mltoptim(hessian = FALSE))
+### scaling, Hessian from auglag
+m4 <- Colr(y ~ x | x, data = d, scaleparm = FALSE, 
+  optim = mltoptim(hessian = TRUE))
+
+stopifnot(all.equal(logLik(m1), logLik(m2), logLik(m3), logLik(m4)))
+
+cf0 <- coef(m1)
+cf <- coef(as.mlt(m1))
+i <- match(names(cf0), names(cf))
+
+f <- function(x) logLik(m1, parm = x)
+stopifnot(max(abs(solve(-hessian(f, cf))[i,i] - vcov(m1))) < 1e-5)
+
+f <- function(x) logLik(m2, parm = x)
+stopifnot(max(abs(solve(-hessian(f, cf))[i,i] - vcov(m2))) < 1e-5)
+
+f <- function(x) logLik(m3, parm = x)
+stopifnot(max(abs(solve(-hessian(f, cf))[i,i] - vcov(m3))) < 1e-3)
+
+### optimHess and numDeriv::hessian disagree a bit
+f <- function(x) logLik(m4, parm = x)
+stopifnot(max(abs(solve(-hessian(f, cf))[i,i] - vcov(m4))) < 1e-1)
