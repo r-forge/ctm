@@ -525,7 +525,7 @@
                 if (i > 1) {
                     msg <- paste(names(optim)[i - 1], "did not converge, trying", names(optim)[i], sep = " ")
                     warning(msg)
-                }
+                }	
                 ret <- optim[[i]](theta = theta, f = f, g = g, ui = ui, ci = ci, 
                                   h = h)
                 if (ret$convergence == 0) break()
@@ -553,9 +553,14 @@
                     ret <- H
                 } else {
                     # warning("Analytical Hessian not available, using numerical approximation")
+                    ret <- try(stats::optimHess(ret$par, fn = loglikfct, gr = scorefct, 
+                                                weights = weights))
                     ### this may fail because numDeriv can't deal with -Inf
                     ### values of the target function
-                    ret <- numDeriv::hessian(loglikfct, beta, weights = weights)
+                    if (inherits(ret, "try-error"))
+                        ret <- try(numDeriv::hessian(loglikfct, beta, weights = weights))
+                    if (inherits(ret, "try-error"))
+                        stop("Approximation of Hessian failed")
                 }
                 rownames(ret) <- colnames(ret) <- names(beta)
                 return(ret)
