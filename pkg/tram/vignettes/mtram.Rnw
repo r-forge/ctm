@@ -1957,7 +1957,7 @@ su <- c(1, 1700)
 add <- c(0,  max(CAOsurv$iDFS[, "time2"]) - su[2])
 ylim <- c(-.05, 1.05)
 tmp <- as.mlt(Coxph(iDFS | 0 + strat_n:strat_t:randarm ~ 1, data = CAOsurv, 
-                    support = su, add = add, log_first = TRUE))
+                    support = su, add = add))
 nd <- expand.grid(strat_n = sn, strat_t = st, randarm = ra)
 q <- mkgrid(tmp, 100)[[1]]
 surv <- predict(tmp, newdata = nd, type = "survivor", q = q)
@@ -2060,7 +2060,7 @@ We now relax the Weibull assumption in the Cox model
 (note the positive sign of the treatment effect).
 <<mtram-CAO_Cox_2, cache = FALSE>>=
 CAO_Cox_2 <- Coxph(iDFS2 | 0 + strat_n:strat_t ~ randarm, data = CAOsurv, 
-                   support = c(1, 1700), log_first = TRUE, order = 4)
+                   support = c(1, 1700), order = 4)
 logLik(CAO_Cox_2)
 CAO_Cox_2_mtram <- mtram(CAO_Cox_2, ~ (1 | Block), data = CAOsurv, 
                          optim = fastoptH)
@@ -2099,7 +2099,7 @@ We can fit mixed-effects transformation models
 \citep{tamasi2021tramme,Tamasi_Crowther_Puhan_2022} as follows:
 <<tramME-CAO_SR, cache = FALSE>>=
 CAO_Cox_2_tramME <- CoxphME(iDFS2 | 0 + strat_n:strat_t ~ randarm + (1 | Block), 
-                            data = CAOsurv, log_first = TRUE)
+                            data = CAOsurv)
 @
 From this conditional model, we can obtain the conditional hazard ratio with
 confidence interval:

@@ -1516,7 +1516,7 @@ Next, we fit the flexible proportional hazards model (Section~\ref{sec:COX}) usi
 \cmd{Coxph} function from the \pkg{tram} package.
 %
 <<COX-model, echo = TRUE, eval = FALSE, purl = FALSE>>=
-Coxph(iDFS ~ randarm, data = CAOsurv, log_first = TRUE)
+Coxph(iDFS ~ randarm, data = CAOsurv)
 @
 <<COX-model-fit, echo = FALSE, cache = TRUE>>=
 mc <-
@@ -1557,33 +1557,8 @@ ranges from \Sexpr{frmtCI(exp(perm_test(mc)$conf.int), math = TRUE)}.
 %
 \begin{figure}[t!]
 \centering
-<<COX-lHaz-try, purl = FALSE>>=
-## FIXME: confband does not like log_first = TRUE
-# try(cb <- confband(as.mlt(mc), newdata =  nd1[1,, drop = FALSE], K = 20, cheat = 100))
-@
-<<COX-lHaz, echo = FALSE>>=
-## confband
-object <- as.mlt(mc)
-newdata <- nd1[1,, drop = FALSE]
-K <- 20
-cheat <- 200
-y <- variable.names(object, "response")
-q <- mkgrid(object, n = K)[[y]]
-q[1] <- q[1] + 1 ## quick fix for log_first
-nd <- newdata[rep(1, length(q)), , drop = FALSE]
-nd[[y]] <- q
-X <- model.matrix(object$model$model, data = nd)
-cb <- confint(multcomp::glht(multcomp::parm(coef(object), 
-  vcov(object)), linfct = X))$confint
-q <- mkgrid(object, n = cheat)[[y]]
-q[1] <- q[1] + 1 ## quick fix for log_first 
-nd <- newdata[rep(1, length(q)), , drop = FALSE]
-nd[[y]] <- q
-X <- model.matrix(object$model$model, data = nd)
-cb <- confint(multcomp::glht(multcomp::parm(coef(object), 
-  vcov(object)), linfct = X), calpha = attr(cb, 
-        "calpha"))$confint
-cb <- cbind(q, cb)
+<<COX-lHaz-try>>=
+cb <- confband(as.mlt(mc), newdata =  nd1[1,, drop = FALSE], K = 20, cheat = 100)
 @
 <<COX-lHaz-plot>>=
 eval(par_main)
@@ -1616,7 +1591,7 @@ fastoptH <- mltoptim(abstol = 1e-3, reltol = 1e-3, hessian = TRUE)
 %
 %
 <<STRAT-model, echo = TRUE, eval = FALSE, purl = FALSE>>=
-Coxph(iDFS | strat ~ randarm, data = CAOsurv, log_first = TRUE, 
+Coxph(iDFS | strat ~ randarm, data = CAOsurv, 
       optim = fastopt)
 @
 <<STRAT-model-fit, cache = TRUE>>=
@@ -1663,7 +1638,7 @@ Moving away from the proportional hazards assumption, we can fit a non-proportio
 (a location-scale version of the Cox model, Section~\ref{sec:SCOX}) using the same function.
 %
 <<SCOX-model, echo = TRUE, eval = FALSE, purl = FALSE>>=
-Coxph(iDFS ~ randarm | randarm, data = CAOsurv, log_first = TRUE)
+Coxph(iDFS ~ randarm | randarm, data = CAOsurv)
 @
 <<SCOX-model-fit, cache = TRUE>>=
 mcs <- 
@@ -1725,7 +1700,7 @@ $\ry$.}\label{fig:SCOX}
 Finally, we fit the model featuring a time-varying treatment effect (Section~\ref{sec:TCOX}).
 %
 <<TCOX-model, echo = TRUE, eval = FALSE, purl = FALSE>>=
-Coxph(iDFS | randarm ~ 1, data = CAOsurv, log_first = TRUE)
+Coxph(iDFS | randarm ~ 1, data = CAOsurv)
 @
 <<TCOX-model-fit, cache = TRUE>>=
 mcv <- 
@@ -1887,8 +1862,8 @@ The model accommodating dependent censoring can also be fitted using the
 Again, we stop the optimiser early in order to save time for the vignette
 compilation
 <<DEPCENS-model, echo = TRUE, eval = FALSE, purl = FALSE>>=
-Coxph(Surv(OStime, event = DepCevent) ~ randarm, data = CAOsurv,
-  log_first = TRUE, optim = fastoptH)
+Coxph(Surv(OStime, event = DepCevent) ~ randarm, data = CAOsurv, 
+      optim = fastoptH)
 @
 <<DEPCENS-model-fit, cache = TRUE>>=
 md <- 
@@ -2012,8 +1987,7 @@ proportional hazards model can be estimated using the \code{CoxphME}
 function.
 %
 <<COXME-model, echo = TRUE, eval = FALSE, purl = FALSE>>=
-CoxphME(iDFS ~ randarm + (1 | Block), data = CAOsurv,
-  log_first = TRUE)
+CoxphME(iDFS ~ randarm + (1 | Block), data = CAOsurv)
 @
 <<COXME-model-fit, cache = TRUE>>=
 mcME <- 
@@ -2133,7 +2107,7 @@ tmp[exact, 3] <- 3
 CAOsurv$iDFS2 <- tmp
 @
 <<MCOX-model, echo = TRUE, eval = FALSE, purl = FALSE>>=
-mtram(Coxph(iDFS2 ~ randarm, data = CAOsurv, log_first = TRUE),
+mtram(Coxph(iDFS2 ~ randarm, data = CAOsurv),
   formula = ~ (1 | Block), data = CAOsurv, optim = fastoptH)
 @
 <<MCOX-model-fit, cache = TRUE>>=
@@ -2245,7 +2219,7 @@ The hazards model featuring an age-varying treatment effect
 %
 <<HTECOX-model, echo = TRUE, eval = FALSE, purl = FALSE>>=
 CoxphME(iDFS ~ randarm + s(age, by = as.ordered(randarm),
-    fx = TRUE, k = 6), data = CAOsurv, log_first = TRUE)
+    fx = TRUE, k = 6), data = CAOsurv)
 @
 <<HTECOX-model-fit, cache = TRUE>>=
 ma <- 
@@ -2307,8 +2281,8 @@ library("trtf")
 library("trtf")
 set.seed(4)
 @
-<<TRT-model, echo = TRUE, eval = FALSE, purl = FALSE>>=
-trafotree(Coxph(iDFS ~ randarm, data = CAOsurv, log_first = TRUE),
+<<TRT-model, echo = TRUE, eval = FALSE, purl = FALSE, warning = FALSE>>=
+trafotree(Coxph(iDFS ~ randarm, data = CAOsurv),
   formula = iDFS ~ randarm | age, data = CAOsurv,
   control = ctree_control(teststat = "maximum", minbucket = 40))
 @
@@ -2384,7 +2358,7 @@ The proportional hazards model with gamma frailty can be fitted in
 distribution, for instance \code{frailty = "Gamma"}.
 %
 <<FRAILTY-model, echo = FALSE, eval = FALSE, purl = FALSE>>=
-Coxph(iDFS ~ randarm, data = CAOsurv, log_first = TRUE, frailty = "Gamma")
+Coxph(iDFS ~ randarm, data = CAOsurv, frailty = "Gamma")
 @
 <<FRAILTY-model-fit, cache = TRUE>>=
 mf <- 
@@ -2433,7 +2407,7 @@ For example, specifying a flexible proportional odds model ``only'' requires to 
 function from complementary log-log to logit; such a model can be estimated via
 %
 <<LOGIT-model, purl = FALSE, eval = FALSE, echo = TRUE>>=
-Colr(iDFS ~ randarm, data = CAOsurv, log_first = TRUE)
+Colr(iDFS ~ randarm, data = CAOsurv)
 @
 <<LOGIT-model-fit>>=
 ml <- 
@@ -2460,7 +2434,7 @@ covariates $\rx$. For example, in the time-varying hazards model (Section~\ref{s
 age can be incorporated into the linear predictor as follows:
 %
 <<TCOX-age-model, echo = TRUE, eval = FALSE, purl = FALSE>>=
-Coxph(iDFS | randarm ~ age, data = CAOsurv, log_first = TRUE)
+Coxph(iDFS | randarm ~ age, data = CAOsurv)
 @
 %
 Additionally, penalised covariate effects can be estimated by maximizing the
@@ -2607,7 +2581,6 @@ Foundation [grant number 200021\_219384].
 
 \section[Comparative overview of R implementations]{Comparative overview of \proglang{R} implementations}\label{sec:supp}
 
-
 \definecolor{darkgray}{rgb}{0.66, 0.66, 0.66}
 
 % \renewenvironment{Schunk}{}{\vspace{-.9cm}} %% quickfix to avoid spacing after chunk
@@ -2679,7 +2652,7 @@ R> icenReg::ic_par(iDFS ~ randarm, data = CAOsurv, dist = "weibull",
 
 \begin{center}
 % latex table generated in R 4.5.1 by xtable 1.8-4 package
-% Tue Sep 16 16:59:32 2025
+% Wed Oct  1 12:23:47 2025
 \scalebox{0.8}{
 \begin{tabular}{lllrrr}
   \toprule
@@ -2716,7 +2689,7 @@ The corresponding models can be fitted to the \emph{interval-censored outcomes} 
 
 \begin{Schunk}
 \begin{Sinput}
-R> tram::Coxph(iDFS ~ randarm, data = CAOsurv, log_first = TRUE)
+R> tram::Coxph(iDFS ~ randarm, data = CAOsurv)
 R> rstpm2::stpm2(Surv(time = iDFStime, time2 = iDFStime2,
 +    event = iDFSevent, type = "interval") ~ randarm, data = CAOsurv)
 R> flexsurv::flexsurvspline(iDFS ~ randarm, data = CAOsurv, k = 3)
@@ -2726,13 +2699,13 @@ R> icenReg::ic_sp(iDFS ~ randarm, data = CAOsurv, model = "ph")
 
 \begin{center}
 % latex table generated in R 4.5.1 by xtable 1.8-4 package
-% Tue Sep 16 16:59:32 2025
+% Wed Oct  1 12:24:03 2025
 \scalebox{0.8}{
 \begin{tabular}{lllrrr}
   \toprule
 Function & Package & Interpretation & Estimate & Std. Error & logLik \\ 
   \midrule
-\code{Coxph} & \pkg{tram} & log-HR & $ -0.234 $ & $ 0.106 $ & $-$2'255.85 \\ 
+\code{Coxph} & \pkg{tram} & log-HR & $ -0.231 $ & $ 0.107 $ & $-$2'233.80 \\ 
   \code{stpm2} & \pkg{rstpm2} & log-HR & $ -0.232 $ & $ 0.107 $ & $-$2'250.48 \\ 
   \code{flexsurvspline} & \pkg{flexsurv} & log-HR & $ -0.231 $ & $ 0.106 $ & $-$2'254.34 \\ 
   \code{ic\_sp} & \pkg{icenReg} & log-HR & $ -0.230 $ & $-$ & {\color{darkgray}$-$1'977.29} \\ 
@@ -2769,7 +2742,7 @@ the model from package \pkg{survival}.
 %
 \begin{Schunk}
 \begin{Sinput}
-R> tram::Coxph(DFS ~ randarm, data = CAOsurv, log_first = TRUE)
+R> tram::Coxph(DFS ~ randarm, data = CAOsurv)
 R> survival::coxph(DFS ~ randarm, data = CAOsurv)
 R> rms::cph(DFS ~ randarm, data = CAOsurv)
 \end{Sinput}
@@ -2777,13 +2750,13 @@ R> rms::cph(DFS ~ randarm, data = CAOsurv)
 
 \begin{center}
 % latex table generated in R 4.5.1 by xtable 1.8-4 package
-% Tue Sep 16 16:59:32 2025
+% Wed Oct  1 12:24:03 2025
 \scalebox{0.8}{
 \begin{tabular}{lllrrr}
   \toprule
 Function & Package & Interpretation & Estimate & Std. Error & logLik \\ 
   \midrule
-\code{Coxph} & \pkg{tram} & log-HR & $ -0.231 $ & $ 0.106 $ & $-$3'277.59 \\ 
+\code{Coxph} & \pkg{tram} & log-HR & $ -0.229 $ & $ 0.106 $ & $-$3'250.78 \\ 
   \code{coxph} & \pkg{survival} & log-HR & $ -0.228 $ & $ 0.106 $ & {\color{darkgray}$-$2'430.66} \\ 
   \code{cph} & \pkg{rms} & log-HR & $ -0.228 $ & $ 0.106 $ & {\color{darkgray}$-$2'430.66} \\ 
    \bottomrule
@@ -2807,8 +2780,7 @@ which employ stratified spline-basis functions. The two models can be fitted to 
 
 \begin{Schunk}
 \begin{Sinput}
-R> tram::Coxph(iDFS | strat ~ randarm, data = CAOsurv,
-+    log_first = TRUE)
+R> tram::Coxph(iDFS | strat ~ randarm, data = CAOsurv)
 R> rstpm2::stpm2(Surv(time = iDFStime, time2 = iDFStime2,
 +      event = iDFSevent, type = "interval") ~ randarm +
 +      strata(strat), data = CAOsurv)
@@ -2817,13 +2789,13 @@ R> rstpm2::stpm2(Surv(time = iDFStime, time2 = iDFStime2,
 
 \begin{center}
 % latex table generated in R 4.5.1 by xtable 1.8-4 package
-% Tue Sep 16 16:59:32 2025
+% Wed Oct  1 12:24:05 2025
 \scalebox{0.8}{
 \begin{tabular}{lllrrr}
   \toprule
 Function & Package & Interpretation & Estimate & Std. Error & logLik \\ 
   \midrule
-\code{Coxph} & \pkg{tram} & log-HR & $ -0.231 $ & $ 0.107 $ & $-$2'231.85 \\ 
+\code{Coxph} & \pkg{tram} & log-HR & $ -0.229 $ & $ 0.107 $ & $-$2'205.28 \\ 
   \code{stpm2} & \pkg{rstpm2} & log-HR & $ -0.220 $ & $ 0.107 $ & $-$2'242.88 \\ 
    \bottomrule
 \end{tabular}
@@ -2840,7 +2812,7 @@ the semi-parametric models from the
 %
 \begin{Schunk}
 \begin{Sinput}
-R> tram::Coxph(DFS | strat ~ randarm, data = CAOsurv, log_first = TRUE)
+R> tram::Coxph(DFS | strat ~ randarm, data = CAOsurv)
 R> survival::coxph(DFS ~ randarm + strata(strat), data = CAOsurv)
 R> rms::cph(DFS ~ randarm + strat(strat), data = CAOsurv)
 \end{Sinput}
@@ -2848,13 +2820,13 @@ R> rms::cph(DFS ~ randarm + strat(strat), data = CAOsurv)
 
 \begin{center}
 % latex table generated in R 4.5.1 by xtable 1.8-4 package
-% Tue Sep 16 16:59:32 2025
+% Wed Oct  1 12:24:06 2025
 \scalebox{0.8}{
 \begin{tabular}{lllrrr}
   \toprule
 Function & Package & Interpretation & Estimate & Std. Error & logLik \\ 
   \midrule
-\code{Coxph} & \pkg{tram} & log-HR & $ -0.229 $ & $ 0.107 $ & $-$3'253.85 \\ 
+\code{Coxph} & \pkg{tram} & log-HR & $ -0.227 $ & $ 0.107 $ & $-$3'222.89 \\ 
   \code{coxph} & \pkg{survival} & log-HR & $ -0.222 $ & $ 0.107 $ & {\color{darkgray}$-$2'089.54} \\ 
   \code{cph} & \pkg{rms} & log-HR & $ -0.222 $ & $ 0.107 $ & {\color{darkgray}$-$2'089.54} \\ 
    \bottomrule
@@ -2890,7 +2862,7 @@ R> survival::survreg(DFS ~ randarm + strata(strat), data = CAOsurv)
 
 \begin{center}
 % latex table generated in R 4.5.1 by xtable 1.8-4 package
-% Tue Sep 16 16:59:33 2025
+% Wed Oct  1 12:24:06 2025
 \scalebox{0.8}{
 \begin{tabular}{lllrrr}
   \toprule
@@ -2940,13 +2912,13 @@ location parameter below.
 %
 \begin{center}
 % latex table generated in R 4.5.1 by xtable 1.8-4 package
-% Tue Sep 16 16:59:33 2025
+% Wed Oct  1 12:24:19 2025
 \scalebox{0.8}{
 \begin{tabular}{llrrr}
   \toprule
 Function & Package & Estimate & Std. Error & logLik \\ 
   \midrule
-\code{Survreg} & \pkg{tram} & $ -0.849 $ & $ 0.536 $ & $-$2'280.47 \\ 
+\code{Survreg} & \pkg{tram} & $ -0.847 $ & $ 0.536 $ & $-$2'280.47 \\ 
   \code{gamlss} & \pkg{gamlss} & $ -0.948 $ & $ 0.542 $ & $-$2'280.53 \\ 
    \bottomrule
 \end{tabular}
@@ -2975,7 +2947,7 @@ Again, we only show the estimates and standard errors of the location parameter 
 %
 \begin{center}
 % latex table generated in R 4.5.1 by xtable 1.8-4 package
-% Tue Sep 16 16:59:33 2025
+% Wed Oct  1 12:24:19 2025
 \scalebox{0.8}{
 \begin{tabular}{llrrr}
   \toprule
@@ -3002,7 +2974,7 @@ for the \emph{interval-censored event times}.
 %
 \begin{Schunk}
 \begin{Sinput}
-R> tram::Coxph(iDFS | randarm ~ 1, data = CAOsurv, log_first = TRUE)
+R> tram::Coxph(iDFS | randarm ~ 1, data = CAOsurv)
 R> flexsurv::flexsurvspline(iDFS ~ randarm + gamma1(randarm) +
 +      gamma2(randarm), data = CAOsurv, k = 3)
 \end{Sinput}
@@ -3012,14 +2984,14 @@ R> flexsurv::flexsurvspline(iDFS ~ randarm + gamma1(randarm) +
 %% TODO: pkg "polspline"
 %
 The in-sample log-likelihood is $-$2'252.95 for the \pkg{flexsurv} model 
-and $-$2'321.58 for the \pkg{tram} model. The estimated
+and $-$2'230.80 for the \pkg{tram} model. The estimated
 time-varying ratios of the cumulative hazards are shown in the plot below.
 %
 
 \begin{Schunk}
 
 
-{\centering \includegraphics{TVAR-iDFS-plot-1} 
+{\centering \includegraphics{figure/TVAR-iDFS-plot-1} 
 
 }
 
@@ -3029,7 +3001,7 @@ We will now explore the same models  \emph{ignoring interval-censoring}.
 %
 \begin{Schunk}
 \begin{Sinput}
-R> tram::Coxph(DFS | randarm ~ 1, data = CAOsurv, log_first = TRUE)
+R> tram::Coxph(DFS | randarm ~ 1, data = CAOsurv)
 R> flexsurv::flexsurvspline(DFS ~ randarm + gamma1(randarm) +
 +      gamma2(randarm), data = CAOsurv, k = 3)
 \end{Sinput}
@@ -3037,12 +3009,12 @@ R> flexsurv::flexsurvspline(DFS ~ randarm + gamma1(randarm) +
 
 %
 The in-sample log-likelihood is $-$3'267.27 for the \pkg{flexsurv} model
-and $-$3'274.16 for the \pkg{tram} model, with the computed time-varying ratios of the cumulative hazards shown below.
+and $-$3'248.32 for the \pkg{tram} model, with the computed time-varying ratios of the cumulative hazards shown below.
 %
 \begin{Schunk}
 
 
-{\centering \includegraphics{TVAR-DFS-plot-1} 
+{\centering \includegraphics{figure/TVAR-DFS-plot-1} 
 
 }
 
@@ -3071,8 +3043,7 @@ approximation \citep{Ripatti_Palmgren_2000}.
 %
 \begin{Schunk}
 \begin{Sinput}
-R> tramME::CoxphME(DFS ~ randarm + (1 | Block), data = CAOsurv,
-+    log_first = TRUE)
+R> tramME::CoxphME(DFS ~ randarm + (1 | Block), data = CAOsurv)
 R> rstpm2::stpm2(Surv(DFStime, DFSevent) ~ randarm, data = CAOsurv,
 +    cluster = "Block", RandDist = "LogN")
 R> coxme::coxme(DFS ~ randarm + (1 | Block), data = CAOsurv)
@@ -3081,13 +3052,13 @@ R> coxme::coxme(DFS ~ randarm + (1 | Block), data = CAOsurv)
 
 \begin{center}
 % latex table generated in R 4.5.1 by xtable 1.8-4 package
-% Tue Sep 16 16:59:39 2025
+% Wed Oct  1 12:24:29 2025
 \scalebox{0.8}{
 \begin{tabular}{lllrrr}
   \toprule
 Function & Package & Interpretation & Estimate & Std. Error & logLik \\ 
   \midrule
-\code{CoxphME} & \pkg{tramME} & log-HR & $ -0.237 $ & $ 0.107 $ & $-$3'277.23 \\ 
+\code{CoxphME} & \pkg{tramME} & log-HR & $ -0.235 $ & $ 0.107 $ & $-$3'250.44 \\ 
   \code{stpm2} & \pkg{rstpm2} & log-HR & $ -0.234 $ & $ 0.107 $ & $-$3'272.86 \\ 
   \code{coxme} & \pkg{coxme} & log-HR & $ -0.231 $ & $ 0.107 $ & {\color{darkgray}$-$2'414.48} \\ 
    \bottomrule
@@ -3111,7 +3082,7 @@ we again fit the models \emph{ignoring interval-censoring}.
 \begin{Schunk}
 \begin{Sinput}
 R> tramME::CoxphME(DFS ~ randarm + s(age, by = as.ordered(randarm),
-+      fx = TRUE, k = 6), data = CAOsurv, log_first = TRUE)
++      fx = TRUE, k = 6), data = CAOsurv)
 R> mgcv::gam(DFStime ~ randarm + s(age, by = as.ordered(randarm),
 +      fx = TRUE, k = 6), data = CAOsurv, family = cox.ph(),
 +    weights = DFSevent)
@@ -3122,14 +3093,14 @@ R> mgcv::gam(DFStime ~ randarm + s(age, by = as.ordered(randarm),
 
 %
 The in-sample log-likelihood of the model from the package \pkg{mgcv} is $-$2'426.04 (partial log-likelihood)
-and $-$3'272.88 for the \pkg{tramME} model.
+and $-$3'246.06 for the \pkg{tramME} model.
 The estimated age-varying hazard ratios and corresponding 95\%-confidence intervals
 are shown in the plot below.
 %
 \begin{Schunk}
 
 
-{\centering \includegraphics{HTECOX-DFS-plot-1} 
+{\centering \includegraphics{figure/HTECOX-DFS-plot-1} 
 
 }
 
@@ -3148,8 +3119,7 @@ semi-parametric baseline hazards. Again we fit the models \emph{ignoring interva
 %
 \begin{Schunk}
 \begin{Sinput}
-R> tram::Coxph(DFS ~ randarm, data = CAOsurv, log_first = TRUE,
-+    frailty = "Gamma")
+R> tram::Coxph(DFS ~ randarm, data = CAOsurv, frailty = "Gamma")
 R> rstpm2::stpm2(Surv(DFStime, DFSevent) ~ randarm, data = CAOsurv,
 +    cluster = "id", RandDist = "Gamma")
 R> survival::coxph(DFS ~ randarm + frailty(id, distribution = "gamma"),
@@ -3162,13 +3132,13 @@ R> frailtypack::frailtyPenal(DFS ~ randarm + cluster(id),
 
 \begin{center}
 % latex table generated in R 4.5.1 by xtable 1.8-4 package
-% Tue Sep 16 16:59:40 2025
+% Wed Oct  1 12:24:36 2025
 \scalebox{0.8}{
 \begin{tabular}{lllrrr}
   \toprule
 Function & Package & Interpretation & Estimate & Std. Error & logLik \\ 
   \midrule
-\code{Coxph} & \pkg{tram} & log-HR & $ -0.632 $ & $ 0.467 $ & $-$3'263.81 \\ 
+\code{Coxph} & \pkg{tram} & log-HR & $ -0.595 $ & $ 0.318 $ & $-$3'248.08 \\ 
   \code{stpm2} & \pkg{rstpm2} & log-HR & $ -0.685 $ & $ 0.670 $ & $-$3'264.88 \\ 
   \code{coxph} & \pkg{survival} & log-HR & $ -0.406 $ & $ 0.159 $ & {\color{darkgray}$-$1'944.22} \\ 
   \code{emfrail} & \pkg{frailtyEM} & log-HR & $ -0.384 $ & $ 0.153 $ & {\color{darkgray}$-$2'430.45} \\ 
@@ -3194,7 +3164,7 @@ we again compare the models \emph{ignoring interval-censoring}.
 
 \begin{Schunk}
 \begin{Sinput}
-R> tram::Colr(DFS ~ randarm, data = CAOsurv, log_first = TRUE)
+R> tram::Colr(DFS ~ randarm, data = CAOsurv)
 R> rstpm2::stpm2(Surv(DFStime, DFSevent) ~ randarm, data = CAOsurv,
 +    link.type = "PO")
 R> flexsurv::flexsurvspline(iDFS ~ randarm, data = CAOsurv, k = 3,
@@ -3205,13 +3175,13 @@ R> timereg::Gprop.odds(DFS ~ prop(randarm), data = CAOsurv)
 
 \begin{center}
 % latex table generated in R 4.5.1 by xtable 1.8-4 package
-% Tue Sep 16 16:59:42 2025
+% Wed Oct  1 12:24:46 2025
 \scalebox{0.8}{
 \begin{tabular}{lllrrr}
   \toprule
 Function & Package & Interpretation & Estimate & Std. Error & logLik \\ 
   \midrule
-\code{Colr} & \pkg{tram} & log-OR & $ -0.297 $ & $ 0.125 $ & $-$3'276.28 \\ 
+\code{Colr} & \pkg{tram} & log-OR & $ -0.299 $ & $ 0.125 $ & $-$3'304.00 \\ 
   \code{stpm2} & \pkg{rstpm2} & log-OR & $ -0.294 $ & $ 0.125 $ & $-$3'272.44 \\ 
   \code{flexsurvspline} & \pkg{flexsurv} & $-$log-OR & $ -0.294 $ & $ 0.124 $ & $-$2'247.78 \\ 
   \code{Gprop.odds} & \pkg{timereg} & log-OR & $ -0.268 $ & $ 0.125 $ &  \\ 
@@ -3236,56 +3206,55 @@ the \pkg{timereg} package and thus do not report it here.
   \item LAPACK: \verb|/usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.11.0|
   \item Base packages: base, datasets, graphics, grDevices, grid,
     methods, parallel, splines, stats, utils
-  \item Other packages: ATR~0.1-1, basefun~1.2-3,
+  \item Other packages: ATR~0.1-1, basefun~1.2-4,
     bdsmatrix~1.3-7, boot~1.3-31, coda~0.19-4.1, coin~1.4-3,
-    colorspace~2.1-1, coxme~2.2-22, doBy~4.7.0, eha~2.11.5,
+    colorspace~2.1-2, coxme~2.2-22, doBy~4.7.0, eha~2.11.5,
     fastGHQuad~1.0.1, flexsurv~2.3.2, frailtyEM~1.0.1,
-    frailtypack~3.7.0, gamlss~5.4-22, gamlss.cens~5.0-7,
-    gamlss.data~6.0-6, gamlss.dist~6.1-1, Hmisc~5.2-3,
+    frailtypack~3.7.0, gamlss~5.5-0, gamlss.cens~5.0-7,
+    gamlss.data~6.0-7, gamlss.dist~6.1-1, Hmisc~5.2-3,
     icenReg~2.0.16, ICsurv~1.0.1, knitr~1.50, libcoin~1.0-10,
-    MASS~7.3-65, mgcv~1.9-3, mlt~1.6-7, mpr~1.0.6,
+    MASS~7.3-65, mgcv~1.9-3, mlt~1.7-0, mpr~1.0.6,
     multcomp~1.4-28, mvtnorm~1.3-4, nlme~3.1-168,
     optimx~2025-4.9, parfm~2.7.8, partykit~1.2-24, Rcpp~1.1.0,
-    rms~8.0-0, rstpm2~1.6.9, SparseGrid~0.8.2, survC1~1.0-3,
-    survival~3.8-3, TH.data~1.1-4, timereg~2.0.7, tram~1.2-4,
-    tramME~1.0.7, TransModel~2.3, trtf~0.4-3, variables~1.1-2,
+    rms~8.0-0, rstpm2~1.7.0, SparseGrid~0.8.2, survC1~1.0-3,
+    survival~3.8-3, TH.data~1.1-4, timereg~2.0.7, tram~1.3-0,
+    tramME~1.0.8, TransModel~2.3, trtf~0.4-3, variables~1.1-2,
     xtable~1.8-4
   \item Loaded via a namespace (and not attached):
     alabama~2023.1.0, assertthat~0.2.1, backports~1.5.0,
-    base64enc~0.1-3, BB~2019.10-1, bbmle~1.0.25.1, broom~1.0.9,
-    checkmate~2.3.2, cli~3.6.5, cluster~2.1.8.1,
+    base64enc~0.1-3, BB~2019.10-1, bbmle~1.0.25.1, broom~1.0.10,
+    checkmate~2.3.3, cli~3.6.5, cluster~2.1.8.1,
     codetools~0.2-20, compiler~4.5.1, coneproj~1.20,
     cowplot~1.2.0, data.table~1.17.8, Deriv~4.2.0, deSolve~1.40,
-    digest~0.6.37, dplyr~1.1.4, evaluate~1.0.4, expint~0.1-8,
+    digest~0.6.37, dplyr~1.1.4, evaluate~1.0.5, expint~0.1-8,
     expm~1.0-0, farver~2.1.2, fastmap~1.2.0, foreach~1.5.2,
     foreign~0.8-90, Formula~1.2-5, future~1.67.0,
-    future.apply~1.20.0, generics~0.1.4, ggplot2~3.5.2,
+    future.apply~1.20.0, generics~0.1.4, ggplot2~4.0.0,
     globals~0.18.0, glue~1.8.0, gridExtra~2.3, gtable~0.3.6,
     htmlTable~2.4.3, htmltools~0.5.8.1, htmlwidgets~1.6.4,
     inum~1.0-5, iterators~1.0.14, lattice~0.22-7, lava~1.8.1,
-    lifecycle~1.0.4, listenv~0.9.1, magrittr~2.0.3, Matrix~1.7-3,
+    lifecycle~1.0.4, listenv~0.9.1, magrittr~2.0.4, Matrix~1.7-4,
     matrixcalc~1.0-6, MatrixModels~0.5-4, matrixStats~1.5.0,
     microbenchmark~1.5.0, mnormt~2.1.1, modelr~0.1.11,
     modeltools~0.2-24, msm~1.8.2, mstate~0.3.3, muhaz~1.2.6.4,
     nloptr~2.2.1, nnet~7.3-20, numDeriv~2016.8-1.1,
-    orthopolynom~1.0-6.1, parallelly~1.45.1, pillar~1.11.0,
+    orthopolynom~1.0-6.1, parallelly~1.45.1, pillar~1.11.1,
     pkgconfig~2.0.3, polspline~1.1.25, polynom~1.4-1,
     pracma~2.4.4, purrr~1.1.0, quadprog~1.5-8, quantreg~6.1,
     R6~2.6.1, rbibutils~2.3, RColorBrewer~1.1-3, Rdpack~2.6.4,
     reformulas~0.4.1, rlang~1.1.6, rmarkdown~2.29,
-    rootSolve~1.8.2.4, rpart~4.1.24, rstudioapi~0.17.1,
+    rootSolve~1.8.2.4, rpart~4.1.24, rstudioapi~0.17.1, S7~0.2.0,
     sandwich~3.1-1, scales~1.4.0, sn~2.1.1, SparseM~1.84-2,
-    statmod~1.5.0, stats4~4.5.1, stringi~1.8.7, stringr~1.5.1,
+    statmod~1.5.0, stats4~4.5.1, stringi~1.8.7, stringr~1.5.2,
     tibble~3.3.0, tidyr~1.3.1, tidyselect~1.2.1, TMB~1.9.17,
-    tools~4.5.1, vctrs~0.6.5, withr~3.0.2, xfun~0.52, zoo~1.8-14
+    tools~4.5.1, vctrs~0.6.5, withr~3.0.2, xfun~0.53, zoo~1.8-14
 \end{itemize}
-
-
-
 
 \putbib
 \end{bibunit}
 \end{appendices}
 % \clearpage %% avoid affiliation to move to previous page
+
+
 
 \end{document}
