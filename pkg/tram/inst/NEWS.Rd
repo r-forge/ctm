@@ -6,6 +6,10 @@
   \itemize{
     \item{Adapt to \pkg{mlt} 1.7-0 changes.}
     \item{Bring back reference output.}
+    \item{\code{Coxph} now log-transforms the event times by default.}
+    \item{Improve computations defining the support of polynomials in
+          Bernstein form (especially for interval-censored data using
+          the fast Turnbull estimator from package \code{icenReg}).}
   }
 }
 
