@@ -157,7 +157,7 @@ with(CAOsurv, all.equal(Surv(time = iDFStime, time2 = iDFStime2, event = iDFSeve
 
 
 ## ----Cox-iDFS-fit, echo = FALSE, cache = TRUE---------------------------------
-mci1 <- tram::Coxph(iDFS ~ randarm, data = CAOsurv, log_first = TRUE)
+mci1 <- tram::Coxph(iDFS ~ randarm, data = CAOsurv)
 mci2 <- rstpm2::stpm2(Surv(time = iDFStime, time2 = iDFStime2,
   event = iDFSevent, type = "interval") ~ randarm, data = CAOsurv)
 mci3 <- flexsurv::flexsurvspline(iDFS ~ randarm, data = CAOsurv, k = 3)
@@ -171,7 +171,7 @@ print.results(list(mci1, mci2, mci3, mci4))
 
 
 ## ----Cox-DFS-fit, echo = FALSE, cache = TRUE----------------------------------
-mc1 <- tram::Coxph(DFS ~ randarm, data = CAOsurv, log_first = TRUE)
+mc1 <- tram::Coxph(DFS ~ randarm, data = CAOsurv)
 mc2 <- survival::coxph(DFS ~ randarm, data = CAOsurv)
 mc3 <- rms::cph(DFS ~ randarm, data = CAOsurv)
 
@@ -187,7 +187,7 @@ print.results(list(mc1, mc2, mc3))
 
 
 ## ----STRAT-iDFS-fit, cache = TRUE---------------------------------------------
-mstci1 <- tram::Coxph(iDFS | strat ~ randarm, data = CAOsurv, log_first = TRUE)
+mstci1 <- tram::Coxph(iDFS | strat ~ randarm, data = CAOsurv)
 mstci2 <- rstpm2::stpm2(Surv(time = iDFStime, time2 = iDFStime2, event = iDFSevent,
     type = "interval") ~ randarm + strata(strat), data = CAOsurv)
 # mstci3 <- flexsurv::flexsurvspline(iDFS ~ randarm + gamma1(strat) + gamma2(strat),
@@ -204,7 +204,7 @@ print.results(list(mstci1, mstci2))##, mstci3))
 
 
 ## ----STRAT-DFS-fit, cache = TRUE----------------------------------------------
-mstc1 <- tram::Coxph(DFS | strat ~ randarm, data = CAOsurv, log_first = TRUE)
+mstc1 <- tram::Coxph(DFS | strat ~ randarm, data = CAOsurv)
 mstc2 <- survival::coxph(DFS ~ randarm + strata(strat), data = CAOsurv)
 mstc3 <- rms::cph(DFS ~ randarm + strat(strat), data = CAOsurv)
 
@@ -293,7 +293,7 @@ legend("topright", lty = 1:2, lwd = 2, col = c("black", col2),
 
 
 ## ----TVAR-DFS-fit, cache = TRUE-----------------------------------------------
-mcv1 <- tram::Coxph(DFS | randarm ~ 1, data = CAOsurv, log_first = TRUE)
+mcv1 <- tram::Coxph(DFS | randarm ~ 1, data = CAOsurv)
 mcv2 <- flexsurv::flexsurvspline(DFS ~ randarm + gamma1(randarm) + gamma2(randarm),
   data = CAOsurv, k = 3)
 
@@ -328,7 +328,7 @@ legend("topright", lty = 1:2, lwd = 2, col = c("black", col2),
 
 
 ## ----MIXED-DFS-fit, cache = TRUE----------------------------------------------
-mcME1 <- tramME::CoxphME(DFS ~ randarm + (1 | Block), data = CAOsurv, log_first = TRUE)
+mcME1 <- tramME::CoxphME(DFS ~ randarm + (1 | Block), data = CAOsurv)
 mcME2 <- rstpm2::stpm2(Surv(DFStime, DFSevent) ~ randarm, data = CAOsurv,
   cluster = "Block", RandDist = "LogN")
 mcME3 <- coxme::coxme(DFS ~ randarm + (1 | Block), data = CAOsurv)
@@ -343,7 +343,7 @@ print.results(list(mcME1, mcME2, mcME3))
 ## ----HTECOX-DFS-fit-----------------------------------------------------------
 ma1 <- CoxphME(DFS ~ randarm +
     s(age, by = as.ordered(randarm), fx = TRUE, k = 6),
-               data = CAOsurv, log_first = TRUE)
+               data = CAOsurv)
 ma2 <- gam(DFStime ~ randarm +
     s(age, by = as.ordered(randarm), fx = TRUE, k = 6),
                data = CAOsurv, family = cox.ph(), weights = DFSevent)
@@ -385,7 +385,7 @@ legend("bottomright", lty = 1:2, lwd = 2, col = c("black", col2),
 
 
 ## ----FRAILTY-DFS-fit, cache = TRUE--------------------------------------------
-mfc1 <- tram::Coxph(DFS ~ randarm, data = CAOsurv, log_first = TRUE, frailty = "Gamma")
+mfc1 <- tram::Coxph(DFS ~ randarm, data = CAOsurv, frailty = "Gamma")
 mfc2 <- rstpm2::stpm2(Surv(DFStime, DFSevent) ~ randarm, data = CAOsurv,
   cluster = "id", RandDist = "Gamma")
 mfc3 <- survival::coxph(DFS ~ randarm + frailty(id, distribution = "gamma"), data = CAOsurv)
@@ -401,7 +401,7 @@ print.results(list(mfc1, mfc2, mfc3, mfc4, mfc5))
 
 
 ## ----Colr-DFS-fit, cache = TRUE-----------------------------------------------
-mo1 <- tram::Colr(DFS ~ randarm, data = CAOsurv, log_first = TRUE)
+mo1 <- tram::Colr(DFS ~ randarm, data = CAOsurv)
 mo2 <- rstpm2::stpm2(Surv(DFStime, DFSevent) ~ randarm, data = CAOsurv, link.type = "PO")
 mo3 <- flexsurv::flexsurvspline(iDFS ~ randarm, data = CAOsurv, k = 3, scale = "odds")
 mo4 <- timereg::Gprop.odds(DFS ~ prop(randarm), data = CAOsurv)

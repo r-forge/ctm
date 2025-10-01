@@ -300,7 +300,7 @@ mp <- mpr(y ~ list(~ group, ~ group), data = gastric, family = "Weibull") ## alw
 prmp <- predict(mp, type = "survivor", newdata = nd, tvec = q)
 
 ## Cox model (tram)
-sm <- Coxph(y ~ group | group, data = gastric, log_first = TRUE, order = OR)
+sm <- Coxph(y ~ group | group, data = gastric, order = OR)
 prsm <- predict(sm, type = "survivor", newdata = nd, q = q)
 
 ## t at crossing
