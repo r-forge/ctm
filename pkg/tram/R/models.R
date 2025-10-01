@@ -9,7 +9,8 @@
     return(TRUE)
 }
 
-Coxph <- function(formula, data, subset, weights, offset, cluster, na.action = na.omit, ...)
+Coxph <- function(formula, data, subset, weights, offset, cluster, na.action = na.omit, 
+                  log_first = TRUE, ...)
 {
     mf <- match.call(expand.dots = FALSE)
     m <- match(c("formula", "data", "subset", "na.action", "weights", "offset", "cluster"), names(mf), 0L)
@@ -31,7 +32,7 @@ Coxph <- function(formula, data, subset, weights, offset, cluster, na.action = n
     }
 
     ret <- tram(td, transformation = "smooth", distribution = "MinExtrVal", 
-                negative = FALSE, ...)
+                negative = FALSE, log_first = log_first, ...)
     if (!inherits(ret, "mlt")) return(ret)
     ret$call <- match.call(expand.dots = TRUE)
     if (!is.null(td$mt$z)) {
