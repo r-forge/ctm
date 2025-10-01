@@ -798,7 +798,7 @@ mlt <- function(model, data, weights = NULL, offset = NULL, fixed = NULL,
         ### unconditional ECDF, essentially
         ### this doesn't really work for censored data, any alternative?
         if (is.null(pstart)) 
-            pstart <- attr(y, "prob")(weights)(y$approxy) ### y$rank / max(y$rank)
+            pstart <- pstart(data[[response]], weights = weights)
         theta <- .mlt_start(model = model, data = data, y = y, 
                             pstart = pstart, offset = offset, 
                             fixed = s$fixed, weights = weights)

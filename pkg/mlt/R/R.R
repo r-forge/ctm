@@ -607,3 +607,124 @@ as.double.response <- function(x, ...) {
     ### (-Inf, x] -> x and (x, Inf) -> x
     rex + (rle + ifelse(is.finite(ri) & is.finite(le), (rri - rle)/2, rri))
 }
+
+pstart <- function(x, weights = rep.int(1, NROW(x)))
+    UseMethod("pstart")
+
+pstart.numeric <- function(x, weights = rep.int(1, NROW(x))) {
+    if (is.null(weights)) weights <- rep.int(1, NROW(x))
+    .wecdf(x, weights = weights)(x)
+}
+
+pstart.factor <- function(x, weights = rep.int(1, NROW(x))) {
+    if (is.null(weights)) weights <- rep.int(1, NROW(x))
+    .wecdf(x, weights = weights)(x)
+}
+
+pstart.Surv <- function(x, weights = rep.int(1, NROW(x)))
+    ### always
+    pstart(R(x), weights = weights)
+
+pstart.response <- function(x, weights = rep.int(1, NROW(x))) {
+    if (is.null(weights)) weights <- rep.int(1, NROW(x))
+    lwr <- x$cleft
+    upr <- x$cright
+    ex <- x$exact
+    if (all(is.na(lwr)) && all(is.na(upr)))
+        return(pstart(ex, weights = weights))
+    if (any(nex <- !is.na(ex)))
+        lwr[nex] <- upr[nex] <- ex[nex]
+    lwr <- unclass(lwr)
+    upr <- unclass(upr)
+    lwr[is.na(lwr)] <- -Inf
+    upr[is.na(upr)] <- Inf
+    d <- data.frame(lwr = lwr, upr = upr, grp = gl(1, 1))
+    w0 <- weights > 0
+    TB <- icenReg::ic_np(cbind(lwr, upr) ~ grp, data = d[w0,,drop = FALSE], 
+                         weights = weights[w0])
+    sc <- TB$scurves
+    xint <- sc[[1]]$Tbull_ints
+    idx <- seq_len(NROW(xint))
+    if (!is.finite(xint[NROW(xint), "upper"])) idx <- idx[-length(idx)]
+    xint <- xint[idx,,drop = FALSE]
+    Prb <- 1 - sc[[1]]$S_curves$baseline[idx]
+    Plwr <- stepfun(xint[-1,"lower"], Prb)
+    Pupr <- stepfun(xint[-1,"upper"], Prb)
+    ret <- rowMeans(cbind(Plwr(lwr), Plwr(ex), Pupr(ex), Pupr(upr)), 
+                    na.rm = TRUE)
+    return(ret)
+}
+
+findsupport <- function(x, weights = rep.int(1, NROW(x)), probs = c(.1, .9))
+    UseMethod("findsupport")
+
+findsupport.numeric <- function(x, weights = rep.int(1, NROW(x)), probs = c(.1, .9)) {
+   if (max(abs(probs - c(0, 1))) < .Machine$double.eps) {
+        return(range(x, na.rm = TRUE))
+    }
+    if (is.null(weights)) weights <- rep.int(1, NROW(x))    
+    x <- rep(x, times = weights)
+    quantile(x[is.finite(x)], probs = probs, na.rm = TRUE)
+}
+
+findsupport.Surv <- function(x, weights = rep.int(1, NROW(x)), probs = c(.1, .9)) {
+    if (is.null(weights)) weights <- rep.int(1, NROW(x))
+    if (attr(x, "type") %in% c("left", "right")) {
+        if (max(abs(probs - c(0, 1))) < .Machine$double.eps) {
+            return(range(x[,"time"], na.rm = TRUE))
+        }
+        sf <- survfit(x ~ 1, data = data.frame(x = x),
+                      subset = weights > 0, weights = weights)
+        probs <- max(1 - sf$surv) * probs
+        return(quantile(sf, prob = probs)$quantile)
+    }
+    return(findsupport(R(x), weights = weights, probs = probs))
+}
+
+findsupport.response <- function(x, weights = rep.int(1, NROW(x)), probs = c(.1, .9)) {
+
+    if (is.null(weights)) weights <- rep.int(1, NROW(x))
+    lwr <- x$cleft
+    upr <- x$cright
+    ex <- x$exact
+    if (max(abs(probs - c(0, 1))) < .Machine$double.eps) {
+        x <- c(lwr, ex, ex)
+        return(range(x[is.finite(x)], na.rm = TRUE))
+    }
+    if (all(is.na(lwr)) && all(is.na(upr)))
+        return(findsupport(ex, weights = weights, probs = probs))
+    if (any(nex <- !is.na(ex)))
+        lwr[nex] <- upr[nex] <- ex[nex]
+    lwr <- unclass(lwr)
+    upr <- unclass(upr)
+    lwr[is.na(lwr)] <- -Inf
+    upr[is.na(upr)] <- Inf
+    d <- data.frame(lwr = lwr, upr = upr, grp = gl(1, 1))
+    w0 <- weights > 0
+    TB <- icenReg::ic_np(cbind(lwr, upr) ~ grp, data = d[w0,,drop = FALSE], 
+                         weights = weights[w0])
+    sc <- TB$scurves
+    xint <- sc[[1]]$Tbull_ints
+    idx <- seq_len(NROW(xint))
+    if (!is.finite(xint[NROW(xint), "upper"])) idx <- idx[-length(idx)]
+    xint <- xint[idx,,drop = FALSE]
+    Prb <- 1 - sc[[1]]$S_curves$baseline[idx]
+    ### this always gives a valid support
+    probs <- max(Prb) * probs
+    OKlwr <- !duplicated(Prb) & is.finite(xint[,"lower"])
+    OKupr <- !duplicated(Prb) & is.finite(xint[,"upper"])
+
+    retlwr <- c(min(xint[OKlwr, "lower"][Prb[OKlwr] > probs[1]]),
+                ifelse(probs[2] < max(Prb[OKlwr]), 
+                       min(xint[OKlwr, "lower"][Prb[OKlwr] > probs[2]]),
+                       max(xint[OKlwr, "lower"])
+                       )
+               )
+    retupr <- c(min(xint[OKupr, "upper"][Prb[OKupr] > probs[1]]),
+                ifelse(probs[2] < max(Prb[OKupr]), 
+                       min(xint[OKlwr, "upper"][Prb[OKupr] > probs[2]]),
+                       max(xint[OKlwr, "upper"])
+                       )
+               )
+    rowMeans(cbind(retlwr, retupr))
+}
