@@ -17,6 +17,9 @@
             of a conflict in \code{tram::Survreg}.}
       \item{Parameter scaling is disabled for location-scale and
             multivariate models where we compute the Hessian numerically.}
+      \item{Compute better starting values, especially for interval-censored
+            outcomes using the fast Turnbull estimators provided 
+            by \pkg{icenReg}.}
     }
   }
   \subsection{Bugfixes}{
