@@ -139,8 +139,20 @@ tram <- function(formula, data, subset, weights, offset, cluster, na.action = na
         td <- eval(mf, parent.frame())
     } 
 
+    ### <FIXME> not exported from mlt, will break at maintainer change
+    if (!is.factor(td$response) && is.null(support))
+        support <- mlt:::findsupport(td$response, weights = td$weights, 
+                                     probs = prob)
+    if (sum(abs(add)) < .Machine$double.eps & !is.null(support))
+        add <- mlt:::findsupport(td$response, weights = td$weights, 
+                                 probs = c(0, 1)) - support
+    ### </FIXME>
+    add[1] <- min(add[1], 0)
+    add[2] <- max(add[2], 0)
+
     rvar <- asvar(td$response, td$rname, prob = prob, support = support,
                   bounds = bounds, add = add, sparse_nlevels = sparse_nlevels)
+
     if (!is.null(rvar$bounds) && isTRUE(log_first)) {
         if (rvar$bounds[1] < sqrt(.Machine$double.eps)) 
             rvar$bounds[1] <- sqrt(.Machine$double.eps)
