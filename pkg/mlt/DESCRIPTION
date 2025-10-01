@@ -13,7 +13,7 @@ Description: Likelihood-based estimation of conditional transformation
   more convenient user interfaces to many models from <DOI:10.32614/CRAN.package.tram>.
 Depends: basefun (>= 1.2-1), variables (>= 1.1-0)
 Imports: BB, alabama, stats, quadprog, coneproj, graphics, methods, grDevices,
-         sandwich, numDeriv, survival, Matrix, nloptr, mvtnorm
+         sandwich, numDeriv, survival, Matrix, nloptr, mvtnorm, icenReg
 Suggests: MASS, nnet, TH.data, multcomp, qrng
 URL: http://ctm.R-forge.R-project.org
 License: GPL-2
