@@ -91,8 +91,10 @@ Loading required package: variables
 > ### right censoring
 > mydata <- data.frame(y = Surv(y, sample(0:1, length(y), replace = TRUE)), g = g)
 > coef(opt <- mlt(m, data = mydata, scale = TRUE))
-   Bs1(y)    Bs2(y)    Bs3(y)    Bs4(y)    Bs5(y)    Bs6(y)        g2        g3 
--0.635685 -0.316237 -0.009756  0.279956  0.279956  1.145122  0.557121  1.096300 
+    Bs1(y)     Bs2(y)     Bs3(y)     Bs4(y)     Bs5(y)     Bs6(y)         g2 
+-0.6359100 -0.3164702 -0.0099074  0.2798049  0.2798049  1.1450672  0.5573848 
+        g3 
+ 1.0965439 
 > coef(cph <- coxph(y ~ g, data = mydata))
      g2      g3 
 0.50411 1.05418 
@@ -101,14 +103,14 @@ Loading required package: variables
 > mydata <- data.frame(y = Surv(y, sample(0:1, length(y), replace = TRUE), type = "left"), g = g)
 > coef(opt <- mlt(m, data = mydata, scale = TRUE))
  Bs1(y)  Bs2(y)  Bs3(y)  Bs4(y)  Bs5(y)  Bs6(y)      g2      g3 
-0.44552 0.65858 1.24295 1.24295 1.24295 1.70795 0.42080 0.64545 
+0.44552 0.65859 1.24294 1.24294 1.24294 1.70800 0.42079 0.64552 
 > 
 > ### interval censoring
 > mydata <- data.frame(y = Surv(y, y + 1, sample(0:3, length(y), replace = TRUE), type = "interval"), 
 +                      g = g)
 > coef(opt <- mlt(m, data = mydata, scale = TRUE))
   Bs1(y)   Bs2(y)   Bs3(y)   Bs4(y)   Bs5(y)   Bs6(y)       g2       g3 
--0.51745 -0.28848  0.73773  0.73773  0.73773  1.50376  0.57954  0.78429 
+-0.51796 -0.28901  0.73753  0.73753  0.73753  1.50364  0.58001  0.78476 
 > 
 > ### uncensored, time-varying coefficients in both groups
 > mydata <- data.frame(y = y, g = g)
@@ -148,4 +150,4 @@ Bs5(y):(Intercept) Bs6(y):(Intercept)          Bs1(y):g2          Bs2(y):g2
 > 
 > proc.time()
    user  system elapsed 
-  1.138   0.068   1.201 
+  1.025   0.052   1.073 

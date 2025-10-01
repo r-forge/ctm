@@ -79,4 +79,4 @@ In c.basis(bresponse = function (data, deriv = 0L)  :
 > 
 > proc.time()
    user  system elapsed 
-  0.921   0.064   0.980 
+  0.959   0.060   1.015 

@@ -288,4 +288,4 @@ Levels: 1 < 2 < 3
 > 
 > proc.time()
    user  system elapsed 
-  2.501   0.037   2.534 
+  2.547   0.067   2.610 
