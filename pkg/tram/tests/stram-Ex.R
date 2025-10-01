@@ -147,7 +147,9 @@ x1 <- runif(N)
 x2 <- runif(N)
 s <- gl(k <- 11, N/k)
 y <- rnorm(N, mean = 2 * x1, sd = sqrt(exp(.5 * x2)))
-d <- data.frame(y = y, x1 = x1, x2 = x2, s = s)
+### Coxph uses log_first = TRUE as default since 1.3-0
+### so stay away from 0
+d <- data.frame(y = .1 + y - min(y), x1 = x1, x2 = x2, s = s)
 
 fm <- formula(y ~ s + x1)
 m <- Coxph(fm, data = d)

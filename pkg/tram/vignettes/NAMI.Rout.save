@@ -257,11 +257,11 @@ randarm5-FU + Oxaliplatin                    0.1611
 
 > coef(coxph_w)
 Treatment8 virgin 
-            2.156 
+            2.159 
 
 > confint(coxph_w)
                   2.5 % 97.5 %
-Treatment8 virgin 1.343   2.97
+Treatment8 virgin 1.337   2.98
 
 > xmod <- BoxCox(Thorax ~ 1, data = flies)
 
@@ -269,16 +269,16 @@ Treatment8 virgin 1.343   2.97
 
 > (cf1 <- coef(m)["survival.Treatment8 virgin"])
 survival.Treatment8 virgin 
-                     2.048 
+                     2.044 
 
 > (ci1 <- confint(m)["survival.Treatment8 virgin", ])
  2.5 % 97.5 % 
- 1.431  2.666 
+ 1.434  2.655 
 
 > Omega <- as.array(coef(m, type = "Lambda"))[, , 1]
 
 > 1 - Omega[nrow(Omega), ncol(Omega)]^(-2)
-[1] 0.6714
+[1] 0.6771
 
 > q <- 0:100
 
@@ -362,4 +362,4 @@ NULL
  *** Run successfully completed ***
 > proc.time()
    user  system elapsed 
- 31.264   0.108  31.384 
+ 31.376   0.093  31.471 

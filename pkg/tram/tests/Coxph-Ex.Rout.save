@@ -79,7 +79,7 @@ Fitted party:
 Number of inner nodes:    2
 Number of terminal nodes: 3
 > logLik(tmod)
-'log Lik.' -2579 (df=24)
+'log Lik.' -2556 (df=24)
 > 
 > ### check residuals
 > library("sandwich")
@@ -106,8 +106,8 @@ Number of terminal nodes: 3
 > ## [tram] Parametric distribution-free PH model (interval censoring)
 > mci <- Coxph(iDFS ~ randarm, data = CAOsurv, log_first = TRUE)
 > logLik(mci)
-'log Lik.' -2256 (df=8)
+'log Lik.' -2234 (df=8)
 > 
 > proc.time()
    user  system elapsed 
-  3.347   0.103   3.446 
+  2.769   0.067   2.832 

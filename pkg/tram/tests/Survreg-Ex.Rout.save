@@ -227,7 +227,7 @@ Survreg(formula = tfms, data = GBSG2, dist = "exponential")
 Coefficients:
         Estimate Std. Error z value Pr(>|z|)    
 pnodes -0.055711   0.006686   -8.33   <2e-16 ***
-age     0.000446   0.005941    0.07     0.94    
+age     0.000446   0.005941    0.08     0.94    
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -589,4 +589,4 @@ Likelihood-ratio Test: Chisq = 1.1 on 2 degrees of freedom; p = 0.576
 > 
 > proc.time()
    user  system elapsed 
-  1.119   0.063   1.178 
+  1.165   0.084   1.244 
