@@ -76,4 +76,4 @@ The following object is masked from 'package:variables':
 > 
 > proc.time()
    user  system elapsed 
-  0.749   0.064   0.809 
+  1.758   0.098   1.851 
