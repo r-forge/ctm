@@ -327,7 +327,7 @@ data:  Coxph(formula = iDFS ~ randarm, data = CAOsurv)
 Z = 2.2, p-value = 0.03
 alternative hypothesis: true log-hazard ratio for randarm5-FU + Oxaliplatin is not equal to 0
 95 percent confidence interval:
- -0.43941 -0.02268
+ -0.43940 -0.02268
 sample estimates:
 log-hazard ratio for randarm5-FU + Oxaliplatin 
                                        -0.2311 
@@ -341,7 +341,7 @@ data:  Coxph(formula = iDFS ~ randarm, data = CAOsurv)
 Z = 2.2, p-value = 0.03
 alternative hypothesis: true log-hazard ratio for randarm5-FU + Oxaliplatin is not equal to 0
 95 percent confidence interval:
- -0.43973 -0.02236
+ -0.43971 -0.02236
 sample estimates:
 log-hazard ratio for randarm5-FU + Oxaliplatin 
                                        -0.2311 
@@ -385,7 +385,7 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 Log-Likelihood:
  -2205 (df = 29)
-Likelihood-ratio Test: Chisq = 4.642 on 1 degrees of freedom; p = 0.0312
+Likelihood-ratio Test: Chisq = 4.641 on 1 degrees of freedom; p = 0.0312
 
 
 > score_test(mcst)
@@ -396,7 +396,7 @@ data:  Coxph(formula = iDFS | strat ~ randarm, data = CAOsurv, optim = fastopt)
 Z = 2.2, p-value = 0.03
 alternative hypothesis: true log-hazard ratio for randarm5-FU + Oxaliplatin is not equal to 0
 95 percent confidence interval:
- -0.43696 -0.02095
+ -0.43682 -0.02098
 sample estimates:
 log-hazard ratio for randarm5-FU + Oxaliplatin 
                                        -0.2288 
@@ -410,7 +410,7 @@ data:  Coxph(formula = iDFS | strat ~ randarm, data = CAOsurv, optim = fastopt)
 Z = 2.1, p-value = 0.03
 alternative hypothesis: true log-hazard ratio for randarm5-FU + Oxaliplatin is not equal to 0
 95 percent confidence interval:
- -0.43865 -0.01981
+ -0.43811 -0.01924
 sample estimates:
 log-hazard ratio for randarm5-FU + Oxaliplatin 
                                        -0.2288 
@@ -647,15 +647,15 @@ Standard deviation:
 
 > confint(mcME)
                               lwr      upr
-Bs1(iDFS)                 -3.5765 -2.93646
-Bs2(iDFS)                 -2.5890 -1.79684
-Bs3(iDFS)                 -2.9060 -1.47988
-Bs4(iDFS)                 -2.9838 -1.40210
-Bs5(iDFS)                 -1.6150 -0.75805
-Bs6(iDFS)                 -1.3688 -1.00331
-Bs7(iDFS)                 -1.1194 -0.81556
-randarm5-FU + Oxaliplatin -0.4461 -0.02641
-Block|(Intercept)         -2.6048  0.01044
+Bs1(iDFS)                 -3.5765 -2.93645
+Bs2(iDFS)                 -2.5890 -1.79683
+Bs3(iDFS)                 -2.9060 -1.47987
+Bs4(iDFS)                 -2.9838 -1.40209
+Bs5(iDFS)                 -1.6150 -0.75804
+Bs6(iDFS)                 -1.3688 -1.00330
+Bs7(iDFS)                 -1.1194 -0.81555
+randarm5-FU + Oxaliplatin -0.4461 -0.02642
+Block|(Intercept)         -2.6052  0.01071
 
 > tmp <- CAOsurv$iDFS
 
@@ -791,15 +791,15 @@ Warning in doTest(lev, teststat = teststat, pvalue = pvalue, lower = TRUE,  :
 
 > coef(mf)[trt]
 randarm5-FU + Oxaliplatin 
-                  -0.5488 
+                  -0.5487 
 
 > coef(mf, addparm = TRUE)
 logrho 
- 1.778 
+ 1.777 
 
 > confint(mf, parm = c(trt, "logrho"))
                            2.5 %  97.5 %
-randarm5-FU + Oxaliplatin -1.176 0.07795
+randarm5-FU + Oxaliplatin -1.176 0.07837
 logrho                        NA      NA
 
 > ml <- Colr(iDFS ~ randarm, data = CAOsurv)
@@ -835,4 +835,4 @@ logrho                        NA      NA
  *** Run successfully completed ***
 > proc.time()
    user  system elapsed 
- 67.001   0.216  67.224 
+ 66.066   0.135  66.219 
