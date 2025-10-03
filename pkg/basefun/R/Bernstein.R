@@ -156,8 +156,12 @@ Bernstein_basis <- function(var, order = 2,
                 X <- X / (diff(support)^deriv)
                 if (!is.null(fun)) {
                     if (deriv == 1L) {
+                        if (length(fun) == 1L)
+                            stop("First derivative not available")
                         X <- X * fun[[2]](ox)
                     } else if (deriv == 2L) {
+                        if (length(fun) == 2L)
+                            stop("Second derivative not available")
                         X1 <- do.call("cbind", lapply(0:order, function(j) 
                             .Bx(x, j, order, deriv = 1L, 
                                 integrate = integrate))) / diff(support)
@@ -173,7 +177,7 @@ Bernstein_basis <- function(var, order = 2,
         if (zeroint) {
             ### NOTE: int a(y) d(y) = 1 because a is density
             ### => int a(y) theta d(y) = sum(theta)
-            ### zenter by last basis function gives int bar(a(y)) theta dy = 0
+            ### center by last basis function gives int bar(a(y)) theta dy = 0
             X <- X[, -ncol(X), drop = FALSE] - X[, ncol(X), drop = TRUE]
             ### theta_order = -sum(gamma), adjust constraints
             if (deriv == 0L && !is.null(constr$ui)) {
@@ -198,7 +202,7 @@ Bernstein_basis <- function(var, order = 2,
     return(basis)
 }
 
-### evaluate model.matrix of Bernstein polynom
+### evaluate model.matrix of polynomial in Bernstein form
 model.matrix.Bernstein_basis <- function(object, data,
                                          deriv = 0L,
                                          maxderiv = 1L, 
@@ -225,7 +229,7 @@ model.matrix.Bernstein_basis <- function(object, data,
     data[[varname]][large] <- s[2]
     ret <- object(data = data, deriv = deriv, integrate = integrate)
 
-   fun <- attr(object, "fun")
+    fun <- attr(object, "fun")
     if (any(small)) {
         dsmall <- data.frame(x = rep_len(s[1], sum(small)))
         names(dsmall) <- varname
@@ -242,19 +246,23 @@ model.matrix.Bernstein_basis <- function(object, data,
                 0)
         } else {
             xdiff <- (fun[[1]](x[small]) - fun[[1]](s[1]))
+            if (length(fun) != 3L)
+                stop("Cannot compute first and second derivative")
+            dfs1 <- fun[[2]](s[1])
+            dfx <- fun[[2]](x[small])
+            ddfx <- fun[[3]](x[small])
             ret[small,] <- switch(as.character(deriv),
                 "0" = {
                     object(data = dsmall, deriv = deriv) +
                     ### note: object(data = dsmall, deriv = deriv + 1)
                     ### returns a'(log(s)) / s; we need a'(log(s))
-                    object(data = dsmall, deriv = deriv + 1L) * s[1] * xdiff
+                    object(data = dsmall, deriv = deriv + 1L) / dfs1 * xdiff
                 },
                 "1" = {
-                    object(data = dsmall, deriv = deriv) * s[1] / x[small]
+                    object(data = dsmall, deriv = deriv) / dfs1 * dfx
                 },
                 "2" = {
-                    - object(data = dsmall, deriv = deriv - 1L) * s[1] / 
-                      (x[small]^2)
+                    object(data = dsmall, deriv = deriv - 1L) / dfs1 * ddfx
                 },
                 stop("deriv >= 2 not implemented"))
         } 
@@ -275,19 +283,23 @@ model.matrix.Bernstein_basis <- function(object, data,
                 0)
         } else {
             xdiff <- (fun[[1]](x[large]) - fun[[1]](s[2]))
+            if (length(fun) != 3L)
+                stop("Cannot compute first and second derivative")
+            dfs2 <- fun[[2]](s[2])
+            dfx <- fun[[2]](x[large])
+            ddfx <- fun[[3]](x[large])
             ret[large,] <- switch(as.character(deriv),
                 "0" = {
                     object(data = dlarge, deriv = deriv) +
                     ### note: object(data = dlarge, deriv = deriv + 1)
                     ### returns a'(log(s)) / s; we need a'(log(s))
-                    object(data = dlarge, deriv = deriv + 1L) * s[2] * xdiff
+                    object(data = dlarge, deriv = deriv + 1L) / dfs2 * xdiff
                 },
                 "1" = {
-                    object(data = dlarge, deriv = deriv) * s[2] / x[large]
+                    object(data = dlarge, deriv = deriv) / dfs2 * dfx
                 },
                 "2" = {
-                    - object(data = dlarge, deriv = deriv - 1L) * s[2] / 
-                      (x[large]^2)
+                    object(data = dlarge, deriv = deriv - 1L) / dfs2 * ddfx
                 },
                 stop("deriv >= 2 not implemented"))
         } 
