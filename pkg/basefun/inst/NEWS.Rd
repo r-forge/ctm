@@ -5,7 +5,7 @@
 \section{Changes in Version 1.2-5 (2025-10-03)}{
   \itemize{
     \item{Fix bug triggered by new \code{fun} argument in 
-          \code{Bernstein_basis}.
+          \code{Bernstein_basis}.}
   }
 }
 
