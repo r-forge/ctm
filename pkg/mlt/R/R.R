@@ -217,6 +217,7 @@ R.integer <- function(object, cleft = NA, cright = NA, bounds = c(min(object), I
     ret$cleft[is.na(ret$cleft)] <- ret$exact[is.na(ret$cleft)] - 1
     ret$cleft[which(ret$cleft < bounds[1])] <- NA
     ret$exact <- NA
+    ret$approxy <- object
     attr(ret, "prob") <- function(weights)
         .wecdf(object, weights)
     ret
@@ -627,6 +628,8 @@ pstart.Surv <- function(x, weights = rep.int(1, NROW(x)))
 
 pstart.response <- function(x, weights = rep.int(1, NROW(x))) {
     if (is.null(weights)) weights <- rep.int(1, NROW(x))
+    if (is.ordered(x$approxy) || is.integer(x$approxy))
+        return(pstart(x$approxy, weights = weights))
     lwr <- x$cleft
     upr <- x$cright
     ex <- x$exact
@@ -644,10 +647,7 @@ pstart.response <- function(x, weights = rep.int(1, NROW(x))) {
                          weights = weights[w0])
     sc <- TB$scurves
     xint <- sc[[1]]$Tbull_ints
-    idx <- seq_len(NROW(xint))
-    if (!is.finite(xint[NROW(xint), "upper"])) idx <- idx[-length(idx)]
-    xint <- xint[idx,,drop = FALSE]
-    Prb <- 1 - sc[[1]]$S_curves$baseline[idx]
+    Prb <- 1 - sc[[1]]$S_curves$baseline
     Plwr <- stepfun(xint[-1,"lower"], Prb)
     Pupr <- stepfun(xint[-1,"upper"], Prb)
     ret <- rowMeans(cbind(Plwr(lwr), Plwr(ex), Pupr(ex), Pupr(upr)), 
