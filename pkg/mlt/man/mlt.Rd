@@ -8,7 +8,7 @@
 }
 \usage{
 mlt(model, data, weights = NULL, offset = NULL, fixed = NULL,
-    theta = NULL, pstart = NULL, scaleparm = !has_scale(model),
+    theta = NULL, pstart = NULL, scaleparm = TRUE,
     dofit = TRUE, optim = mltoptim(hessian = has_scale(model)))
 }
 \arguments{
