@@ -3,9 +3,9 @@
 \title{NEWS file for the mlt.docreg package}
 
 
-\section{Changes in Version 1.1-11 (2025-09-22)}{
+\section{Changes in Version 1.1-11 (2025-10-03)}{
   \itemize{
-    \item{Update reference output in preparation of mlt 1.6-7.}
+    \item{Update reference output in preparation of mlt 1.7-0.}
   }
 }
 
