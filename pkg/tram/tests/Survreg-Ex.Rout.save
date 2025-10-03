@@ -536,57 +536,13 @@ Log-Likelihood:
 Likelihood-ratio Test: Chisq = 64.5 on 2 degrees of freedom; p = 9.75e-15
 
 > 
-> (tobinfit <- survreg(Surv(durable, durable>0, type='left') ~ age + quant,
-+                          data=tobin, dist='gaussian'))
-Call:
-survreg(formula = Surv(durable, durable > 0, type = "left") ~ 
-    age + quant, data = tobin, dist = "gaussian")
-
-Coefficients:
-(Intercept)         age       quant 
-    15.1449     -0.1291     -0.0455 
-
-Scale= 5.57 
-
-Loglik(model)= -28.9   Loglik(intercept only)= -29.5
-	Chisq= 1.1 on 2 degrees of freedom, p= 0.6 
-n= 20 
-> (tobinfit2 <- Survreg(Surv(durable, durable>0, type='left') ~ age + quant,
-+                          data=tobin, dist='gaussian'))
-
-  Gaussian Linear Regression Model 
-
-Call:
-Survreg(formula = Surv(durable, durable > 0, type = "left") ~ 
-    age + quant, data = tobin, dist = "gaussian")
-
-Coefficients:
-     age    quant 
--0.02319 -0.00817 
-
-Log-Likelihood:
- -28.9 (df = 4)
-
+> tobinfit <- survreg(Surv(durable, durable>0, type='left') ~ age + quant,
++                          data=tobin, dist='gaussian')
+> tobinfit2 <- Survreg(Surv(durable, durable>0, type='left') ~ age + quant,
++                          data=tobin, dist='gaussian')
 > cmp(coef(tobinfit), coef(tobinfit2, as.survreg = TRUE))
 > cmp(logLik(tobinfit), logLik(tobinfit2))
-> summary(tobinfit2)
-
-  Gaussian Linear Regression Model 
-
-Call:
-Survreg(formula = Surv(durable, durable > 0, type = "left") ~ 
-    age + quant, data = tobin, dist = "gaussian")
-
-Coefficients:
-      Estimate Std. Error z value Pr(>|z|)
-age   -0.02319    0.03855   -0.60     0.55
-quant -0.00817    0.01074   -0.76     0.45
-
-Log-Likelihood:
- -28.9 (df = 4)
-Likelihood-ratio Test: Chisq = 1.1 on 2 degrees of freedom; p = 0.576
-
 > 
 > proc.time()
    user  system elapsed 
-  1.165   0.084   1.244 
+  1.255   0.055   1.315 

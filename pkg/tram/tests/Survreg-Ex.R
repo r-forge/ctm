@@ -81,10 +81,9 @@ try(coef(Smod, as.survreg = TRUE))
 Smod$invscale
 summary(Smod)
 
-(tobinfit <- survreg(Surv(durable, durable>0, type='left') ~ age + quant,
-                         data=tobin, dist='gaussian'))
-(tobinfit2 <- Survreg(Surv(durable, durable>0, type='left') ~ age + quant,
-                         data=tobin, dist='gaussian'))
+tobinfit <- survreg(Surv(durable, durable>0, type='left') ~ age + quant,
+                         data=tobin, dist='gaussian')
+tobinfit2 <- Survreg(Surv(durable, durable>0, type='left') ~ age + quant,
+                         data=tobin, dist='gaussian')
 cmp(coef(tobinfit), coef(tobinfit2, as.survreg = TRUE))
 cmp(logLik(tobinfit), logLik(tobinfit2))
-summary(tobinfit2)

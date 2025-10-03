@@ -109,4 +109,4 @@ Days              0.081 1.000
 > 
 > proc.time()
    user  system elapsed 
-  3.016   0.056   3.066 
+   2.93    0.06    3.00 
