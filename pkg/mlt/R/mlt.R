@@ -479,7 +479,7 @@
     }
 
     optimfct <- function(theta, weights, subset = NULL, offset = NULL, 
-                         scaleparm = FALSE, optim, ...) {
+                         scaleparm = TRUE, optim, ...) {
         of <- .ofuns(weights = weights, subset = subset, 
                      offset = offset, ...)
         inweights <- weights
@@ -738,7 +738,7 @@
 }
 
 .mlt_fit <- function(object, weights, subset = NULL, offset = NULL, 
-                     theta = NULL, scaleparm = FALSE, optim, fixed = NULL, ...) {
+                     theta = NULL, scaleparm = TRUE, optim, fixed = NULL, ...) {
 
     if (is.null(theta))
         stop(sQuote("mlt"), "needs suitable starting values")
@@ -764,7 +764,7 @@
 }
 
 mlt <- function(model, data, weights = NULL, offset = NULL, fixed = NULL,
-                theta = NULL, pstart = NULL, scaleparm = !has_scale(model),
+                theta = NULL, pstart = NULL, scaleparm = TRUE,
                 dofit = TRUE, optim = mltoptim(hessian = has_scale(model))) {
 
     vars <- as.vars(model)
