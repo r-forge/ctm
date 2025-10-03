@@ -2,7 +2,7 @@
 \name{NEWS}
 \title{NEWS file for the mlt package}
 
-\section{Changes in Version 1.7-0 (2025-09-29)}{
+\section{Changes in Version 1.7-0 (2025-10-03)}{
   \subsection{Features}{
     \itemize{
       \item{\code{mltoptim()} features \code{nlminb} for unconstrained optimisation.}
@@ -15,8 +15,6 @@
             is now always \code{-Inf}.}
       \item{Argument \code{scale} was renamed to \code{scaleparm} because
             of a conflict in \code{tram::Survreg}.}
-      \item{Parameter scaling is disabled for location-scale and
-            multivariate models where we compute the Hessian numerically.}
       \item{Compute better starting values, especially for interval-censored
             outcomes using the fast Turnbull estimators provided 
             by \pkg{icenReg}.}
