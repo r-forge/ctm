@@ -143,6 +143,8 @@ tram <- function(formula, data, subset, weights, offset, cluster, na.action = na
     if (!is.factor(td$response) && is.null(support)) {
         support <- mlt:::findsupport(td$response, weights = td$weights, 
                                      probs = prob)
+        if (log_first && support[1] < sqrt(.Machine$double.eps))
+            support[1] <- sqrt(.Machine$double.eps)
         if (sum(abs(add)) < .Machine$double.eps)
             add <- mlt:::findsupport(td$response, weights = td$weights, 
                                      probs = c(0, 1)) - support
