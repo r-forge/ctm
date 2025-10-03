@@ -624,7 +624,7 @@ other attached packages:
  [7] colorspace_2.1-2    ordinal_2023.12-4.1 multcomp_1.4-28    
 [10] TH.data_1.1-4       mlbench_2.1-6       lattice_0.22-7     
 [13] MASS_7.3-65         survival_3.8-3      tram_1.3-0         
-[16] mvtnorm_1.3-4       mlt_1.7-0           basefun_1.2-4      
+[16] mvtnorm_1.3-4       mlt_1.7-0           basefun_1.2-5      
 [19] variables_1.1-2    
 
 loaded via a namespace (and not attached):
@@ -642,4 +642,4 @@ loaded via a namespace (and not attached):
  *** Run successfully completed ***
 > proc.time()
    user  system elapsed 
-  6.682   0.230   6.983 
+  7.343   0.154   7.503 

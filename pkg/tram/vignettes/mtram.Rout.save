@@ -1099,7 +1099,7 @@ randarm5-FU + Oxaliplatin
 > exp(confint(CAO_Cox_2_tramME, parm = "randarm5-FU + Oxaliplatin", 
 +     estimate = TRUE))
                              lwr    upr    est
-randarm5-FU + Oxaliplatin 0.6427 0.9786 0.7931
+randarm5-FU + Oxaliplatin 0.6428 0.9786 0.7931
 
 > sessionInfo()
 R version 4.5.1 (2025-06-13)
@@ -1187,4 +1187,4 @@ loaded via a namespace (and not attached):
  *** Run successfully completed ***
 > proc.time()
    user  system elapsed 
- 64.714   0.403  65.200 
+ 64.084   0.453  64.616 

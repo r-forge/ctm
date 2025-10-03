@@ -110,4 +110,4 @@ Number of terminal nodes: 3
 > 
 > proc.time()
    user  system elapsed 
-  2.715   0.075   2.786 
+  2.682   0.092   2.769 
