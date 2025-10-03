@@ -155,6 +155,11 @@ tram <- function(formula, data, subset, weights, offset, cluster, na.action = na
     rvar <- asvar(td$response, td$rname, prob = prob, support = support,
                   bounds = bounds, add = add, sparse_nlevels = sparse_nlevels)
 
+    if (is.numeric(td$response) && !is.Surv(td$response)) {
+        if (min(td$response, na.rm = TRUE) < sqrt(.Machine$double.eps))
+            log_first <- FALSE
+    }
+ 
     if (!is.null(rvar$bounds) && isTRUE(log_first)) {
         if (rvar$bounds[1] < sqrt(.Machine$double.eps)) 
             rvar$bounds[1] <- sqrt(.Machine$double.eps)
@@ -323,7 +328,11 @@ tram <- function(formula, data, subset, weights, offset, cluster, na.action = na
                          todistr = distribution, data = td$mf)
         if (!is.null(fixed)) {
             fixed <- fixed[names(fixed) %in% names(coef(nullmodel))]
-            args$fixed <- fixed
+            if (length(fixed)) {
+                args$fixed <- fixed
+            } else {
+                args$fixed <- NULL
+            }
         }
         args$model <- nullmodel
         cf <- coef(as.mlt(ret))
@@ -331,7 +340,10 @@ tram <- function(formula, data, subset, weights, offset, cluster, na.action = na
         #nm <- names(coef(nullmodel))
         #if (!is.null(fixed))
         #    nm <- nm[!nm %in% names(fixed)]
-        #args$theta <- cf[nm]
+        ### <FIXME>
+        ### we compute starting values twice, can we do something about it?
+        args$theta <- NULL
+        ### <FIXME>
         nullret <- do.call("mlt", args)
         nulllogLik <- logLik(nullret)
         fulllogLik <- logLik(ret)
