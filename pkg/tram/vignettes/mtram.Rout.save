@@ -1130,7 +1130,7 @@ other attached packages:
  [4] ordinalCont_2.0.2   Deriv_4.2.0         boot_1.3-31        
  [7] latticeExtra_0.6-31 lattice_0.22-7      gridExtra_2.3      
 [10] tram_1.3-0          mvtnorm_1.3-4       mlt_1.7-0          
-[13] basefun_1.2-4       variables_1.1-2     lme4_1.1-37        
+[13] basefun_1.2-5       variables_1.1-2     lme4_1.1-37        
 [16] Matrix_1.7-4        survival_3.8-3      colorspace_2.1-2   
 
 loaded via a namespace (and not attached):
@@ -1187,4 +1187,4 @@ loaded via a namespace (and not attached):
  *** Run successfully completed ***
 > proc.time()
    user  system elapsed 
- 64.728   0.403  65.236 
+ 64.714   0.403  65.200 
