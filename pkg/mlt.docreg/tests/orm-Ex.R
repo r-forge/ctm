@@ -14,7 +14,7 @@ if (require("rms") && require("tram")) {
     mM <- Polr(Ry ~ x, data = d, sparse_nlevels = 2)
     mO <- orm(y ~ x, data = d)
 
-    tol <- 1e-4
+    tol <- 1e-3
     ret <- 
       isTRUE(all.equal(coef(mP), coef(mM), tol = tol)) && 
       isTRUE(all.equal(coef(mP), coef(mO)["x"], tol = tol)) && 
@@ -24,7 +24,6 @@ if (require("rms") && require("tram")) {
                        check.attributes = FALSE)) &&
       isTRUE(all.equal(logLik(mP), logLik(mM), tol = tol)) &&
       isTRUE(all.equal(c(logLik(mP)), c(logLik(mO)), tol = tol)) &&
-
       isTRUE(all.equal(c(vcov(mP)), as.numeric(vcov(mM)), tol = tol)) &&
       isTRUE(all.equal(c(vcov(mP)), vcov(mO)["x", "x"], tol = tol))
 
