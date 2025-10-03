@@ -225,7 +225,7 @@ mltoptim <- function(
             if (!is.null(ui) && control$checkconstraints) {
                 objfun <- function(theta) {
                     if (any(ui %*% theta - ci < -.Machine$double.eps^(1/3)))
-                        return(-Inf)
+                        return(Inf) ### we minimise
                     return(f(theta))
                 }
             }
