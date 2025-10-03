@@ -140,12 +140,14 @@ tram <- function(formula, data, subset, weights, offset, cluster, na.action = na
     } 
 
     ### <FIXME> not exported from mlt, will break at maintainer change
-    if (!is.factor(td$response) && is.null(support))
+    if (!is.factor(td$response) && is.null(support)) {
         support <- mlt:::findsupport(td$response, weights = td$weights, 
                                      probs = prob)
-    if (sum(abs(add)) < .Machine$double.eps & !is.null(support))
-        add <- mlt:::findsupport(td$response, weights = td$weights, 
-                                 probs = c(0, 1)) - support
+        if (sum(abs(add)) < .Machine$double.eps)
+            add <- mlt:::findsupport(td$response, weights = td$weights, 
+                                     probs = c(0, 1)) - support
+    }
+
     ### </FIXME>
     add[1] <- min(add[1], 0)
     add[2] <- max(add[2], 0)
@@ -325,11 +327,11 @@ tram <- function(formula, data, subset, weights, offset, cluster, na.action = na
         }
         args$model <- nullmodel
         cf <- coef(as.mlt(ret))
-        ### use coefficients of full model as starting value
-        nm <- names(coef(nullmodel))
-        if (!is.null(fixed))
-            nm <- nm[!nm %in% names(fixed)]
-        args$theta <- cf[nm]
+        #### use coefficients of full model as starting value
+        #nm <- names(coef(nullmodel))
+        #if (!is.null(fixed))
+        #    nm <- nm[!nm %in% names(fixed)]
+        #args$theta <- cf[nm]
         nullret <- do.call("mlt", args)
         nulllogLik <- logLik(nullret)
         fulllogLik <- logLik(ret)
