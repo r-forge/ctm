@@ -508,11 +508,11 @@ perm_test.tram <- function(object, parm = names(coef(object)),
     alternative <- match.arg(alternative)
 
     parameter <- paste(switch(class(object)[1], 
-                                  "Colr" = "Log-odds ratio",
-                                   "Coxph" = "Log-hazard ratio",
-                                   "Lm" = "Standardised difference",
-                                   "Lehmann" = "Lehmann parameter",
-                                   "BoxCox" = "Standardised difference"))
+                              "Colr" = "Log-odds ratio",
+                              "Coxph" = "Log-hazard ratio",
+                              "Lm" = "Standardised difference",
+                              "Lehmann" = "Lehmann parameter",
+                              "BoxCox" = "Standardised difference"))
 
     block <- NULL
     if (!is.null(object$model$bases$interacting) && block_permutation) {
@@ -542,7 +542,15 @@ perm_test.tram <- function(object, parm = names(coef(object)),
 
         fx <- 0
         names(fx) <- parm
+        
+        ### <NOTE> misusing offset as nullvalue delta = mu won't work
+        ### because we would need to compute the permutation distribution always
+        ### for H0: delta = 0, not delta = mu
+        ### otherwise, permutation confidence intervals
+        ### are not aligned with permutation p-values
+        ### However, we can't just ignore the offset because here
         off <- object$offset
+
         theta <- coef(as.mlt(object))
         theta <- theta[names(theta) != parm]
         w <- object$weights
@@ -573,7 +581,7 @@ perm_test.tram <- function(object, parm = names(coef(object)),
             rs <- resid(m1)
         }
         r0 <- (rs / w) * sqrt(vcov.tram(m1)[parm,parm])
-        ###                          ^^^^^^^^^ uses Schur complement
+        ###                   ^^^^^^^^^ uses Schur complement
         if (is.null(block)) {
             it0 <- coin::independence_test(r0 ~ Xf, teststat = "scalar", 
                 alternative = alternative, weights = ~ w, ...)
