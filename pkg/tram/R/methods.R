@@ -548,7 +548,7 @@ perm_test.tram <- function(object, parm = names(coef(object)),
         ### for H0: delta = 0, not delta = mu
         ### otherwise, permutation confidence intervals
         ### are not aligned with permutation p-values
-        ### However, we can't just ignore the offset because here
+        ### However, we can't just ignore the offset here
         off <- object$offset
 
         theta <- coef(as.mlt(object))
