@@ -1,7 +1,7 @@
 Package: tramnet
 Title: Penalized Transformation Models
-Version: 0.1-0
-Date: 2024-03-20
+Version: 0.1-1
+Date: 2025-10-07
 URL: http://ctm.R-forge.R-project.org
 Authors@R: c(person("Lucas", "Kook", role = c("cre", "aut"),
                     email = "lucasheinrich.kook@gmail.com",
@@ -21,7 +21,7 @@ Description: Partially penalized versions of specific transformation models
     The methodology is described in Kook et al. (2021) <doi:10.32614/RJ-2021-054>.
     Transformation models and model-based optimization are described in
     Hothorn et al. (2019) <doi:10.1111/sjos.12291> and
-    Bischl et al. (2016) <arxiv:1703.03373>, respectively.
+    Bischl et al. (2016) <doi:10.48550/arXiv.1703.03373>, respectively.
 Depends: R (>= 4.0.0), tram (>= 1.0-0), CVXR (>= 1.0-0)
 Imports: mlt, basefun, sandwich, stats, paradox, mlr3mbo, bbotk
 Suggests: 

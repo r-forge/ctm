@@ -8,7 +8,7 @@ test_that("Regularized Box-Cox models", {
   m2 <- BoxCox(speed ~ dist, data = cars)
 
   expect_lt(max(abs(coef(mt, with_baseline = FALSE) -
-                      coef(m2, with_baseline = FALSE))), 1e-5)
+    coef(m2, with_baseline = FALSE))), 1e-5)
 
   expect_equal(logLik(mt)[1], logLik(m2)[1])
 
@@ -21,7 +21,7 @@ test_that("Regularized Box-Cox models", {
     c(residuals(mt)[1:10])
     predict(mt, type = "distribution", q = 1)[, 1:10]
     as.double(predict(mt, type = "quantile", prob = 0.5))
-    as.double(simulate(mt)[1:5,])
+    as.double(simulate(mt)[1:5, ])
     as.data.frame(head(estfun(mt)))
     plot(mt, type = "survivor")
     plot(mt, type = "density", K = 120)
@@ -38,8 +38,8 @@ test_that("Constraints", {
   mt <- BoxCoxNET(speed ~ dist, data = cars, alpha = 0, lambda = 0, constraints = list(lhs, rhs))
 
   expect_lt(
-    max(abs(coef(mt, with_baseline = FALSE) -
-              coef(m2, with_baseline = FALSE)[-2])),
+    max(abs(coef(mt, with_baseline = FALSE, tol = 0) -
+      coef(m2, with_baseline = FALSE))),
     1e-5
   )
 
