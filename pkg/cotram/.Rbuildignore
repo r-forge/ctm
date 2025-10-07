@@ -8,3 +8,4 @@ R/mcotram.R
 man/mcotram.Rd
 demo
 tests/Examples/cotram-Ex.Rout.save
+tests/confband-Ex.Rout.save
