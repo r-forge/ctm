@@ -2,6 +2,12 @@
 \name{NEWS}
 \title{NEWS file for the \pkg{tbm} package}
 
+\section{Changes in Version 0.3-8 (2025-10-08)}{
+  \itemize{
+    \item Prepare for \pkg{mlt} 1.7-0
+    }
+}
+
 \section{Changes in Version 0.3-7 (2025-04-09)}{
   \itemize{
     \item Update DESCRIPTION.
