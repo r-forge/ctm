@@ -1,6 +1,6 @@
 Package: tbm
 Title: Transformation Boosting Machines
-Version: 0.3-8
+Version: 0.3-9
 Date: 2025-10-08
 Authors@R: person("Torsten", "Hothorn", role = c("aut", "cre"),
                   email = "Torsten.Hothorn@R-project.org", comment = c(ORCID = "0000-0001-8301-0471"))
