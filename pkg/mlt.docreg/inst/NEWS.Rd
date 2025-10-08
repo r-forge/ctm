@@ -3,11 +3,19 @@
 \title{NEWS file for the mlt.docreg package}
 
 
+\section{Changes in Version 1.1-12 (2025-10-xx)}{
+  \itemize{
+    \item{Update reference output to \pkg{mlt} 1.7-0.
+     }
+  }
+}
+
 \section{Changes in Version 1.1-11 (2025-10-08)}{
   \itemize{
     \item{Prepare for \pkg{mlt} 1.7-0.}
   }
 }
+
 
 \section{Changes in Version 1.1-10 (2024-11-19)}{
   \itemize{
