@@ -268,7 +268,7 @@ mcvi2 <- flexsurv::flexsurvspline(iDFS ~ randarm +
 xlim.tvar <- c(100, max(q))
 
 y <- variable.names(mcvi1, "response")
-s <- mkgrid(mcvi1, n = 50)
+s <- mkgrid(mcvi1, n = 500)
 s[[y]] <- s[[y]][s[[y]] > xlim[1] & s[[y]] < xlim[2]]
 
 cumhaz <- predict(as.mlt(mcvi1), newdata = s, type = "cumhazard")
@@ -303,7 +303,7 @@ mcv2 <- flexsurv::flexsurvspline(DFS ~ randarm + gamma1(randarm) + gamma2(randar
 xlim.tvar <- c(100, max(q))
 
 y <- variable.names(mcv1, "response")
-s <- mkgrid(mcv1, n = 50)
+s <- mkgrid(mcv1, n = 500)
 s[[y]] <- s[[y]][s[[y]] > xlim[1] & s[[y]] < xlim[2]]
 
 cumhaz <- predict(as.mlt(mcv1), newdata = s, type = "cumhazard")
