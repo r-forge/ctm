@@ -217,7 +217,7 @@
     ### cars data; with quantile functions
     plot(dist ~ speed, data = cars)
     m <- Colr(dist ~ speed, data = cars)
-    q <- predict(as.mlt(m), newdata = data.frame(speed = s <- 6:25),
+    q <- predict(as.mlt(m), newdata = data.frame(speed = s <- 7:20),
                  type = "quantile", prob = c(1, 5, 9) / 10)
     lines(s, q[1,])
     lines(s, q[2,])
