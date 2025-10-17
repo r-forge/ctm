@@ -111,9 +111,10 @@ tram <- function(formula, data, subset, weights, offset, cluster, na.action = na
                  frailty = c("None", "Gamma", "InvGauss", "PositiveStable"),
                  transformation = c("discrete", "linear", "logarithmic", "smooth"),
                  LRtest = TRUE, 
-                 prob = c(.1, .9), support = NULL, bounds = NULL, add = c(0, 0), order = 6, negative =
-                 TRUE, remove_intercept = TRUE, 
-                 scaleparm = is.null(isX), scale_shift = FALSE, extrapolate = FALSE, log_first = FALSE, 
+                 log_first = NULL, prob = NULL, support = NULL, 
+                 bounds = NULL, add = c(0, 0), 
+                 order = 6, negative = TRUE, remove_intercept = TRUE, 
+                 scaleparm = is.null(isX), scale_shift = FALSE, extrapolate = FALSE, 
                  sparse_nlevels = Inf, model_only = FALSE, 
                  constraints = NULL, ...) 
 {
@@ -139,33 +140,55 @@ tram <- function(formula, data, subset, weights, offset, cluster, na.action = na
         td <- eval(mf, parent.frame())
     } 
 
-    ### <FIXME> not exported from mlt, will break at maintainer change
-    if (!is.factor(td$response) && is.null(support)) {
-        support <- mlt:::findsupport(td$response, weights = td$weights, 
-                                     probs = prob)
-        if (log_first && support[1] < sqrt(.Machine$double.eps))
-            support[1] <- sqrt(.Machine$double.eps)
+    transformation <- match.arg(transformation)
+    if (transformation == "smooth" && 
+        is.null(support) && is.null(prob) && is.null(log_first) && order > 1L) {
+
+        ### pre transformation
+
+        pt <- mlt:::pretrafo(td$response, weights = td$weights)
+        support <- attr(pt, "support")
         if (sum(abs(add)) < .Machine$double.eps)
-            add <- mlt:::findsupport(td$response, weights = td$weights, 
+            add <- attr(pt, "add")
+        log_first <- pt
+        rvar <- asvar(td$response, td$rname, prob = prob, support = support,
+                      bounds = bounds, add = add, sparse_nlevels = sparse_nlevels)
+    } else {
+
+        ### old behavious with user-defined support
+
+        ### <FIXME> not exported from mlt, will break at maintainer change
+        if (!is.factor(td$response) && is.null(support)) {
+            if (is.null(prob)) prob <- c(.1, .9)
+            if (is.null(log_first)) log_first <- FALSE
+            support <- mlt:::findsupport(td$response, weights = td$weights, 
+                                         probs = prob)
+            if (log_first && support[1] < sqrt(.Machine$double.eps))
+                support[1] <- sqrt(.Machine$double.eps)
+            if (sum(abs(add)) < .Machine$double.eps)
+                add <- mlt:::findsupport(td$response, weights = td$weights, 
                                      probs = c(0, 1)) - support
-    }
+        }
 
-    ### </FIXME>
-    add[1] <- min(add[1], 0)
-    add[2] <- max(add[2], 0)
+        ### </FIXME>
+        add[1] <- min(add[1], 0)
+        add[2] <- max(add[2], 0)
 
-    rvar <- asvar(td$response, td$rname, prob = prob, support = support,
-                  bounds = bounds, add = add, sparse_nlevels = sparse_nlevels)
+        rvar <- asvar(td$response, td$rname, prob = prob, support = support,
+                      bounds = bounds, add = add, sparse_nlevels = sparse_nlevels)
 
-    if (is.numeric(td$response) && !is.Surv(td$response)) {
-        if (min(td$response, na.rm = TRUE) < sqrt(.Machine$double.eps))
-            log_first <- FALSE
-    }
+        if (is.numeric(td$response) && !is.Surv(td$response)) {
+            if (min(td$response, na.rm = TRUE) < sqrt(.Machine$double.eps))
+                log_first <- FALSE
+        }
  
-    if (!is.null(rvar$bounds) && isTRUE(log_first)) {
-        if (rvar$bounds[1] < sqrt(.Machine$double.eps)) 
-            rvar$bounds[1] <- sqrt(.Machine$double.eps)
+        if (!is.null(rvar$bounds) && isTRUE(log_first)) {
+             if (rvar$bounds[1] < sqrt(.Machine$double.eps)) 
+                rvar$bounds[1] <- sqrt(.Machine$double.eps)
+        }
+
     }
+
     rbasis <- mkbasis(rvar, transformation = transformation, order = order,
                       extrapolate = extrapolate, log_first = log_first,
                       remove_intercept = !remove_intercept)
