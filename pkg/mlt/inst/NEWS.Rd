@@ -2,7 +2,7 @@
 \name{NEWS}
 \title{NEWS file for the mlt package}
 
-\section{Changes in Version 1.7-0 (2025-10-03)}{
+\section{Changes in Version 1.7-0 (2025-10-17)}{
   \subsection{Features}{
     \itemize{
       \item{\code{mltoptim()} features \code{nlminb} for unconstrained optimisation.}
