@@ -252,6 +252,7 @@ PI.stram <- function(object, newdata = model.frame(sm), reference = 0) {
 
 library("mvtnorm")
 vc <- vcov(sm)
+vc <- (vc + t(vc)) / 2
 rx <- rmvnorm(10000, coef(sm), vc)
 FUN <- function(cf, object = sm) {
   coef(object) <- cf
@@ -574,6 +575,8 @@ y <- grep("year", names(cf))
 cfy <- cf[y]
 
 vc <- vcov(sm)
+vc <- (vc + t(vc)) / 2
+
 vcy <- vc[y, y]
 
 ### yearly multiplicative change in hazards
