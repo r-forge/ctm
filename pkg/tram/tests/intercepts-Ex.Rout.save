@@ -152,4 +152,4 @@ Bs1(y) Bs2(y)     xx scl_xx
 > 
 > proc.time()
    user  system elapsed 
-   1.15    0.06    1.21 
+   1.14    0.09    1.22 

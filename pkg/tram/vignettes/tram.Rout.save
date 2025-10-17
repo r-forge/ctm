@@ -193,7 +193,7 @@ Warning in model.matrix.box_bases(object = list(iresponse = function (data,  :
 +     rm + age + dis + rad + tax + ptratio + b + lstat, data = BostonHousing2)
 
 > logLik(BC_BH_1)
-'log Lik.' -1325 (df=20)
+'log Lik.' -1320 (df=20)
 
 > nd <- model.frame(BC_BH_1)[1, -1, drop = FALSE]
 
@@ -205,7 +205,7 @@ Warning in model.matrix.box_bases(object = list(iresponse = function (data,  :
 +     nox + rm + age + dis + rad + tax + ptratio + b + lstat, data = BostonHousing2)
 
 > logLik(BC_BH_2)
-'log Lik.' -1320 (df=26)
+'log Lik.' -1316 (df=26)
 
 > nd <- model.frame(BC_BH_2)[1:2, -1]
 
@@ -228,23 +228,23 @@ Warning in model.matrix.box_bases(object = list(iresponse = function (data,  :
 +     nox + rm + age + dis + rad + tax + ptratio + b + lstat, data = BostonHousing2)
 
 > logLik(Colr_BH_1)
-'log Lik.' -1292 (df=26)
+'log Lik.' -1291 (df=26)
 
 > round(cbind(exp(coef(Colr_BH_1)), exp(confint(Colr_BH_1))), 
 +     3)
                   2.5 %    97.5 %
-crim       1.086  1.057     1.115
-zn         0.991  0.981     1.000
-indus      0.971  0.931     1.013
-nox     1041.057 56.926 19038.811
-rm         0.213  0.138     0.329
-age        1.010  1.000     1.021
-dis        1.645  1.412     1.917
-rad        0.882  0.840     0.926
+crim       1.084  1.055     1.115
+zn         0.990  0.980     0.999
+indus      0.976  0.936     1.017
+nox     1162.327 63.090 21414.046
+rm         0.218  0.142     0.334
+age        1.010  1.000     1.020
+dis        1.660  1.425     1.935
+rad        0.884  0.842     0.928
 tax        1.007  1.004     1.009
-ptratio    1.497  1.362     1.646
+ptratio    1.495  1.360     1.643
 b          0.994  0.992     0.996
-lstat      1.327  1.260     1.398
+lstat      1.322  1.256     1.393
 
 > nd <- BostonHousing2
 
@@ -364,17 +364,17 @@ horThyes horThyes
 > Coxph_GBSG2_1 <- Coxph(Surv(time, cens) ~ horTh, data = GBSG2)
 
 > logLik(Coxph_GBSG2_1)
-'log Lik.' -2607 (df=8)
+'log Lik.' -2606 (df=8)
 
 > coef(Coxph_GBSG2_1)
 horThyes 
- -0.3666 
+ -0.3657 
 
 > Coxph_GBSG2_2 <- Coxph(Surv(time, cens) | 0 + horTh ~ 
 +     1, data = GBSG2)
 
 > logLik(Coxph_GBSG2_2)
-'log Lik.' -2605 (df=14)
+'log Lik.' -2604 (df=14)
 
 > plot(survfit(Surv(time, cens) ~ horTh, data = GBSG2), 
 +     col = col, ylab = "Probability", xlab = "Survival Time")
@@ -522,7 +522,7 @@ tempwarm
 > BC_BH_0 <- BoxCox(y ~ 1, data = BostonHousing2)
 
 > logLik(BC_BH_0)
-'log Lik.' -1743 (df=7)
+'log Lik.' -1739 (df=7)
 
 > library("trtf")
 
@@ -531,7 +531,7 @@ tempwarm
 +     b + lstat, data =  .... [TRUNCATED] 
 
 > logLik(BC_BH_4)
-'log Lik.' -1258 (df=84)
+'log Lik.' -1249 (df=84)
 
 > library("ATR")
 
@@ -542,22 +542,22 @@ tempwarm
 > Coxph_GBSG2_1 <- Coxph(Surv(time, cens) ~ horTh, data = GBSG2)
 
 > logLik(Coxph_GBSG2_1)
-'log Lik.' -2607 (df=8)
+'log Lik.' -2606 (df=8)
 
 > coef(Coxph_GBSG2_1)
 horThyes 
- -0.3666 
+ -0.3657 
 
 > Coxph_GBSG2_3 <- trafotree(Coxph_GBSG2_1, formula = Surv(time, 
 +     cens) ~ horTh | age + menostat + tsize + tgrade + pnodes + 
 +     progrec + es .... [TRUNCATED] 
 
 > logLik(Coxph_GBSG2_3)
-'log Lik.' -2556 (df=24)
+'log Lik.' -2557 (df=24)
 
 > coef(Coxph_GBSG2_3)[, "horThyes"]
-      2       4       5 
--0.4872 -0.4601  0.1065 
+       2        4        5 
+-0.48468 -0.46049  0.09648 
 
 > nd <- data.frame(horTh = sort(unique(GBSG2$horTh)))
 
@@ -588,11 +588,11 @@ Number of inner nodes:    2
 Number of terminal nodes: 3
 
 > logLik(Coxph_GBSG2_4)
-'log Lik.' -2543 (df=24)
+'log Lik.' -2544 (df=24)
 
 > coef(Coxph_GBSG2_4)[, "horThyes"]
       2       4       5 
--0.5646 -0.1056 -0.5564 
+-0.5559 -0.1104 -0.5553 
 
 > sessionInfo()
 R version 4.5.1 (2025-06-13)
@@ -628,7 +628,7 @@ other attached packages:
 [19] variables_1.1-2    
 
 loaded via a namespace (and not attached):
- [1] Matrix_1.7-4         coneproj_1.20        ucminf_1.2.2        
+ [1] Matrix_1.7-4         coneproj_1.21        ucminf_1.2.2        
  [4] compiler_4.5.1       rpart_4.1.24         Rcpp_1.1.0          
  [7] MatrixModels_0.5-4   orthopolynom_1.0-6.1 splines_4.5.1       
 [10] alabama_2023.1.0     coda_0.19-4.1        Formula_1.2-5       
@@ -642,4 +642,4 @@ loaded via a namespace (and not attached):
  *** Run successfully completed ***
 > proc.time()
    user  system elapsed 
-  7.343   0.154   7.503 
+  8.942   0.259   9.269 

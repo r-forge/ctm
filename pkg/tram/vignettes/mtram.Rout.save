@@ -180,7 +180,7 @@ Days            0.08132 1.00000
 +     data = sleepstudy)
 
 > logLik(sleep_BCmer)
-'log Lik.' -859.5 (df=11)
+'log Lik.' -857.7 (df=11)
 
 > tmp <- as.mlt(sleep_BC)
 
@@ -253,8 +253,8 @@ Days            0.08132 1.00000
 
 > cov2cor(sleep_BCmer$G)
         [,1]    [,2]
-[1,]  1.0000 -0.1946
-[2,] -0.1946  1.0000
+[1,]  1.0000 -0.1797
+[2,] -0.1797  1.0000
 
 > library("mvtnorm")
 
@@ -272,22 +272,22 @@ Days            0.08132 1.00000
 
 > quantile(ret[1, ], c(0.025, 0.5, 0.975))
   2.5%    50%  97.5% 
-0.8539 2.4746 5.3275 
+0.7505 2.3150 4.7573 
 
 > quantile(ret[2, ], c(0.025, 0.5, 0.975))
    2.5%     50%   97.5% 
-0.02019 0.05314 0.11505 
+0.01799 0.04921 0.10334 
 
 > quantile(ret[3, ], c(0.025, 0.5, 0.975))
    2.5%     50%   97.5% 
--0.6544 -0.1918  0.4377 
+-0.6485 -0.1799  0.4537 
 
 > sleep_C <- Colr(Reaction ~ Days, data = sleepstudy)
 
 > sleep_Cmer <- mtram(sleep_C, ~(Days | Subject), data = sleepstudy)
 
 > logLik(sleep_Cmer)
-'log Lik.' -860.6 (df=11)
+'log Lik.' -858.6 (df=11)
 
 > days <- 0:9
 
@@ -914,7 +914,7 @@ laserActive:time12 weeks  2.1411
 > ylim <- c(-0.05, 1.05)
 
 > tmp <- as.mlt(Coxph(iDFS | 0 + strat_n:strat_t:randarm ~ 
-+     1, data = CAOsurv, support = su, add = add))
++     1, data = CAOsurv))
 
 > nd <- expand.grid(strat_n = sn, strat_t = st, randarm = ra)
 
@@ -1021,40 +1021,48 @@ randarm5-FU + Oxaliplatin
 0.6530 0.8039 0.9834 
 
 > CAO_Cox_2 <- Coxph(iDFS2 | 0 + strat_n:strat_t ~ randarm, 
-+     data = CAOsurv, support = c(1, 1700), order = 4)
++     data = CAOsurv)
 
 > logLik(CAO_Cox_2)
-'log Lik.' -2022 (df=21)
+'log Lik.' -2020 (df=29)
 
 > CAO_Cox_2_mtram <- mtram(CAO_Cox_2, ~(1 | Block), 
 +     data = CAOsurv, optim = fastoptH)
 
 > logLik(CAO_Cox_2_mtram)
-'log Lik.' -2022 (df=22)
+'log Lik.' -2020 (df=30)
 
 > coef(CAO_Cox_2_mtram)
 Bs1(iDFS2):strat_ncN0:strat_tcT1-3 Bs2(iDFS2):strat_ncN0:strat_tcT1-3 
-                          -67.3117                            -3.4515 
+                          -26.5160                            -4.0225 
 Bs3(iDFS2):strat_ncN0:strat_tcT1-3 Bs4(iDFS2):strat_ncN0:strat_tcT1-3 
-                           -3.4515                            -2.3184 
-Bs5(iDFS2):strat_ncN0:strat_tcT1-3 Bs1(iDFS2):strat_ncN+:strat_tcT1-3 
-                           -0.7866                           -31.2822 
+                           -4.0225                            -4.0225 
+Bs5(iDFS2):strat_ncN0:strat_tcT1-3 Bs6(iDFS2):strat_ncN0:strat_tcT1-3 
+                           -2.0622                            -1.2510 
+Bs7(iDFS2):strat_ncN0:strat_tcT1-3 Bs1(iDFS2):strat_ncN+:strat_tcT1-3 
+                           -0.6983                            -8.7081 
 Bs2(iDFS2):strat_ncN+:strat_tcT1-3 Bs3(iDFS2):strat_ncN+:strat_tcT1-3 
-                           -3.8692                            -3.8672 
+                           -6.0906                            -2.8519 
 Bs4(iDFS2):strat_ncN+:strat_tcT1-3 Bs5(iDFS2):strat_ncN+:strat_tcT1-3 
-                           -1.4421                            -0.9325 
+                           -2.8519                            -2.1197 
+Bs6(iDFS2):strat_ncN+:strat_tcT1-3 Bs7(iDFS2):strat_ncN+:strat_tcT1-3 
+                           -0.9350                            -0.9057 
   Bs1(iDFS2):strat_ncN0:strat_tcT4   Bs2(iDFS2):strat_ncN0:strat_tcT4 
-                           -2.7810                            -2.7809 
+                           -3.8577                            -2.0170 
   Bs3(iDFS2):strat_ncN0:strat_tcT4   Bs4(iDFS2):strat_ncN0:strat_tcT4 
-                           -1.8326                            -0.6323 
-  Bs5(iDFS2):strat_ncN0:strat_tcT4   Bs1(iDFS2):strat_ncN+:strat_tcT4 
-                           -0.3171                           -40.4991 
+                           -0.8190                            -0.8187 
+  Bs5(iDFS2):strat_ncN0:strat_tcT4   Bs6(iDFS2):strat_ncN0:strat_tcT4 
+                           -0.8187                            -0.7989 
+  Bs7(iDFS2):strat_ncN0:strat_tcT4   Bs1(iDFS2):strat_ncN+:strat_tcT4 
+                           -0.2126                           -22.3604 
   Bs2(iDFS2):strat_ncN+:strat_tcT4   Bs3(iDFS2):strat_ncN+:strat_tcT4 
-                           -2.2395                            -2.2395 
+                           -1.3490                            -1.3490 
   Bs4(iDFS2):strat_ncN+:strat_tcT4   Bs5(iDFS2):strat_ncN+:strat_tcT4 
-                           -0.3385                            -0.3360 
+                           -1.3489                            -1.3490 
+  Bs6(iDFS2):strat_ncN+:strat_tcT4   Bs7(iDFS2):strat_ncN+:strat_tcT4 
+                           -0.2706                            -0.2706 
          randarm5-FU + Oxaliplatin                             gamma1 
-                           -0.2366                             0.1600 
+                           -0.2305                             0.1711 
 
 > S <- vcov(CAO_Cox_2_mtram)
 
@@ -1068,7 +1076,7 @@ Bs4(iDFS2):strat_ncN+:strat_tcT1-3 Bs5(iDFS2):strat_ncN+:strat_tcT1-3
 > quantile(exp(rbeta[, ncol(rbeta)]), prob = c(0.025, 
 +     0.5, 0.975))
   2.5%    50%  97.5% 
-0.6470 0.7946 0.9773 
+0.6480 0.7965 0.9795 
 
 > nd <- CAOsurv[1:2, ]
 
@@ -1080,26 +1088,26 @@ Bs4(iDFS2):strat_ncN+:strat_tcT1-3 Bs5(iDFS2):strat_ncN+:strat_tcT1-3
 > (CAO_Cox_PI <- PI(tmp, newdata = nd[2, ], reference = nd[1, 
 +     ], one2one = TRUE, conf.level = 0.95))[1, ]
 Estimate      lwr      upr 
-  0.5581   0.5061   0.6089 
+  0.5026   0.4504   0.5547 
 
 > ci_man <- quantile(-rbeta[, ncol(rbeta)], prob = c(0.025, 
 +     0.5, 0.975))
 
 > (CAO_Cox_PIm <- PI(ci_man, link = "minimum extreme value"))
   2.5%    50%  97.5% 
-0.5057 0.5572 0.6072 
+0.5052 0.5566 0.6068 
 
 > CAO_Cox_2_tramME <- CoxphME(iDFS2 | 0 + strat_n:strat_t ~ 
 +     randarm + (1 | Block), data = CAOsurv)
 
 > exp(coef(CAO_Cox_2_tramME))
 randarm5-FU + Oxaliplatin 
-                   0.7931 
+                    0.796 
 
 > exp(confint(CAO_Cox_2_tramME, parm = "randarm5-FU + Oxaliplatin", 
 +     estimate = TRUE))
-                             lwr    upr    est
-randarm5-FU + Oxaliplatin 0.6428 0.9786 0.7931
+                             lwr   upr   est
+randarm5-FU + Oxaliplatin 0.6451 0.982 0.796
 
 > sessionInfo()
 R version 4.5.1 (2025-06-13)
@@ -1126,7 +1134,7 @@ attached base packages:
 [8] base     
 
 other attached packages:
- [1] geepack_1.3.12      glmmTMB_1.1.12      tramME_1.0.8       
+ [1] geepack_1.3.13      glmmTMB_1.1.13      tramME_1.0.8       
  [4] ordinalCont_2.0.2   Deriv_4.2.0         boot_1.3-31        
  [7] latticeExtra_0.6-31 lattice_0.22-7      gridExtra_2.3      
 [10] tram_1.3-0          mvtnorm_1.3-4       mlt_1.7-0          
@@ -1134,11 +1142,11 @@ other attached packages:
 [16] Matrix_1.7-4        survival_3.8-3      colorspace_2.1-2   
 
 loaded via a namespace (and not attached):
- [1] gtable_0.3.6         TMB_1.9.17           xfun_0.53           
+ [1] gtable_0.3.6         TMB_1.9.18           xfun_0.53           
  [4] numDeriv_2016.8-1.1  quadprog_1.5-8       vctrs_0.6.5         
  [7] tools_4.5.1          Rdpack_2.6.4         generics_0.1.4      
 [10] SparseGrid_0.8.2     sandwich_3.1-1       tibble_3.3.0        
-[13] coneproj_1.20        pkgconfig_2.0.3      RColorBrewer_1.1-3  
+[13] coneproj_1.21        pkgconfig_2.0.3      RColorBrewer_1.1-3  
 [16] alabama_2023.1.0     lifecycle_1.0.4      compiler_4.5.1      
 [19] deldir_2.0-4         codetools_0.2-20     icenReg_2.0.16      
 [22] Formula_1.2-5        tidyr_1.3.1          pillar_1.11.1       
@@ -1187,4 +1195,4 @@ loaded via a namespace (and not attached):
  *** Run successfully completed ***
 > proc.time()
    user  system elapsed 
- 64.084   0.453  64.616 
+ 75.086   0.422  75.586 

@@ -79,7 +79,7 @@ Fitted party:
 Number of inner nodes:    2
 Number of terminal nodes: 3
 > logLik(tmod)
-'log Lik.' -2556 (df=24)
+'log Lik.' -2557 (df=24)
 > 
 > ### check residuals
 > library("sandwich")
@@ -110,4 +110,4 @@ Number of terminal nodes: 3
 > 
 > proc.time()
    user  system elapsed 
-  2.682   0.092   2.769 
+  3.103   0.079   3.234 

@@ -145,4 +145,4 @@ The following object is masked from 'package:MASS':
 > 
 > proc.time()
    user  system elapsed 
-  3.430   0.068   3.493 
+  3.531   0.076   3.652 
