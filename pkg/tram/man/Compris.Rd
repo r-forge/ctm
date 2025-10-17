@@ -90,6 +90,9 @@ distributions for the primary event of interest and all competing events.
   Models for Dependent Censoring. \emph{Journal of the American Statistical
   Association}, \bold{119}(546), 1044--1054, \doi{10.1080/01621459.2022.2161387}.
 
+  Sandra Siegfried, Bálint Tamási and Torsten Hothorn (2024). Smooth Transformation Models for 
+  Survival Analysis: A Tutorial Using R. \doi{10.48550/arXiv.2402.06428}.
+
 }
 \examples{
   
@@ -127,36 +130,12 @@ distributions for the primary event of interest and all competing events.
     ## Fit a Gaussian Copula-based Cox Proportional Hazards Model with
     ##   a marginal "Coxph" model for the primary event of interest and 
     ##   a Weibull "Survreg" model for dependent censoring
-    ## Use very informative starting values to keep CRAN happy
-    cf <- c(
-            "Event_relapse.Event_relapse.Bs1(Event_relapse)" = -1.89058, 
-            "Event_relapse.Event_relapse.Bs2(Event_relapse)" = -1.6566, 
-            "Event_relapse.Event_relapse.Bs3(Event_relapse)" = -0.50329, 
-            "Event_relapse.Event_relapse.Bs4(Event_relapse)" = -0.50329, 
-            "Event_relapse.Event_relapse.Bs5(Event_relapse)" = -0.07402, 
-            "Event_relapse.Event_relapse.Bs6(Event_relapse)" = 0.53156, 
-            "Event_relapse.Event_relapse.Bs7(Event_relapse)" = 0.67391, 
-            "Event_relapse.Event_relapse.chCMTRT" = -0.2861, 
-            "Event_relapse.Event_relapse.age" = 0.43178, 
-            "Event_relapse.Event_relapse.hgb" = 0.02913, 
-            "Event_relapse.Event_relapse.clinstgI" = -0.55601, 
-            "Event_death.Event_death.(Intercept)" = -2.20056, 
-            "Event_death.Event_death.log(Event_death)" = 0.98102, 
-            "Event_death.Event_death.chCMTRT" = 0.25012, 
-            "Event_death.Event_death.age" = -0.64826, 
-            "Event_death.Event_death.hgb" = -0.02312, 
-            "Event_death.Event_death.clinstgI" = 0.57684, 
-            "Event_death.Event_relapse.(Intercept)" = -3.48595
-           )
-    ### gave up after multiple submissions to CRAN resulting
-    ### in 5.02 > 5 secs
-    \donttest{
-    m <- Compris(y ~ ch + age + hgb + clinstg, data = follic, log_first = TRUE,
-                 ### arguments below speed-up example, don't use!
-                 theta = cf, 		### informativ starting values
-                 optim = mltoptim(),    ### no hessian
+
+    m <- Compris(y ~ ch + age + hgb + clinstg, data = follic,
+                 optim = mltoptim(),    ### no numerical hessian
                  args  = list(type = "ghalton", 
                               M = 80))	### only 80 MC integration points
+                                        ### to make CRAN happy
 
     ### log-likelihood
     logLik(m)
@@ -167,8 +146,6 @@ distributions for the primary event of interest and all competing events.
     coef(m, type = "marginal")    
     ## Kendall's tau
     coef(m, type = "Kendall")
-    }
-
   }
 }
 
