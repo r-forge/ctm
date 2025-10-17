@@ -1,4 +1,16 @@
 
+### log(1 - exp(-a))
+### https://cran.r-project.org/web/packages/Rmpfr/vignettes/log1mexp-note.pdf
+.log1mexp <- function(a) {
+    ret <- numeric(length(a))
+    if (any(a < 0)) stop("negative argument")
+    if (any(sa <- (a < log(2))))
+        ret[sa] <- log(- expm1(-a[sa]))
+    if (any(!sa))
+        ret[!sa] <- log1p(-exp(-a[!sa]))
+    return(ret)
+}
+
 .Normal <- function()
     list(parm = function(x) NULL,
          p = pnorm, d = dnorm, q = qnorm, 
@@ -41,15 +53,15 @@
     list(parm = function(x) NULL,
          p = function(x, lower.tail = TRUE, log.p = FALSE) {
              ### p = 1 - exp(-exp(x))
-             ret <- exp(-exp(x))
+             nlogret <- exp(x)
              if (log.p) {
                  if (lower.tail)
-                     return(log1p(-ret))
+                     return(.log1mexp(nlogret))
                  return(-exp(x))
              }
              if (lower.tail)
                  return(-expm1(-exp(x)))
-             return(ret)             
+             return(exp(-nlogret))             
          },
          q = function(p, log.p = FALSE) {
                 if (log.p) p <- exp(p)
@@ -81,7 +93,7 @@
              if (log.p) {
                  if (lower.tail)
                      return(-exp(-x))
-                 return(log1p(-exp(-exp(-x))))
+                 return(.log1mexp(exp(-x)))
              }
              if (lower.tail)
                  return(exp(-exp(-x)))
@@ -152,29 +164,30 @@
          name = "cauchy")
 }
 
+
 ### see 10.1080/15598608.2013.772835
 .GammaFrailty <- function(logrho = 0) {
-    logrho <- pmax(logrho, log(sqrt(.Machine$double.eps)))
+    # logrho <- pmax(logrho, log(sqrt(.Machine$double.eps)))
     list(parm = function() c("logrho" = logrho),
          ### note: p(x) is 1 - LaplaceTransform(exp(x))
          p = function(x, lower.tail = TRUE, log.p = FALSE) {
              ### p = 1 - (1 + exp(x + logrho))^(-exp(-logrho))
-             ret <- (1 + exp(x + logrho))^(-exp(-logrho))
+             nlogret <- exp(-logrho) * log1p(exp(x + logrho))
              if (log.p) {
                  if (lower.tail)
-                     return(log1p(-ret))
-                 return(log(ret))
+                     return(.log1mexp(nlogret))
+                 return(-nlogret)
              }
              if (lower.tail)
-                 return(1 - ret)
-             return(ret)
+                 return(1 - exp(-nlogret))
+             return(exp(-nlogret))
          },
          q = function(p, log.p = FALSE) {
              if (log.p) p <- exp(p)
              log((1 - p)^(-exp(logrho)) - 1) - logrho
          },
          d = .d <- function(x, log = FALSE) {
-             ret <- x + (-exp(-logrho) - 1) * log(exp(x + logrho) + 1)
+             ret <- x + (-exp(-logrho) - 1) * log1p(exp(x + logrho))
              if (!log) return(exp(ret))
              ret
          },
@@ -203,7 +216,7 @@
 
 ### see 10.1002/sim.687
 .InvGaussFrailty <- function(logtheta = 0) {
-    logtheta <- pmax(logtheta, log(sqrt(.Machine$double.eps)))
+    # logtheta <- pmax(logtheta, log(sqrt(.Machine$double.eps)))
     list(parm = function() c("logtheta" = logtheta),
          ### note: p(x) is 1 - LaplaceTransform(exp(x))
          p = function(x, lower.tail = TRUE, log.p = FALSE) {
