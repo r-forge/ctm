@@ -8,7 +8,7 @@
 }
 \usage{
 Coxph(formula, data, subset, weights, offset, cluster, na.action = na.omit, 
-      log_first = TRUE, ...)
+      ...)
 }
 \arguments{
   \item{formula}{an object of class \code{"formula"}: a symbolic description 
@@ -39,8 +39,6 @@ Coxph(formula, data, subset, weights, offset, cluster, na.action = na.omit,
   \item{na.action}{a function which indicates what should happen when the data
           contain \code{NA}s.  The default is set to \code{na.omit}.
   }
-  \item{log_first}{logical; if \code{TRUE}, a Bernstein polynomial is
-                   defined on the log-scale.}
   \item{\dots}{additional arguments to \code{\link{tram}}.}
 }
 \details{
@@ -88,8 +86,8 @@ An object of class \code{Coxph}, with corresponding \code{coef},
   (m2 <- Coxph(Surv(time, cens) ~ horTh, data = GBSG2))
 
   ### McLain & Ghosh (2013)
-  m3 <- Coxph(Surv(time, cens) ~ horTh, data = GBSG2, 
-              frailty = "Gamma")
+  (m3 <- Coxph(Surv(time, cens) ~ horTh, data = GBSG2, 
+               frailty = "Gamma"))
 
   ### Wald intervals
   confint(m1)
