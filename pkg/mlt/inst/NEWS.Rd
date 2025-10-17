@@ -18,6 +18,8 @@
       \item{Compute better starting values, especially for interval-censored
             outcomes using the fast Turnbull estimators provided 
             by \pkg{icenReg}.}
+      \item{Implement (internal) pre-transformation based on nonparametric
+            unconditional distribution to be used by \pkg{tram}.}
     }
   }
   \subsection{Bugfixes}{
@@ -28,6 +30,7 @@
             likelihood for numeric outcomes.}
       \item{\code{mmlt} only uses optimisers able to approximate the
             Hessian by default.}
+      \item{\code{simulate.ctm} might have got internal dimensions wrong.}
     }
   }
 }
