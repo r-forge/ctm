@@ -117,3 +117,9 @@ S3method("pstart", "response")
 S3method("findsupport", "numeric")
 S3method("findsupport", "Surv")
 S3method("findsupport", "response")
+
+S3method("pretrafo", "numeric")
+S3method("pretrafo", "Surv")
+S3method("pretrafo", "response")
+S3method("pretrafo", "ordered")
+

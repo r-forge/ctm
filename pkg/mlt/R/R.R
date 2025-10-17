@@ -705,26 +705,164 @@ findsupport.response <- function(x, weights = rep.int(1, NROW(x)), probs = c(.1,
                          weights = weights[w0])
     sc <- TB$scurves
     xint <- sc[[1]]$Tbull_ints
-    idx <- seq_len(NROW(xint))
-    if (!is.finite(xint[NROW(xint), "upper"])) idx <- idx[-length(idx)]
-    xint <- xint[idx,,drop = FALSE]
-    Prb <- 1 - sc[[1]]$S_curves$baseline[idx]
+    Prb <- 1 - sc[[1]]$S_curves$baseline
+    if (!is.finite(xint[NROW(xint), "upper"])) {
+        Prb <- Prb[-NROW(xint)]
+        xint <- xint[-NROW(xint),,drop = FALSE]
+    }
+    xint <- xint[!duplicated(Prb),,drop = FALSE]
+    Prb <- Prb[!duplicated(Prb)]
     ### this always gives a valid support
     probs <- max(Prb) * probs
-    OKlwr <- !duplicated(Prb) & is.finite(xint[,"lower"])
-    OKupr <- !duplicated(Prb) & is.finite(xint[,"upper"])
-
-    retlwr <- c(min(xint[OKlwr, "lower"][Prb[OKlwr] > probs[1]]),
-                ifelse(probs[2] < max(Prb[OKlwr]), 
-                       min(xint[OKlwr, "lower"][Prb[OKlwr] > probs[2]]),
-                       max(xint[OKlwr, "lower"])
-                       )
-               )
-    retupr <- c(min(xint[OKupr, "upper"][Prb[OKupr] > probs[1]]),
-                ifelse(probs[2] < max(Prb[OKupr]), 
-                       min(xint[OKlwr, "upper"][Prb[OKupr] > probs[2]]),
-                       max(xint[OKlwr, "upper"])
-                       )
-               )
+    Plwr <- splinefun(Prb, xint[,"lower"])
+    Pupr <- splinefun(Prb, xint[,"upper"])
+    retlwr <- Plwr(probs) 
+    retupr <- Pupr(probs)
     rowMeans(cbind(retlwr, retupr))
+}
+
+pretrafo <- function(y, weights)
+    UseMethod("pretrafo")
+
+.trafo <- function(support, order, coeff) {
+
+    yv <- numeric_var("y", support = support)
+    by <- Bernstein_basis(yv, order = order, ui = "increasing")
+
+    ret <- list(
+        trafo = function(y) {
+            Ym <- model.matrix(by, data = data.frame(y = y))
+            ### return h
+            return(ifelse(is.finite(y), c(Ym %*% coeff), y))
+
+            ### return plogis(h) in (0, 1)
+            ret <- c(plogis(Ym %*% coeff))
+            yinf <- !is.finite(y)
+            if (any(yinf))
+                ret[yinf] <- ifelse(y[yinf] < 0, 0, 1)
+            return(ret)
+        },
+        dtrafo = function(y) {
+            Ym1 <- model.matrix(by, data = data.frame(y = y), deriv = c("y" = 1))
+            return(ifelse(is.finite(y), c(Ym1 %*% coeff), y))
+
+            Ym <- model.matrix(by, data = data.frame(y = y))
+            ret <- c(dlogis(Ym %*% coeff)) * c(Ym1 %*% coeff)
+            yinf <- !is.finite(y)
+            if (any(yinf))
+                ret[yinf] <- 0
+            return(ret)
+        },
+        ddtrafo = function(y) {
+            Ym2 <- model.matrix(by, data = data.frame(y = y), deriv = c("y" = 2))
+            return(ifelse(is.finite(y), c(Ym2 %*% coeff), y))
+
+            Ym <- model.matrix(by, data = data.frame(y = y))
+            Ym1 <- model.matrix(by, data = data.frame(y = y), deriv = c("y" = 1))
+
+            ret <- c(.Logistic()$dd(Ym %*% coeff)) * c(Ym1 %*% coeff)^2
+            ret <- ret + c(dlogis(Ym %*% coeff)) * c(Ym2 %*% coeff)
+            yinf <- !is.finite(y)
+            if (any(yinf))
+                ret[yinf] <- 0
+            return(ret)
+        }
+    )
+    attr(ret, "support") <- support
+    attr(ret, "add") <- c(0, 0) ### c(-1, 1) * diff(support) / 2
+    return(ret)
+}
+
+pretrafo.numeric <- function(y, weights = NULL) {
+
+    sup <- range(y, na.rm = TRUE)
+    N <- max(c(length(y[!is.na(y)]), ifelse(!is.null(weights), 
+                                            sum(weights[!is.na(y)]), 0)))
+    order <- 6 + ceiling(sqrt(N))
+    grd <- seq(from = sup[1L], to = sup[2L],
+               length.out = order + 1)
+    Fgrd <- .wecdf(y, weights)(grd)
+    hgrd <- pmin(qlogis((N - 1) / N), qlogis(Fgrd))
+    ### derivative must be > 0 everywhere
+    hgrd <- hgrd + cumsum(c(0, (diff(hgrd) < sqrt(.Machine$double.eps)) * .1))
+    return(.trafo(support = sup, order = order, coeff = hgrd))
+}
+
+pretrafo.ordered <- function(y, weights = 1)
+    pretrafo(unclass(y), weights = weights)
+
+pretrafo.integer <- function(y, weights = 1)
+    pretrafo(as.numeric(y), weights = weights)
+
+pretrafo.Surv <- function(y, weights = 1) {
+
+    if (length(weights) == NROW(y)) {
+        sf <- survival::survfit(y ~ 1, subset = weights > 0, weights = weights)
+        N <- max(NROW(y[!is.na(y[,1]),]), sum(weights[!is.na(y[,1])])) ### case weights?
+    } else {
+        sf <- survival::survfit(y ~ 1)
+        N <- NROW(y[!is.na(y[,1]),])
+    }
+    tm <- sf$time
+    sv <- sf$surv
+    tm <- tm[diff(c(1, sv)) < 0]
+    sv <- sv[diff(c(1, sv)) < 0]
+
+    sup <- range(tm)
+    order <- 6 + ceiling(sqrt(N))
+    grd <- seq(from = sup[1L], to = sup[2L],
+               length.out = order + 1)
+    Fgrd <- stepfun(tm[-1L], 1 - sv)(grd)
+    hgrd <- pmax(qlogis(1 / N), pmin(qlogis((N - 1) / N), qlogis(Fgrd)))
+    ### derivative must be > 0 everywhere
+    hgrd <- hgrd + cumsum(c(0, (diff(hgrd) < sqrt(.Machine$double.eps)) * .1))
+
+    return(.trafo(support = sup, order = order, coeff = hgrd))
+}
+
+pretrafo.response <- function(y, weights = 1) {
+
+    if (is.ordered(y$approxy) || is.integer(y$approxy))
+        return(pretrafo(y$approxy, weights = weights))
+
+    lwr <- y$cleft
+    upr <- y$cright
+    ex <- y$exact
+    if (all(is.na(lwr)) && all(is.na(upr)))
+        return(pretrafo(ex, weights = weights))
+
+    if (any(nex <- !is.na(ex)))
+        lwr[nex] <- upr[nex] <- ex[nex]
+    lwr <- unclass(lwr)
+    upr <- unclass(upr)
+    lwr[is.na(lwr)] <- -Inf
+    upr[is.na(upr)] <- Inf
+    d <- data.frame(lwr = lwr, upr = upr, grp = gl(1, 1))
+    d <- d[complete.cases(d),,drop = FALSE]
+    if (length(weights) == NROW(y)) {
+        w0 <- weights > 0
+        TB <- icenReg::ic_np(cbind(lwr, upr) ~ grp, data = d[w0,,drop = FALSE], 
+                             weights = weights[w0])
+        N <- max(nrow(d), sum(weights))
+    } else {
+        TB <- icenReg::ic_np(cbind(lwr, upr) ~ grp, data = d)
+        N <- nrow(d)
+    }
+
+    sc <- TB$scurves
+    tm <- sc[[1]]$Tbull_ints[, "upper"]
+    sv <- sc[[1]]$S_curves$baseline
+    sv <- sv[is.finite(tm)]
+    tm <- tm[is.finite(tm)]
+
+    sup <- range(tm)
+    order <- 6 + ceiling(sqrt(N))
+    grd <- seq(from = sup[1L], to = sup[2L],
+               length.out = order + 1)
+    Fgrd <- stepfun(tm[-1L], 1 - sv)(grd)
+    hgrd <- pmax(qlogis(1 / N), pmin(qlogis((N - 1) / N), qlogis(Fgrd)))
+    ### derivative must be > 0 everywhere
+    hgrd <- hgrd + cumsum(c(0, (diff(hgrd) < sqrt(.Machine$double.eps)) * .1))
+
+    return(.trafo(support = sup, order = order, coeff = hgrd))
 }
