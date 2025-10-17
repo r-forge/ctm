@@ -5,11 +5,19 @@
 \section{Changes in Version 1.3-0 (2025-09-29)}{
   \itemize{
     \item{Adapt to \pkg{mlt} 1.7-0 changes.}
-    \item{Bring back reference output.}
-    \item{\code{Coxph} now log-transforms the event times by default.}
+    \item{Avoid tedious data-driven determination of the support of polynomials in
+          Bernstein form by applying a pre-transformation inspired by 
+          nonparametric estimates of the unconditional response
+          distribution. Parameters of the transformation polynomial
+          in Bernstein form are now estimated from input data which
+          is symmetric on the support defined by the range of the response
+          observations. This, specifying \code{support}, \code{prob}, or
+          \code{log_first} in calls to models should be no longer necessary.
+          The old behaviour is still available.}
     \item{Improve computations defining the support of polynomials in
           Bernstein form (especially for interval-censored data using
           the fast Turnbull estimator from package \code{icenReg}).}
+    \item{Bring back reference output.}
   }
 }
 
