@@ -82,8 +82,8 @@ mydata <- data.frame(y = y, g = g)
 m <- ctm(response = logBb, 
            interacting = as.basis(~ 0 + g, data = mydata),
            todist = "MinExtrVal")
-coef(opt <- mlt(m, data = mydata, scale = TRUE))
-coef(cph <- coxph(Surv(y, rep(TRUE, nrow(mydata))) ~ g, data = mydata))
+logLik(opt <- mlt(m, data = mydata, scale = TRUE))
+logLik(cph <- coxph(Surv(y, rep(TRUE, nrow(mydata))) ~ g, data = mydata))
 ## visualize
 a <- predict(opt, newdata = data.frame(g = gf[1]), q = yn)
 layout(matrix(1:4, ncol = 2))
