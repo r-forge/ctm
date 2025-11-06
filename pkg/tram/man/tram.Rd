@@ -49,7 +49,13 @@ tram_data(formula, data, subset, weights, offset, cluster, na.action = na.omit)
           clustered covariances.
   }
   \item{na.action}{a function which indicates what should happen when the data
-          contain \code{NA}s.  The default is set to \code{na.omit}.
+          contain \code{NA}s.  The default is set to \code{na.omit}. Note
+          that is is possible to have \code{NA}s in the response. In this
+          case, the contribution to the log-likelihood is zero.
+          Unfortunately, \code{na.pass} passes on missing values in both
+          response and covariates, so one has to filter out observations
+          with missing covariates in the \code{data} argument in cases where
+          one wants to allow missing response observations.
   }
   \item{distribution}{character specifying how the transformation function
                       is mapped into probabilities. Available choices
