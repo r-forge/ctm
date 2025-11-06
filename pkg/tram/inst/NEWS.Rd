@@ -2,7 +2,7 @@
 \name{NEWS}
 \title{NEWS file for the tram package}
 
-\section{Changes in Version 1.3-0 (2025-10-17)}{
+\section{Changes in Version 1.3-0 (2025-11-06)}{
   \itemize{
     \item{Adapt to \pkg{mlt} 1.7-0 changes.}
     \item{Avoid tedious data-driven determination of the support of polynomials in
@@ -18,6 +18,7 @@
           Bernstein form (especially for interval-censored data using
           the fast Turnbull estimator from package \code{icenReg}).}
     \item{Bring back reference output.}
+    \item{Explain \code{na.action = na.pass} behaviour in \code{tram} manual page.}
   }
 }
 
