@@ -33,7 +33,7 @@ Depends: R (>= 3.5.0), mlt (>= 1.7-0), mvtnorm (>= 1.3-2)
 Imports: Formula, multcomp, variables (>= 1.0-4), basefun (>= 1.1-2),
         sandwich, stats, survival, graphics, Matrix, methods
 Suggests: MASS, TH.data, trtf (>= 0.3-3), mlbench, knitr, quantreg,
-        colorspace, ATR, lme4, merDeriv, SparseGrid, alabama, numDeriv,
+        colorspace, ATR, lme4, reformulas, merDeriv, SparseGrid, alabama, numDeriv,
         gridExtra, lattice, latticeExtra, HSAUR3, ordinalCont,
         coxme, mlt.docreg, ordinal, coin, asht, gamlss, randomForestSRC,
         tramME, glmmTMB, geepack, ranger, eha, flexsurv, frailtyEM, 
