@@ -998,17 +998,41 @@ plot.ROCstram <- function(x, col = "black", fill = "lightgrey",
 
 ## ----ROC-data, echo = FALSE, results = "asis", message = FALSE, warning = FALSE----
 ## ultrasound data: DOI: 10.1177/0272989x8800800309
-tmpd <- tempdir()
-url <- "https://research.fredhutch.org/content/dam/stripe/diagnostic-biomarkers-statistical-center/files"
-csv <- "tostbegg2.csv"
-file <- file.path(tmpd, csv)
+### Download data
+#tmpd <- tempdir()
+#url <- "https://research.fredhutch.org/content/dam/stripe/diagnostic-biomarkers-statistical-center/files"
+#csv <- "tostbegg2.csv"
+#file <- file.path(tmpd, csv)
+#
+#if (!file.exists(file)) {
+#  op <- options(timeout = 120)
+#  download.file(url = paste(url, csv, sep = "/"), destfile = file)
+#  options(op)
+#}
+#dat <- read.csv(file)
+### Work with downloaded data
+dat <-
+structure(list(type = c(0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 
+1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 0L, 0L, 0L, 0L, 0L, 0L, 
+0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 
+0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 
+0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 
+0L, 0L, 0L, 0L, 0L, 0L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 
+1L, 1L, 1L, 1L, 1L, 1L), y = c(1L, 2L, 3L, 4L, 5L, 1L, 2L, 3L, 
+4L, 5L, 1L, 2L, 3L, 4L, 5L, 1L, 2L, 3L, 4L, 5L, 1L, 1L, 1L, 1L, 
+1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 
+1L, 1L, 1L, 1L, 1L, 1L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 
+2L, 2L, 2L, 2L, 2L, 2L, 3L, 1L, 1L, 1L, 3L, 4L, 5L, 5L, 5L, 5L, 
+5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 1L, 1L, 1L, 1L, 1L, 2L, 2L, 2L, 
+2L, 3L, 2L, 4L, 5L, 5L, 5L, 5L), d = c(0L, 0L, 0L, 0L, 0L, 1L, 
+1L, 1L, 1L, 1L, 0L, 0L, 0L, 0L, 0L, 1L, 1L, 1L, 1L, 1L, 0L, 0L, 
+0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 
+0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 
+0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 
+1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 0L, 0L, 0L, 0L, 0L, 0L, 
+0L, 0L, 0L, 0L, 1L, 1L, 1L, 1L, 1L, 1L)), class = "data.frame", row.names = c(NA, 
+-96L))
 
-if (!file.exists(file)) {
-  op <- options(timeout = 120)
-  download.file(url = paste(url, csv, sep = "/"), destfile = file)
-  options(op)
-}
-dat <- read.csv(file)
 
 ## ----ROC-preproc--------------------------------------------------------------
 ## coding
