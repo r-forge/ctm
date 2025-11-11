@@ -220,7 +220,7 @@ pkgs <- sapply(pkgs, require, character.only = TRUE)
  \DeclareMathOperator{\SL}{SL}
  \DeclareMathOperator{\MEV}{MEV}
  \DeclareMathOperator{\SW}{SW}
- \DeclareMathOperator{\Chi1}{\chi^2_1}
+%% \DeclareMathOperator{\Chi1}{\chi^2_1}
  \DeclareMathOperator{\WD}{W}
 
 
