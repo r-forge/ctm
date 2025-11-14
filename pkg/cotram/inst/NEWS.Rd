@@ -2,7 +2,13 @@
 \name{NEWS}
 \title{NEWS file for the cotram package}
 
-\section{Changes in Version 0.5-3 (2025-08-18)}{
+\section{Changes in Version 0.6-0 (2025-11-14)}{
+  \itemize{
+    \item{Bring back \code{mcotram}, update aqua birds demo.}
+  }
+}
+
+\section{Changes in Version 0.5-3 (2025-10-08)}{
   \itemize{
     \item{Fix \code{predict} for linear predictors in location-scale models.}
   }

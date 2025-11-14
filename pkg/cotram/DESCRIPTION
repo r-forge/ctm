@@ -1,7 +1,7 @@
 Package: cotram
 Title: Count Transformation Models
-Version: 0.5-3
-Date: 2025-10-08
+Version: 0.6-0
+Date: 2025-11-14
 Authors@R: c(
 	person(given = "Sandra", family = "Siegfried", role = c("aut", "cre"), 
 	email = "sandra.siegfried@alumni.uzh.ch",
@@ -22,7 +22,7 @@ Description: Count transformation models featuring
         The package also contains an experimental implementation of 
         multivariate count transformation models with an application
         to multi-species distribution models <DOI:10.48550/arXiv.2201.13095>.
-Depends: R (>= 3.5.0), tram (>= 1.0-0), mlt (>= 1.4-7)
+Depends: R (>= 3.5.0), tram (>= 1.3-0), mlt (>= 1.7-0)
 Imports: variables (>= 1.0-2), basefun (>= 1.0-5), alabama, Matrix, methods, survival, utils, qrng
 Suggests: TH.data, knitr, lattice, colorspace, multcomp, mvtnorm, numDeriv
 VignetteBuilder: knitr
