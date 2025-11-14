@@ -595,7 +595,7 @@ Number of terminal nodes: 3
 -0.5559 -0.1104 -0.5553 
 
 > sessionInfo()
-R version 4.5.1 (2025-06-13)
+R version 4.5.2 (2025-10-31)
 Platform: x86_64-pc-linux-gnu
 Running under: Debian GNU/Linux 12 (bookworm)
 
@@ -621,25 +621,25 @@ attached base packages:
 other attached packages:
  [1] ATR_0.1-1           trtf_0.4-3          partykit_1.2-24    
  [4] libcoin_1.0-10      quantreg_6.1        SparseM_1.84-2     
- [7] colorspace_2.1-2    ordinal_2023.12-4.1 multcomp_1.4-28    
+ [7] colorspace_2.1-2    ordinal_2023.12-4.1 multcomp_1.4-29    
 [10] TH.data_1.1-4       mlbench_2.1-6       lattice_0.22-7     
 [13] MASS_7.3-65         survival_3.8-3      tram_1.3-0         
-[16] mvtnorm_1.3-4       mlt_1.7-0           basefun_1.2-5      
+[16] mvtnorm_1.3-4       mlt_1.7-2           basefun_1.2-5      
 [19] variables_1.1-2    
 
 loaded via a namespace (and not attached):
  [1] Matrix_1.7-4         coneproj_1.21        ucminf_1.2.2        
- [4] compiler_4.5.1       rpart_4.1.24         Rcpp_1.1.0          
- [7] MatrixModels_0.5-4   orthopolynom_1.0-6.1 splines_4.5.1       
+ [4] compiler_4.5.2       rpart_4.1.24         Rcpp_1.1.0          
+ [7] MatrixModels_0.5-4   orthopolynom_1.0-6.1 splines_4.5.2       
 [10] alabama_2023.1.0     coda_0.19-4.1        Formula_1.2-5       
 [13] knitr_1.50           iterators_1.0.14     icenReg_2.0.16      
 [16] inum_1.0-5           nloptr_2.2.1         BB_2019.10-1        
-[19] xfun_0.53            quadprog_1.5-8       polynom_1.4-1       
+[19] xfun_0.54            quadprog_1.5-8       polynom_1.4-1       
 [22] foreach_1.5.2        sandwich_3.1-1       nlme_3.1-168        
 [25] evaluate_1.0.5       numDeriv_2016.8-1.1  codetools_0.2-20    
-[28] zoo_1.8-14           tools_4.5.1         
+[28] zoo_1.8-14           tools_4.5.2         
 
  *** Run successfully completed ***
 > proc.time()
    user  system elapsed 
-  8.942   0.259   9.269 
+ 13.067   0.249  13.412 

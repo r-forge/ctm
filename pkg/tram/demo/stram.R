@@ -8,7 +8,7 @@ run_all <- FALSE
 ## required packages
 pkgs <- c("tram", "trtf", "ATR", "tramvs", "survival", "coin",
   "multcomp", "TH.data", "gamlss", "gamlss.cens", "mpr", "KONPsurv", "lattice",
-  "latticeExtra", "grid",  "gridExtra", "reshape2", "colorspace", "xtable", "cotram")
+  "latticeExtra", "grid",  "gridExtra", "colorspace", "xtable", "cotram")
 
 ip <- rownames(installed.packages())
 if (any(!pkgs %in% ip))

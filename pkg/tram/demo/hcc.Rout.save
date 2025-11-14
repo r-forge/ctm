@@ -1,5 +1,5 @@
 
-R version 4.5.0 (2025-04-11) -- "How About a Twenty-Six"
+R version 4.5.2 (2025-10-31) -- "[Not] Part in a Rumble"
 Copyright (C) 2025 The R Foundation for Statistical Computing
 Platform: x86_64-pc-linux-gnu
 
@@ -65,7 +65,7 @@ The following object is masked from 'package:mlt':
 
     coef<-
 
-This is mgcv 1.9-3. For overview type 'help("mgcv-package")'.
+This is mgcv 1.9-4. For overview type '?mgcv'.
 
 Attaching package: 'mgcv'
 
@@ -91,7 +91,7 @@ The following object is masked from 'package:pracma':
 
 > n_boot <- 100
 
-> n_reps <- 10
+> n_reps <- 100
 
 > dat <- read.xlsx("https://datadryad.org/api/v2/files/44697/download", 
 +     sheet = 1)
@@ -119,9 +119,9 @@ The following object is masked from 'package:pracma':
 
 > lvls <- levels(d[, var_shft])
 
-> bcol <- c("DKK", "OPN", "PIV", "AFP")
+> bcol <- rev(c("DKK", "OPN", "PIV", "AFP"))
 
-> bcoln <- c("DKK-1", "OPN", "PIVKA-II", "AFP")
+> bcoln <- rev(c("DKK-1", "OPN", "PIVKA-II", "AFP"))
 
 > J <- length(bcol)
 
@@ -186,6 +186,19 @@ The following object is masked from 'package:pracma':
 +         labels = FALSE)
 +     ind_test <- which(folds == .... [TRUNCATED] 
 
+> fauc <- function(probs, class) {
++     x <- probs
++     y <- class
++     x1 = x[y == 1]
++     n1 = length(x1)
++     x2 = x[y == 0]
++     n2 = length .... [TRUNCATED] 
+
+> oosauc <- function(margins) {
++     folds <- cut(sample(nrow(d), replace = FALSE), breaks = 2, 
++         labels = FALSE)
++     ind_test <- which(fo .... [TRUNCATED] 
+
 > plot_gof <- function(nd) {
 +     nd$lp1 <- predict(mm, newdata = nd, margin = 1, type = "trafo")
 +     nd$lp2 <- predict(mm, newdata = nd, margin =  .... [TRUNCATED] 
@@ -247,6 +260,11 @@ The following object is masked from 'package:pracma':
 > aucc <- sapply(roccs, function(r) pracma::trapz(ps, 
 +     r))
 
+> oosaucs <- lapply(ords, function(mrg) mclapply(1:n_reps, 
++     function(x) oosauc(mrg), mc.cores = 6))
+
+> oosaucc <- sapply(1:J, function(j) mean(unlist(oosaucs[[j]])))
+
 > cf <- coef(mm)
 
 > V <- vcov(mm)
@@ -279,6 +297,8 @@ The following object is masked from 'package:pracma':
 
 > auccr <- format(round(aucc, 3))
 
+> oauccr <- format(round(oosaucc, 3))
+
 > ci_aucmr <- format(round(ci_aucm, 3))
 
 > ci_auccr <- format(round(ci_aucc, 3))
@@ -291,18 +311,18 @@ The following object is masked from 'package:pracma':
 > ci_auccrt <- apply(ci_auccr, 2, function(x) prtci(x[1], 
 +     x[2]))
 
-> tb_auc <- data.frame(name = bcoln, paste(aucmr, ci_aucmrt), 
-+     paste(auccr, ci_auccrt), row.names = NULL)
+> tb_auc <- data.frame(name = bcol, paste(aucmr, ci_aucmrt), 
++     paste(auccr, ci_auccrt), oauccr, row.names = NULL)
 
 > colnames(tb_auc) <- c("Marker", "Marginal AUC (95% CI)", 
-+     "Cumulative AUC (95% CI)")
++     "Cumulative AUC (95% CI)", "Mean cumulative OOS AUC")
 
 > tb_auc
-    Marker Marginal AUC (95% CI) Cumulative AUC (95% CI)
-1    DKK-1  0.674 (0.632, 0.726)    0.674 (0.632, 0.726)
-2      OPN  0.716 (0.680, 0.752)    0.780 (0.742, 0.821)
-3 PIVKA-II  0.767 (0.721, 0.811)    0.844 (0.811, 0.881)
-4      AFP  0.814 (0.772, 0.856)    0.883 (0.851, 0.911)
+  Marker Marginal AUC (95% CI) Cumulative AUC (95% CI) Mean cumulative OOS AUC
+1    AFP  0.814 (0.772, 0.859)    0.814 (0.772, 0.859)                   0.768
+2    PIV  0.767 (0.736, 0.813)    0.832 (0.799, 0.873)                   0.785
+3    OPN  0.716 (0.682, 0.750)    0.871 (0.842, 0.903)                   0.819
+4    DKK  0.674 (0.637, 0.717)    0.883 (0.858, 0.914)                   0.836
 
 > coefs <- mclapply(1:nrow(P), function(j) theta2coefs(P[j, 
 +     ]), mc.cores = 6)
@@ -331,21 +351,21 @@ The following object is masked from 'package:pracma':
 > colnames(tb_cfs) <- c("Variable", "Coefficient (95% CI)")
 
 > tb_cfs
-                Variable   Coefficient (95% CI)
-1         location.DKK-1 0.722 ( 0.516,  0.963)
-2           location.OPN 0.781 ( 0.519,  1.027)
-3      location.PIVKA-II 1.257 ( 0.955,  1.526)
-4           location.AFP 1.573 ( 1.242,  1.912)
-5            scale.DKK-1 0.499 ( 0.201,  0.790)
-6              scale.OPN 1.233 ( 0.959,  1.547)
-7         scale.PIVKA-II 0.692 ( 0.408,  0.994)
-8              scale.AFP 0.754 ( 0.460,  0.960)
-9  correlation.OPN - DKK 0.104 (-0.001,  0.210)
-10 correlation.PIV - DKK 0.302 ( 0.186,  0.363)
-11 correlation.PIV - OPN 0.315 ( 0.211,  0.399)
-12 correlation.AFP - DKK 0.232 ( 0.116,  0.314)
-13 correlation.AFP - OPN 0.348 ( 0.247,  0.417)
-14 correlation.AFP - PIV 0.833 ( 0.800,  0.865)
+                Variable Coefficient (95% CI)
+1           location.AFP 1.572 (1.242, 1.904)
+2      location.PIVKA-II 1.257 (1.059, 1.532)
+3           location.OPN 0.780 (0.524, 1.099)
+4         location.DKK-1 0.721 (0.504, 0.930)
+5              scale.AFP 0.753 (0.480, 1.036)
+6         scale.PIVKA-II 0.694 (0.394, 0.961)
+7              scale.OPN 1.232 (0.999, 1.508)
+8            scale.DKK-1 0.499 (0.243, 0.801)
+9  correlation.PIV - AFP 0.833 (0.791, 0.860)
+10 correlation.OPN - AFP 0.348 (0.261, 0.413)
+11 correlation.OPN - PIV 0.315 (0.234, 0.388)
+12 correlation.DKK - AFP 0.232 (0.152, 0.311)
+13 correlation.DKK - PIV 0.302 (0.228, 0.390)
+14 correlation.DKK - OPN 0.104 (0.001, 0.207)
 
 > cexauc <- 0.9
 
@@ -445,18 +465,18 @@ NULL
 
 > plot_gof(subset(dd, D == 0))
 $pvalmin
-[1] 0.2710204
+[1] 0.4407553
 
 $pvalprod
-[1] 0.1228655
+[1] 0.3080256
 
 
 > plot_gof(subset(dd, D == 1))
 $pvalmin
-[1] 0.004226113
+[1] 0.1146073
 
 $pvalprod
-[1] 0.005111139
+[1] 0.100974
 
 
 > layout(mat = matrix(c(1, 0, 0, 2, 3, 0, 4, 5, 6), 
@@ -495,25 +515,7 @@ NULL
 [[4]]
 NULL
 
-Warning messages:
-1: In regularize.values(x, y, ties, missing(ties), na.rm = na.rm) :
-  collapsing to unique 'x' values
-2: In regularize.values(x, y, ties, missing(ties), na.rm = na.rm) :
-  collapsing to unique 'x' values
-3: In regularize.values(x, y, ties, missing(ties), na.rm = na.rm) :
-  collapsing to unique 'x' values
-4: In regularize.values(x, y, ties, missing(ties), na.rm = na.rm) :
-  collapsing to unique 'x' values
-5: In regularize.values(x, y, ties, missing(ties), na.rm = na.rm) :
-  collapsing to unique 'x' values
-6: In regularize.values(x, y, ties, missing(ties), na.rm = na.rm) :
-  collapsing to unique 'x' values
-7: In regularize.values(x, y, ties, missing(ties), na.rm = na.rm) :
-  collapsing to unique 'x' values
-8: In regularize.values(x, y, ties, missing(ties), na.rm = na.rm) :
-  collapsing to unique 'x' values
-9: In regularize.values(x, y, ties, missing(ties), na.rm = na.rm) :
-  collapsing to unique 'x' values
+There were 50 or more warnings (use warnings() to see the first 50)
 > dev.off()
 null device 
           1 
@@ -524,4 +526,4 @@ null device
 > 
 > proc.time()
     user   system  elapsed 
-1493.814    1.786  329.829 
+4170.346    9.156  957.213 

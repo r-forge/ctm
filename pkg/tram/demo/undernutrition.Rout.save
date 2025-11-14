@@ -1,6 +1,6 @@
 
-R version 4.4.1 (2024-06-14) -- "Race for Your Life"
-Copyright (C) 2024 The R Foundation for Statistical Computing
+R version 4.5.2 (2025-10-31) -- "[Not] Part in a Rumble"
+Copyright (C) 2025 The R Foundation for Statistical Computing
 Platform: x86_64-pc-linux-gnu
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
@@ -15,17 +15,30 @@ Type 'demo()' for some demos, 'help()' for on-line help, or
 'help.start()' for an HTML browser interface to help.
 Type 'q()' to quit R.
 
-[Previously saved workspace restored]
-
-> ### UNDERNUTRITION DATA DEMO
-> library("tram") 
+> 
+> ### Undernutrition example presented in 
+> ### 
+> ### 	Multivariate Conditional Transformation Models
+> ### 	by Nadja Klein, Torsten Hothorn, Luisa Barbanti & Thomas Kneib
+> ### 	doi:10.1111/sjos.12501
+> ###
+> 
+> pkgs <- c("tram", "mvtnorm", "colorspace", "latex2exp")
+> 
+> ip <- rownames(installed.packages())
+> if (any(!pkgs %in% ip))
++     install.packages(pkgs[!pkgs %in% ip], repos = "https://stat.ethz.ch/CRAN/")
+> 
+> OK <- sapply(pkgs, require, character.only = TRUE)
+Loading required package: tram
 Loading required package: mlt
 Loading required package: basefun
 Loading required package: variables
 Loading required package: mvtnorm
-> library("mvtnorm")
-> library("colorspace")
-> library("latex2exp")
+Loading required package: colorspace
+Loading required package: latex2exp
+> if (!all(OK)) 
++     stop("package(s) ", paste(pkgs[!OK], collapse = ", "), " not available")
 > 
 > set.seed(42)
 > par(ask = TRUE)
@@ -100,26 +113,13 @@ Warning messages:
 > Bxlambda <- Bernstein_basis(numeric_var("cage", support = quantile(dat$cage, prob = c(.1, .9)),
 +                                         bounds = c(0, 100)), order = 6, extrapolate = TRUE)
 > 
-> op <- mltoptim(auglag = list(maxtry = 5), trace = FALSE)
-> 
 > theta <- c(coef(m_stunting), coef(m_wasting), coef(m_underweight), rep(0, 7 * 3 * 2 / 2))
 > 
 > ### fitting joint model
 > m_full <- Mmlt(m_stunting, m_wasting, m_underweight, 
 +                conditional = TRUE, ### as in SJS paper
 +                theta = theta,      ### use simple starting values
-+                formula = Bxlambda, data = dat, optim = op["nloptr"])
-Warning messages:
-1: In .mmlt_setup(models = models, formula = formula, dofit = dofit,  :
-  Conditional models with covariate-dependent correlations are order-dependent
-2: In optim[[i]](theta = start, f = function(par) f(par, scl = scl),  :
-  NLOPT_MAXEVAL_REACHED: Optimization stopped because maxeval (above) was reached.
-> 
-> ### refit model to obtain Hessian
-> m_full <- Mmlt(m_stunting, m_wasting, m_underweight, 
-+                conditional = TRUE,        ### as in SJS paper
-+                theta = coef(m_full),      ### use nice starting values
-+                formula = Bxlambda, data = dat, optim = op)
++                formula = Bxlambda, data = dat)
 Warning message:
 In .mmlt_setup(models = models, formula = formula, dofit = dofit,  :
   Conditional models with covariate-dependent correlations are order-dependent
@@ -128,131 +128,131 @@ In .mmlt_setup(models = models, formula = formula, dofit = dofit,  :
 'log Lik.' -69775.8 (df=63)
 > coef(m_full)
       stunting2.Bs1(stunting2):(Intercept) 
-                              -2.488319216 
+                              -2.488437495 
       stunting2.Bs2(stunting2):(Intercept) 
-                              -1.331689677 
+                              -1.331756928 
       stunting2.Bs3(stunting2):(Intercept) 
-                              -0.674441784 
+                              -0.674447819 
       stunting2.Bs4(stunting2):(Intercept) 
-                               0.252483610 
+                               0.252499299 
       stunting2.Bs5(stunting2):(Intercept) 
-                               1.212445485 
+                               1.212535410 
       stunting2.Bs6(stunting2):(Intercept) 
-                               1.735195693 
+                               1.735320579 
       stunting2.Bs7(stunting2):(Intercept) 
-                               2.369240698 
+                               2.369376775 
              stunting2.Bs1(stunting2):cage 
-                               0.043714996 
+                               0.043719707 
              stunting2.Bs2(stunting2):cage 
-                               0.036209857 
+                               0.036212400 
              stunting2.Bs3(stunting2):cage 
-                               0.036408682 
+                               0.036409418 
              stunting2.Bs4(stunting2):cage 
-                               0.038520739 
+                               0.038519355 
              stunting2.Bs5(stunting2):cage 
-                               0.021824209 
+                               0.021821684 
              stunting2.Bs6(stunting2):cage 
-                               0.024649905 
+                               0.024644004 
              stunting2.Bs7(stunting2):cage 
-                               0.028314494 
+                               0.028309802 
         wasting2.Bs1(wasting2):(Intercept) 
-                              -3.105322782 
+                              -3.105144409 
         wasting2.Bs2(wasting2):(Intercept) 
-                              -1.703596047 
+                              -1.703591444 
         wasting2.Bs3(wasting2):(Intercept) 
-                              -0.786873583 
+                              -0.786662515 
         wasting2.Bs4(wasting2):(Intercept) 
-                               0.198331680 
+                               0.198162926 
         wasting2.Bs5(wasting2):(Intercept) 
-                               1.124344700 
+                               1.124410060 
         wasting2.Bs6(wasting2):(Intercept) 
-                               2.007130102 
+                               2.006943428 
         wasting2.Bs7(wasting2):(Intercept) 
-                               2.631654953 
+                               2.631482395 
                wasting2.Bs1(wasting2):cage 
-                               0.004069735 
+                               0.004067348 
                wasting2.Bs2(wasting2):cage 
-                              -0.001412412 
+                              -0.001413106 
                wasting2.Bs3(wasting2):cage 
-                               0.014703526 
+                               0.014702370 
                wasting2.Bs4(wasting2):cage 
-                              -0.005448879 
+                              -0.005450990 
                wasting2.Bs5(wasting2):cage 
-                               0.036505601 
+                               0.036505422 
                wasting2.Bs6(wasting2):cage 
-                               0.031264957 
+                               0.031266252 
                wasting2.Bs7(wasting2):cage 
-                               0.050971612 
+                               0.050972662 
 underweight2.Bs1(underweight2):(Intercept) 
-                             -29.834747725 
+                             -29.835375328 
 underweight2.Bs2(underweight2):(Intercept) 
-                             -16.189870189 
+                             -16.190420073 
 underweight2.Bs3(underweight2):(Intercept) 
-                              -9.010769017 
+                              -9.009629583 
 underweight2.Bs4(underweight2):(Intercept) 
-                               8.921519842 
+                               8.919591294 
 underweight2.Bs5(underweight2):(Intercept) 
-                              11.545255392 
+                              11.548303494 
 underweight2.Bs6(underweight2):(Intercept) 
-                              19.635322083 
+                              19.634500707 
 underweight2.Bs7(underweight2):(Intercept) 
-                              25.675876505 
+                              25.676605365 
        underweight2.Bs1(underweight2):cage 
-                               0.337430027 
+                               0.337455705 
        underweight2.Bs2(underweight2):cage 
-                               0.283100262 
+                               0.283111694 
        underweight2.Bs3(underweight2):cage 
-                               0.524152383 
+                               0.524137444 
        underweight2.Bs4(underweight2):cage 
-                               0.102068769 
+                               0.102120529 
        underweight2.Bs5(underweight2):cage 
-                               0.524591404 
+                               0.524424990 
        underweight2.Bs6(underweight2):cage 
-                               0.573029821 
+                               0.573133865 
        underweight2.Bs7(underweight2):cage 
-                               0.735170378 
+                               0.735111299 
               wasting2.stunting2.Bs1(cage) 
-                               0.393348635 
+                               0.393313838 
               wasting2.stunting2.Bs2(cage) 
-                               0.372304628 
+                               0.372298246 
               wasting2.stunting2.Bs3(cage) 
-                              -0.527912207 
+                              -0.527856910 
               wasting2.stunting2.Bs4(cage) 
-                               0.224864201 
+                               0.224758048 
               wasting2.stunting2.Bs5(cage) 
-                              -0.425458970 
+                              -0.425353795 
               wasting2.stunting2.Bs6(cage) 
-                               0.165771478 
+                               0.165741397 
               wasting2.stunting2.Bs7(cage) 
-                               0.071978347 
+                               0.071946930 
           underweight2.stunting2.Bs1(cage) 
-                              -9.481890030 
+                              -9.481593966 
           underweight2.stunting2.Bs2(cage) 
-                              -9.622346787 
+                              -9.622077920 
           underweight2.stunting2.Bs3(cage) 
-                             -14.034655900 
+                             -14.034512297 
           underweight2.stunting2.Bs4(cage) 
-                               0.258793354 
+                               0.258952007 
           underweight2.stunting2.Bs5(cage) 
-                              -9.369361359 
+                              -9.369373300 
           underweight2.stunting2.Bs6(cage) 
-                              -7.926438751 
+                              -7.926354294 
           underweight2.stunting2.Bs7(cage) 
-                              -7.723295602 
+                              -7.723335399 
            underweight2.wasting2.Bs1(cage) 
-                              -7.503906449 
+                              -7.504485538 
            underweight2.wasting2.Bs2(cage) 
-                              -6.991701350 
+                              -6.992161897 
            underweight2.wasting2.Bs3(cage) 
-                             -16.582079210 
+                             -16.583115946 
            underweight2.wasting2.Bs4(cage) 
-                               4.748152231 
+                               4.748611939 
            underweight2.wasting2.Bs5(cage) 
-                             -10.872111653 
+                             -10.872751240 
            underweight2.wasting2.Bs6(cage) 
-                              -9.178259189 
+                              -9.178541332 
            underweight2.wasting2.Bs7(cage) 
-                              -8.098637957 
+                              -8.098836526 
 > 
 > ### FAST ALTERNATIVE TO PARAMETRIC BOOTSTRAP
 > ### sampling nsamp values from the asymptotic (normal) distribution of the parameters
@@ -414,17 +414,17 @@ underweight2.Bs7(underweight2):(Intercept)
 > ### warnings can be safely ignored
 > 
 > sessionInfo()
-R version 4.4.1 (2024-06-14)
+R version 4.5.2 (2025-10-31)
 Platform: x86_64-pc-linux-gnu
 Running under: Debian GNU/Linux 12 (bookworm)
 
 Matrix products: default
 BLAS:   /usr/local/lib/R/lib/libRblas.so 
-LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.11.0
+LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.11.0  LAPACK version 3.11.0
 
 locale:
  [1] LC_CTYPE=en_GB.UTF-8       LC_NUMERIC=C              
- [3] LC_TIME=en_GB.UTF-8        LC_COLLATE=en_GB.UTF-8    
+ [3] LC_TIME=en_GB.UTF-8        LC_COLLATE=C              
  [5] LC_MONETARY=en_GB.UTF-8    LC_MESSAGES=en_GB.UTF-8   
  [7] LC_PAPER=en_GB.UTF-8       LC_NAME=C                 
  [9] LC_ADDRESS=C               LC_TELEPHONE=C            
@@ -437,22 +437,23 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
-[1] latex2exp_0.9.6  colorspace_2.1-1 tram_1.1-0       mvtnorm_1.3-1   
-[5] mlt_1.6-0        basefun_1.2-0    variables_1.1-1 
+[1] latex2exp_0.9.6  colorspace_2.1-2 tram_1.3-0       mvtnorm_1.3-4   
+[5] mlt_1.7-2        basefun_1.2-5    variables_1.1-2 
 
 loaded via a namespace (and not attached):
- [1] vctrs_0.6.5          cli_3.6.3            rlang_1.1.4         
- [4] TH.data_1.1-2        Formula_1.2-5        stringi_1.8.4       
- [7] BB_2019.10-1         glue_1.7.0           zoo_1.8-12          
-[10] quadprog_1.5-8       grid_4.4.1           MASS_7.3-60.2       
-[13] lifecycle_1.0.4      numDeriv_2016.8-1.1  stringr_1.5.1       
-[16] compiler_4.4.1       multcomp_1.4-26      codetools_0.2-20    
-[19] sandwich_3.1-0       Rcpp_1.0.13          alabama_2023.1.0    
-[22] lattice_0.22-6       nloptr_2.1.1         polynom_1.4-1       
-[25] splines_4.4.1        magrittr_2.0.3       coneproj_1.19       
-[28] Matrix_1.7-0         tools_4.4.1          orthopolynom_1.0-6.1
-[31] survival_3.7-0      
+ [1] vctrs_0.6.5          cli_3.6.5            rlang_1.1.6         
+ [4] TH.data_1.1-4        Formula_1.2-5        stringi_1.8.7       
+ [7] BB_2019.10-1         icenReg_2.0.16       glue_1.8.0          
+[10] zoo_1.8-14           quadprog_1.5-8       grid_4.5.2          
+[13] MASS_7.3-65          lifecycle_1.0.4      foreach_1.5.2       
+[16] numDeriv_2016.8-1.1  stringr_1.6.0        compiler_4.5.2      
+[19] multcomp_1.4-29      codetools_0.2-20     sandwich_3.1-1      
+[22] coda_0.19-4.1        Rcpp_1.1.0           alabama_2023.1.0    
+[25] lattice_0.22-7       nloptr_2.2.1         polynom_1.4-1       
+[28] splines_4.5.2        magrittr_2.0.4       coneproj_1.21       
+[31] Matrix_1.7-4         tools_4.5.2          orthopolynom_1.0-6.1
+[34] iterators_1.0.14     survival_3.8-3      
 > 
 > proc.time()
    user  system elapsed 
-110.599   2.273 112.990 
+ 64.755   1.542  66.361 

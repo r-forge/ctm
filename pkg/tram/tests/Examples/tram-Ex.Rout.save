@@ -1,7 +1,7 @@
 
-R version 4.3.2 (2023-10-31) -- "Eye Holes"
-Copyright (C) 2023 The R Foundation for Statistical Computing
-Platform: x86_64-pc-linux-gnu (64-bit)
+R version 4.5.2 (2025-10-31) -- "[Not] Part in a Rumble"
+Copyright (C) 2025 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
@@ -121,14 +121,14 @@ BoxCox(formula = cmedv ~ chas + crim + zn + indus + nox + rm +
 
 Coefficients:
        chas1         crim           zn        indus          nox           rm 
- 0.583348332 -0.043726668  0.006536546  0.012388221 -4.847838876  0.477892294 
+ 0.614652802 -0.047232066  0.005875600  0.016212421 -4.848795925  0.400312601 
          age          dis          rad          tax      ptratio            b 
--0.002987777 -0.310677878  0.081438876 -0.003723606 -0.225009996  0.002615711 
+-0.001772639 -0.290827823  0.078787249 -0.003631922 -0.217394343  0.002701834 
        lstat 
--0.166202396 
+-0.171195618 
 
 Log-Likelihood:
- -1355.894 (df = 20)
+ -1338.032 (df = 20)
 
 > 
 > 
@@ -177,19 +177,103 @@ Colr(formula = cmedv ~ chas + crim + zn + indus + nox + rm +
 
 Coefficients:
        chas1         crim           zn        indus          nox           rm 
--0.942113986  0.082016193 -0.009023007 -0.028258752  6.879169021 -1.596149073 
+-0.993333063  0.085869291 -0.008412791 -0.033955976  6.871901732 -1.414088427 
          age          dis          rad          tax      ptratio            b 
- 0.009889381  0.490964969 -0.123709662  0.006587032  0.407752275 -0.006215433 
+ 0.007729050  0.460006325 -0.120067570  0.006420934  0.393875605 -0.006505173 
        lstat 
- 0.281306137 
+ 0.293126064 
 
 Log-Likelihood:
- -1328.019 (df = 20)
+ -1308.809 (df = 20)
 
 > 
 > 
 > 
 > cleanEx()
+> nameEx("Compris")
+> ### * Compris
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: Compris
+> ### Title: Competing Risk Regression
+> ### Aliases: Compris
+> ### Keywords: models regression smooth survival
+> 
+> ### ** Examples
+> 
+>   
+>   if (require("randomForestSRC")) {
++     library("survival")
++     
++     ## Competing risk data set involving follicular cell lymphoma
++     ##   (from doi:10.1002/9780470870709)
++     data("follic", package = "randomForestSRC")
++   
++     ## Therapy:
++     ### Radiotherapy alone (RT) or Chemotherapy + Radiotherapy (CMTRT)
++     follic$ch <- factor(as.character(follic$ch),
++       levels = c("N", "Y"), labels = c("RT", "CMTRT")) 
++   
++     ## Clinical state
++     follic$clinstg <- factor(follic$clinstg,
++       levels = 2:1, labels = c("II", "I"))
++   
++     ## Pre-processing as in Deresa & Van Keilegom (2023)
++     follic$time <- round(follic$time, digits = 3)
++     follic$age <- with(follic, (age - mean(age)) / sd(age)) ## standardised
++     follic$hgb <- with(follic, (hgb - mean(hgb)) / sd(hgb)) ## standardised 
++     
++     ## Setup `Surv' object for fitting Compris():
++     ### "status" indicator with levels:
++     ###   (1) independent censoring (admin_cens)
++     ###   (2) primary event of interest (relapse)
++     ###   (3) dependent censoring (death)
++     follic$status <- factor(follic$status,
++       levels = 0:2, labels = c("admin_cens", "relapse", "death"))
++     
++     follic$y <- with(follic, Surv(time = time, event = status))
++   
++     ## Fit a Gaussian Copula-based Cox Proportional Hazards Model with
++     ##   a marginal "Coxph" model for the primary event of interest and 
++     ##   a Weibull "Survreg" model for dependent censoring
++ 
++     m <- Compris(y ~ ch + age + hgb + clinstg, data = follic,
++                  optim = mltoptim(),    ### no numerical hessian
++                  args  = list(type = "ghalton", 
++                               M = 80))	### only 80 MC integration points
++                                         ### to make CRAN happy
++ 
++     ### log-likelihood
++     logLik(m)
++ 
++     ## Similar to Table 4 of Deresa & Van Keilegom (2023),
++     ## but using a Gaussian copula instead of a Gumbel copula.
++     ## marginal parameters
++     coef(m, type = "marginal")    
++     ## Kendall's tau
++     coef(m, type = "Kendall")
++   }
+Loading required package: randomForestSRC
+
+ randomForestSRC 3.4.4 
+ 
+ Type rfsrc.news() to see new features, changes, and bug fixes. 
+ 
+
+, , 1
+
+              Event_relapse Event_death
+Event_relapse     1.0000000   0.5367655
+Event_death       0.5367655   1.0000000
+
+> 
+> 
+> 
+> cleanEx()
+
+detaching ‘package:survival’, ‘package:randomForestSRC’
+
 > nameEx("Coxph")
 > ### * Coxph
 > 
@@ -225,10 +309,10 @@ Coxph(formula = Surv(time, cens) ~ horTh, data = GBSG2)
 
 Coefficients:
   horThyes 
--0.3713396 
+-0.3657255 
 
 Log-Likelihood:
- -2623.16 (df = 8)
+ -2605.617 (df = 8)
 
 > 
 >   ### McLain & Ghosh (2013)
@@ -238,10 +322,10 @@ Log-Likelihood:
 Call:
 Coxph(formula = Surv(time, cens) ~ horTh, data = GBSG2, frailty = "Gamma")
 
-Type:  continuous linear transformation model (transformed GammaFrailty(rho = 29.097906) distribution)
-Log-Likelihood: -2611.192 (df = 8)
+Type:  continuous linear transformation model (transformed GammaFrailty(rho = 0.7355937) distribution)
+Log-Likelihood: -2605.532 (df = 8)
 
-Coefficients: -0.04021965 6.029464 12.24858 12.24858 16.41298 20.0818 26.49741 -1.002725
+Coefficients: -7.336624 -3.834211 -3.834211 -2.16268 -1.692044 0.05005723 0.601836 -0.448755
 
 > 
 >   ### Wald intervals
@@ -250,18 +334,20 @@ Coefficients: -0.04021965 6.029464 12.24858 12.24858 16.41298 20.0818 26.49741 -
 horThyes -0.6090927 -0.118927
 >   confint(m2)
               2.5 %     97.5 %
-horThyes -0.6163865 -0.1262927
+horThyes -0.6107864 -0.1206647
 >   ### profile likelihood interval
 >   confint(profile(m2))
      2.5 %     97.5 % 
--0.6204689 -0.1297684 
+-0.6148240 -0.1240763 
 >   ### score interval
 >   confint(score_test(m2))
               2.5 %     97.5 %
-horThyes -0.6158706 -0.1268131
+horThyes -0.6101594 -0.1213078
 >   ### permutation score interval; uses permutation distribution
->   ### see coin::independence_test
->   ## Not run: confint(perm_test(m2))
+>   ### see coin::independence_test 
+>   confint(perm_test(m2))
+          2.5 %     97.5 %
+[1,] -0.6066269 -0.1249074
 > 
 > 
 > 
@@ -313,14 +399,14 @@ Lehmann(formula = cmedv ~ chas + crim + zn + indus + nox + rm +
 
 Coefficients:
        chas1         crim           zn        indus          nox           rm 
- 0.409402951 -0.044220272  0.006663756  0.024520371 -4.995295666  1.005577631 
+ 0.439589364 -0.046237859  0.006376011  0.025016648 -4.753717019  0.958525387 
          age          dis          rad          tax      ptratio            b 
--0.008050824 -0.333729145  0.066735634 -0.005567626 -0.254062018  0.002660399 
+-0.006640133 -0.310290944  0.061209639 -0.005393233 -0.245414357  0.002682457 
        lstat 
--0.168819454 
+-0.170652486 
 
 Log-Likelihood:
- -1329.19 (df = 20)
+ -1310.117 (df = 20)
 
 > 
 > 
@@ -369,11 +455,11 @@ Lm(formula = cmedv ~ chas + crim + zn + indus + nox + rm + age +
 
 Coefficients:
         chas1          crim            zn         indus           nox 
- 0.5804601369 -0.0229022318  0.0102916112  0.0050123113 -3.8258970465 
+ 0.5804661474 -0.0229009319  0.0102915894  0.0050123394 -3.8255950258 
            rm           age           dis           rad           tax 
- 0.8171925213  0.0001237452 -0.3238563897  0.0655030763 -0.0027396573 
+ 0.8172202007  0.0001235862 -0.3238457686  0.0655027709 -0.0027396714 
       ptratio             b         lstat 
--0.1992295991  0.0019901578 -0.1144339783 
+-0.1992323184  0.0019902893 -0.1144347471 
 
 Log-Likelihood:
  -1494.245 (df = 15)
@@ -474,7 +560,7 @@ Survreg(formula = Surv(time, cens) ~ horTh, data = GBSG2)
 
 Coefficients:
  horThyes 
-0.3932393 
+0.3932258 
 
 Log-Likelihood:
  -2632.096 (df = 3)
@@ -492,10 +578,9 @@ detaching ‘package:survival’
 > 
 > flush(stderr()); flush(stdout())
 > 
-> ### Name: mmlt
+> ### Name: Mmlt
 > ### Title: Multivariate Conditional Transformation Models
-> ### Aliases: mmlt mmltoptim coef.cmmlt coef.mmmlt predict.mmlt
-> ###   simulate.mmlt
+> ### Aliases: Mmlt
 > ### Keywords: models
 > 
 > ### ** Examples
@@ -511,7 +596,7 @@ detaching ‘package:survival’
 +                    add = c(-5, 5))
 > 
 >   ## fit multivariate unconditional transformation model
->   m_speed_dist <- mmlt(m_speed, m_dist, formula = ~ 1, data = cars)
+>   m_speed_dist <- Mmlt(m_speed, m_dist, formula = ~ 1, data = cars)
 > 
 >   ## log-likelihood
 >   logLik(m_speed_dist)
@@ -519,32 +604,32 @@ detaching ‘package:survival’
 >   sum(predict(m_speed_dist, newdata = cars, type = "density", log = TRUE))
 [1] -348.4534
 > 
->   ## Wald test of independence of speed and dist (the "dist.sped.(Intercept)"
+>   ## Wald test of independence of speed and dist (the "dist.speed.(Intercept)"
 >   ## coefficient)
 >   summary(m_speed_dist)
 
  
 
 Call:
-mmlt(m_speed, m_dist, formula = ~1, data = cars)
+Mmlt(m_speed, m_dist, formula = ~1, data = cars)
 
 Coefficients:
-                      Estimate Std. Error z value Pr(>|z|)    
-sped.Bs1(speed)        -2.3342     0.3667  -6.366 1.94e-10 ***
-sped.Bs2(speed)        -1.2781     0.3095  -4.129 3.64e-05 ***
-sped.Bs3(speed)        -1.2781     0.3095  -4.129 3.64e-05 ***
-sped.Bs4(speed)         0.4783     0.5698   0.839  0.40125    
-sped.Bs5(speed)         0.5184     0.2734   1.896  0.05800 .  
-sped.Bs6(speed)         0.5184     0.2734   1.896  0.05800 .  
-sped.Bs7(speed)         2.0653     0.3236   6.383 1.73e-10 ***
-dist.Bs1(dist)         -2.6999     0.4591  -5.881 4.09e-09 ***
-dist.Bs2(dist)         -0.3250     0.6272  -0.518  0.60432    
-dist.Bs3(dist)          0.5147     0.4242   1.213  0.22504    
-dist.Bs4(dist)          0.5147     0.4242   1.213  0.22504    
-dist.Bs5(dist)          1.4484     0.8769   1.652  0.09860 .  
-dist.Bs6(dist)          1.6857     0.5832   2.891  0.00384 ** 
-dist.Bs7(dist)          2.3246     0.4504   5.161 2.46e-07 ***
-dist.sped.(Intercept)  -1.6332     0.2735  -5.972 2.34e-09 ***
+                       Estimate Std. Error z value Pr(>|z|)    
+speed.Bs1(speed)        -2.3342     0.3667  -6.366 1.94e-10 ***
+speed.Bs2(speed)        -1.2781     0.3095  -4.129 3.64e-05 ***
+speed.Bs3(speed)        -1.2781     0.3095  -4.129 3.64e-05 ***
+speed.Bs4(speed)         0.4782     0.5698   0.839  0.40128    
+speed.Bs5(speed)         0.5184     0.2734   1.896  0.05800 .  
+speed.Bs6(speed)         0.5184     0.2734   1.896  0.05799 .  
+speed.Bs7(speed)         2.0653     0.3235   6.383 1.74e-10 ***
+dist.Bs1(dist)          -2.6999     0.4591  -5.881 4.09e-09 ***
+dist.Bs2(dist)          -0.3250     0.6272  -0.518  0.60434    
+dist.Bs3(dist)           0.5147     0.4242   1.213  0.22507    
+dist.Bs4(dist)           0.5147     0.4242   1.213  0.22507    
+dist.Bs5(dist)           1.4484     0.8769   1.652  0.09860 .  
+dist.Bs6(dist)           1.6857     0.5832   2.891  0.00385 ** 
+dist.Bs7(dist)           2.3245     0.4504   5.161 2.46e-07 ***
+dist.speed.(Intercept)  -1.6332     0.2735  -5.972 2.34e-09 ***
 ---
 Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
@@ -555,12 +640,14 @@ Log-Likelihood:
 >   ## LR test comparing to independence model
 >   LR <- 2 * (logLik(m_speed_dist) - logLik(m_speed) - logLik(m_dist))
 >   pchisq(LR, df = 1, lower.tail = FALSE)
-'log Lik.' 1.164858e-15 (df=15)
+'log Lik.' 1.164859e-15 (df=15)
 > 
 >   ## constrain lambda to zero and fit independence model
 >   ## => log-likelihood is the sum of the marginal log-likelihoods
->   mI <- mmlt(m_speed, m_dist, formula = ~1, data = cars, 
-+              fixed = c("dist.sped.(Intercept)" = 0))
+>   mI <- Mmlt(m_speed, m_dist, formula = ~1, data = cars, 
++              fixed = c("dist.speed.(Intercept)" = 0))
+Warning in max(abs(pg)) :
+  no non-missing arguments to max; returning -Inf
 >   logLik(m_speed) + logLik(m_dist)
 'log Lik.' -380.5183 (df=7)
 >   logLik(mI)
@@ -571,18 +658,18 @@ Log-Likelihood:
 >   (r <- coef(m_speed_dist, type = "Corr"))
 , , 1
 
-          sped      dist
-sped 1.0000000 0.8528304
-dist 0.8528304 1.0000000
+          speed      dist
+speed 1.0000000 0.8528312
+dist  0.8528312 1.0000000
 
 >   
 >   ## Spearman's rho (rank correlation) of speed and dist on original scale
 >   (rs <- coef(m_speed_dist, type = "Spearman"))
 , , 1
 
-          sped      dist
-sped 1.0000000 0.8413424
-dist 0.8413424 1.0000000
+          speed      dist
+speed 1.0000000 0.8413433
+dist  0.8413433 1.0000000
 
 > 
 >   ## evaluate joint and marginal densities (needs to be more user-friendly)
@@ -641,15 +728,35 @@ dist 0.8413424 1.0000000
 > ### ** Examples
 > 
 > 
->   ### For illustrations see
->   ## vignette("mtram", package = "tram")
->   ## or
->   ## demo("mtram", package = "tram")
-> 
+>   if (require("lme4")) {
++       ### linear mixed model
++       sleep_lmer <- lmer(Reaction ~ Days + (Days | Subject), 
++                          data = sleepstudy, REML = FALSE)
++ 
++       ### marginal transformation model
++       sleep_LM <- Lm(Reaction ~ Days, data = sleepstudy)
++       sleep_LMmer <- mtram(sleep_LM, ~ (Days | Subject), data = sleepstudy)
++ 
++       ### the same
++       logLik(sleep_lmer)
++       logLik(sleep_LMmer)
++ 
++       ### Lm / mtram estimate standardised effects
++       sdinv <- 1 / summary(sleep_lmer)$sigma
++       fixef(sleep_lmer) * c(-1, 1) * sdinv
++       coef(sleep_LMmer)[c("(Intercept)", "Days")]
++   }
+Loading required package: lme4
+Loading required package: Matrix
+(Intercept)        Days 
+ -9.8252286   0.4091449 
 > 
 > 
 > 
 > cleanEx()
+
+detaching ‘package:lme4’, ‘package:Matrix’
+
 > nameEx("perm_test")
 > ### * perm_test
 > 
@@ -708,22 +815,22 @@ difference in location
 >   ### Wald confidence interval
 >   confint(md)
                2.5 %    97.5 %
-ageAt term -3.346448 0.5496213
+ageAt term -3.215749 0.5977511
 > 
 >   ### Likelihood confidence interval
 >   confint(profile(md))
      2.5 %     97.5 % 
--3.4432762  0.4982587 
+-3.3117320  0.5573283 
 > 
 >   ### Score confidence interval
 >   confint(score_test(md))
                2.5 %    97.5 %
-ageAt term -3.268073 0.4791082
+ageAt term -3.165315 0.5335403
 >   confint(score_test(md, Taylor = TRUE))
 Warning in score_test.tram(md, Taylor = TRUE) :
   cannot compute score interval, returning Wald interval
                2.5 %    97.5 %
-ageAt term -3.346448 0.5496213
+ageAt term -3.215749 0.5977511
 > 
 >   ### exact permutation score test
 >   (pt <- perm_test(md, confint = TRUE, distribution = "exact"))
@@ -731,13 +838,13 @@ ageAt term -3.346448 0.5496213
 	Exact Permutation Transformation Score Test
 
 data:  Colr(formula = pd ~ age, data = diffusion)
-Z = 1.3271, p-value = 0.1915
+Z = 1.3167, p-value = 0.1948
 alternative hypothesis: true log-odds ratio for ageAt term is not equal to 0
 95 percent confidence interval:
- -3.4225136  0.6038877
+ -3.231826  0.568369
 sample estimates:
 log-odds ratio for ageAt term 
-                    -1.398413 
+                    -1.308999 
 
 >   (pt <- perm_test(md, confint = TRUE, distribution = "exact", 
 +                    Taylor = TRUE))
@@ -747,13 +854,13 @@ Warning in perm_test.tram(md, confint = TRUE, distribution = "exact", Taylor = T
 	Exact Permutation Transformation Score Test
 
 data:  Colr(formula = pd ~ age, data = diffusion)
-Z = 1.3271, p-value = 0.1915
+Z = 1.3167, p-value = 0.1948
 alternative hypothesis: true log-odds ratio for ageAt term is not equal to 0
 95 percent confidence interval:
- -3.5169102  0.6890073
+ -3.2871861  0.6364507
 sample estimates:
 log-odds ratio for ageAt term 
-                    -1.398413 
+                    -1.308999 
 
 > 
 >   ### compare with probabilistic indices obtained from asht::wmwTest
@@ -816,6 +923,122 @@ detaching ‘package:asht’, ‘package:coin’, ‘package:bpcp’,
   ‘package:ggplot2’, ‘package:survival’, ‘package:exact2x2’,
   ‘package:exactci’, ‘package:testthat’, ‘package:ssanv’
 
+> nameEx("robust_score_test")
+> ### * robust_score_test
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: robust_score_test
+> ### Title: Doubly Robust Transformation Score Test
+> ### Aliases: robust_score_test robust_score_test.tram
+> 
+> ### ** Examples
+> 
+> data("mtcars")
+> ### Linear shift tram
+> m <- Lm(mpg ~ cyl + disp, data = mtcars)
+> robust_score_test(m, parm = "cyl")
+Loading required namespace: ranger
+
+	Doubly-robust Transformation Score Test
+
+data:  Lm(formula = mpg ~ cyl + disp, data = mtcars)
+Z = 1.3903, p-value = 0.1644
+alternative hypothesis: true standardised difference for cyl is not equal to 0
+
+> ### Linear shift-scale tram
+> m2 <- Lm(mpg ~ cyl | disp, data = mtcars)
+> robust_score_test(m2, parm = "cyl")
+
+	Doubly-robust Transformation Score Test
+
+data:  Lm(formula = mpg ~ cyl | disp, data = mtcars)
+Z = 1.2078, p-value = 0.2271
+alternative hypothesis: true standardised difference for cyl is not equal to 0
+
+> robust_score_test(m2, parm = "scl_disp")
+
+	Doubly-robust Transformation Score Test
+
+data:  Lm(formula = mpg ~ cyl | disp, data = mtcars)
+Z = 2.1356, p-value = 0.03271
+alternative hypothesis: true standardised difference for scl_disp is not equal to 0
+
+> ### Stratified linear shift tram
+> m3 <- Lm(mpg | 0 + disp ~ cyl, data = mtcars)
+Warning in model.matrix.box_bases(object = list(iresponse = function (data,  :
+  use scale = TRUE in as.basis.formula with sumcontr = TRUE
+Warning in model.matrix.box_bases(object = list(iresponse = function (data,  :
+  use scale = TRUE in as.basis.formula with sumcontr = TRUE
+Warning in model.matrix.box_bases(object = list(iresponse = function (data,  :
+  use scale = TRUE in as.basis.formula with sumcontr = TRUE
+Warning in model.matrix.box_bases(object = list(iresponse = function (data,  :
+  use scale = TRUE in as.basis.formula with sumcontr = TRUE
+Warning in model.matrix.box_bases(object = list(iresponse = function (data,  :
+  use scale = TRUE in as.basis.formula with sumcontr = TRUE
+Warning in model.matrix.box_bases(object = list(iresponse = function (data,  :
+  use scale = TRUE in as.basis.formula with sumcontr = TRUE
+Warning in model.matrix.box_bases(object = list(iresponse = function (data,  :
+  use scale = TRUE in as.basis.formula with sumcontr = TRUE
+Warning in model.matrix.box_bases(object = list(iresponse = function (data,  :
+  use scale = TRUE in as.basis.formula with sumcontr = TRUE
+Warning in model.matrix.box_bases(object = list(iresponse = function (data,  :
+  use scale = TRUE in as.basis.formula with sumcontr = TRUE
+Warning in model.matrix.box_bases(object = list(iresponse = function (data,  :
+  use scale = TRUE in as.basis.formula with sumcontr = TRUE
+> robust_score_test(m3, parm = "cyl")
+Warning in model.matrix.box_bases(object = list(iresponse = function (data,  :
+  use scale = TRUE in as.basis.formula with sumcontr = TRUE
+Warning in model.matrix.box_bases(object = list(iresponse = function (data,  :
+  use scale = TRUE in as.basis.formula with sumcontr = TRUE
+
+	Doubly-robust Transformation Score Test
+
+data:  Lm(formula = mpg | 0 + disp ~ cyl, data = mtcars)
+Z = 1.2269, p-value = 0.2199
+alternative hypothesis: true standardised difference for cyl is not equal to 0
+
+> ### Stratified linear shift-scale tram
+> m4 <- Lm(mpg | 0 + disp ~ cyl | cyl, data = mtcars)
+Warning in model.matrix.box_bases(object = list(iresponse = function (data,  :
+  use scale = TRUE in as.basis.formula with sumcontr = TRUE
+Warning in tram(td, transformation = "linear", distribution = "Normal",  :
+  Models with both strata and scale terms are highly experimental
+Warning in model.matrix.box_bases(object = list(iresponse = function (data,  :
+  use scale = TRUE in as.basis.formula with sumcontr = TRUE
+Warning in model.matrix.box_bases(object = list(iresponse = function (data,  :
+  use scale = TRUE in as.basis.formula with sumcontr = TRUE
+Warning in model.matrix.box_bases(object = list(iresponse = function (data,  :
+  use scale = TRUE in as.basis.formula with sumcontr = TRUE
+Warning in model.matrix.box_bases(object = list(iresponse = function (data,  :
+  use scale = TRUE in as.basis.formula with sumcontr = TRUE
+Warning in model.matrix.box_bases(object = list(iresponse = function (data,  :
+  use scale = TRUE in as.basis.formula with sumcontr = TRUE
+Warning in model.matrix.box_bases(object = list(iresponse = function (data,  :
+  use scale = TRUE in as.basis.formula with sumcontr = TRUE
+Warning in model.matrix.box_bases(object = list(iresponse = function (data,  :
+  use scale = TRUE in as.basis.formula with sumcontr = TRUE
+Warning in model.matrix.box_bases(object = list(iresponse = function (data,  :
+  use scale = TRUE in as.basis.formula with sumcontr = TRUE
+Warning in model.matrix.box_bases(object = list(iresponse = function (data,  :
+  use scale = TRUE in as.basis.formula with sumcontr = TRUE
+> robust_score_test(m4, parm = "cyl")
+Warning in model.matrix.box_bases(object = list(iresponse = function (data,  :
+  use scale = TRUE in as.basis.formula with sumcontr = TRUE
+Warning in model.matrix.box_bases(object = list(iresponse = function (data,  :
+  use scale = TRUE in as.basis.formula with sumcontr = TRUE
+
+	Doubly-robust Transformation Score Test
+
+data:  Lm(formula = mpg | 0 + disp ~ cyl | cyl, data = mtcars)
+Z = 1.1843, p-value = 0.2363
+alternative hypothesis: true standardised difference for cyl is not equal to 0
+
+> 
+> 
+> 
+> 
+> cleanEx()
 > nameEx("tram-methods")
 > ### * tram-methods
 > 
@@ -840,7 +1063,7 @@ detaching ‘package:asht’, ‘package:coin’, ‘package:bpcp’,
 +                       rm + age + dis + rad + tax + ptratio + b + lstat,
 +                       data = BostonHousing2)
 >     logLik(BC_BH_2)
-'log Lik.' -1354.178 (df=26)
+'log Lik.' -1334.509 (df=26)
 > 
 >     ### classical likelihood inference
 >     summary(BC_BH_2)
@@ -853,32 +1076,32 @@ BoxCox(formula = cmedv | 0 + chas ~ crim + zn + indus + nox +
 
 Coefficients:
           Estimate Std. Error z value Pr(>|z|)    
-crim    -0.0437659  0.0074057  -5.910 3.43e-09 ***
-zn       0.0065372  0.0029506   2.216   0.0267 *  
-indus    0.0116043  0.0131108   0.885   0.3761    
-nox     -4.9080706  0.8459312  -5.802 6.55e-09 ***
-rm       0.4924844  0.0955533   5.154 2.55e-07 ***
-age     -0.0029632  0.0028476  -1.041   0.2981    
-dis     -0.3144112  0.0439520  -7.154 8.46e-13 ***
-rad      0.0826306  0.0142873   5.783 7.32e-09 ***
-tax     -0.0037949  0.0008033  -4.724 2.31e-06 ***
-ptratio -0.2250843  0.0286402  -7.859 3.77e-15 ***
-b        0.0026143  0.0005754   4.543 5.53e-06 ***
-lstat   -0.1646966  0.0122825 -13.409  < 2e-16 ***
+crim    -0.0467906  0.0074130  -6.312 2.76e-10 ***
+zn       0.0061513  0.0029332   2.097    0.036 *  
+indus    0.0140681  0.0131135   1.073    0.283    
+nox     -4.9487919  0.8464110  -5.847 5.01e-09 ***
+rm       0.4368418  0.0948225   4.607 4.09e-06 ***
+age     -0.0016568  0.0028368  -0.584    0.559    
+dis     -0.2991249  0.0437646  -6.835 8.21e-12 ***
+rad      0.0811888  0.0142694   5.690 1.27e-08 ***
+tax     -0.0037180  0.0008041  -4.624 3.76e-06 ***
+ptratio -0.2184113  0.0285718  -7.644 2.11e-14 ***
+b        0.0026673  0.0005776   4.618 3.87e-06 ***
+lstat   -0.1669453  0.0123199 -13.551  < 2e-16 ***
 ---
 Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
 Log-Likelihood:
- -1354.178 (df = 26)
-Likelihood-ratio Test: Chisq = 829.0927 on 12 degrees of freedom; p = < 2.2e-16
+ -1334.509 (df = 26)
+Likelihood-ratio Test: Chisq = 817.2314 on 12 degrees of freedom; p = < 2.2e-16
 
 > 
 >     ### coefficients of the linear predictor
 >     coef(BC_BH_2)
         crim           zn        indus          nox           rm          age 
--0.043765872  0.006537248  0.011604276 -4.908070636  0.492484386 -0.002963193 
+-0.046790563  0.006151332  0.014068066 -4.948791933  0.436841809 -0.001656839 
          dis          rad          tax      ptratio            b        lstat 
--0.314411206  0.082630626 -0.003794881 -0.225084312  0.002614309 -0.164696585 
+-0.299124862  0.081188783 -0.003717984 -0.218411314  0.002667338 -0.166945349 
 > 
 >     ### plot linear predictor (mean of _transformed_ response) 
 >     ### vs. observed values
@@ -887,19 +1110,19 @@ Likelihood-ratio Test: Chisq = 829.0927 on 12 degrees of freedom; p = < 2.2e-16
 >     ### all coefficients
 >     coef(BC_BH_2, with_baseline = TRUE)
 Bs1(cmedv):chas0 Bs2(cmedv):chas0 Bs3(cmedv):chas0 Bs4(cmedv):chas0 
-    -9.983050428     -8.594696214     -7.859976417     -4.956465532 
+   -13.299892745    -11.572055177    -11.572055179     -4.413500468 
 Bs5(cmedv):chas0 Bs6(cmedv):chas0 Bs7(cmedv):chas0 Bs1(cmedv):chas1 
-    -4.956465562     -4.454160776     -4.037253413    -11.114682072 
+    -2.922815888     -2.922815896     -2.176114273    -17.466541536 
 Bs2(cmedv):chas1 Bs3(cmedv):chas1 Bs4(cmedv):chas1 Bs5(cmedv):chas1 
-    -8.669143878     -8.669143976     -5.271497932     -5.271497904 
+   -17.466541536     -8.197577847     -4.375130082     -4.375130049 
 Bs6(cmedv):chas1 Bs7(cmedv):chas1             crim               zn 
-    -4.828830306     -4.539343484     -0.043765872      0.006537248 
+    -4.375130134     -3.375504890     -0.046790563      0.006151332 
            indus              nox               rm              age 
-     0.011604276     -4.908070636      0.492484386     -0.002963193 
+     0.014068066     -4.948791933      0.436841809     -0.001656839 
              dis              rad              tax          ptratio 
-    -0.314411206      0.082630626     -0.003794881     -0.225084312 
+    -0.299124862      0.081188783     -0.003717984     -0.218411314 
                b            lstat 
-     0.002614309     -0.164696585 
+     0.002667338     -0.166945349 
 > 
 >     ### compute predicted median along with 10% and 90% quantile for the first
 >     ### observations
@@ -907,9 +1130,9 @@ Bs6(cmedv):chas1 Bs7(cmedv):chas1             crim               zn
 +             prob = c(.1, .5, .9))
        
 prob        [,1]     [,2]     [,3]
-    0.1 22.89642 19.98724 23.43964
-    0.5 27.62621 23.50814 28.62956
-    0.9 37.38451 28.76177 38.97438
+    0.1 22.77239 19.83903 23.39704
+    0.5 27.98349 23.65863 29.08549
+    0.9 38.50440 29.55907 41.48202
 > 
 >     ### plot the predicted density for these observations
 >     plot(BC_BH_2, newdata = BostonHousing2[1:3, -1],
@@ -930,7 +1153,7 @@ prob        [,1]     [,2]     [,3]
 >     ### cars data; with quantile functions
 >     plot(dist ~ speed, data = cars)
 >     m <- Colr(dist ~ speed, data = cars)
->     q <- predict(as.mlt(m), newdata = data.frame(speed = s <- 6:25),
+>     q <- predict(as.mlt(m), newdata = data.frame(speed = s <- 7:20),
 +                  type = "quantile", prob = c(1, 5, 9) / 10)
 >     lines(s, q[1,])
 >     lines(s, q[2,])
@@ -941,46 +1164,46 @@ prob        [,1]     [,2]     [,3]
 >     # Prob(dist at speed s > dist at speed 0)
 >     # speed 0 is reference, not a good choice here
 >     PI(m, newdata = nd)
-          [,1]      [,2]      [,3]      [,4]      [,5]
-[1,] 0.8589555 0.9781801 0.9975257 0.9997579 0.9999781
+          [,1]     [,2]      [,3]      [,4]      [,5]
+[1,] 0.8593495 0.978335 0.9975546 0.9997618 0.9999786
 > 
 >     # Prob(dist at speed s > dist at speed 15)
 >     lp15 <- c(predict(m, newdata = data.frame(speed = 15)))
 >     PI(m, newdata = nd, reference = lp15)
-           [,1]      [,2] [,3]      [,4]      [,5]
-[1,] 0.02181988 0.1410445  0.5 0.8589555 0.9781801
+           [,1]      [,2] [,3]      [,4]     [,5]
+[1,] 0.02166504 0.1406505  0.5 0.8593495 0.978335
 >     PI(m, newdata = nd, reference = nd[3,,drop = FALSE])
-           [,1]      [,2] [,3]      [,4]      [,5]
-[1,] 0.02181988 0.1410445  0.5 0.8589555 0.9781801
+           [,1]      [,2] [,3]      [,4]     [,5]
+[1,] 0.02166504 0.1406505  0.5 0.8593495 0.978335
 > 
 >     # Prob(dist at speed s' > dist at speed s)
 >     PI(m, newdata = nd, reference = nd)
           1         2         3         4
-2 0.8589555                              
-3 0.9781801 0.8589555                    
-4 0.9975257 0.9781801 0.8589555          
-5 0.9997579 0.9975257 0.9781801 0.8589555
+2 0.8593495                              
+3 0.9783350 0.8593495                    
+4 0.9975546 0.9783350 0.8593495          
+5 0.9997618 0.9975546 0.9783350 0.8593495
 >     # essentially:
 >     lp <- predict(m, newdata = nd)
 >     PI(object = dist(lp))
           1         2         3         4
-2 0.8589555                              
-3 0.9781801 0.8589555                    
-4 0.9975257 0.9781801 0.8589555          
-5 0.9997579 0.9975257 0.9781801 0.8589555
+2 0.8593495                              
+3 0.9783350 0.8593495                    
+4 0.9975546 0.9783350 0.8593495          
+5 0.9997618 0.9975546 0.9783350 0.8593495
 >     # same, with simultaneous confidence intervals
 >     PI(m, newdata = nd, reference = nd, conf.level = .95)
      Estimate       lwr       upr
-1-2 0.8589555 0.7810311 0.9136358
-1-3 0.9781801 0.9324247 0.9936252
-2-3 0.8589555 0.7810311 0.9136358
-1-4 0.9975257 0.9835327 0.9996665
-2-4 0.9781801 0.9324247 0.9936252
-3-4 0.8589555 0.7810311 0.9136358
-1-5 0.9997579 0.9965062 0.9999849
-2-5 0.9975257 0.9835327 0.9996665
-3-5 0.9781801 0.9324247 0.9936252
-4-5 0.8589555 0.7810311 0.9136358
+1-2 0.8593495 0.7811056 0.9141291
+1-3 0.9783350 0.9324841 0.9937147
+2-3 0.8593495 0.7811056 0.9141291
+1-4 0.9975546 0.9835574 0.9996740
+2-4 0.9783350 0.9324841 0.9937147
+3-4 0.8593495 0.7811056 0.9141291
+1-5 0.9997618 0.9965137 0.9999854
+2-5 0.9975546 0.9835574 0.9996740
+3-5 0.9783350 0.9324841 0.9937147
+4-5 0.8593495 0.7811056 0.9141291
 attr(,"conf.level")
 [1] 0.95
 attr(,"calpha")
@@ -994,11 +1217,11 @@ attr(,"calpha")
 > 
 >     # Overlap of conditional densities at speed s' and s
 >     OVL(m, newdata = nd, reference = nd)
-           1          2          3          4
-2 0.42053821                                 
-3 0.13239674 0.42053821                      
-4 0.03705084 0.13239674 0.42053821           
-5 0.01000088 0.03705084 0.13239674 0.42053821
+            1           2           3           4
+2 0.419779466                                    
+3 0.131832586 0.419779466                        
+4 0.036802262 0.131832586 0.419779466            
+5 0.009910296 0.036802262 0.131832586 0.419779466
 > 
 >     ### ROC analysis (takes too long for CRAN Windows)
 >     if (require("mlbench") && .Platform$OS.type != "windows") {
@@ -1083,18 +1306,18 @@ detaching ‘package:mlbench’, ‘package:colorspace’
 +                constraints = c("crim >= 0", "chas1 + rm >= 1.5"))
 >   coef(m1)
        chas1         crim           zn        indus          nox           rm 
- 0.583348332 -0.043726668  0.006536546  0.012388221 -4.847838876  0.477892294 
+ 0.614652802 -0.047232066  0.005875600  0.016212421 -4.848795925  0.400312601 
          age          dis          rad          tax      ptratio            b 
--0.002987777 -0.310677878  0.081438876 -0.003723606 -0.225009996  0.002615711 
+-0.001772639 -0.290827823  0.078787249 -0.003631922 -0.217394343  0.002701834 
        lstat 
--0.166202396 
+-0.171195618 
 >   coef(m2)
         chas1          crim            zn         indus           nox 
- 9.135136e-01  2.365750e-08  5.133030e-03  1.189489e-02 -4.505151e+00 
+ 9.780091e-01 -2.971056e-08  4.364899e-03  1.608561e-02 -4.437389e+00 
            rm           age           dis           rad           tax 
- 5.864864e-01 -4.205709e-03 -2.843814e-01  5.530306e-02 -3.361198e-03 
+ 5.219909e-01 -2.746547e-03 -2.592862e-01  4.961829e-02 -3.216593e-03 
       ptratio             b         lstat 
--2.132335e-01  2.905001e-03 -1.624564e-01 
+-2.031165e-01  3.033473e-03 -1.667881e-01 
 > 
 >   K <- matrix(0, nrow = 2, ncol = length(coef(m2)))
 >   colnames(K) <- names(coef(m2))
@@ -1115,7 +1338,7 @@ detaching ‘package:mlbench’, ‘package:colorspace’
 > cleanEx()
 > options(digits = 7L)
 > base::cat("Time elapsed: ", proc.time() - base::get("ptime", pos = 'CheckExEnv'),"\n")
-Time elapsed:  10.735 0.099 10.836 0 0 
+Time elapsed:  24.653 0.171 24.889 0 0 
 > grDevices::dev.off()
 null device 
           1 

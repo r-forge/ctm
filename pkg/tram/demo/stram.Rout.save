@@ -1,13 +1,11 @@
 
-R version 4.3.2 (2023-10-31) -- "Eye Holes"
-Copyright (C) 2023 The R Foundation for Statistical Computing
-Platform: x86_64-pc-linux-gnu (64-bit)
+R version 4.5.2 (2025-10-31) -- "[Not] Part in a Rumble"
+Copyright (C) 2025 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
 Type 'license()' or 'licence()' for distribution details.
-
-  Natural language support but running in an English locale
 
 R is a collaborative project with many contributors.
 Type 'contributors()' for more information and
@@ -25,24 +23,27 @@ Type 'q()' to quit R.
 > run_all <- FALSE 
 > 
 > ## required packages
-> pkgs <- c("tram", "cotram", "trtf", "ATR", "tramvs", "survival", "coin",
+> pkgs <- c("tram", "trtf", "ATR", "tramvs", "survival", "coin",
 +   "multcomp", "TH.data", "gamlss", "gamlss.cens", "mpr", "KONPsurv", "lattice",
-+   "latticeExtra", "grid",  "gridExtra", "reshape2", "colorspace", "xtable")
++   "latticeExtra", "grid",  "gridExtra", "colorspace", "xtable", "cotram")
 > 
-> ix <- which(!sapply(pkgs, require, char = TRUE))
+> ip <- rownames(installed.packages())
+> if (any(!pkgs %in% ip))
++     install.packages(pkgs[!pkgs %in% ip], repos = "https://stat.ethz.ch/CRAN/")
+> 
+> OK <- sapply(pkgs, require, character.only = TRUE)
 Loading required package: tram
 Loading required package: mlt
 Loading required package: basefun
 Loading required package: variables
 Loading required package: mvtnorm
-Loading required package: cotram
 Loading required package: trtf
 Loading required package: partykit
 Loading required package: grid
 
-Attaching package: ‘grid’
+Attaching package: 'grid'
 
-The following object is masked from ‘package:variables’:
+The following object is masked from 'package:variables':
 
     unit
 
@@ -52,9 +53,9 @@ Loading required package: tramvs
 Loading required package: survival
 Loading required package: coin
 
-Attaching package: ‘coin’
+Attaching package: 'coin'
 
-The following object is masked from ‘package:variables’:
+The following object is masked from 'package:variables':
 
     support
 
@@ -62,9 +63,9 @@ Loading required package: multcomp
 Loading required package: TH.data
 Loading required package: MASS
 
-Attaching package: ‘TH.data’
+Attaching package: 'TH.data'
 
-The following object is masked from ‘package:MASS’:
+The following object is masked from 'package:MASS':
 
     geyser
 
@@ -72,32 +73,32 @@ Loading required package: gamlss
 Loading required package: splines
 Loading required package: gamlss.data
 
-Attaching package: ‘gamlss.data’
+Attaching package: 'gamlss.data'
 
-The following object is masked from ‘package:datasets’:
+The following object is masked from 'package:datasets':
 
     sleep
 
 Loading required package: gamlss.dist
 Loading required package: nlme
 
-Attaching package: ‘nlme’
+Attaching package: 'nlme'
 
-The following object is masked from ‘package:mlt’:
+The following object is masked from 'package:mlt':
 
     coef<-
 
 Loading required package: parallel
- **********   GAMLSS Version 5.4-20  ********** 
+ **********   GAMLSS Version 5.5-0  ********** 
 For more on GAMLSS look at https://www.gamlss.com/
 Type gamlssNews() to see new features/changes/bug fixes.
 
 Loading required package: gamlss.cens
 Loading required package: mpr
 
-Attaching package: ‘mpr’
+Attaching package: 'mpr'
 
-The following objects are masked from ‘package:MASS’:
+The following objects are masked from 'package:MASS':
 
     addterm, dropterm
 
@@ -105,11 +106,11 @@ Loading required package: KONPsurv
 Loading required package: lattice
 Loading required package: latticeExtra
 Loading required package: gridExtra
-Loading required package: reshape2
 Loading required package: colorspace
 Loading required package: xtable
-> if (length(ix) > 0) {install.packages(pkgs[ix], repos = "https://stat.ethz.ch/CRAN/")
-+  sapply(pkgs[ix], require, char = TRUE)}
+Loading required package: cotram
+> if (!all(OK)) 
++     stop("package(s) ", paste(pkgs[!OK], collapse = ", "), " not available")
 > 
 > `coef<-` <- mlt::`coef<-` ## masked
 > 
@@ -222,37 +223,37 @@ Vaginal delivery Cesarean section
 +      order = OR, bounds = c(0, Inf), support = c(0, 2000))
 > coef(as.mlt(m))
           Bs1(MBLi):(Intercept)           Bs2(MBLi):(Intercept) 
-                    -4.28920805                     -1.80341677 
+                    -4.27778375                     -1.81851323 
           Bs3(MBLi):(Intercept)           Bs4(MBLi):(Intercept) 
-                     0.77060593                      0.94377070 
+                     0.78121284                      0.94199943 
           Bs5(MBLi):(Intercept)           Bs6(MBLi):(Intercept) 
-                     0.94377105                      0.94377218 
+                     0.94212252                      0.94212472 
           Bs7(MBLi):(Intercept)           Bs8(MBLi):(Intercept) 
-                     1.35469711                      1.68312018 
+                     1.35633909                      1.68326184 
           Bs9(MBLi):(Intercept)          Bs10(MBLi):(Intercept) 
-                     1.68312034                      1.68312089 
+                     1.68326302                      1.68326489 
          Bs11(MBLi):(Intercept)          Bs12(MBLi):(Intercept) 
-                     1.82926267                      2.34053791 
+                     1.82356864                      2.34087255 
          Bs13(MBLi):(Intercept)          Bs14(MBLi):(Intercept) 
-                     2.34053917                      2.34053919 
+                     2.34087292                      2.34087296 
          Bs15(MBLi):(Intercept)          Bs16(MBLi):(Intercept) 
-                     2.34053913                      2.57705230 
+                     2.34087296                      2.57619526 
  Bs1(MBLi):modeCesarean section  Bs2(MBLi):modeCesarean section 
-                    -0.84833142                     -0.43597663 
+                    -0.87025655                     -0.41635170 
  Bs3(MBLi):modeCesarean section  Bs4(MBLi):modeCesarean section 
-                    -3.00999797                     -0.66771421 
+                    -3.01607775                     -0.67195591 
  Bs5(MBLi):modeCesarean section  Bs6(MBLi):modeCesarean section 
-                     0.03183147                      0.03183191 
+                     0.03397319                      0.03397168 
  Bs7(MBLi):modeCesarean section  Bs8(MBLi):modeCesarean section 
-                    -0.37909264                     -0.70751437 
+                    -0.38024263                     -0.70716369 
  Bs9(MBLi):modeCesarean section Bs10(MBLi):modeCesarean section 
-                     0.73389789                      0.73390023 
+                     0.73297018                      0.73297087 
 Bs11(MBLi):modeCesarean section Bs12(MBLi):modeCesarean section 
-                     0.58777712                      0.07650338 
+                     0.59267377                      0.07537440 
 Bs13(MBLi):modeCesarean section Bs14(MBLi):modeCesarean section 
-                     0.31285779                      0.46545096 
+                     0.30617079                      0.46728572 
 Bs15(MBLi):modeCesarean section Bs16(MBLi):modeCesarean section 
-                     0.46545109                      0.58207897 
+                     0.46728564                      0.58326502 
 > logLik(m)
 'log Lik.' -4206.23 (df=32)
 > 
@@ -261,17 +262,17 @@ Bs15(MBLi):modeCesarean section Bs16(MBLi):modeCesarean section
 +      order = OR, bounds = c(0, Inf), support = c(0, 2000))
 > coef(as.mlt(sm))
                Bs1(MBLi)                Bs2(MBLi)                Bs3(MBLi) 
-              -5.1679081               -0.2406562               -0.2406556 
+              -5.1684141               -0.2406943               -0.2406927 
                Bs4(MBLi)                Bs5(MBLi)                Bs6(MBLi) 
-               0.5656770                1.2632008                1.2632011 
+               0.5650466                1.2635936                1.2636133 
                Bs7(MBLi)                Bs8(MBLi)                Bs9(MBLi) 
-               1.2632017                1.4161612                2.0381451 
+               1.2636132                1.4167795                2.0382562 
               Bs10(MBLi)               Bs11(MBLi)               Bs12(MBLi) 
-               2.0381452                2.0381453                2.2387412 
+               2.0382601                2.0382606                2.2402768 
               Bs13(MBLi)               Bs14(MBLi)               Bs15(MBLi) 
-               2.4192862                2.4192864                2.4192864 
+               2.4193056                2.4193057                2.4193056 
               Bs16(MBLi)     modeCesarean section scl_modeCesarean section 
-               2.6523423                1.0169582                0.8809723 
+               2.6531536                1.0167482                0.8803149 
 > logLik(sm)
 'log Lik.' -4217.365 (df=18)
 > 
@@ -431,10 +432,11 @@ NULL
 + }
 > (estPI <- PI.stram(sm, newdata = nd[nd$mode == "Cesarean section",, drop = FALSE]))
        [,1]
-2 0.7089953
+2 0.7090002
 > 
 > library("mvtnorm")
 > vc <- vcov(sm)
+> vc <- (vc + t(vc)) / 2
 > rx <- rmvnorm(10000, coef(sm), vc)
 > FUN <- function(cf, object = sm) {
 +   coef(object) <- cf
@@ -443,7 +445,7 @@ NULL
 > retPI <- apply(rx, MARGIN = 1, FUN = FUN)
 > (ciPI <- quantile(retPI, probs = c(.025, .975)))
      2.5%     97.5% 
-0.6807272 0.7351767 
+0.6812958 0.7359692 
 > 
 > 
 > ## Section 3.1.2. Crossing hazards ##
@@ -488,7 +490,7 @@ NULL
 > prmp <- predict(mp, type = "survivor", newdata = nd, tvec = q)
 > 
 > ## Cox model (tram)
-> sm <- Coxph(y ~ group | group, data = gastric, log_first = TRUE, order = OR)
+> sm <- Coxph(y ~ group | group, data = gastric, order = OR)
 > prsm <- predict(sm, type = "survivor", newdata = nd, q = q)
 > 
 > ## t at crossing
@@ -597,16 +599,16 @@ group=Intervention 45       39     36.9    0.1213     0.225
 
  Chisq= 0.2  on 1 degrees of freedom, p= 0.6 
 > (plr <- pvalue(independence_test(r ~ group, data = gastric)))
-[1] 0.638137
+[1] 0.6052961
 > 
 > ### bivariate test <- logrank + scale test combined
 > (plrsM <- pvalue(independence_test(r + rs ~ group, data = gastric)))
-[1] 0.002135942
+[1] 0.006933384
 99 percent confidence interval:
- 0.002135942 0.002135942 
+ 0.006933384 0.006933384 
 
 > (plrsQ <- pvalue(independence_test(r + rs ~ group, data = gastric, teststat = "quad")))
-[1] 0.001112738
+[1] 0.007171951
 > 
 > 
 > ## Section 3.1.3 Partial proportional hazards ##
@@ -641,6 +643,9 @@ downloaded 2.2 MB
 > ## ----PPH-preproc, echo = FALSE, results = "hide", message = FALSE-------------
 > ## setup
 > loc <- Sys.setlocale("LC_ALL", "en_US.UTF-8")
+Warning message:
+In Sys.setlocale("LC_ALL", "en_US.UTF-8") :
+  OS reports request to set locale to "en_US.UTF-8" cannot be honored
 > rm(loc)
 > 
 > df <- data.frame(margin.table(obs[,,"wild"], 2))
@@ -681,18 +686,21 @@ downloaded 2.2 MB
 > 
 > ## location count transformation model
 > m <- cotram(fm, data = d, method = "cloglog")
+Model was fitted to log(DVC + 1).
 > logLik(m)
-'log Lik.' -16548.04 (df=42)
+'log Lik.' -16545.37 (df=42)
 > 
 > ## location-scale count transformation model
 > sm <- cotram(sfm, data = d, method = "cloglog")
+Model was fitted to log(DVC + 1).
 > logLik(sm)
-'log Lik.' -16315.62 (df=62)
+'log Lik.' -16315.54 (df=62)
 > 
 > ## location-scale count Weibull model (stram)
 > smW <- cotram(sfm, data = d, method = "cloglog", order = 1)
+Model was fitted to log(DVC + 1).
 > logLik(smW)
-'log Lik.' -16415.96 (df=57)
+'log Lik.' -16417.6 (df=57)
 > 
 > ## check different parametrisations
 > ### location-scale Weibull model (gamlss with interval-censored likelihood)
@@ -801,6 +809,8 @@ The type of censoring is interval
 > cfy <- cf[y]
 > 
 > vc <- vcov(sm)
+> vc <- (vc + t(vc)) / 2
+> 
 > vcy <- vc[y, y]
 > 
 > ### yearly multiplicative change in hazards
@@ -813,19 +823,19 @@ The type of censoring is interval
 > print(xtable(tab, align = "llrr"), floating = FALSE, include.rownames = FALSE,
 +       sanitize.colnames.function = function(x){x}, 
 +       hline.after = c(-1, 0, nrow(tab)), booktabs = TRUE)
-% latex table generated in R 4.3.2 by xtable 1.8-4 package
-% Mon Jan 29 11:51:56 2024
+% latex table generated in R 4.5.2 by xtable 1.8-4 package
+% Fri Nov 14 14:06:56 2025
 \begin{tabular}{lrr}
   \toprule
 Year & Hazard ratio & 95\% CI \\ 
   \midrule
-2003 -- 2002 & 0.66 & 0.53 -- 0.81 \\ 
+2003 -- 2002 & 0.66 & 0.54 -- 0.82 \\ 
   2004 -- 2003 & 0.74 & 0.60 -- 0.91 \\ 
-  2005 -- 2004 & 0.92 & 0.75 -- 1.14 \\ 
-  2006 -- 2005 & 1.12 & 0.91 -- 1.38 \\ 
+  2005 -- 2004 & 0.92 & 0.75 -- 1.13 \\ 
+  2006 -- 2005 & 1.12 & 0.91 -- 1.37 \\ 
   2007 -- 2006 & 0.59 & 0.47 -- 0.72 \\ 
   2008 -- 2007 & 0.88 & 0.72 -- 1.09 \\ 
-  2009 -- 2008 & 0.99 & 0.80 -- 1.21 \\ 
+  2009 -- 2008 & 0.98 & 0.80 -- 1.21 \\ 
   2010 -- 2009 & 0.99 & 0.80 -- 1.21 \\ 
   2011 -- 2010 & 1.08 & 0.88 -- 1.33 \\ 
    \bottomrule
@@ -1240,22 +1250,41 @@ Year & Hazard ratio & 95\% CI \\
 > 
 > ## ----ROC-data, echo = FALSE, results = "asis", message = FALSE, warning = FALSE----
 > ## ultrasound data: DOI: 10.1177/0272989x8800800309
-> tmpd <- tempdir()
-> url <- "https://research.fredhutch.org/content/dam/stripe/diagnostic-biomarkers-statistical-center/files"
-> csv <- "tostbegg2.csv"
-> file <- file.path(tmpd, csv)
+> ### Download data
+> #tmpd <- tempdir()
+> #url <- "https://research.fredhutch.org/content/dam/stripe/diagnostic-biomarkers-statistical-center/files"
+> #csv <- "tostbegg2.csv"
+> #file <- file.path(tmpd, csv)
+> #
+> #if (!file.exists(file)) {
+> #  op <- options(timeout = 120)
+> #  download.file(url = paste(url, csv, sep = "/"), destfile = file)
+> #  options(op)
+> #}
+> #dat <- read.csv(file)
+> ### Work with downloaded data
+> dat <-
++ structure(list(type = c(0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 
++ 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 0L, 0L, 0L, 0L, 0L, 0L, 
++ 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 
++ 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 
++ 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 
++ 0L, 0L, 0L, 0L, 0L, 0L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 
++ 1L, 1L, 1L, 1L, 1L, 1L), y = c(1L, 2L, 3L, 4L, 5L, 1L, 2L, 3L, 
++ 4L, 5L, 1L, 2L, 3L, 4L, 5L, 1L, 2L, 3L, 4L, 5L, 1L, 1L, 1L, 1L, 
++ 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 
++ 1L, 1L, 1L, 1L, 1L, 1L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 
++ 2L, 2L, 2L, 2L, 2L, 2L, 3L, 1L, 1L, 1L, 3L, 4L, 5L, 5L, 5L, 5L, 
++ 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 1L, 1L, 1L, 1L, 1L, 2L, 2L, 2L, 
++ 2L, 3L, 2L, 4L, 5L, 5L, 5L, 5L), d = c(0L, 0L, 0L, 0L, 0L, 1L, 
++ 1L, 1L, 1L, 1L, 0L, 0L, 0L, 0L, 0L, 1L, 1L, 1L, 1L, 1L, 0L, 0L, 
++ 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 
++ 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 
++ 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 
++ 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 0L, 0L, 0L, 0L, 0L, 0L, 
++ 0L, 0L, 0L, 0L, 1L, 1L, 1L, 1L, 1L, 1L)), class = "data.frame", row.names = c(NA, 
++ -96L))
 > 
-> if (!file.exists(file)) {
-+   op <- options(timeout = 120)
-+   download.file(url = paste(url, csv, sep = "/"), destfile = file)
-+   options(op)
-+ }
-trying URL 'https://research.fredhutch.org/content/dam/stripe/diagnostic-biomarkers-statistical-center/files/tostbegg2.csv'
-Content type 'text/csv' length 682 bytes
-==================================================
-downloaded 682 bytes
-
-> dat <- read.csv(file)
 > 
 > ## ----ROC-preproc--------------------------------------------------------------
 > ## coding
@@ -1486,26 +1515,26 @@ downloaded 682 bytes
 > ## Session info ##
 > warnings()
 Warning message:
-In trellis.par.set(list(plot.symbol = list(col = 1, pch = 20,  ... :
-  Note: The default device has been opened to honour attempt to modify trellis settings
+In Sys.setlocale("LC_ALL", "en_US.UTF-8") :
+  OS reports request to set locale to "en_US.UTF-8" cannot be honored
 > sessionInfo()
-R version 4.3.2 (2023-10-31)
-Platform: x86_64-pc-linux-gnu (64-bit)
-Running under: Ubuntu 22.04.3 LTS
+R version 4.5.2 (2025-10-31)
+Platform: x86_64-pc-linux-gnu
+Running under: Debian GNU/Linux 12 (bookworm)
 
 Matrix products: default
-BLAS:   /usr/lib/x86_64-linux-gnu/openblas-pthread/libblas.so.3 
-LAPACK: /usr/lib/x86_64-linux-gnu/openblas-pthread/libopenblasp-r0.3.20.so;  LAPACK version 3.10.0
+BLAS:   /usr/local/lib/R/lib/libRblas.so 
+LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.11.0  LAPACK version 3.11.0
 
 locale:
- [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
- [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
- [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
- [7] LC_PAPER=de_CH.UTF-8       LC_NAME=C                 
+ [1] LC_CTYPE=en_GB.UTF-8       LC_NUMERIC=C              
+ [3] LC_TIME=en_GB.UTF-8        LC_COLLATE=C              
+ [5] LC_MONETARY=en_GB.UTF-8    LC_MESSAGES=en_GB.UTF-8   
+ [7] LC_PAPER=en_GB.UTF-8       LC_NAME=C                 
  [9] LC_ADDRESS=C               LC_TELEPHONE=C            
-[11] LC_MEASUREMENT=de_CH.UTF-8 LC_IDENTIFICATION=C       
+[11] LC_MEASUREMENT=en_GB.UTF-8 LC_IDENTIFICATION=C       
 
-time zone: Europe/Zurich
+time zone: Europe/Berlin
 tzcode source: system (glibc)
 
 attached base packages:
@@ -1513,31 +1542,33 @@ attached base packages:
  [8] datasets  methods   base     
 
 other attached packages:
- [1] xtable_1.8-4        colorspace_2.1-0    reshape2_1.4.4     
- [4] gridExtra_2.3       latticeExtra_0.6-30 lattice_0.22-5     
+ [1] cotram_0.5-3        xtable_1.8-4        colorspace_2.1-2   
+ [4] gridExtra_2.3       latticeExtra_0.6-31 lattice_0.22-7     
  [7] KONPsurv_1.0.4      mpr_1.0.6           gamlss.cens_5.0-7  
-[10] gamlss_5.4-20       nlme_3.1-164        gamlss.dist_6.1-1  
-[13] gamlss.data_6.0-2   multcomp_1.4-25     TH.data_1.1-2      
-[16] MASS_7.3-60.0.1     coin_1.4-3          survival_3.5-7     
-[19] tramvs_0.0-4        ATR_0.1-1           trtf_0.4-2         
-[22] partykit_1.2-20     libcoin_1.0-10      cotram_0.4-4       
-[25] tram_1.0-1          mvtnorm_1.2-4       mlt_1.5-0          
-[28] basefun_1.1-4       variables_1.1-1    
+[10] gamlss_5.5-0        nlme_3.1-168        gamlss.dist_6.1-1  
+[13] gamlss.data_6.0-7   multcomp_1.4-29     TH.data_1.1-4      
+[16] MASS_7.3-65         coin_1.4-3          survival_3.8-3     
+[19] tramvs_0.0-7        ATR_0.1-1           trtf_0.4-3         
+[22] partykit_1.2-24     libcoin_1.0-10      tram_1.3-0         
+[25] mvtnorm_1.3-4       mlt_1.7-2           basefun_1.2-5      
+[28] variables_1.1-2    
 
 loaded via a namespace (and not attached):
- [1] sandwich_3.1-0       stringi_1.8.3        jpeg_0.1-10         
- [4] inum_1.0-5           magrittr_2.0.3       RColorBrewer_1.1-3  
- [7] plyr_1.8.9           Matrix_1.6-4         Formula_1.2-5       
-[10] codetools_0.2-19     numDeriv_2016.8-1.1  modeltools_0.2-23   
-[13] cli_3.6.2            rlang_1.1.3          coneproj_1.17       
-[16] tools_4.3.2          polynom_1.4-1        deldir_2.0-2        
-[19] nloptr_2.0.3         interp_1.1-5         orthopolynom_1.0-6.1
-[22] png_0.1-8            rpart_4.1.23         matrixStats_1.2.0   
-[25] stats4_4.3.2         zoo_1.8-12           lifecycle_1.0.4     
-[28] stringr_1.5.1        gtable_0.3.4         glue_1.7.0          
-[31] BB_2019.10-1         Rcpp_1.0.12          compiler_4.3.2      
-[34] quadprog_1.5-8       alabama_2023.1.0    
+ [1] gtable_0.3.6         numDeriv_2016.8-1.1  quadprog_1.5-8      
+ [4] tools_4.5.2          stats4_4.5.2         sandwich_3.1-1      
+ [7] coneproj_1.21        Matrix_1.7-4         RColorBrewer_1.1-3  
+[10] alabama_2023.1.0     lifecycle_1.0.4      compiler_4.5.2      
+[13] deldir_2.0-4         codetools_0.2-20     icenReg_2.0.16      
+[16] Formula_1.2-5        nloptr_2.2.1         iterators_1.0.14    
+[19] rpart_4.1.24         foreach_1.5.2        parallelly_1.45.1   
+[22] digest_0.6.38        inum_1.0-5           future_1.67.0       
+[25] listenv_0.10.0       cli_3.6.5            qrng_0.0-10         
+[28] orthopolynom_1.0-6.1 future.apply_1.20.0  matrixStats_1.5.0   
+[31] globals_0.18.0       jpeg_0.1-11          interp_1.1-6        
+[34] BB_2019.10-1         zoo_1.8-14           png_0.1-8           
+[37] modeltools_0.2-24    coda_0.19-4.1        rlang_1.1.6         
+[40] Rcpp_1.1.0           glue_1.8.0           polynom_1.4-1       
 > 
 > proc.time()
-    user   system  elapsed 
- 828.415 2021.093  430.329 
+   user  system elapsed 
+ 32.463   0.680  34.139 

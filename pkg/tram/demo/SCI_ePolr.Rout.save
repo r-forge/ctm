@@ -1,5 +1,5 @@
 
-R version 4.5.0 (2025-04-11) -- "How About a Twenty-Six"
+R version 4.5.2 (2025-10-31) -- "[Not] Part in a Rumble"
 Copyright (C) 2025 The R Foundation for Statistical Computing
 Platform: x86_64-pc-linux-gnu
 
@@ -166,15 +166,15 @@ Warning messages:
 > ### log odds ratio of control versus treatment group
 > coef(modUEMS)
    trtmtY 
--1.135505 
+-1.138801 
 > 
 > ### OR with confidence interval of treatment versus control group
 > round(c(exp(-coef(modUEMS)),
 +         "2.5 %" = c(exp(-confint(modUEMS)))[2],
 +         "97.5 %" = c(exp(-confint(modUEMS)))[1]), 3)
 trtmtY  2.5 % 97.5 % 
- 3.113  1.930  5.019 
+ 3.123  1.936  5.037 
 > 
 > proc.time()
    user  system elapsed 
-  0.982   0.087   1.064 
+  0.947   0.069   1.008 
