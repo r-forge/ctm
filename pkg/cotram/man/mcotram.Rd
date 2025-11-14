@@ -9,7 +9,7 @@
 }
 \usage{
 mcotram(..., formula = ~ 1, data, conditional = FALSE, theta = NULL,
-        fixed = NULL, scale = FALSE, optim = mmltoptim(), 
+        fixed = NULL, scale = FALSE, optim = mltoptim(hessian = TRUE), 
         M = 1000, dofit = TRUE, domargins = TRUE)
 }
 \arguments{
@@ -34,7 +34,7 @@ gives the same likelihood but different parameter estimates.
   \item{scale}{a logical indicating if (internal) scaling shall be applied
           to the model coefficients.
 }
-  \item{optim}{a list of optimisers as returned by \code{\link[tram]{mmltoptim}}
+  \item{optim}{a list of optimisers as returned by \code{\link[mlt]{mltoptim}}
 }
   \item{M}{number of Halton sequences used to approximate the log-likelihood in \code{\link[mvtnorm]{lpmvnorm}}.}
   \item{dofit}{logical; parameters are fitted by default, otherwise a list
