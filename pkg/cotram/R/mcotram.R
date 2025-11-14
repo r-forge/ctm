@@ -1,7 +1,7 @@
 
 mcotram <- function(..., formula = ~ 1, data, conditional = FALSE, 
                     theta = NULL, fixed = NULL, scale = FALSE, 
-                    optim = mmltoptim(), M = 1000,
+                    optim = mltoptim(hessian = TRUE), M = 1000,
                     dofit = TRUE, domargins = TRUE) {
 
     m <- list(...)
