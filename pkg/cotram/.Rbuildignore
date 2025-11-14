@@ -8,4 +8,4 @@ demo/Rplots_out_save.pdf
 #man/mcotram.Rd
 demo
 tests/Examples/cotram-Ex.Rout.save
-tests/confband-Ex.Rout.save
+vignettes/cotram.Rout.save

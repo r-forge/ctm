@@ -73,8 +73,7 @@ M <- 100     ### number of Halton sequences, seem sufficient here
 
 ## fit conditional marginal count transformation models
 ## one for each species
-## (don't test as it takes too long for CRAN)
-\donttest{m_PF <- cotram(Pardosa_ferruginea ~ Elevation + Canopy_openess, 
+m_PF <- cotram(Pardosa_ferruginea ~ Elevation + Canopy_openess, 
                data = spiders, method = "probit", order = OR)
 m_HL <- cotram(Harpactea_lepida ~ Elevation + Canopy_openess,
                data = spiders, method = "probit", order = OR)
@@ -111,11 +110,9 @@ f <- factor(rownames(KD))
 nd <- cbind(f = rep(f, nrow(nd)), nd[rep(1:nrow(nd), each = nlevels(f)),])
 nd$KD <- c(KD)
 
-if (require("lattice")) {
+if (require("lattice"))
 contourplot(KD ~ Elevation + Canopy_openess | f, data = nd, 
             cuts = 18, xlab = "Elevation", ylab = "Canopy openess")
-}
-}
 
 ### for example:
 ### => constant negative dependence of Pardosa_lugubris and Coelotes_terrestris

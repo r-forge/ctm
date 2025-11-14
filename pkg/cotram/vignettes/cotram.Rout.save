@@ -1,0 +1,276 @@
+
+> set.seed(290875)
+
+> sapply(c("cotram", "tram", "mlt", "lattice"), library, 
++     char = TRUE)
+Loading required package: tram
+Loading required package: mlt
+Loading required package: basefun
+Loading required package: variables
+Loading required package: mvtnorm
+$cotram
+ [1] "cotram"    "tram"      "mvtnorm"   "mlt"       "basefun"   "variables"
+ [7] "stats"     "graphics"  "grDevices" "utils"     "datasets"  "methods"  
+[13] "base"     
+
+$tram
+ [1] "cotram"    "tram"      "mvtnorm"   "mlt"       "basefun"   "variables"
+ [7] "stats"     "graphics"  "grDevices" "utils"     "datasets"  "methods"  
+[13] "base"     
+
+$mlt
+ [1] "cotram"    "tram"      "mvtnorm"   "mlt"       "basefun"   "variables"
+ [7] "stats"     "graphics"  "grDevices" "utils"     "datasets"  "methods"  
+[13] "base"     
+
+$lattice
+ [1] "lattice"   "cotram"    "tram"      "mvtnorm"   "mlt"       "basefun"  
+ [7] "variables" "stats"     "graphics"  "grDevices" "utils"     "datasets" 
+[13] "methods"   "base"     
+
+
+> trellis.par.set(list(plot.symbol = list(col = 1, pch = 20, 
++     cex = 0.7), box.rectangle = list(col = 1), box.umbrella = list(lty = 1, 
++     col .... [TRUNCATED] 
+Warning in trellis.par.set(list(plot.symbol = list(col = 1, pch = 20, cex = 0.7),  :
+  Note: The default device has been opened to honour attempt to modify trellis settings
+
+> ltheme <- canonical.theme(color = FALSE)
+
+> ltheme$strip.background$col <- "transparent"
+
+> lattice.options(default.theme = ltheme)
+
+> panel <- function(x, y, ...) {
++     panel.abline(h = 1, col = "grey")
++     panel.xyplot(x, y, type = "l", col = "black")
++ }
+
+> knitr::opts_chunk$set(echo = TRUE, results = "markup", 
++     error = FALSE, warning = FALSE, message = FALSE, tidy = FALSE, 
++     cache = FALSE, s .... [TRUNCATED] 
+
+> knitr::render_sweave()
+
+> knitr::set_header(highlight = "")
+
+> opt <- options(prompt = "R> ", continue = "+  ", useFancyQuotes = FALSE, 
++     width = 75)
+
+> library("colorspace")
+
+> col <- diverge_hcl(10, h = c(246, 40), c = 96, l = c(65, 
++     90))
+
+> fill <- diverge_hcl(10, h = c(246, 40), c = 96, l = c(65, 
++     90), alpha = 0.3)
+
+> year <- substr(packageDescription("cotram")$Date, 
++     1, 4)
+
+> version <- packageDescription("cotram")$Version
+
+> obs <- NULL
+
+> if (!file.exists("analysis/DVC.rda")) {
++     op <- options(timeout = 120)
++     dwnfl <- try(download.file("https://zenodo.org/record/17179/files/D ..." ... [TRUNCATED] 
+trying URL 'https://zenodo.org/record/17179/files/DVC.tgz'
+Content type 'application/octet-stream' length 2292581 bytes (2.2 MB)
+==================================================
+downloaded 2.2 MB
+
+
+> if (is.null(obs)) {
++     cat("Downloading data from zenodo failed, stop processing.", 
++         "\\end{document}\n")
++     knitr::knit_exit()
++ }
+
+> loc <- Sys.setlocale("LC_ALL", "en_US.UTF-8")
+Warning in Sys.setlocale("LC_ALL", "en_US.UTF-8") :
+  OS reports request to set locale to "en_US.UTF-8" cannot be honoured
+
+> rm(loc)
+
+> df <- data.frame(margin.table(obs[, , "wild"], 2))
+
+> colnames(df) <- c("day", "DVC")
+
+> df$day <- as.Date(df$day)
+
+> df$weekday <- factor(format(df$day, "%A"), levels = c("Monday", 
++     "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", 
++     "Sunday"))
+
+> df$weekday[weekdays$ArbZeitFaktor == 0] <- "Sunday"
+
+> df$year <- factor(format(df$day, "%Y"))
+
+> df$time <- as.numeric(difftime(df$day, start, unit = "days"))
+
+> sfm <- function(timevar, freq = 365, S = 10) {
++     S <- 1:S * 2
++     paste("I(", rep(c("sin", "cos"), length(S)), "(", rep(S, 
++         rep(2, l .... [TRUNCATED] 
+
+> Xtime <- model.matrix(as.formula(paste("~", sfm("time"))), 
++     data = df)[, -1]
+
+> Xtime <- as.data.frame(Xtime)
+
+> colnames(Xtime) <- paste0("tvar", 1:ncol(Xtime))
+
+> df <- cbind(df, Xtime)
+
+> mod_cloglog <- cotram(DVC ~ year + weekday + tvar1 + 
++     tvar2 + tvar3 + tvar4 + tvar5 + tvar6 + tvar7 + tvar8 + tvar9 + 
++     tvar10 + tvar11 + .... [TRUNCATED] 
+Model was fitted to log(DVC + 1).
+
+> logLik(mod_cloglog)
+'log Lik.' -16545.55 (df=42)
+
+> nd <- model.frame(mod_cloglog)[which(df$year == "2011"), 
++     -1]
+
+> nd$day <- df[which(df$year == "2011"), "day"]
+
+> nd$weekday <- factor("Monday", levels = levels(nd$weekday))
+
+> fit_cloglog <- predict(mod_cloglog, type = "lp", newdata = nd) - 
++     predict(mod_cloglog, type = "lp", newdata = nd)[1]
+
+> xyplot(exp(fit_cloglog) ~ day, data = cbind(nd, fit_cloglog), 
++     ylab = "Hazard ratio", xlab = "Day of year", panel = panel)
+
+> mod_logit <- cotram(DVC ~ year + weekday + tvar1 + 
++     tvar2 + tvar3 + tvar4 + tvar5 + tvar6 + tvar7 + tvar8 + tvar9 + 
++     tvar10 + tvar11 + t .... [TRUNCATED] 
+Model was fitted to log(DVC + 1).
+
+> logLik(mod_logit)
+'log Lik.' -16319.55 (df=42)
+
+> years <- grep("year", names(coef(mod_logit)), value = TRUE)
+
+> coef <- exp(-coef(mod_logit)[years])
+
+> ci <- exp(-confint(mod_logit)[years, ])
+
+> round(cbind(coef, ci), 3)
+          coef 2.5 % 97.5 %
+year2003 0.595 0.765  0.463
+year2004 0.337 0.433  0.262
+year2005 0.306 0.395  0.238
+year2006 0.407 0.526  0.315
+year2007 0.156 0.203  0.120
+year2008 0.096 0.124  0.075
+year2009 0.105 0.136  0.081
+year2010 0.090 0.116  0.069
+year2011 0.097 0.126  0.075
+
+> nd <- model.frame(mod_logit)[unique(df$year), -1]
+
+> nd$year <- factor(levels(nd$year), levels = levels(nd$year))
+
+> nd$weekday <- factor("Monday", levels = levels(nd$weekday))
+
+> nd[, grep("tvar", colnames(nd))] <- 0
+
+> plot(mod_logit, type = "distribution", newdata = nd, 
++     q = 20:200, smooth = TRUE, xlab = "Number deer-vehicle collisions", 
++     ylab = "Distr ..." ... [TRUNCATED] 
+
+> legend(120, 0.6, legend = levels(nd$year)[1:5], lty = 1, 
++     lwd = 1.5, col = col[1:5], bty = "n")
+
+> legend(160, 0.6, legend = levels(nd$year)[6:10], lty = 1, 
++     lwd = 1.5, col = col[6:10], bty = "n")
+
+> mod_loglog <- cotram(DVC ~ year + weekday + tvar1 + 
++     tvar2 + tvar3 + tvar4 + tvar5 + tvar6 + tvar7 + tvar8 + tvar9 + 
++     tvar10 + tvar11 +  .... [TRUNCATED] 
+Model was fitted to log(DVC + 1).
+
+> logLik(mod_loglog)
+'log Lik.' -16437.17 (df=42)
+
+> nd <- model.frame(mod_loglog)[1, ]
+
+> plot(mod_loglog, type = "density", newdata = nd, q = 0:150, 
++     col = col, xlab = "Number of deer-vehicle collisions", ylab = "Density function")
+
+> abline(v = nd$DVC)
+
+> mod_probit <- cotram(DVC ~ year + weekday + tvar1 + 
++     tvar2 + tvar3 + tvar4 + tvar5 + tvar6 + tvar7 + tvar8 + tvar9 + 
++     tvar10 + tvar11 +  .... [TRUNCATED] 
+Model was fitted to log(DVC + 1).
+
+> logLik(mod_probit)
+'log Lik.' -16311.51 (df=42)
+
+> nd <- model.frame(mod_probit)[1, ]
+
+> trafo_probit <- predict(mod_probit, type = "trafo", 
++     newdata = nd, smooth = TRUE)
+
+> cb_probit <- confband(mod_probit, type = "trafo", 
++     newdata = nd, smooth = TRUE)
+
+> layout(matrix(1:2, nrow = 1))
+
+> plot(mod_probit, type = "trafo", newdata = df[1, ], 
++     smooth = TRUE, xlab = "Number of deer-vehicle collisions", 
++     ylab = expression(paste .... [TRUNCATED] 
+
+> plot(mod_probit, type = "distribution", newdata = df[1, 
++     ], smooth = TRUE, xlab = "Number of deer-vehicle collisions", 
++     ylab = "Distribu ..." ... [TRUNCATED] 
+
+> sessionInfo()
+R version 4.5.2 (2025-10-31)
+Platform: x86_64-pc-linux-gnu
+Running under: Debian GNU/Linux 12 (bookworm)
+
+Matrix products: default
+BLAS:   /usr/local/lib/R/lib/libRblas.so 
+LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.11.0  LAPACK version 3.11.0
+
+locale:
+ [1] LC_CTYPE=en_GB.UTF-8       LC_NUMERIC=C              
+ [3] LC_TIME=en_GB.UTF-8        LC_COLLATE=C              
+ [5] LC_MONETARY=en_GB.UTF-8    LC_MESSAGES=en_GB.UTF-8   
+ [7] LC_PAPER=en_GB.UTF-8       LC_NAME=C                 
+ [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+[11] LC_MEASUREMENT=en_GB.UTF-8 LC_IDENTIFICATION=C       
+
+time zone: Europe/Berlin
+tzcode source: system (glibc)
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+[1] colorspace_2.1-2 lattice_0.22-7   cotram_0.6-0     tram_1.3-0      
+[5] mvtnorm_1.3-4    mlt_1.7-2        basefun_1.2-5    variables_1.1-2 
+
+loaded via a namespace (and not attached):
+ [1] knitr_1.50           TH.data_1.1-4        xfun_0.54           
+ [4] Formula_1.2-5        BB_2019.10-1         icenReg_2.0.16      
+ [7] zoo_1.8-14           quadprog_1.5-8       grid_4.5.2          
+[10] evaluate_1.0.5       MASS_7.3-65          foreach_1.5.2       
+[13] numDeriv_2016.8-1.1  multcomp_1.4-29      compiler_4.5.2      
+[16] codetools_0.2-20     sandwich_3.1-1       coda_0.19-4.1       
+[19] Rcpp_1.1.0           alabama_2023.1.0     nloptr_2.2.1        
+[22] polynom_1.4-1        splines_4.5.2        coneproj_1.21       
+[25] Matrix_1.7-4         tools_4.5.2          orthopolynom_1.0-6.1
+[28] iterators_1.0.14     qrng_0.0-10          survival_3.8-3      
+
+> options(opt)
+
+ *** Run successfully completed ***
+> proc.time()
+   user  system elapsed 
+  6.032   0.223   7.817 

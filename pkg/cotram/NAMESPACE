@@ -18,7 +18,7 @@ importFrom("qrng", "ghalton")
 
 importFrom("survival", "Surv")
 
-export(cotram)#, mcotram)
+export(cotram, mcotram)
 
 S3method("as.mlt", "cotram")
 S3method("mkgrid", "cotram")
