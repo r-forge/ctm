@@ -1,13 +1,10 @@
 cleanup
 ^.*\.Rproj$
 ^\.Rproj\.user$
-stram_plots.pdf
-undernutrition_plots.pdf
 scores.R
 scores.Rout.save
-Examples/tram-Ex.Rout.save
 todo.txt
-survtram_plots.pdf
-hcc_plots.pdf
-npb.pdf.save
-vignettes*Rout.save
+demo/.*\.pdf
+Examples/tram-Ex.Rout.save
+vignettes/.*\.save
+demo/.*\.save
