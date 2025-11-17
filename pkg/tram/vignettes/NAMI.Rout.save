@@ -154,17 +154,6 @@ y.w100
 
 > CAOsurv$ypT0ypN0 <- factor(CAOsurv$path_stad == "ypT0ypN0")
 
-> mg_w <- glm(ypT0ypN0 ~ randarm, data = CAOsurv, family = binomial())
-
-> exp(coef(mg_w)["randarm5-FU + Oxaliplatin"])
-randarm5-FU + Oxaliplatin 
-                    1.422 
-
-> exp(confint(glht(mg_w), calpha = univariate_calpha())$confint[2, 
-+     -1])
-  lwr   upr 
-1.037 1.949 
-
 > mpCR <- Polr(ypT0ypN0 ~ randarm, data = CAOsurv, na.action = na.pass, 
 +     method = "logistic")
 
@@ -316,6 +305,88 @@ survival.Treatment8 virgin
 
 > plot(smooth_terms(m), add = TRUE, lty = 2)
 
+> trt <- gl(2, 1, labels = c("Control", "Enoxaparin"))
+
+> age <- gl(2, 1, labels = c("30-70", "> 70"))
+
+> outcome <- gl(2, 1, labels = c("No event", "Event"))
+
+> ovid <- expand.grid(trt = trt, age = age, outcome = outcome)
+
+> ovid$weights <- c(220, 214, 10, 12, 6, 8, 2, 0)
+
+> (ovid)
+         trt   age  outcome weights
+1    Control 30-70 No event     220
+2 Enoxaparin 30-70 No event     214
+3    Control  > 70 No event      10
+4 Enoxaparin  > 70 No event      12
+5    Control 30-70    Event       6
+6 Enoxaparin 30-70    Event       8
+7    Control  > 70    Event       2
+8 Enoxaparin  > 70    Event       0
+
+> mt <- mantelhaen.test(xtabs(weights ~ trt + outcome + 
++     age, data = ovid))
+
+> (lORx_mt <- log(mt$estimate))
+common odds ratio 
+          0.01604 
+
+> mtrtx_ovid <- glm(outcome ~ trt + age, data = ovid, 
++     weights = weights, family = binomial())
+
+> (lORx_ovid <- coef(mtrtx_ovid)["trtEnoxaparin"])
+trtEnoxaparin 
+      0.01624 
+
+> mtrt_ovid <- Polr(outcome ~ trt, data = ovid, weights = weights, 
++     method = "logistic")
+
+> mage_ovid <- Polr(age ~ 1, data = ovid, weights = weights)
+
+> m_ovid <- Mmlt(mtrt_ovid, mage_ovid, data = ovid)
+
+> prm <- "outcome.trtEnoxaparin"
+
+> (lORm_ovid <- coef(m_ovid)[prm])
+outcome.trtEnoxaparin 
+              0.04836 
+
+> (SE_ovid <- sqrt(vcov(m_ovid)[prm, prm]))
+[1] 0.5076
+
+> trt <- gl(2, 1, labels = c("Control", "Enoxaparin"))
+
+> outcome <- gl(2, 1, labels = c("No event", "Event"))
+
+> ethic <- expand.grid(trt = trt, outcome = outcome)
+
+> ethic$weights <- c(96, 88, 12, 12)
+
+> (ethic)
+         trt  outcome weights
+1    Control No event      96
+2 Enoxaparin No event      88
+3    Control    Event      12
+4 Enoxaparin    Event      12
+
+> mtrt_ethic <- Polr(outcome ~ trt, data = ethic, weights = weights, 
++     method = "logistic")
+
+> prmeth <- "trtEnoxaparin"
+
+> (lOR_ethic <- coef(mtrt_ethic)[prmeth])
+trtEnoxaparin 
+      0.08701 
+
+> (SE_ethic <- sqrt(vcov(mtrt_ethic)[prmeth, prmeth]))
+[1] 0.4341
+
+> (polycor <- as.array(coef(m_ovid, type = "Cor"))["outcome", 
++     "age", 1])
+[1] 0.2321
+
 > if (file.exists("packages.bib")) file.remove("packages.bib")
 
 > toLower <- function(text) {
@@ -362,4 +433,4 @@ NULL
  *** Run successfully completed ***
 > proc.time()
    user  system elapsed 
- 37.224   0.131  37.377 
+ 37.715   0.129  37.849 

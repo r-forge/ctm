@@ -418,9 +418,9 @@ log-hazard ratio for randarm5-FU + Oxaliplatin
                                        -0.2275 
 
 
-> plot(as.mlt(mcst), newdata = nd2, q = q[q > 0], type = "trafo", 
+> plot(as.mlt(mcst), newdata = nd2, q = q[q > 0], type = "logcumhazard", 
 +     log = "x", lty = lty <- 1:4, xlab = lxlab, ylab = ylablHaz, 
-+     xlim = xli .... [TRUNCATED] 
++     xli .... [TRUNCATED] 
 
 > legend("bottomright", legend = lslevs, title = "Stratum", 
 +     lty = lty, lwd = lwd, col = 1, bty = "n")
@@ -773,9 +773,11 @@ s(age):as.ordered(randarm)5-FU + Oxaliplatin   5
 +     formula = iDFS ~ randarm | age, data = CAOsurv, control = ctree_control(teststat = "ma ..." ... [TRUNCATED] 
 Warning in doTest(lev, teststat = teststat, pvalue = pvalue, lower = TRUE,  :
   cmvnorm: completion with ERROR > EPS
+Warning in doTest(lev, teststat = teststat, pvalue = pvalue, lower = TRUE,  :
+  cmvnorm: completion with ERROR > EPS
 
 > logLik(tr)
-'log Lik.' -2242 (df=8)
+'log Lik.' -2236 (df=16)
 
 > library("ATR")
 
@@ -833,4 +835,4 @@ logrho                         NA     NA
  *** Run successfully completed ***
 > proc.time()
    user  system elapsed 
- 74.270   0.234  74.531 
+ 73.044   0.251  73.317 
