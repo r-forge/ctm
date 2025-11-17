@@ -19,22 +19,10 @@
 
 \newcommand{\cmd}[1]{\texttt{#1()}}
 
-
-\usepackage{tikz}
-\usetikzlibrary{shapes,arrows,chains}
-\usepackage{verbatim}
-
 <<nami-pkgs, echo = FALSE, results = "hide", message = FALSE, warning = FALSE>>=
 pkgs <- c("tram", "TH.data", "multcomp", "survival", "Stat2Data", "tramME")
 pkgs <- sapply(pkgs, require, character.only = TRUE)
 @
-
-\newcommand{\TODO}[1]{{\color{red} #1}}
-
-\newcommand\Torsten[1]{{\color{blue}Torsten: ``#1''}}
-
-\newcommand{\THcite}[2]{\citeauthor{#2} (\citeyear{#2})}
-
 
 \newcommand\norm[1]{\left\lVert#1\right\rVert}
 \newcommand{\etc}{\textit{etc.}}
@@ -61,22 +49,23 @@ pkgs <- sapply(pkgs, require, character.only = TRUE)
 
 \Abstract{
 Covariate adjustment is recommended to improve precision of estimated treatment effects, 
-even in randomised trials. 
-For non-collapsible effect measures (such as Cohen's $d$, odds and hazard ratios), 
+even in randomized trials. 
+For noncollapsible effect measures (such as Cohen's $d$, odds and hazard ratios), 
 conditioning on covariates can alter the effect interpretation such that 
 effects are not comparable given different adjustment sets. 
-A novel nonparanormal adjusted marginal inference approach (NAMI) can be formulated for randomised controlled trials 
+A novel nonparanormal adjusted marginal inference approach (NAMI) can be formulated for randomized controlled trials 
 to derive marginal effects from the estimated joint distribution of covariates and outcomes. 
 NAMI preserves the interpretation of treatment effects regardless of covariates used, 
 while enhancing precision.
-We present applications of NAMI with continuous, binary and right-censored survival outcomes. 
-Data is analysed by a proof-of-concept implementation of NAMI
+We demonstrate applications of NAMI to continuous, binary, and right-censored survival outcomes, 
+as well as to a fixed-effect meta-analysis.
+Data are analyzed by a proof-of-concept implementation of NAMI
 available in the \pkg{tram} add-on package to the \proglang{R} system for statistical computing.
 }
 
 \Keywords{marginal effect, noncollapsibility, covariate adjustment, 
-	  randomised trial, transformation model}
-\Plainkeywords{marginal effect, noncollapsibility, covariate adjustment, randomised trial, transformation model}
+	  randomized trial, transformation model}
+\Plainkeywords{marginal effect, noncollapsibility, covariate adjustment, randomized trial, transformation model}
 
 \Address{
   Susanne Dandl \& Torsten Hothorn\\
@@ -150,12 +139,14 @@ set.seed(221224L)
 \section{Introduction}
 \label{sec:introduction}
 
-We present three applications from different domains illustrating
+We present four applications from different domains illustrating
 the potential to estimate treatment effects more
 precisely with nonparanormal adjusted marginal inference \citep[NAMI,][]{Dandl_2025_nami}:
 A toxicity study demonstrates equivalence of a continuous outcome
 by Cohen's $d$, an efficiency trial compares a binary outcome between two arms
 by means of an odds ratio, and a survival study measures differences in terms of a hazard ratio.
+In Section~\ref{sec:appl-meta}, we show that NAMI enables comparable estimates across studies 
+with an application to fixed-effect meta-analysis. 
 
 We apply the proof-of-concept implementation of \NAMI available in package
 \pkg{tram}.
@@ -167,10 +158,10 @@ demo("NAMI", package = "tram")
 @
 
 \section{Continuous outcome: Immunotoxicity study on Chloramine}
-\label{subsec:appl-cont} 
+\label{sec:appl-cont} 
 
-To assess the toxicity of Chloramine, a study on mice was conducted as part of the \cite{toxicology_2000}.
-Female mice were randomly assigned to two groups of which one group received Chlor\-amine-dosed water and the other not.
+We aim to assess toxicity of Chloramine using a study on mice that was conducted as part of the \cite{toxicology_2000}.
+Female mice were randomly assigned to two groups, of which one group received Chlor\-amine-dosed water and the other not.
 Repeated measurements of weights were conducted on
 days $1$, $8$, $15$, $22$, and $29$ in five dose groups ($0$, $2$, $10$,
 $20$, $100$ mg/kg). 
@@ -243,9 +234,8 @@ The following data set is a subset of the data obtained from the
 40$) with the control group ($W = 0, N_0 = 40$) with respect to the weight at day $29$ (denoted as outcome $\rY$).
 Information on the weight on day $1$ is also available and is used for adjustment, in the following.  
 
-The research question of ``\emph{no} effect of Chloramine on weight'' 
-is formulated in terms of the hypotheses  
-$H_0: |\tau| \ge \delta$ and
+We translated the research question of ``\emph{no} effect of Chloramine on weight'' 
+into the hypotheses $H_0: |\tau| \ge \delta$ and
 $H_1: |\tau| < \delta$ where Cohen's $d$ is the marginal treatment effect
 $\tau$.  
 $H_0$ is rejected at $5\%$ when the $95\%$ confidence interval for $\tau$ 
@@ -255,17 +245,17 @@ acknowledging this as a potential oversimplification.
 
 \subsection{Unadjusted marginal inference}
 
-The following fits an unadjusted marginal outcome model featuring Cohen's
+Because the study is a randomized trial, an unadjusted marginal outcome model fitted with \code{Lm()} gives an unbiased estimate in terms of Cohen's
 $d$:
 <<marginal_outcome, echo = TRUE, message = FALSE, results = "hide">>=
 m0 <- Lm(y ~ w, data = immun)
 @
 
 <<cf0_cont, echo = TRUE, message = FALSE>>=
-coef(m0)		### marginal Cohen's d
-sqrt(vcov(m0))		### observed
-sqrt(2/nrow(immun) * (coef(m0)^2/4 + 2)) ### expected
-confint(m0)		### Wald
+coef(m0) ### marginal Cohen's d
+sqrt(vcov(m0)) ### SE from observed info
+sqrt(2/nrow(immun) * (coef(m0)^2/4 + 2)) ### SE from expected info (Lemma 1)
+confint(m0) ### Wald
 @
 
 The unadjusted estimate of Cohen's $d$ is $\hat{\tau} = \Sexpr{frmt3(coef(m0))}$.
@@ -279,10 +269,11 @@ the unadjusted analysis cannot reject $H_0$.
 
 \subsection{Nonparanormal adjusted marginal inference}
 
-Adjusting for weight at baseline (variable \code{x}) in \NAMI (with
-transformation function in Bernstein form of order six) is conducted by 
-fitting a marginal model \code{m1} for baseline weight in addition to the marginal model for the outcome \code{m0}
-and estimating all marginal and Copula parameters simultaneously with
+The marginal model did not take the weight at baseline (variable \code{x}) into account. 
+With \NAMI, we adjust for weight while still obtaining a marginal effect parameter. 
+As input to this approach, we use a marginal model \code{m1} for baseline weight (with
+transformation function in Bernstein form of order six) in addition to the marginal model for the outcome \code{m0}
+and estimate all marginal and copula parameters simultaneously with
 \code{Mmlt()}:
 <<ami_cont, echo = TRUE, message = FALSE, results = "hide">>=
 m1 <- BoxCox(x ~ 1, data = immun)
@@ -290,8 +281,8 @@ m <- Mmlt(m0, m1, formula = ~ 1, data = immun)
 @
 
 <<cfseci_cont, echo = TRUE, message = FALSE>>=
-(cf1 <- coef(m)["y.w100"])	### marginal adjusted Cohen's d
-sqrt(diag(vcov(m))["y.w100"])	### observed
+(cf1 <- coef(m)["y.w100"]) ### marginal adjusted Cohen's d
+sqrt(diag(vcov(m))["y.w100"]) ### SE from observed info 
 @
 
 We obtain $\hat{\tau} = \Sexpr{frmt3(coef(m)["y.w100"])}$ as marginal adjusted Cohen's $d$. 
@@ -305,11 +296,13 @@ $\hat{\lambda}$:
 
 <<setheo_cont, echo = TRUE, message = FALSE>>=
 lambda <- c(unclass(coef(m, type = "Lambdapar")))
-sqrt(2/nrow(immun) * ((1 + lambda^2)*cf1^2 + 8)/(4*(1 + lambda^2))) ### expected
+sqrt(2/nrow(immun) * ((1 + lambda^2)*cf1^2 + 8)/(4*(1 + lambda^2))) 
+### SE from expected info (Lemma 2)
 @
 
-The Wald interval $\Sexpr{frmtci(confint(m)["y.w100",])}$ is completely contained in the
-equivalence interval and thus the absence of an effect of Chloramine on
+Compared to the Wald interval of the marginal model, 
+the Wald interval of NAMI $\Sexpr{frmtci(confint(m)["y.w100",])}$ is completely contained in the
+equivalence interval $(-0.36, 0.36)$ and thus the absence of an effect of Chloramine on
 weight can be inferred:
 
 <<ci_cont, echo = TRUE, message = FALSE>>=
@@ -340,8 +333,7 @@ package:
 mad <- BoxCoxME(y ~ w + s(x), data = immun)
 @
 
-Inspecting the monotonicity of the estimated smooth functions of the baseline covariate, allows 
-to assess the copula fit. 
+Inspecting the monotonicity of the estimated smooth functions of the baseline covariate allows assessing the copula fit. 
 The following plot shows the smooth function for baseline weight estimated from the additive transformation
 model:
 <<hx_smooth, echo = TRUE, fig.width = 4, fig.height = 3.5, out.width='.6\\linewidth'>>=
@@ -392,7 +384,8 @@ pnorm(cf1 / sqrt(2))
 
 \section{Binary outcome: Efficacy study of new chemotherapy}
 
-\cite{roedel_oxaliplatin_2012} conducted an efficacy study of combining standard care with a new therapy for patients with rectal cancer. 
+We want to assess whether combining standard care 
+with a new form of therapy -- Oxaliplatin -- is beneficial for patients with rectal cancer.
 Data from the completed trial \citep{Roedel_Graeven_Fietkau_2015} are available in the \pkg{TH.data} package.   
 
 <<CAOdata, echo = FALSE, message = FALSE>>=
@@ -406,7 +399,7 @@ rt <- table(CAOsurv$randarm)
 $\Sexpr{rt["5-FU"]}$ patients received the Fluorouracil-based standard of care ($W = 0$), 
 and $\Sexpr{rt["5-FU + Oxaliplatin"]}$ patients received a combination therapy adding
 Oxaliplatin ($W = 1$). 
-Early effects were assessed based on a binary outcome \code{ypT0ypN0} -- the absence of viable tumour cells in the primary tumour
+Early effects were assessed based on a binary outcome \code{ypT0ypN0} -- the absence of viable tumor cells in the primary tumor
 and lymph nodes after surgery:
 <<CAOoutcome, echo = TRUE, message = FALSE>>=
 CAOsurv$ypT0ypN0 <- factor(CAOsurv$path_stad == "ypT0ypN0")
@@ -414,23 +407,12 @@ CAOsurv$ypT0ypN0 <- factor(CAOsurv$path_stad == "ypT0ypN0")
 
 \subsection{Unadjusted marginal inference}
 
-\cite{roedel_oxaliplatin_2012} reported an unadjusted odds
-ratio of $1.4$ with $95\%$ confidence interval $(1.02, 1.92)$ based on a
-Cochran-Mantel-Haenszel $\chi^2$ test (without continuity correction) 
-stratified for lymph node involvement 
-(positive vs.~negative) and clinical T category (1–3 vs.~4). 
-Similar results can be obtained by fitting a binary logistic regression
-model:
-<<CAO-glm, echo = TRUE, message = FALSE>>=
-mg_w <- glm(ypT0ypN0 ~ randarm,
-            data = CAOsurv, family = binomial())
-exp(coef(mg_w)["randarm5-FU + Oxaliplatin"])
-exp(confint(glht(mg_w), calpha = univariate_calpha())$confint[2,-1])
-@
-
-An equivalent model can be obtained with \code{Polr()} using the \pkg{tram} package. 
+Under proper randomization, we can obtain an unbiased estimate of 
+our treatment effect in the form of an unadjusted odds ratio using a binary logistic 
+regression model. 
 The outcome variable \code{ypT0ypN0} contains $\Sexpr{sum(is.na(CAOsurv$ypT0ypN0))}$
-missings. For \code{Polr()}, the missing values in the outcome are retained
+missings. Using the \code{Polr()} function of the \pkg{tram} package, 
+the missing values in the outcome are retained
 in the data set, but are ignored in the log-likelihood by choosing \code{na.action =
 na.pass}:
 <<CAO-marg, echo = TRUE, message = FALSE>>=
@@ -446,15 +428,17 @@ exp(confint(glht(mpCR, coef. = function(...) coef(..., fixed = FALSE)),
 
 \subsection{Nonparanormal adjusted marginal inference}
 
-Information on six potentially prognostic covariates is available: \code{age}, sex (\code{geschlecht}), ECOG
-performance status (\code{ecog\_o}), distance to the anal verge of the tumour (\code{bentf}) and the two
+We want to assess whether we can obtain a more precise estimate of the odds ratio by exploiting 
+the information on six potentially prognostic covariates: \code{age}, sex (\code{geschlecht}), ECOG
+performance status (\code{ecog\_o}), distance to the anal verge of the tumor (\code{bentf}), and the two
 stratum variables lymph node involvement (\code{strat\_n}) and clinical T category (\code{strat\_t}).
-For \NAMI, we define one marginal model for each covariate: 
-a Box-Cox-type model for continuous variable age, 
+We use \NAMI to receive an estimate that is still comparable to the estimate of the unadjusted model. 
+We define one marginal model for each covariate: 
+a Box-Cox-type model for the continuous variable age, 
 and binary or ordinal probit models for the remaining binary or ordinal covariates.
 The ECOG performance status and the distance to the anal verge have 14 missing values, respectively. 
 As for the outcome model, all missing values are retained in the data set
-but ignored in the marginal log-likelihoods (\code{na.action = na.pass}):
+but ignored in the marginal log-likelihoods (by setting \code{na.action = na.pass}):
 <<CAO-covariates, echo = TRUE>>=
 mage <- BoxCox(age ~ 1, data = CAOsurv)
 msex <- Polr(geschlecht ~ 1, data = CAOsurv, method = "probit")
@@ -467,19 +451,18 @@ mT <- Polr(strat_t ~ 1, data = CAOsurv, method = "probit")
 mN <- Polr(strat_n ~ 1, data = CAOsurv, method = "probit")
 @
 
-The joint model is fitted with \code{Mmlt}. It is important to note that,
-unlike the marginal models, this is not a complete cases analysis. If, for
-example, the outcome is missing for one observation, the corresponding datum
+The joint model is fitted with \code{Mmlt()}. It is important to note that,
+unlike the marginal models, this is not a complete case analysis. If, for
+example, the outcome is missing for one observation, the corresponding data point
 is still taken into account. The log-likelihood contribution is obtained by
 integrating out the missing dimension from the model.
 Details on the estimation of the mixed continuous-discrete likelihood are given in \cite{hothorn_2024}.
 
 Here, we fit the model
 <<CAO-Mmlt, echo = TRUE>>=
-### results in the paper were produced using M = 250
-### to reduce CRAN checking times, we use M = 50 here
-### we also speed up things by allowing the optimiser to
-### stop early
+### results in the paper were produced using M = 250; to reduce CRAN
+### checking times, we use M = 50 here we also speed up things by
+### allowing the optimiser to stop early
 fastoptH <- mltoptim(abstol = 1e-3, reltol = 1e-3, hessian = TRUE)
 m <- Mmlt(mage, msex, mecog, mentf, mT, mN, mpCR,
           data = CAOsurv, args = list(type = "ghalton", M = 50),
@@ -496,8 +479,12 @@ exp(ci[prm,-1])
 
 The corresponding odds ratio
 $\Sexpr{frmt3(exp(coef(m)[prm]))}$ with Wald interval $\Sexpr{frmtci(exp(ci[prm,-1]))}$ is
-very close to the initial results obtained by \cite{roedel_oxaliplatin_2012}. 
-The reason is that none of the six variables (including the stratum variables) carries
+very close to the initial results obtained by \cite{roedel_oxaliplatin_2012}.
+\cite{roedel_oxaliplatin_2012} reported an adjusted odds
+ratio of $1.4$ with $95\%$ confidence interval $(1.02, 1.92)$ based on a
+Cochran-Mantel-Haenszel $\chi^2$ test (without continuity correction) 
+stratified by lymph node involvement and clinical T category. 
+The reason for equality of the marginal and conditional estimates is that none of the six variables (including the stratum variables) carries
 strong prognostic information.
 The covariate with the largest association with the binary outcome can
 be identified by ranking the covariates according to their 
@@ -510,7 +497,7 @@ i <- which.max(abs(mr[-length(mr)]))
 @
 
 \code{ecog\_o} is the variable with the largest association with the 
-outcome but its linear correlation under transformation to normality 
+outcome, but its linear correlation under transformation to normality 
 only has a value of $\hat{\rho}_{J,\text{\Sexpr{toupper(substr(ni, 1,
 4))}}} = \Sexpr{frmt3(mr)}$.
 Consequently, adjusting for covariates did not improve fit nor precision, 
@@ -520,7 +507,7 @@ Omega <- as.array(coef(m, type = "Lambda"))[,,1]
 1 - Omega[nrow(Omega), ncol(Omega)]^(-2)
 @
 
-However, the standard error did not increase despite the adjustment for multiple covariates, 
+However, the standard error does not increase despite the adjustment for multiple covariates, 
 as the following comparison to the standard error 
 of the marginal model shows:
 <<CAO-se, echo = TRUE, message = FALSE>>=
@@ -529,7 +516,7 @@ sqrt(vcov(m)[prm, prm])
 @ 
 
 \section{Survival outcome: Longevity study of male fruit flies}
-\label{subsec:appl-surv}
+\label{sec:appl-surv}
 
 \cite{partridge_flies_1981} conducted a study on the sexual behavior of fruit flies. 
 The aim was to investigate whether increased sexual activity leads to shorter life 
@@ -543,7 +530,7 @@ The data set \code{FruitFlies} is available in the \pkg{Stat2Data} package:
 data("FruitFlies", package = "Stat2Data")
 @
 
-We follow \cite{negassa_flies_2007} and compare only the two groups with
+We follow \cite{negassa_flies_2007} and are interested in assessing the effect in the two groups with
 eight female flies added that were either all nonreceptive ($W = 0$) or
 receptive ($W = 1$):
 <<flies_subset, echo = TRUE, message = FALSE>>=
@@ -556,12 +543,15 @@ flies$survival <- Surv(flies$Longevity)
 
 Of interest is the survival time $\rY$ of 
 male flies in days.  Because thorax length of the male flies is strongly 
-associated with longevity, it is used as covariate in this analysis.
+associated with longevity \citep{partridge_flies_1981}, we use it as a covariate in this analysis.
 
 \subsection{Unadjusted marginal inference}
 
-The following code fits a marginal Cox proportional hazards model for time to death, 
-with baseline log-cumulative hazard function in Bernstein form of order six:
+We first conduct an unadjusted effect analysis by fitting 
+a marginal Cox proportional hazards model for time to death. 
+We use the \code{Coxph()} function of the \pkg{tram} package, 
+which does not leave the baseline log-cumulative hazard function 
+unspecified but parameterizes it as a polynomial in Bernstein form of order six:
 <<flies_marg, echo = TRUE>>=
 coxph_w <- Coxph(survival ~ Treatment, data = flies)
 coef(coxph_w)		### log-hazard ratio
@@ -571,13 +561,15 @@ confint(coxph_w)	### Wald
 The marginal treatment effect is defined as a log-hazard ratio $\hat{\tau} =
 \Sexpr{frmt3(coef(coxph_w))}$ with $95\%$ Wald interval $\Sexpr{frmtci(confint(coxph_w))}$.
 Consequently, the hazard of dying in the sexually active group is around
-$\exp(\hat{\tau}) = \Sexpr{frmt3(exp(coef(coxph_w)))}$ times higher than for the nonactive group.
+$\exp(\hat{\tau}) = \Sexpr{frmt3(exp(coef(coxph_w)))}$ times higher than for the non-active group.
 
 \subsection{Nonparanormal adjusted marginal inference}
 
-For \NAMI, we parameterise the transformation function $\h_1$ in the marginal model 
+We want to investigate whether we receive more precise estimates if 
+we exploit the information on the thorax using \NAMI. 
+We parameterize the transformation function $\h_1$ in the marginal model 
 of thorax length in Bernstein form with order six.
-The joint distribution of both variables was expressed by a Gaussian copula
+The joint distribution of both variables is expressed by a Gaussian copula
 model:
 <<flies_mmlt, echo = TRUE, message = FALSE>>=
 xmod <- BoxCox(Thorax ~ 1, data = flies)
@@ -597,27 +589,29 @@ Omega <- as.array(coef(m, type = "Lambda"))[,,1]
 
 \subsection{Model diagnosis}
 Model diagnosis is conducted on the level of the marginal model for the outcome 
-and on the level of the Gaussian copula parameterising the joint model.
+and on the level of the Gaussian copula parameterizing the joint model.
 
 On the level of the marginal model, we compare model-based and
 nonparametric estimators of the distribution functions of time-to-death on
 the complementary log-log scale. Plots of these functions are parallel
 under proportional hazards:
 
-<<trans_y, echo = TRUE, fig.width = 4, fig.height = 3.5, out.width='.6\\linewidth'>>=
+<<trans_y, echo = TRUE, fig.width = 4, fig.height = 3.5, out.width='.4\\linewidth'>>=
 q <- 0:100
 cols <- c("grey20", "grey70")
-### nonparametric
-plot(q, log(-log(1 - ecdf(subset(flies, Treatment == "8 pregnant")$survival[,1])(q))), 
+
+plot(q, log(-log(1 - ecdf(subset(flies,  ### nonparametric
+     Treatment == "8 pregnant")$survival[,1])(q))), 
      main = "", xlab = "Time", type = "S", lwd = 1, 
      ylab = "cloglog(Probability)")
-lines(q, log(-log(1 - ecdf(subset(flies, Treatment == "8 virgin")$survival[,1])(q))), 
+lines(q, log(-log(1 - ecdf(subset(flies, 
+     Treatment == "8 virgin")$survival[,1])(q))), 
      type = "S", lty = 2, lwd = 1)
 legend("bottomright", lty = c(1, 2),
        legend = levels(flies$Treatment), bty = "n")
 
-### model-based
-nd <- expand.grid(survival = q, Treatment = sort(unique(flies$Treatment)))
+nd <- expand.grid(survival = q, ### model-based 
+                  Treatment = sort(unique(flies$Treatment)))
 nd$h <- predict(as.mlt(coxph_w), newdata = nd, type = "trafo")
 fm <- nd$Treatment == "8 virgin"
 lines(nd$survival[fm], nd$h[fm], lty = 2)
@@ -643,19 +637,157 @@ m <- CoxphME(survival ~ s(Thorax, k = 5), data = flies,
 plot(smooth_terms(m), add = TRUE, lty = 2) 
 @
 
-Because the smooth functions reflecting the effect of thorax length in both treatment group 
-are monotone, the Gaussian copula seem to be appropriate.
+Because the smooth functions reflecting the effect of thorax length in both treatment groups 
+were monotone, the Gaussian copula seems to be appropriate.
+
+
+\section{Meta-analysis: Efficacy study of Enoxaparin}
+\label{sec:appl-meta}
+
+\cite{barco_virdone_enoxaparin_2023} was interested in whether Enoxaparin can reduce the rate of hospitalizations and all-cause death in ambulatory COVID-19 patients as compared to standard of care.
+A study with this aim was conducted between 2020 and 2022 -- the so-called OVID trial which is described in \cite{barco_etal_ovid_2022}.
+The primary outcome is a composite score of $30$-day all-cause hospitalizations and all-cause death.
+An overview of the event rates per age and treatment group is given in Table~\ref{tab:enoxaparin} based on the Supplementary Table in \cite{barco_virdone_enoxaparin_2023}. 
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{rrrrr}
+  \hline
+ Trial & Treatment & Age $30-70$ & Age $> 70$ & Overall\\ 
+  \hline
+  OVID & Control & $2.66$\% (6/226) &  $16.67$\% (2/12) & $3.36$\% 8/238 \\
+  OVID & Enoxaparin &  $3.60$\% ($8/222$) &  $0$\% ($0/12$) & $3.42$\% 8/234 \\ 
+   \hline
+\end{tabular}
+\caption{Success rates of two treatment arms for the OVID trial, overall rates as well as rates per age group ($30-70$ and $> 70$ years).
+\label{tab:enoxaparin}}
+\end{table}
+
+Based on this, we generate a table of frequencies for further analysis: 
+
+<<ovid_dat, echo = TRUE, message = FALSE>>=
+trt <- gl(2, 1, labels = c("Control", "Enoxaparin"))
+age <- gl(2, 1, labels = c("30-70", "> 70"))
+outcome <- gl(2, 1, labels = c("No event", "Event"))
+ovid <- expand.grid(trt = trt, age = age, outcome = outcome)
+ovid$weights <- c(220, 214, 10, 12, 6, 8, 2, 0)
+(ovid)
+@
+
+Of the 472 patients in the data set, $238$ patients received standard of care (control) and $234$ Enoxaparin. 
+$16$ had a composite event, $8$ of control and $8$ in the Enoxaparin group. 
+In the original analysis, a binary age group variable was used as a stratum variable;
+$448$ patients are $30-70$ years old, while only $24$ are over $70$. 
+The event rates stratified per \code{age} and treatment group (\code{trt}) are also given in Table~\ref{tab:enoxaparin}. 
+A Cochran-Mantel-Haenszel $\chi^2$ test (without continuity correction) stratified by age group ($30-70$ vs. $>70$ years) 
+
+<<ovid-mht, echo = TRUE>>=
+mt <- mantelhaen.test(xtabs(weights ~ trt + outcome + age, data = ovid))
+(lORx_mt <- log(mt$estimate))
+@
+
+gives an estimate of the log-odds ratio of $\Sexpr{frmt3(lORx_mt)}$. 
+This indicates that Enoxaparin had no significant effect on the composite score.
+The results are equivalent to the results of a conditional binary logistic regression model with treatment and age group as independent variables:
+
+<<ovid-cond, echo = TRUE>>=
+mtrtx_ovid <- glm(outcome ~ trt + age, data = ovid, weights = weights, 
+		  family = binomial())
+(lORx_ovid <- coef(mtrtx_ovid)["trtEnoxaparin"])
+@
+
+We want to compare the estimate of the OVID trial with the estimate of another trial -- 
+the ETHIC trial \citep{cools_etal_ethic_2022} in terms of a log-odds ratio. 
+However, unlike the OVID trial, the ETHIC trial did not use age as an adjustment variable \citep{cools_etal_ethic_2022}.
+To be able to compare the effect estimate of the OVID trial adjusting for age with the ETHIC trial not adjusting, we apply \NAMI on the OVID trial data. 
+First, we define the marginal models for the outcome given the treatment indicator and for the age group. Since both are binary, we set up binary logistic regression models:
+
+<<ovid-marg, echo = TRUE>>=
+mtrt_ovid<- Polr(outcome ~ trt, data = ovid, weights = weights, 
+                 method = "logistic")
+mage_ovid <- Polr(age ~ 1, data = ovid, weights = weights)
+@
+
+The marginal models are inputs to the \code{Mmlt()} function which estimates 
+all model parameters jointly: 
+
+<<ovid_mmlt, echo = TRUE>>=
+m_ovid <- Mmlt(mtrt_ovid, mage_ovid, data = ovid)
+prm <- "outcome.trtEnoxaparin"
+(lORm_ovid <- coef(m_ovid)[prm])
+(SE_ovid <- sqrt(vcov(m_ovid)[prm, prm]))
+@
+
+The obtained marginal log-odds ratio of NAMI is $\Sexpr{frmt3(lORm_ovid)}$. 
+This marginal estimate of the OVID trial is comparable to the log-odds ratio obtained from a marginal model based on the ETHIC trial which we fit next.
+
+Of the 208 patients in the ETHIC trial, 108 received the standard-of-care treatment and 100 Enoxaparin. 
+24 had an event, 12 in the control and 12 in the Enoxaparin group. 
+These frequencies were obtained from \cite{barco_virdone_enoxaparin_2023}. 
+With the following code, we make the data available in the form of a frequency table: 
+
+<<ethic_dat, echo = TRUE, message = FALSE>>=
+trt <- gl(2, 1, labels = c("Control", "Enoxaparin"))
+outcome <- gl(2, 1, labels = c("No event", "Event"))
+ethic <- expand.grid(trt = trt, outcome = outcome)
+ethic$weights <- c(96, 88, 12, 12)
+(ethic)
+@ 
+
+We use this frequency table as an input to \code{Polr()} which fits a logistic regression model that estimates a marginal log-odds ratio: 
+
+<<ethic_margmod, echo = TRUE >>= 
+mtrt_ethic <- Polr(outcome ~ trt, data = ethic, 
+                   weights = weights, method = "logistic")
+prmeth <- "trtEnoxaparin"
+(lOR_ethic <- coef(mtrt_ethic)[prmeth])
+(SE_ethic <- sqrt(vcov(mtrt_ethic)[prmeth, prmeth]))
+@
+
+The estimated marginal log-odds ratio of the ETHIC trial without adjustment for the age group is $\Sexpr{frmt3(lOR_ethic)}$.
+This estimate can be compared to the NAMI estimate obtained from the OVID trial data, an overview is given in Table~\ref{tab:metaov}. 
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{rrr}
+  \hline
+ Trial & Log-odds ratio & Standard error\\ 
+  \hline
+  OVID & $\Sexpr{frmt3(lORm_ovid)}$ & $\Sexpr{frmt3(SE_ovid)}$ \\
+  ETHIC & $\Sexpr{frmt3(lOR_ethic)}$ & $\Sexpr{frmt3(SE_ethic)}$ \\
+   \hline
+\end{tabular}
+\caption{Estimated marginal log-odds ratios of the OVID and ETHIC trial. For the OVID trial, the estimates were obtained by \NAMI, while for ETHIC, it is based on 
+an unadjusted marginal logistic regression model. 
+\label{tab:metaov}}
+\end{table}
+
+We can conclude that, in both studies, we found no significant effect of Enoxaparin on hospitalization rates or all-cause mortality and that the marginal effect of the ETHIC trial is slightly higher than the marginal effect of the OVID trial obtained from NAMI. 
+Table~\ref{tab:metaov} can be used as a basis for fixed-effects meta-analyses. 
+Compared to the unadjusted model based on the ETHIC trial, we can assess whether the age group was prognostic in the NAMI approach fitted to the OVID trial data. We can look at the polychoric correlations \citep{Jreskog_polychoric_1994}, i.e., the correlation of age group and outcome on the latent standard normal scale: 
+
+<<ovid_polycor, echo = TRUE>>=
+(polycor <- as.array(coef(m_ovid, type = "Cor"))["outcome","age",1])
+@
+
+This indicates that the age group did not have a strong prognostic effect ($\Sexpr{frmt3(polycor)}$).
+Using NAMI allows us to balance transparency -- by directly assessing whether age is prognostic -- and interpretability, as the method provides a marginal and not a conditional effect.
+The former (transparent assessment of prognostic effects) is not possible in a marginal model, whereas the latter (obtaining marginal effects) is not feasible in a conditional model -- if the treatment effect is nonzero, which cannot be known a priori.
 
 
 \section{Conclusion}
 The present vignette complements the theoretical work in \cite{Dandl_2025_nami} by
-discussing three application cases of \NAMI with diverse outcomes. 
-It was showed that \NAMI can identify the
+discussing four application cases of \NAMI with diverse outcomes.
+Nonparanormal adjusted marginal inference should be seen as a general framework that 
+allows applicability to a wide range of use cases -- even more complex ones that are beyond the scope of this vignette. 
+It was shown that \NAMI can identify the
 marginal effect of the treatment of interest with higher precision (narrower
 confidence intervals) as compared to unadjusted analysis 
 if at least one relevant prognostic covariate exists. 
+Nonparanormal adjusted marginal inference also has the advantage that the prognostic level can be directly assessed (e.g., 
+in the form of polychoric correlations as seen in Section~\ref{sec:appl-meta}).
 In addition, model diagnosis tools were discussed that equip users with helpful 
-tools to assess model fits and to examine underlying model assumptions. 
+tools to assess model fit which puts model assumptions under test. 
 
 <<nami-pkgs-funs, echo = FALSE, results = "hide">>=
 if (file.exists("packages.bib")) file.remove("packages.bib")

@@ -2020,7 +2020,16 @@ patients from all blocks are depicted in Figure~\ref{fig:COXME}.
 %
 \begin{figure}[t!]
 %
-<<COXME-margdist, purl = FALSE>>=
+% This takes too long for CRAN
+\begin{Schunk}
+
+
+{\centering \includegraphics{COXME-margsurv-plot-1.pdf} 
+
+}
+
+\end{Schunk}
+<<COXME-margdist, eval = FALSE, purl = FALSE>>=
 if (!file.exists("ME-margdist.rda")) {
 mod <- mcME
 
@@ -2050,10 +2059,10 @@ mp <- do.call("rbind", mp)
 save(mp, file = "ME-margdist.rda")
 } else load("ME-margdist.rda")
 @
-<<COXME-margsurv-plot, purl = FALSE>>=
+<<COXME-margsurv-plot, eval = FALSE, purl = FALSE>>=
 mp$surv <- with(mp, 1 - cdf)
 
-<<plot-surv-iDFS>>
+<<plot-surv-iDFS, eval = FALSE>>
 with(mp[mp$randarm == levs[1], ], lines(iDFS, surv, col = col[1], lwd = lwd))
 with(mp[mp$randarm == levs[2], ], lines(iDFS, surv, col = col[2], lwd = lwd))
 <<legend-trt>>
