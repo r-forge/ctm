@@ -2173,7 +2173,7 @@ global treatment effect, which does not capture differences in response across a
 \subsubsection{Age-varying hazards model} \label{sec:HTECOX}
 
 To detect varying treatment effects based on age we can employ models which
-estimate an age-varying hazard ratio $\exp(\eshiftparm(\ra))$ \citep{Tamasi_Hothorn_2023},
+estimate an age-varying hazard ratio $\exp(\eshiftparm(\ra))$ \citep{Tamasi_2025},
 %
 \begin{eqnarray*} \label{mod:HTECOX}
 % \snul(\ry) &=& \Prob(\rY > \ry \mid \rW = 0, \rA = \ra) =
