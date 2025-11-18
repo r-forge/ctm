@@ -2,7 +2,7 @@
 \name{NEWS}
 \title{NEWS file for the tram package}
 
-\section{Changes in Version 1.3-0 (2025-11-1)}{
+\section{Changes in Version 1.3-0 (2025-11-18)}{
   \itemize{
     \item{Adapt to \pkg{mlt} 1.7-0 changes.}
     \item{Avoid tedious data-driven determination of the support of polynomials in
