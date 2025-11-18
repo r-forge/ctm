@@ -2,7 +2,7 @@
 \name{NEWS}
 \title{NEWS file for the \pkg{tbm} package}
 
-\section{Changes in Version 0.3-9 (2025-10-19)}{
+\section{Changes in Version 0.3-9 (2025-11-19)}{
   \itemize{
     \item Update reference output to \pkg{mlt} 1.7-0 and \pkg{tram} 1.3-0
     }
