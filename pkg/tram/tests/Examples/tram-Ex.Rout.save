@@ -239,10 +239,11 @@ Log-Likelihood:
 +     ##   a Weibull "Survreg" model for dependent censoring
 + 
 +     m <- Compris(y ~ ch + age + hgb + clinstg, data = follic,
-+                  optim = mltoptim(),    ### no numerical hessian
++                  ### speed-up to make CRAN happy
++                  order = 4,          ### less flexible log-cum. hazard
++                  optim = mltoptim(), ### no numerical hessian
 +                  args  = list(type = "ghalton", 
-+                               M = 80))	### only 80 MC integration points
-+                                         ### to make CRAN happy
++                               M = 80))  ### only 80 MC integration points
 + 
 +     ### log-likelihood
 +     logLik(m)
@@ -264,8 +265,8 @@ Loading required package: randomForestSRC
 , , 1
 
               Event_relapse Event_death
-Event_relapse     1.0000000   0.5367655
-Event_death       0.5367655   1.0000000
+Event_relapse     1.0000000   0.4711223
+Event_death       0.4711223   1.0000000
 
 > 
 > 
@@ -343,11 +344,6 @@ horThyes -0.6107864 -0.1206647
 >   confint(score_test(m2))
               2.5 %     97.5 %
 horThyes -0.6101594 -0.1213078
->   ### permutation score interval; uses permutation distribution
->   ### see coin::independence_test 
->   confint(perm_test(m2))
-          2.5 %     97.5 %
-[1,] -0.6066269 -0.1249074
 > 
 > 
 > 
@@ -1338,7 +1334,7 @@ detaching ‘package:mlbench’, ‘package:colorspace’
 > cleanEx()
 > options(digits = 7L)
 > base::cat("Time elapsed: ", proc.time() - base::get("ptime", pos = 'CheckExEnv'),"\n")
-Time elapsed:  24.653 0.171 24.889 0 0 
+Time elapsed:  15.422 0.136 15.617 0 0 
 > grDevices::dev.off()
 null device 
           1 

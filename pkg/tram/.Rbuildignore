@@ -7,4 +7,4 @@ todo.txt
 demo/.*\.pdf
 Examples/tram-Ex.Rout.save
 vignettes/.*\.save
-demo/.*\.save
+# demo/.*\.save

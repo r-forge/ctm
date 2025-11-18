@@ -132,10 +132,11 @@ distributions for the primary event of interest and all competing events.
     ##   a Weibull "Survreg" model for dependent censoring
 
     m <- Compris(y ~ ch + age + hgb + clinstg, data = follic,
-                 optim = mltoptim(),    ### no numerical hessian
+                 ### speed-up to make CRAN happy
+                 order = 4,          ### less flexible log-cum. hazard
+                 optim = mltoptim(), ### no numerical hessian
                  args  = list(type = "ghalton", 
-                              M = 80))	### only 80 MC integration points
-                                        ### to make CRAN happy
+                              M = 80))  ### only 80 MC integration points
 
     ### log-likelihood
     logLik(m)
