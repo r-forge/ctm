@@ -9,8 +9,8 @@
 #
 #############################################################
 
-if (!all(sapply(c("TH.data", "tram"), require, character.only = TRUE)))
-  stop("Please install the required packages: TH.data, tram")
+if (!all(sapply(c("TH.data", "tram", "viridis"), require, character.only = TRUE)))
+  stop("Please install the required packages: TH.data, tram, viridis")
 
 ### Load and prep data --------------------
 ###########################################
@@ -28,8 +28,7 @@ tvars <- paste0("t", 1:ncol(XTag))
 toy <- paste0(tvars, collapse = "+") #time of Year
 
 aquabirds <- cbind(aquabirds, XTag)
-rm(XTag, cb); gc()
-
+rm(XTag, cb);
 
 ### Model Functions   --------------------
 ###########################################

@@ -70,6 +70,8 @@ data("spiders", package = "cotram")
 OR <- 1      ### order of transformation function
              ### OR = 1 means log-linear, use OR ~ 6
 M <- 100     ### number of Halton sequences, seem sufficient here
+fastopt <- mltoptim(abstol = 1e-3, reltol = 1e-3)
+             ### faster convergence
 
 ## fit conditional marginal count transformation models
 ## one for each species
@@ -88,16 +90,19 @@ m_PR <- cotram(Pardosa_riparia ~ Elevation + Canopy_openess,
 
 ### fit dependence parameters
 mm <- mcotram(m_PF, m_HL, m_CC, m_CT, m_PL, m_PR, data = spiders,
-              M = M, scale = TRUE)
+              M = M, scale = TRUE, optim = fastopt)
 logLik(mm)
 
 ### Kendall's tau: Dependence of species after accounting
 ### for elevation and canopy openess in marginal models
 coef(mm, type = "Kendall")
 
+\donttest{
+
 ### regress dependencies on elevation and canopy openess
 mmc <- mcotram(m_PF, m_HL, m_CC, m_CT, m_PL, m_PR, data = spiders, 
-               formula = ~ Elevation + Canopy_openess, M = M, scale = TRUE)
+               formula = ~ Elevation + Canopy_openess, M = M, 
+               scale = TRUE, optim = fastopt)
 logLik(mmc)
 
 ### weak evidence for such effects
@@ -118,6 +123,8 @@ contourplot(KD ~ Elevation + Canopy_openess | f, data = nd,
 ### => constant negative dependence of Pardosa_lugubris and Coelotes_terrestris
 ### => weak dependence of Harpactea_lepida and Pardosa_ferruginea
 ###    for low elevations, negative dependence increasing with elevation
+
+}
 
 }
 \keyword{models}
