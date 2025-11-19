@@ -2,9 +2,11 @@
 \name{NEWS}
 \title{NEWS file for the cotram package}
 
-\section{Changes in Version 0.6-0 (2025-11-14)}{
+\section{Changes in Version 0.6-0 (2025-11-19)}{
   \itemize{
-    \item{Bring back \code{mcotram}, update aqua birds demo.}
+    \item{Bring back \code{mcotram}.}
+    \item{Update aqua birds demo.}
+    \item{Address Fedora LaTeX issue.}
   }
 }
 
