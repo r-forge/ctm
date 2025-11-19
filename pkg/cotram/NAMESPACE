@@ -3,9 +3,6 @@ import("mlt")
 import("variables")
 import("basefun")
 import("tram")
-importFrom("Matrix", "Diagonal", "Matrix", "bdiag")
-importFrom("methods", "as")
-importFrom("alabama", "auglag")
 importFrom("stats", "coef", "model.frame", "model.matrix", "na.omit",
            "predict", "quantile", "variable.names", "logLik", "vcov", 
            "confint", "simulate")
