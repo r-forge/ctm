@@ -2958,7 +2958,7 @@ time-varying ratios of the cumulative hazards are shown in the plot below.
 \begin{Schunk}
 
 
-{\centering \includegraphics{figure/TVAR-iDFS-plot-1} 
+{\centering \includegraphics{survtram-TVAR-iDFS-plot-1} 
 
 }
 
@@ -2981,7 +2981,7 @@ and $-$3'262.54 for the \pkg{tram} model, with the computed time-varying ratios 
 \begin{Schunk}
 
 
-{\centering \includegraphics{figure/TVAR-DFS-plot-1} 
+{\centering \includegraphics{survtram-TVAR-DFS-plot-1} 
 
 }
 
@@ -3067,7 +3067,7 @@ are shown in the plot below.
 \begin{Schunk}
 
 
-{\centering \includegraphics{figure/HTECOX-DFS-plot-1} 
+{\centering \includegraphics{survtram-HTECOX-DFS-plot-1} 
 
 }
 
