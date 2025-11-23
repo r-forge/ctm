@@ -914,8 +914,8 @@ estimation strategies or optimisation procedures are used.
 
 This becomes even more challenging when comparing different
 models computed from different packages -- emphasising
-the benefit of a unified framework that facilitates smooth transitions
-between models and is based on a common core infrastructure 
+the benefit of a unified framework that facilitates seamless transitions
+between different models and is based on a common core infrastructure 
 for model parametrisation, estimation strategy, and optimisation procedure.
 
 To tackle these challenges, researchers may explore the
@@ -1015,7 +1015,7 @@ extensions, including topics like frailty models, model estimation using the
 non-parametric likelihood, covariate adjustment and the potential of using these models for
 sample size estimation of new trials.
 
-This tutorial is composed of the main text, which introduces models
+This tutorial is composed of the main text, which introduces the models
 and very briefly shows how to estimate them using smooth transformation models
 in \proglang{R}. In addition,  we present head-to-head
 comparisons of user-interfaces and numerical results obtained from alternative
@@ -1033,11 +1033,11 @@ In our Supplementary Material~\ref{sec:supp}, we conduct a thorough comparison o
 subset of the models discussed here which can be estimated using alternative
 implementations (in total 13~established CRAN packages) and corresponding results obtained with smooth transformation models from
 \pkg{tram} and \pkg{tramME}.  This quality assurance task not only helped to validate the
-unified implementation in \pkg{tram} and \pkg{tramME} but also led to the identification of
+implementation in \pkg{tram} and \pkg{tramME} but also led to the identification of
 problematic special cases and, in some instances, practically relevant
-discrepancies between different implementations of the very same model. 
+discrepancies between different package implementations of the very same model. 
 Moreover, Supplementary Material~\ref{sec:supp} presents the different user interfaces
-offered by various packages side-by-side, such that it becomes simple to
+of the different packages side-by-side, such that it becomes simpler to
 estimate and compare relatively complex models across independent
 implementations.  For the analysis of future survival trials, an assessment
 of the agreement of such estimates, standard errors, and possibly other
@@ -1253,10 +1253,7 @@ where the hazard ratio is given by $\nicefrac{\Hazone(\ry)}{\Haznul(\ry)} =
 \citet{McLain_Ghosh_2013} and \citet{Hothorn_Moest_Buehlmann_2017} proposed
 parametrising $\h(\ry) = \basisy(\ry)^\top \parm$ as polynomials in
 Bernstein form $\h(\ry) = \bern{\dimparm - 1}(\ry)^\top \parm$ of order
-$\dimparm - 1$.  In the context of skewed survival data, it might be
-suitable to apply polynomials in Bernstein form to the logarithm of the survival
-time $\ry$, leading to $\h(\ry) = \bern{\dimparm - 1}(\log(\ry))^\top
-\parm$.  This model is a fully parametric version of the otherwise semi-parametric Cox
+$\dimparm - 1$. The corresponding model~(\ref{mod:COX}) is a fully parametric version of the otherwise semi-parametric Cox
 proportional hazards model \citep{Cox_1972}.  The latter treats $\h$ as an
 infinite dimensional nuisance parameter which is profiled out from the
 likelihood.  This leads to the partial likelihood,
@@ -1269,7 +1266,7 @@ This is achieved under appropriate constraints $\eparm_p \le \eparm_{p + 1}$
 for $p \in 1, \dots, \dimparm - 1$ \citep{Hothorn_Moest_Buehlmann_2017}. 
 Adopting this specific parametrisation for the log-cumulative baseline
 hazard function $\log(\Haznul(\ry)) = \h(\ry)$ facilitates the computation
-of the associated density $\dnul(\ry)$ and distribution function
+of the corresponding density $\dnul(\ry)$ and distribution function
 $\pnul(\ry)$, thus allowing for straightforward parameter estimation using
 maximum likelihood.  This holds true even when dealing with
 interval-censored or truncated observations.
@@ -1296,7 +1293,7 @@ log-cumulative baseline hazard functions in Bernstein form
 
 \subsubsection{Stratified proportional hazards model} \label{sec:STRAT}
 
-Accounting for the variations in baseline risks among different patient
+Accounting for variations in baseline risks among different patient
 strata identified by variable $\rs$, one can employ stratified models that
 incorporate stratum-specific log-cumulative baseline hazard functions
 $\h(\ry \mid \rs)$.  These models can be defined by
@@ -1324,7 +1321,7 @@ $\rs$ by formulating the log-cumulative hazard as $\h(\ry \mid \rs) + \rw
 \subsubsection{Non-proportional hazards model} \label{sec:SCOX}
 
 Extending beyond the proportional hazards assumption, an additional
-covariate-dependent model term can be estimated.  \citet{Burke_2017}
+treatment-dependent model term can be estimated.  \citet{Burke_2017}
 introduced the multi-parameter extension to the Weibull model~(\ref{mod:WEI}) in the context
 of survival analysis, specifically outlining its use for interval-censored observations \citep{Burke_SiM_2020}.
 
@@ -1454,9 +1451,9 @@ effect corresponding to the assignment $\rW =
 The disease-free survival times are stored as \code{iDFS},
 an object of class `\code{Surv}',
 which includes a mix of exact, interval-, and right-censored observations.
-This `\code{Surv}' object can be specified using
+This `\code{Surv}' object can be specified with
 \code{Surv(CAOsurv\$iDFStime, CAOsurv\$iDFStime2, type = "interval2")}
-\citep{Therneau_Grambsch_2000}.
+\citep{pkg:survival,Therneau_Grambsch_2000}.
 Exact observations are represented by two identical time points,
 for interval-censored observations, the two times define the period within
 which the event occurred and right-censored observations are represented by an
@@ -1493,7 +1490,7 @@ This reduction in hazards translates to a
 prolonged disease-free survival time in the experimental arm. 
 Since the model is a proportional hazards counterpart of the Weibull accelerated
 failure time model fitted by \cmd{survreg} from the \pkg{survival} package
-\citep{Therneau_Grambsch_2000},
+\citep{Therneau_Grambsch_2000,pkg:survival},
 the estimate can also be translated into a log-acceleration factor
 $\hat{\tilde\eshiftparm} = \hat\eshiftparm \hat\eparm_2^{-1} =
 \Sexpr{frmt3(lAF)}$.  This implies that
@@ -1526,13 +1523,13 @@ otherwise estimated semi-parametrically using the partial likelihood (as
 implemented in the \pkg{survival} package in the \cmd{coxph} function). 
 Here the log-cumulative hazard function is specified in terms of
 polynomials in Bernstein form, by default of order $\dimparm - 1 = 6$, 
-thus specifying the transformation function $\h(\ry)$ in terms of
-$\bern{6}(\ry)^\top\parm$.  The fully parametric approach enables the
+specifying the transformation function $\h(\ry) = \bern{6}(\ry)^\top\parm$. 
+The fully parametric approach enables the
 straightforward incorporation of interval-censored disease-free survival times. 
 Figure~\ref{fig:COX} illustrates the estimated log-cumulative baseline hazard
 function $\hatHaznul(\ry) = \hat{\h}(\ry) =
-\bern{6}(\log(\ry))^\top\hat{\parm}$ along with the $95\%$-confidence band,
-revealing a non-linear function of log-time ($\log(\ry)$). The band was
+\bern{6}(\ry)^\top\hat{\parm}$ along with the $95\%$-confidence band,
+revealing a non-linear function of log-time. The band was
 obtained from simultaneous confidence intervals for a dense grid of time
 points utilising the asymptotic normality of the maximum likelihood
 estimator $\hat{\parm}$ and the fact that $\h$ was parameterised as
@@ -1545,12 +1542,12 @@ ranges from \Sexpr{frmtCI(exp(perm_test(mc)$conf.int), math = TRUE)}.
 %
 \begin{figure}[t!]
 \centering
-<<COX-lHaz-try>>=
-cb <- confband(as.mlt(mc), newdata =  nd1[1,, drop = FALSE], K = 20, cheat = 100)
+<<COX-lHaz-cb, cache = TRUE>>=
+cb <- confband(as.mlt(mc), newdata =  nd1[1,, drop = FALSE], K = 400, cheat = 200)
+cb <- cb[cb[,"q"] > 20,] ### remove time = 0
 @
 <<COX-lHaz-plot>>=
 eval(par_main)
-cb <- cb[cb[,"q"] > 0,] ### remove time = 0
 plot(cb[, "q"], cb[, "Estimate"], log = "x", type = "n",
   xlab = lxlab, ylab = ylablHaz, xlim = xlimlHaz <- range(cb[, "q"]),
   ylim = range(cb[, -1]))
@@ -1569,16 +1566,9 @@ band estimated by the model.} \label{fig:COX}
 To further accommodate for varying log-cumulative baseline hazard functions $\Haznul(\ry \mid \rs)$
 across patient strata $\rs$ (here identified by $\code{strat}$), we can fit
 a stratified model (Section~\ref{sec:STRAT}).
-
-For the package vignette only, we speed things up a bit allowing the
-optimiser to stop early:
-<<fastopt>>=
-fastopt <- mltoptim(abstol = 1e-3, reltol = 1e-3)
-fastoptH <- mltoptim(abstol = 1e-3, reltol = 1e-3, hessian = TRUE)
-@
 %
 <<STRAT-model, echo = TRUE, eval = FALSE, purl = FALSE>>=
-Coxph(iDFS | strat ~ randarm, data = CAOsurv, optim = fastopt)
+Coxph(iDFS | strat ~ randarm, data = CAOsurv)
 @
 <<STRAT-model-fit, cache = TRUE>>=
 mcst <- 
@@ -1604,7 +1594,7 @@ stratum.
 \centering
 %
 <<STRAT-lHaz-plot>>=
-plot(as.mlt(mcst), newdata = nd2, q = q[q > 0], type = "logcumhazard", log = "x",
+plot(as.mlt(mcst), newdata = nd2, q = unname(cb[, 1]), type = "logcumhazard", log = "x",
   lty = lty <- 1:4, xlab = lxlab, ylab = ylablHaz, xlim = xlimlHaz,
   col = 1, lwd = lwd)
 
@@ -1666,11 +1656,13 @@ survival times.
 \centering
 %
 <<SCOX-HR-plot, echo = FALSE>>=
-qHR <- seq(50, max(q), by = 1)
-cumhaz <- predict(mcs, type = "cumhazard", newdata = nd1, q = qHR)
+s <- mkgrid(mcs, n = 500)
+qHR <- s$iDFS <- s$iDFS[s$iDFS > 20]
+xlimHR <- range(qHR)
+cumhaz <- predict(mcs, type = "cumhazard", q = qHR, newdata = nd1)
 cumhr <- unname(cumhaz[, 2] / cumhaz[, 1])
 plot(qHR, cumhr, type = "l", ylab = ylabcumHR, xlab = xlab,
-  ylim = ylimHR, xlim = xlimHR <- range(qHR), lwd = lwd)
+  ylim = ylimHR, xlim = xlimHR , lwd = lwd)
 
 abline(h = exp(coef(mc)), lty = 2, lwd = 1) ## constant HR
 abline(h = 1, lty = 3) ## HR = 1
@@ -1714,12 +1706,8 @@ progresses.
 <<TCOX-HR, cache = TRUE>>=
 mcv <- as.mlt(mcv)
 
-## grid (was n = 500, qmvnorm failed)
-s <- mkgrid(mcv, 39)
-s$iDFS <- s$iDFS[s$iDFS >= min(xlimHR) & s$iDFS <= max(xlimHR)]
-nd3 <- expand.grid(s)
-
 ## confint
+nd3 <- expand.grid(s) ## grid from SCOX
 K <- model.matrix(mcv$model, data = nd3)
 Kyes <- K[nd3$randarm == levels(nd3$randarm)[2],]
 Kyes[,grep("Intercept", colnames(Kyes))] <- 0  
@@ -1829,7 +1817,7 @@ follow-up time $\rC \in \RR^{+}$ in the two arms is not independent of the
 overall survival time  $\rY \in \RR^{+}$ (secondary endpoint).
 
 The observed times can be categorised into the following event types (specified in \code{DepCevent}):
-The event of interest (overall survival), loss of
+The event of interest (corresponding to overall survival), loss of
 follow-up (dependent censoring), and end of follow-up period
 (administrative/independent censoring).
 %
@@ -1852,8 +1840,7 @@ The model accommodating dependent censoring can also be fitted using the
 `\code{Surv}' object.
 %
 <<DEPCENS-model, echo = TRUE, eval = FALSE, purl = FALSE>>=
-Coxph(Surv(OStime, event = DepCevent) ~ randarm, data = CAOsurv, 
-      optim = fastoptH)
+Coxph(Surv(OStime, event = DepCevent) ~ randarm, data = CAOsurv)
 @
 <<DEPCENS-model-fit, cache = TRUE>>=
 md <- 
@@ -1886,7 +1873,7 @@ period.
 The estimated hazard ratio assessing the treatment effect on overall survival,
 is $\exp(\hat\eshiftparm_\rY) = \Sexpr{frmt3(est_HR)}$ with a
 95\%-confidence interval from \Sexpr{frmtCI(ci_HR, math = TRUE)}.  This indicates
-no evidence for prolonged overall survival in the experimental arm.  The estimated dependence
+no evidence for prolonged overall survival in the experimental compared to the control arm.  The estimated dependence
 parameter is $\hat\lparm = \Sexpr{frmt3(est_lambda)}$,
 corresponding to a Kendall's $\hat\tau = \Sexpr{frmt3(est_tau)}$. 
 The corresponding 95\%-confidence interval from \Sexpr{frmtCI(ci_lambda, math = TRUE)}
@@ -2086,7 +2073,7 @@ cluster, event times can be either all exact or all censored, see Formulae
 2.5 and 2.6 of \citet{Barbanti_Hothorn_2023}), we handle exact
 event times by treating them as interval-censored, accomplished by adding a
 4-day window (stored in the object \code{iDFS2} of class `\code{Surv}', 
-see Section~5 of the \code{mtram} package vignette \citep{pkg:tram} for details).
+see Section~5 of the \code{mtram} package vignette \citep{Barbanti_Hothorn_mtram} for details).
 %
 <<MCOX-preproc, echo = FALSE>>=
 ### convert "exact" event dates to interval-censoring (+/- two days)
@@ -2099,7 +2086,7 @@ CAOsurv$iDFS2 <- tmp
 @
 <<MCOX-model, echo = TRUE, eval = FALSE, purl = FALSE>>=
 mtram(Coxph(iDFS2 ~ randarm, data = CAOsurv),
-  formula = ~ (1 | Block), data = CAOsurv, optim = fastoptH)
+  formula = ~ (1 | Block), data = CAOsurv)
 @
 <<MCOX-model-fit, cache = TRUE>>=
 mmc <- 
@@ -2151,7 +2138,7 @@ regardless of the block.
 In the context of personalised medicine, our focus now turns towards modeling
 heterogeneous treatment effects to capture a more individualised response to treatment.
 By fitting models with log-hazard ratios that vary with age, we move beyond a
-global treatment effect, which does not capture differences in response across age groups.
+global treatment effect, to assess differences in treatment response across age groups.
 
 \subsection{Survival models}
 
@@ -2196,7 +2183,7 @@ allowing to partition both the log-cumulative baseline hazard
 $\log(\Haznul(\ry \mid \ra)) = \h(\ry \mid \ra) =
 \basisy(\ry)^\top\parm(\ra)$ and the treatment effect $\eshiftparm(\ra)$
 with respect to different age groups.  In contrast to the model in
-Section~\ref{sec:HTECOX}, both the log-cumulative baseline hazard and the
+Section~\ref{sec:HTECOX}, here both the log-cumulative baseline hazard and the
 log-hazard ratio $\eshiftparm$ depend on age, in this case via an
 age-structured tree.
 
@@ -2309,15 +2296,14 @@ in-sample log-likelihood is \Sexpr{frmtll(tr, math = TRUE)}.}
 \subsection{Frailty proportional hazards model}
 
 In cases where the assumption of a homogeneous study population falls short,
-frailty models offer a valuable alternative.  These models address
-situations where the population under consideration comprises heterogeneous
-individuals with varying risk levels, reflecting the concept of frailty
-\citep{Balan_Putter_2020}.
+frailty models offer a valuable alternative.  These models account for
+unobserved heterogeneity in scenarios where the study population comprises
+individuals with varying baseline risks \citep{Balan_Putter_2020}.
 
 To handle such scenarios in the framework of smooth transformation models,
 the approach discussed by \citet{McLain_Ghosh_2013} can be employed.  The
 corresponding frailty proportional hazards model introduces an unobservable
-multiplicative frailty effect $\rF = \rf$ on the hazard, with
+multiplicative frailty effect $\rF$ on the hazard, with
 corresponding conditional survivor function
 %
 \begin{eqnarray*} \label{mod:frailty}
@@ -2375,7 +2361,7 @@ In this tutorial, we have primarily focused on the implementation of smooth
 parametrisation for the log-cumulative baseline hazard function $\h$. 
 Nevertheless, it is important to highlight that researchers also have the
 option to utilize the discussed models that incorporate a non-parametric
-version of the transformation function $\h$, should they wish to do so. 
+version of the transformation function $\h$ in package \pkg{tram}, should they wish to do so. 
 The corresponding non-parametric transformation function $\h$ is specified 
 in terms of $\basisy(\ry_k)^\top \parm = \eparm_k$, where a parameter $\eparm_k$
 is assigned to each distinct event time $\ry_k$ with $k = 1, \dots, K - 1$.
@@ -2408,7 +2394,7 @@ print.tram(ml)
 @
 
 This inherent versatility of link functions facilitates to construct
-of alternative models, including mean or odds models, by specifying a probit or 
+alternative models, including mean or odds models, by specifying a probit or 
 logit link respectively.  These 
 models are well known from the class of accelerated failure time models
 (with log-linear $\h$), but extend seamlessly to the more flexible
@@ -2418,9 +2404,9 @@ comprehensive overview, see Table~1 of \citet{Hothorn_Moest_Buehlmann_2017}.
 
 \subsection{Covariate adjustment}
 
-While the models above estimate a single coefficient $\eshiftparm$ for the
-treatment effect, they naturally allow for the inclusion of additional
-covariates $\rx$. For example, in the time-varying hazards model (Section~\ref{sec:TCOX}),
+While the models above focus on estimating the treatment effect,
+they can naturally extend to incorporate further covariates $\rx$.
+For example, in the time-varying hazards model (Section~\ref{sec:TCOX}),
 age can be incorporated into the linear predictor as follows:
 %
 <<TCOX-age-model, echo = TRUE, eval = FALSE, purl = FALSE>>=
@@ -2527,7 +2513,7 @@ overview of implementations in Supplementary Material~\ref{sec:supp} serves
 as a validation tool, allowing researchers to compare across multiple
 packages.
 
-The framework's modular architecture further allows
+The frameworks' modular architecture further allows
 individual model components to be combined --- for example, covariate-dependent hazard
 ratios can be paired with random effects using \pkg{tramME}.
 The framework also extends to multiple event times per subject,
@@ -2538,13 +2524,12 @@ complex survival analysis tasks in \proglang{R}.
 
 The implemented framework also provides the foundation for interesting extensions.
 For example, the model in Section~\ref{sec:SCOX} could be adapted to handle cured
-patients, giving a fully parametric version of the semi-parametric cure mixture
+patients, as a fully parametric version of the semi-parametric cure mixture
 model proposed by \citet{Xie_Huang_Li_2022}.
-In the context of covariate adjustment,
-extending the implementation to collapsible models similar to \citet{Crowther_Royston_Clements_2022} could be explored. 
+In the context of covariate adjustment, extending
+the implementation to collapsible models similar to \citet{Crowther_Royston_Clements_2022} could be explored. 
 Additionally, alternative strategies such as the marginalising the hazard ratio, as
 suggested by \citet{Rhian_2021}, could also be explored further.
-
 
 
 \section*{Acknowledgements}
@@ -2561,6 +2546,7 @@ Foundation [grant number 200021\_219384].
 
 \section[Comparative overview of R implementations]{Comparative overview of \proglang{R} implementations}\label{sec:supp}
 
+
 \definecolor{darkgray}{rgb}{0.66, 0.66, 0.66}
 
 % \renewenvironment{Schunk}{}{\vspace{-.9cm}} %% quickfix to avoid spacing after chunk
@@ -2569,7 +2555,7 @@ Foundation [grant number 200021\_219384].
 
 In the following, we compare the implementations of the models from the \pkg{tram}
 \citep{pkg:tram} and \pkg{tramME} \citep{pkg:tramME} packages shown in the tutorial, with
-alternative methods available in various established \proglang{R}~packages
+alternative models available in various established \proglang{R}~packages
 from CRAN.
 
 We fit the  models to the primary endpoint of disease-free survival, which
@@ -2577,8 +2563,7 @@ comprises a mixture of exact times and right- and interval-censored event times 
 \var{iDFS}, an object of class `\code{Surv}').  In order to further compare the models
 with other implementations that cannot handle
 interval-censored outcomes, we treat the interval-censored observations as
-if they were observed exactly (encoded in \var{DFS}, also a `\code{Surv}'
-object).
+if they were observed exactly (encoded in \var{DFS}, an object of class `\code{Surv}').
 
 We contrast treatment effect estimates (Estimate) and corresponding standard
 errors (Std.~Error) estimated
@@ -2632,7 +2617,7 @@ R> icenReg::ic_par(iDFS ~ randarm, data = CAOsurv, dist = "weibull",
 
 \begin{center}
 % latex table generated in R 4.5.2 by xtable 1.8-4 package
-% Mon Nov 17 10:58:26 2025
+% Sun Nov 23 16:22:26 2025
 \scalebox{0.8}{
 \begin{tabular}{lllrrr}
   \toprule
@@ -2679,7 +2664,7 @@ R> icenReg::ic_sp(iDFS ~ randarm, data = CAOsurv, model = "ph")
 
 \begin{center}
 % latex table generated in R 4.5.2 by xtable 1.8-4 package
-% Mon Nov 17 10:58:42 2025
+% Sun Nov 23 16:22:26 2025
 \scalebox{0.8}{
 \begin{tabular}{lllrrr}
   \toprule
@@ -2732,7 +2717,7 @@ R> rms::cph(DFS ~ randarm, data = CAOsurv)
 
 \begin{center}
 % latex table generated in R 4.5.2 by xtable 1.8-4 package
-% Mon Nov 17 10:58:43 2025
+% Sun Nov 23 16:22:26 2025
 \scalebox{0.8}{
 \begin{tabular}{lllrrr}
   \toprule
@@ -2756,8 +2741,8 @@ Function & Package & Interpretation & Estimate & Std. Error & logLik \\
 \subsection{Stratified proportional hazards models}
 
 For comparing stratified flexible proportional hazards models we can again
-utilize the model from the \pkg{rstpm2} and \pkg{flexsurv} packages,
-which employ stratified spline-basis functions. The two models can be fitted to the
+utilize the model from the \pkg{rstpm2},
+which employ stratified spline-basis functions. The model can be fitted to the
 \emph{interval-censored event times} as follows
 
 \begin{Schunk}
@@ -2771,13 +2756,13 @@ R> rstpm2::stpm2(Surv(time = iDFStime, time2 = iDFStime2,
 
 \begin{center}
 % latex table generated in R 4.5.2 by xtable 1.8-4 package
-% Mon Nov 17 10:58:45 2025
+% Sun Nov 23 16:22:27 2025
 \scalebox{0.8}{
 \begin{tabular}{lllrrr}
   \toprule
 Function & Package & Interpretation & Estimate & Std. Error & logLik \\ 
   \midrule
-\code{Coxph} & \pkg{tram} & log-HR & $ -0.228 $ & $ 0.107 $ & $-$2'213.93 \\ 
+\code{Coxph} & \pkg{tram} & log-HR & $ -0.228 $ & $ 0.107 $ & $-$2'213.94 \\ 
   \code{stpm2} & \pkg{rstpm2} & log-HR & $ -0.220 $ & $ 0.107 $ & $-$2'242.88 \\ 
    \bottomrule
 \end{tabular}
@@ -2786,7 +2771,7 @@ Function & Package & Interpretation & Estimate & Std. Error & logLik \\
 \end{center}
 
 %
-The results from the two models are very similar.
+The results from the two models are practically similar.
 
 Now, \emph{ignoring interval-censoring}, we can, once again, contrast the implementation of
 the semi-parametric models from the
@@ -2802,13 +2787,13 @@ R> rms::cph(DFS ~ randarm + strat(strat), data = CAOsurv)
 
 \begin{center}
 % latex table generated in R 4.5.2 by xtable 1.8-4 package
-% Mon Nov 17 10:58:47 2025
+% Sun Nov 23 16:22:27 2025
 \scalebox{0.8}{
 \begin{tabular}{lllrrr}
   \toprule
 Function & Package & Interpretation & Estimate & Std. Error & logLik \\ 
   \midrule
-\code{Coxph} & \pkg{tram} & log-HR & $ -0.228 $ & $ 0.107 $ & $-$3'234.59 \\ 
+\code{Coxph} & \pkg{tram} & log-HR & $ -0.228 $ & $ 0.107 $ & $-$3'234.58 \\ 
   \code{coxph} & \pkg{survival} & log-HR & $ -0.222 $ & $ 0.107 $ & {\color{darkgray}$-$2'089.54} \\ 
   \code{cph} & \pkg{rms} & log-HR & $ -0.222 $ & $ 0.107 $ & {\color{darkgray}$-$2'089.54} \\ 
    \bottomrule
@@ -2844,7 +2829,7 @@ R> survival::survreg(DFS ~ randarm + strata(strat), data = CAOsurv)
 
 \begin{center}
 % latex table generated in R 4.5.2 by xtable 1.8-4 package
-% Mon Nov 17 10:58:47 2025
+% Sun Nov 23 16:22:27 2025
 \scalebox{0.8}{
 \begin{tabular}{lllrrr}
   \toprule
@@ -2894,7 +2879,7 @@ location parameter below.
 %
 \begin{center}
 % latex table generated in R 4.5.2 by xtable 1.8-4 package
-% Mon Nov 17 10:59:00 2025
+% Sun Nov 23 16:22:28 2025
 \scalebox{0.8}{
 \begin{tabular}{llrrr}
   \toprule
@@ -2929,7 +2914,7 @@ Again, we only show the estimates and standard errors of the location parameter 
 %
 \begin{center}
 % latex table generated in R 4.5.2 by xtable 1.8-4 package
-% Mon Nov 17 10:59:01 2025
+% Sun Nov 23 16:22:28 2025
 \scalebox{0.8}{
 \begin{tabular}{llrrr}
   \toprule
@@ -2951,7 +2936,7 @@ The two implementations also provide equivalent model fits.
 
 We can compare the time-varying hazards model from 
 the \pkg{tram} and the \pkg{flexsurv} package \citep{pkg:flexsurv} which allows to 
-estimate time-varying covariate effects. We start by examining the models
+estimate time-varying treatment effects. We start by examining the models
 for the \emph{interval-censored event times}.
 %
 \begin{Schunk}
@@ -2973,7 +2958,7 @@ time-varying ratios of the cumulative hazards are shown in the plot below.
 \begin{Schunk}
 
 
-{\centering \includegraphics{survtram-TVAR-iDFS-plot-1} 
+{\centering \includegraphics{figure/TVAR-iDFS-plot-1} 
 
 }
 
@@ -2996,7 +2981,7 @@ and $-$3'262.54 for the \pkg{tram} model, with the computed time-varying ratios 
 \begin{Schunk}
 
 
-{\centering \includegraphics{survtram-TVAR-DFS-plot-1} 
+{\centering \includegraphics{figure/TVAR-DFS-plot-1} 
 
 }
 
@@ -3034,7 +3019,7 @@ R> coxme::coxme(DFS ~ randarm + (1 | Block), data = CAOsurv)
 
 \begin{center}
 % latex table generated in R 4.5.2 by xtable 1.8-4 package
-% Mon Nov 17 10:59:12 2025
+% Sun Nov 23 16:22:47 2025
 \scalebox{0.8}{
 \begin{tabular}{lllrrr}
   \toprule
@@ -3056,8 +3041,8 @@ The fitted models from the three packages agree very well.
 \subsection{Age-varying hazards model}
 
 We can compare the age-varying hazards model from 
-package \pkg{tramME} to the implementation in the \pkg{mgcv} package
-\citep{pkg:mgcv,Wood_2016} which estimates a smooth Cox model via partial likelihood maximisation.
+package \pkg{tramME} \citep{Tamasi_2025} to the implementation in the \pkg{mgcv} package
+\citep{pkg:mgcv,Wood_2016} which estimates a smooth Cox model via partial likelihood optimisation.
 As the model from the \pkg{mgcv} package only accommodates right-censored observations
 we again fit the models \emph{ignoring interval-censoring}.
 
@@ -3082,13 +3067,13 @@ are shown in the plot below.
 \begin{Schunk}
 
 
-{\centering \includegraphics{survtram-HTECOX-DFS-plot-1} 
+{\centering \includegraphics{figure/HTECOX-DFS-plot-1} 
 
 }
 
 \end{Schunk}
 %
-The hazard ratio curves and confidence intervals estimated by the two packages are equivalent.
+The hazard ratio curves and confidence intervals estimated by the two packages are practically equivalent.
 
 \subsection{Frailty proportional hazards models}
 
@@ -3114,13 +3099,13 @@ R> frailtypack::frailtyPenal(DFS ~ randarm + cluster(id),
 
 \begin{center}
 % latex table generated in R 4.5.2 by xtable 1.8-4 package
-% Mon Nov 17 10:59:20 2025
+% Sun Nov 23 16:23:20 2025
 \scalebox{0.8}{
 \begin{tabular}{lllrrr}
   \toprule
 Function & Package & Interpretation & Estimate & Std. Error & logLik \\ 
   \midrule
-\code{Coxph} & \pkg{tram} & log-HR & $ -0.230 $ & $ 0.108 $ & $-$3'264.89 \\ 
+\code{Coxph} & \pkg{tram} & log-HR & $ -0.230 $ & $ 0.107 $ & $-$3'264.89 \\ 
   \code{stpm2} & \pkg{rstpm2} & log-HR & $ -0.685 $ & $ 0.670 $ & $-$3'264.88 \\ 
   \code{coxph} & \pkg{survival} & log-HR & $ -0.406 $ & $ 0.159 $ & {\color{darkgray}$-$1'944.22} \\ 
   \code{emfrail} & \pkg{frailtyEM} & log-HR & $ -0.384 $ & $ 0.153 $ & {\color{darkgray}$-$2'430.45} \\ 
@@ -3157,7 +3142,7 @@ R> timereg::Gprop.odds(DFS ~ prop(randarm), data = CAOsurv)
 
 \begin{center}
 % latex table generated in R 4.5.2 by xtable 1.8-4 package
-% Mon Nov 17 10:59:32 2025
+% Sun Nov 23 16:24:37 2025
 \scalebox{0.8}{
 \begin{tabular}{lllrrr}
   \toprule
@@ -3165,7 +3150,7 @@ Function & Package & Interpretation & Estimate & Std. Error & logLik \\
   \midrule
 \code{Colr} & \pkg{tram} & log-OR & $ -0.292 $ & $ 0.125 $ & $-$3'265.48 \\ 
   \code{stpm2} & \pkg{rstpm2} & log-OR & $ -0.294 $ & $ 0.125 $ & $-$3'272.44 \\ 
-  \code{flexsurvspline} & \pkg{flexsurv} & $-$log-OR & $ -0.294 $ & $ 0.124 $ & $-$2'247.78 \\ 
+  \code{flexsurvspline} & \pkg{flexsurv} & log-OR & $ -0.294 $ & $ 0.124 $ & $-$2'247.78 \\ 
   \code{Gprop.odds} & \pkg{timereg} & log-OR & $ -0.268 $ & $ 0.125 $ &  \\ 
    \bottomrule
 \end{tabular}
@@ -3182,10 +3167,11 @@ the \pkg{timereg} package and thus do not report it here.
 \subsection*{Computational details}
 \begin{itemize}\raggedright
   \item R version 4.5.2 (2025-10-31), \verb|x86_64-pc-linux-gnu|
-  \item Running under: \verb|Debian GNU/Linux 12 (bookworm)|
+  \item Running under: \verb|Ubuntu 24.04.3 LTS|
   \item Matrix products: default
-  \item BLAS:   \verb|/usr/local/lib/R/lib/libRblas.so|
-  \item LAPACK: \verb|/usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.11.0|
+  \item BLAS:   \verb|/usr/lib/x86_64-linux-gnu/openblas-pthread/libblas.so.3|
+  \item LAPACK: \verb|/usr/lib/x86_64-linux-gnu/openblas-pthread/libopenblasp-r0.3.26.so|
+; \quad\ LAPACK version3.12.0
   \item Base packages: base, datasets, graphics, grDevices, grid,
     methods, parallel, splines, stats, utils
   \item Other packages: ATR~0.1-1, basefun~1.2-5,
@@ -3196,17 +3182,17 @@ the \pkg{timereg} package and thus do not report it here.
     gamlss.data~6.0-7, gamlss.dist~6.1-1, Hmisc~5.2-4,
     icenReg~2.0.16, ICsurv~1.0.1, knitr~1.50, libcoin~1.0-10,
     MASS~7.3-65, mgcv~1.9-4, mlt~1.7-2, mpr~1.0.6,
-    multcomp~1.4-29, mvtnorm~1.3-4, nlme~3.1-168,
+    multcomp~1.4-29, mvtnorm~1.3-3, nlme~3.1-168,
     optimx~2025-4.9, parfm~2.7.8, partykit~1.2-24, Rcpp~1.1.0,
     rms~8.1-0, rstpm2~1.7.1, SparseGrid~0.8.2, survC1~1.0-3,
-    survival~3.8-3, TH.data~1.1-4, timereg~2.0.7, tram~1.3-0,
+    survival~3.8-3, TH.data~1.1-5, timereg~2.0.7, tram~1.3-0,
     tramME~1.0.8, TransModel~2.3, trtf~0.4-3, variables~1.1-2,
     xtable~1.8-4
   \item Loaded via a namespace (and not attached):
     alabama~2023.1.0, assertthat~0.2.1, backports~1.5.0,
     base64enc~0.1-3, BB~2019.10-1, bbmle~1.0.25.1, broom~1.0.10,
     checkmate~2.3.3, cli~3.6.5, cluster~2.1.8.1,
-    codetools~0.2-20, compiler~4.5.2, coneproj~1.21,
+    codetools~0.2-20, compiler~4.5.2, coneproj~1.22,
     cowplot~1.2.0, data.table~1.17.8, Deriv~4.2.0, deSolve~1.40,
     digest~0.6.38, dplyr~1.1.4, evaluate~1.0.5, expint~0.1-9,
     expm~1.0-0, farver~2.1.2, fastmap~1.2.0, foreach~1.5.2,
@@ -3225,14 +3211,12 @@ the \pkg{timereg} package and thus do not report it here.
     polynom~1.4-1, pracma~2.4.6, purrr~1.2.0, quadprog~1.5-8,
     quantreg~6.1, R6~2.6.1, rbibutils~2.4, RColorBrewer~1.1-3,
     Rdpack~2.6.4, reformulas~0.4.2, rlang~1.1.6, rmarkdown~2.30,
-    rootSolve~1.8.2.4, rpart~4.1.24, rstudioapi~0.17.1, S7~0.2.0,
+    rootSolve~1.8.2.4, rpart~4.1.24, rstudioapi~0.17.1, S7~0.2.1,
     sandwich~3.1-1, scales~1.4.0, sn~2.1.1, SparseM~1.84-2,
     statmod~1.5.1, stats4~4.5.2, stringi~1.8.7, stringr~1.6.0,
     tibble~3.3.0, tidyr~1.3.1, tidyselect~1.2.1, TMB~1.9.18,
     tools~4.5.2, vctrs~0.6.5, withr~3.0.2, xfun~0.54, zoo~1.8-14
 \end{itemize}
-
-
 
 
 \putbib
