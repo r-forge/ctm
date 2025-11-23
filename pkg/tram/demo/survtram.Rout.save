@@ -390,14 +390,20 @@ log-hazard ratio for randarm5-FU + Oxaliplatin
 
 > lines(cb[, "q"], cb[, "Estimate"], lwd = lwd)
 
-> mcst <- Coxph(iDFS | strat ~ randarm, data = CAOsurv)
+> fastopt <- mltoptim(abstol = 0.001, reltol = 0.001)
+
+> fastoptH <- mltoptim(abstol = 0.001, reltol = 0.001, 
++     hessian = TRUE)
+
+> mcst <- Coxph(iDFS | strat ~ randarm, data = CAOsurv, 
++     optim = fastopt)
 
 > summary(mcst)
 
  (Stratified) Parametric Linear Cox Regression Model 
 
 Call:
-Coxph(formula = iDFS | strat ~ randarm, data = CAOsurv)
+Coxph(formula = iDFS | strat ~ randarm, data = CAOsurv, optim = fastopt)
 
 Coefficients:
                           Estimate Std. Error z value Pr(>|z|)  
@@ -407,18 +413,18 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 Log-Likelihood:
  -2214 (df = 29)
-Likelihood-ratio Test: Chisq = 4.654 on 1 degrees of freedom; p = 0.031
+Likelihood-ratio Test: Chisq = 4.653 on 1 degrees of freedom; p = 0.031
 
 
 > score_test(mcst)
 
 	Transformation Score Test
 
-data:  Coxph(formula = iDFS | strat ~ randarm, data = CAOsurv)
+data:  Coxph(formula = iDFS | strat ~ randarm, data = CAOsurv, optim = fastopt)
 Z = 2.1, p-value = 0.03
 alternative hypothesis: true log-hazard ratio for randarm5-FU + Oxaliplatin is not equal to 0
 95 percent confidence interval:
- -0.43568 -0.01914
+ -0.43591 -0.01843
 sample estimates:
 log-hazard ratio for randarm5-FU + Oxaliplatin 
                                        -0.2281 
@@ -428,11 +434,11 @@ log-hazard ratio for randarm5-FU + Oxaliplatin
 
 	Asymptotic Permutation Transformation Score Test
 
-data:  Coxph(formula = iDFS | strat ~ randarm, data = CAOsurv)
+data:  Coxph(formula = iDFS | strat ~ randarm, data = CAOsurv, optim = fastopt)
 Z = 2.1, p-value = 0.03
 alternative hypothesis: true log-hazard ratio for randarm5-FU + Oxaliplatin is not equal to 0
 95 percent confidence interval:
- -0.43691 -0.01806
+ -0.43636 -0.01779
 sample estimates:
 log-hazard ratio for randarm5-FU + Oxaliplatin 
                                        -0.2281 
@@ -572,40 +578,41 @@ nDepCevent                 5-FU 5-FU + Oxaliplatin
   Loss of follow-up          48                 51
 
 > md <- Coxph(Surv(OStime, event = DepCevent) ~ randarm, 
-+     data = CAOsurv)
++     data = CAOsurv, optim = fastoptH)
 
 > summary(md)
 
  
 
 Call:
-Coxph(formula = Surv(OStime, event = DepCevent) ~ randarm, data = CAOsurv)
+Coxph(formula = Surv(OStime, event = DepCevent) ~ randarm, data = CAOsurv, 
+    optim = fastoptH)
 
 Coefficients:
                                                 Estimate Std. Error
-Event_EoI.Event_EoI.Bs1(Event_EoI)               -7.2654     0.7791
-Event_EoI.Event_EoI.Bs2(Event_EoI)               -4.9678     1.0463
-Event_EoI.Event_EoI.Bs3(Event_EoI)               -0.8924     1.2131
-Event_EoI.Event_EoI.Bs4(Event_EoI)                0.2218     0.5081
-Event_EoI.Event_EoI.Bs5(Event_EoI)                0.2218     0.5081
-Event_EoI.Event_EoI.Bs6(Event_EoI)                0.2218     0.5081
-Event_EoI.Event_EoI.Bs7(Event_EoI)                0.8862     0.5224
-Event_EoI.Event_EoI.randarm5-FU + Oxaliplatin    -0.0314     0.1427
-Event_DepC.Event_DepC.(Intercept)               -12.1852     0.9739
-Event_DepC.Event_DepC.log(Event_DepC)             1.3350     0.1402
-Event_DepC.Event_DepC.randarm5-FU + Oxaliplatin  -0.1108     0.2026
-Event_DepC.Event_EoI.(Intercept)                  0.0214     0.4524
+Event_EoI.Event_EoI.Bs1(Event_EoI)               -7.2650     0.7790
+Event_EoI.Event_EoI.Bs2(Event_EoI)               -4.9681     1.0462
+Event_EoI.Event_EoI.Bs3(Event_EoI)               -0.8915     1.2132
+Event_EoI.Event_EoI.Bs4(Event_EoI)                0.2217     0.5081
+Event_EoI.Event_EoI.Bs5(Event_EoI)                0.2216     0.5081
+Event_EoI.Event_EoI.Bs6(Event_EoI)                0.2214     0.5081
+Event_EoI.Event_EoI.Bs7(Event_EoI)                0.8860     0.5224
+Event_EoI.Event_EoI.randarm5-FU + Oxaliplatin    -0.0314     0.1426
+Event_DepC.Event_DepC.(Intercept)               -12.1859     0.9738
+Event_DepC.Event_DepC.log(Event_DepC)             1.3352     0.1402
+Event_DepC.Event_DepC.randarm5-FU + Oxaliplatin  -0.1107     0.2027
+Event_DepC.Event_EoI.(Intercept)                  0.0204     0.4523
                                                 z value Pr(>|z|)    
-Event_EoI.Event_EoI.Bs1(Event_EoI)                -9.33  < 2e-16 ***
-Event_EoI.Event_EoI.Bs2(Event_EoI)                -4.75  2.1e-06 ***
-Event_EoI.Event_EoI.Bs3(Event_EoI)                -0.74     0.46    
+Event_EoI.Event_EoI.Bs1(Event_EoI)                -9.33   <2e-16 ***
+Event_EoI.Event_EoI.Bs2(Event_EoI)                -4.75    2e-06 ***
+Event_EoI.Event_EoI.Bs3(Event_EoI)                -0.73     0.46    
 Event_EoI.Event_EoI.Bs4(Event_EoI)                 0.44     0.66    
 Event_EoI.Event_EoI.Bs5(Event_EoI)                 0.44     0.66    
 Event_EoI.Event_EoI.Bs6(Event_EoI)                 0.44     0.66    
 Event_EoI.Event_EoI.Bs7(Event_EoI)                 1.70     0.09 .  
 Event_EoI.Event_EoI.randarm5-FU + Oxaliplatin     -0.22     0.83    
-Event_DepC.Event_DepC.(Intercept)                -12.51  < 2e-16 ***
-Event_DepC.Event_DepC.log(Event_DepC)              9.52  < 2e-16 ***
+Event_DepC.Event_DepC.(Intercept)                -12.51   <2e-16 ***
+Event_DepC.Event_DepC.log(Event_DepC)              9.52   <2e-16 ***
 Event_DepC.Event_DepC.randarm5-FU + Oxaliplatin   -0.55     0.58    
 Event_DepC.Event_EoI.(Intercept)                   0.05     0.96    
 ---
@@ -617,18 +624,18 @@ Log-Likelihood:
 
 > confint(md)
                                                    2.5 %   97.5 %
-Event_EoI.Event_EoI.Bs1(Event_EoI)               -8.7923  -5.7385
-Event_EoI.Event_EoI.Bs2(Event_EoI)               -7.0185  -2.9171
-Event_EoI.Event_EoI.Bs3(Event_EoI)               -3.2701   1.4853
-Event_EoI.Event_EoI.Bs4(Event_EoI)               -0.7740   1.2176
-Event_EoI.Event_EoI.Bs5(Event_EoI)               -0.7740   1.2176
-Event_EoI.Event_EoI.Bs6(Event_EoI)               -0.7740   1.2176
-Event_EoI.Event_EoI.Bs7(Event_EoI)               -0.1376   1.9100
+Event_EoI.Event_EoI.Bs1(Event_EoI)               -8.7917  -5.7383
+Event_EoI.Event_EoI.Bs2(Event_EoI)               -7.0187  -2.9176
+Event_EoI.Event_EoI.Bs3(Event_EoI)               -3.2693   1.4863
+Event_EoI.Event_EoI.Bs4(Event_EoI)               -0.7742   1.2176
+Event_EoI.Event_EoI.Bs5(Event_EoI)               -0.7742   1.2174
+Event_EoI.Event_EoI.Bs6(Event_EoI)               -0.7744   1.2173
+Event_EoI.Event_EoI.Bs7(Event_EoI)               -0.1379   1.9099
 Event_EoI.Event_EoI.randarm5-FU + Oxaliplatin    -0.3110   0.2482
-Event_DepC.Event_DepC.(Intercept)               -14.0940 -10.2763
-Event_DepC.Event_DepC.log(Event_DepC)             1.0602   1.6099
-Event_DepC.Event_DepC.randarm5-FU + Oxaliplatin  -0.5080   0.2864
-Event_DepC.Event_EoI.(Intercept)                 -0.8653   0.9082
+Event_DepC.Event_DepC.(Intercept)               -14.0946 -10.2773
+Event_DepC.Event_DepC.log(Event_DepC)             1.0604   1.6100
+Event_DepC.Event_DepC.randarm5-FU + Oxaliplatin  -0.5079   0.2865
+Event_DepC.Event_EoI.(Intercept)                 -0.8661   0.9070
 
 > library("tramME")
 
@@ -688,7 +695,7 @@ Block|(Intercept)          -2.6956  0.05330
 > CAOsurv$iDFS2 <- tmp
 
 > mmc <- mtram(Coxph(iDFS2 ~ randarm, data = CAOsurv), 
-+     formula = ~(1 | Block), data = CAOsurv)
++     formula = ~(1 | Block), data = CAOsurv, optim = fastoptH)
 
 > mHR.mtram <- function(object, with_confint = FALSE, 
 +     seed = 1) {
@@ -698,31 +705,31 @@ Block|(Intercept)          -2.6956  0.05330
 
 > coef(mmc)
                Bs1(iDFS2)                Bs2(iDFS2) 
-                  -8.4298                   -6.1300 
+                  -8.4299                   -6.1272 
                Bs3(iDFS2)                Bs4(iDFS2) 
-                  -2.7127                   -2.7127 
+                  -2.7133                   -2.7137 
                Bs5(iDFS2)                Bs6(iDFS2) 
-                  -2.1822                   -0.9163 
+                  -2.1821                   -0.9164 
                Bs7(iDFS2) randarm5-FU + Oxaliplatin 
-                  -0.8013                   -0.2351 
+                  -0.8015                   -0.2349 
                    gamma1 
-                   0.1823 
+                   0.1822 
 
 > sqrt(diag(vcov(mmc)))
                Bs1(iDFS2)                Bs2(iDFS2) 
-                   1.2579                    0.8593 
+                   1.2586                    0.8595 
                Bs3(iDFS2)                Bs4(iDFS2) 
-                   0.3028                    0.3028 
+                   0.3029                    0.3029 
                Bs5(iDFS2)                Bs6(iDFS2) 
                    0.2898                    0.1038 
                Bs7(iDFS2) randarm5-FU + Oxaliplatin 
                    0.0762                    0.1074 
                    gamma1 
-                   0.1168 
+                   0.1170 
 
 > (ci_MCOX <- mHR.mtram(mmc, with_confint = TRUE))
      randarm5-FU + Oxaliplatin   2.5%  97.5%
-[1,]                    0.7935 0.6465 0.9783
+[1,]                    0.7937 0.6466 0.9785
 
 > ma <- CoxphME(iDFS ~ randarm + s(age, by = as.ordered(randarm), 
 +     fx = TRUE, k = 6), data = CAOsurv)
@@ -1477,7 +1484,7 @@ R> mfc5 <- frailtypack::frailtyPenal(DFS ~ randarm + cluster(id), data = CAOsurv
 +    RandDist = "Gamma", n.knots = 10, kappa = 1)
 
 Be patient. The program is computing ... 
-The program took 0.55 seconds 
+The program took 0.48 seconds 
 R> 
 R> 
 R> ## ----FRAILTY-DFS-results------------------------------------------------------
@@ -1591,4 +1598,4 @@ R>
 R> 
 > proc.time()
    user  system elapsed 
-  805.8  1228.1   748.1 
+  596.4   878.2   566.7 
