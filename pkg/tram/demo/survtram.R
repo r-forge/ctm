@@ -7,7 +7,7 @@ library("tram")
 x <- vignette("survtram", package = "tram")
 source(file.path(x$Dir, "doc", x$R), echo = TRUE)
 
-### Appendix
+### Supplementary Material
 
 ## ----pkgs---------------------------------------------------------------------
 ## additional packages
@@ -107,7 +107,7 @@ tab <- function(mod, parm = trt, math = TRUE, mark = TRUE, tex = TRUE) {
     "stpm2" = ifelse(identical(mod@link$link, link.stpm2.ph, ignore.environment = TRUE),
       "log-HR", ifelse(identical(mod@link$link, link.stpm2.po, ignore.environment = TRUE), 
         "log-OR", NA)),
-    "flexsurvspline" = switch(mod$scale, "hazard" = "log-HR", "odds" = "$-$log-OR"), 
+    "flexsurvspline" = switch(mod$scale, "hazard" = "log-HR", "odds" = "log-OR"), 
     "flexsurvreg" = switch(mod$call$dist, "weibullPH" = "log-HR", "weibull" = "log-AF"),
     "ic_par" = switch(mod$call$model, "ph" = "log-HR", "aft" = "log-AF"), 
     "ic_sp" = switch(mod$call$model, "ph" = "log-HR", "po" = "$-$log-OR", "aft" = "log-AF"), 
@@ -284,7 +284,7 @@ cumhaz <- predict(mcvi2, type = "cumhaz", newdata =  nd1)
 cumhr <- unlist(unname(cumhaz[[1]][[2]][2] /  cumhaz[[1]][[1]][2]))
 t <- unlist(unname(cumhaz[[1]][[1]][1]))
 ret <- as.data.frame(cbind(t, cumhr))
-ret <- ret[ret$t > xlim.tvar[1] & ret$t < xlim.tvar[2], ]
+ret <- ret[ret$t > xlim[1] & ret$t < xlim[2], ]
 lines(ret$t, ret$cumhr, lty = 2, lwd = 2, col = col2 <- "darkgrey")
 legend("topright", lty = 1:2, lwd = 2, col = c("black", col2),
   legend = c(bquote("package:"~bold("tram")), bquote("package:"~bold("flexsurv"))),
@@ -319,7 +319,7 @@ cumhaz <- predict(mcv2, type = "cumhaz", newdata =  nd1)
 cumhr <- unlist(unname(cumhaz[[1]][[2]][2] /  cumhaz[[1]][[1]][2]))
 t <- unlist(unname(cumhaz[[1]][[1]][1]))
 ret <- as.data.frame(cbind(t, cumhr))
-ret <- ret[ret$t > xlim.tvar[1] & ret$t < xlim.tvar[2], ]
+ret <- ret[ret$t > xlim[1] & ret$t < xlim[2], ]
 lines(ret$t, ret$cumhr, lty = 2, lwd = 2, col = col2 <- "darkgrey")
 legend("topright", lty = 1:2, lwd = 2, col = c("black", col2),
   legend = c(bquote("package:"~bold("tram")), bquote("package:"~bold("flexsurv"))),
@@ -412,5 +412,5 @@ print.results(list(mo1, mo2, mo3, mo4))
 
 
 ## ----session, results = "asis"------------------------------------------------
-toLatex(sessionInfo(), locale = FALSE)
+sessionInfo()
 
