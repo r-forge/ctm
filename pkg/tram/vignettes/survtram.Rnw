@@ -1566,9 +1566,17 @@ band estimated by the model.} \label{fig:COX}
 To further accommodate for varying log-cumulative baseline hazard functions $\Haznul(\ry \mid \rs)$
 across patient strata $\rs$ (here identified by $\code{strat}$), we can fit
 a stratified model (Section~\ref{sec:STRAT}).
+
+For the package vignette only, we speed things up a bit allowing the 	 
+optimiser to stop early: 	 
+<<fastopt>>= 	 
+fastopt <- mltoptim(abstol = 1e-3, reltol = 1e-3) 	 
+fastoptH <- mltoptim(abstol = 1e-3, reltol = 1e-3, hessian = TRUE) 	 
+@ 	 
 %
 <<STRAT-model, echo = TRUE, eval = FALSE, purl = FALSE>>=
 Coxph(iDFS | strat ~ randarm, data = CAOsurv)
+optim = fastopt)
 @
 <<STRAT-model-fit, cache = TRUE>>=
 mcst <- 
@@ -1839,8 +1847,11 @@ The model accommodating dependent censoring can also be fitted using the
 \cmd{Coxph} function by appropriately specifying the event in the
 `\code{Surv}' object.
 %
+Again, we stop the optimiser early in order to save time for the vignette 	 
+compilation
 <<DEPCENS-model, echo = TRUE, eval = FALSE, purl = FALSE>>=
-Coxph(Surv(OStime, event = DepCevent) ~ randarm, data = CAOsurv)
+Coxph(Surv(OStime, event = DepCevent) ~ randarm, data = CAOsurv, 
+  optim = fastoptH)
 @
 <<DEPCENS-model-fit, cache = TRUE>>=
 md <- 
@@ -2003,7 +2014,6 @@ patients from all blocks are depicted in Figure~\ref{fig:COXME}.
 
 \end{Schunk}
 <<COXME-margdist, eval = FALSE, purl = FALSE>>=
-if (!file.exists("ME-margdist.rda")) {
 mod <- mcME
 
 ## A function to evaluate the joint cdf of the response and the random effects:
@@ -2027,10 +2037,8 @@ nd <- expand.grid(iDFS = 1:max(CAOsurv$DFStime), randarm = unique(CAOsurv$randar
 ## Calls marginalCDF on each row of nd
 ## (done in parallel to speed up computations)
 mp <- parallel::mclapply(split(nd, seq(nrow(nd))),
-  marginalCDF, mod = mod, mc.cores = 4)
+  marginalCDF, mod = mod, mc.cores = 1)
 mp <- do.call("rbind", mp)
-save(mp, file = "ME-margdist.rda")
-} else load("ME-margdist.rda")
 @
 <<COXME-margsurv-plot, eval = FALSE, purl = FALSE>>=
 mp$surv <- with(mp, 1 - cdf)
@@ -2075,6 +2083,8 @@ event times by treating them as interval-censored, accomplished by adding a
 4-day window (stored in the object \code{iDFS2} of class `\code{Surv}', 
 see Section~5 of the \code{mtram} package vignette \citep{Barbanti_Hothorn_mtram} for details).
 %
+Again, for the package vignette only we stop the optimisation early
+% 
 <<MCOX-preproc, echo = FALSE>>=
 ### convert "exact" event dates to interval-censoring (+/- two days)
 tmp <- CAOsurv$iDFS
@@ -2086,7 +2096,7 @@ CAOsurv$iDFS2 <- tmp
 @
 <<MCOX-model, echo = TRUE, eval = FALSE, purl = FALSE>>=
 mtram(Coxph(iDFS2 ~ randarm, data = CAOsurv),
-  formula = ~ (1 | Block), data = CAOsurv)
+  formula = ~ (1 | Block), data = CAOsurv, optim = fastoptH)
 @
 <<MCOX-model-fit, cache = TRUE>>=
 mmc <- 
