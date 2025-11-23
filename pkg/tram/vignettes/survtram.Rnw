@@ -1575,8 +1575,8 @@ fastoptH <- mltoptim(abstol = 1e-3, reltol = 1e-3, hessian = TRUE)
 @ 	 
 %
 <<STRAT-model, echo = TRUE, eval = FALSE, purl = FALSE>>=
-Coxph(iDFS | strat ~ randarm, data = CAOsurv)
-optim = fastopt)
+Coxph(iDFS | strat ~ randarm, data = CAOsurv,
+  optim = fastopt)
 @
 <<STRAT-model-fit, cache = TRUE>>=
 mcst <- 
