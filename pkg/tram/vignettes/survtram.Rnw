@@ -43,7 +43,7 @@
 \usepackage[title]{appendix}
 
 %% line numbers
-\usepackage{lineno} 
+\usepackage{lineno}
 %\internallinenumbers
 %\setrunninglinenumbers
 %\runninglinenumbers
@@ -74,20 +74,6 @@
 
 \newcommand\Sandra[1]{{\color{blue}Sandra: ``#1''}}
 \newcommand\Torsten[1]{{\color{blue}Torsten: ``#1''}}
-
-% \usepackage[colorinlistoftodos,prependcaption,textsize=tiny]{todonotes}
-% \usepackage{xargs}                      % Use more than one optional parameter in a new commands
-% \newcommandx{\unsure}[2][1=]{\todo[linecolor=pink,backgroundcolor=pink!25,bordercolor=pink,#1]{#2}}
-% \newcommandx{\change}[2][1=]{\todo[linecolor=red,backgroundcolor=red!25,bordercolor=red,#1]{#2}}
-% \newcommandx{\add}[2][1=]{\todo[inline,linecolor=teal,backgroundcolor=teal!25,bordercolor=teal,#1]{#2}}
-% \newcommandx{\torsten}[2][1=]{\todo[linecolor=red,backgroundcolor=red!25,bordercolor=red,#1]{#2}}
-% \newcommandx{\idea}[2][1=]{\todo[inline,linecolor=green,backgroundcolor=green!25,bordercolor=green,#1]{#2}}
-% \newcommandx{\improve}[2][1=]{\todo[linecolor=purple,backgroundcolor=purple!25,bordercolor=purple,#1]{#2}}
-
-% \let\comment\relax
-% \usepackage{changes}
-% \definechangesauthor[color=red, names={Torsten}]{T.H.}
-% \definechangesauthor[color=red, name={Sandra}]{S.S.}
 
 %% code
 \usepackage{verbatim}
@@ -2024,7 +2010,7 @@ patients from all blocks are depicted in Figure~\ref{fig:COXME}.
 \begin{Schunk}
 
 
-{\centering \includegraphics{COXME-margsurv-plot-1.pdf} 
+{\centering \includegraphics{survtram-COXME-margsurv-plot-1.pdf} 
 
 }
 
@@ -2072,7 +2058,6 @@ with(mp[mp$randarm == levs[2], ], lines(iDFS, surv, col = col[2], lwd = lwd))
 <<COXME-margdist>>
 <<COXME-margsurv-plot>>
 @
-
 %
 \caption{Mixed-effects proportional hazards model.  Marginal survivor curves
 obtained from integrating out the random effects from the model, along with
@@ -2988,7 +2973,7 @@ time-varying ratios of the cumulative hazards are shown in the plot below.
 \begin{Schunk}
 
 
-{\centering \includegraphics{TVAR-iDFS-plot-1} 
+{\centering \includegraphics{survtram-TVAR-iDFS-plot-1} 
 
 }
 
@@ -3011,7 +2996,7 @@ and $-$3'262.54 for the \pkg{tram} model, with the computed time-varying ratios 
 \begin{Schunk}
 
 
-{\centering \includegraphics{TVAR-DFS-plot-1} 
+{\centering \includegraphics{survtram-TVAR-DFS-plot-1} 
 
 }
 
@@ -3097,7 +3082,7 @@ are shown in the plot below.
 \begin{Schunk}
 
 
-{\centering \includegraphics{HTECOX-DFS-plot-1} 
+{\centering \includegraphics{survtram-HTECOX-DFS-plot-1} 
 
 }
 
