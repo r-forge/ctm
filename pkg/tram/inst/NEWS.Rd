@@ -2,6 +2,14 @@
 \name{NEWS}
 \title{NEWS file for the tram package}
 
+\section{Changes in Version 1.3-1 (2025-11-24)}{
+  \itemize{
+    \item{Update \code{survtram} vignette.}
+    \item{Update \code{mtram} vignette.}
+  }
+}
+
+
 \section{Changes in Version 1.3-0 (2025-11-18)}{
   \itemize{
     \item{Adapt to \pkg{mlt} 1.7-0 changes.}
