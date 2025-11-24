@@ -7,8 +7,6 @@ R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
 Type 'license()' or 'licence()' for distribution details.
 
-  Natural language support but running in an English locale
-
 R is a collaborative project with many contributors.
 Type 'contributors()' for more information and
 'citation()' on how to cite R or R packages in publications.
@@ -39,9 +37,9 @@ Loading required package: trtf
 Loading required package: partykit
 Loading required package: grid
 
-Attaching package: ‘grid’
+Attaching package: 'grid'
 
-The following object is masked from ‘package:variables’:
+The following object is masked from 'package:variables':
 
     unit
 
@@ -54,17 +52,17 @@ Loading required package: survival
 Loading required package: TH.data
 Loading required package: MASS
 
-Attaching package: ‘TH.data’
+Attaching package: 'TH.data'
 
-The following object is masked from ‘package:MASS’:
+The following object is masked from 'package:MASS':
 
     geyser
 
 Loading required package: coin
 
-Attaching package: ‘coin’
+Attaching package: 'coin'
 
-The following object is masked from ‘package:variables’:
+The following object is masked from 'package:variables':
 
     support
 
@@ -353,7 +351,7 @@ data:  Coxph(formula = iDFS ~ randarm, data = CAOsurv)
 Z = 2.2, p-value = 0.03
 alternative hypothesis: true log-hazard ratio for randarm5-FU + Oxaliplatin is not equal to 0
 95 percent confidence interval:
- -0.43899 -0.02224
+ -0.43898 -0.02224
 sample estimates:
 log-hazard ratio for randarm5-FU + Oxaliplatin 
                                        -0.2306 
@@ -367,7 +365,7 @@ data:  Coxph(formula = iDFS ~ randarm, data = CAOsurv)
 Z = 2.2, p-value = 0.03
 alternative hypothesis: true log-hazard ratio for randarm5-FU + Oxaliplatin is not equal to 0
 95 percent confidence interval:
- -0.43901 -0.02205
+ -0.43901 -0.02206
 sample estimates:
 log-hazard ratio for randarm5-FU + Oxaliplatin 
                                        -0.2306 
@@ -407,13 +405,13 @@ Coxph(formula = iDFS | strat ~ randarm, data = CAOsurv, optim = fastopt)
 
 Coefficients:
                           Estimate Std. Error z value Pr(>|z|)  
-randarm5-FU + Oxaliplatin   -0.228      0.107   -2.14    0.033 *
+randarm5-FU + Oxaliplatin   -0.228      0.107   -2.13    0.033 *
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 Log-Likelihood:
  -2214 (df = 29)
-Likelihood-ratio Test: Chisq = 4.653 on 1 degrees of freedom; p = 0.031
+Likelihood-ratio Test: Chisq = 4.669 on 1 degrees of freedom; p = 0.0307
 
 
 > score_test(mcst)
@@ -424,10 +422,10 @@ data:  Coxph(formula = iDFS | strat ~ randarm, data = CAOsurv, optim = fastopt)
 Z = 2.1, p-value = 0.03
 alternative hypothesis: true log-hazard ratio for randarm5-FU + Oxaliplatin is not equal to 0
 95 percent confidence interval:
- -0.43591 -0.01843
+ -0.43553 -0.01964
 sample estimates:
 log-hazard ratio for randarm5-FU + Oxaliplatin 
-                                       -0.2281 
+                                       -0.2275 
 
 
 > perm_test(mcst)
@@ -438,10 +436,10 @@ data:  Coxph(formula = iDFS | strat ~ randarm, data = CAOsurv, optim = fastopt)
 Z = 2.1, p-value = 0.03
 alternative hypothesis: true log-hazard ratio for randarm5-FU + Oxaliplatin is not equal to 0
 95 percent confidence interval:
- -0.43636 -0.01779
+ -0.43696 -0.01836
 sample estimates:
 log-hazard ratio for randarm5-FU + Oxaliplatin 
-                                       -0.2281 
+                                       -0.2275 
 
 
 > plot(as.mlt(mcst), newdata = nd2, q = unname(cb[, 
@@ -590,31 +588,31 @@ Coxph(formula = Surv(OStime, event = DepCevent) ~ randarm, data = CAOsurv,
 
 Coefficients:
                                                 Estimate Std. Error
-Event_EoI.Event_EoI.Bs1(Event_EoI)               -7.2650     0.7790
-Event_EoI.Event_EoI.Bs2(Event_EoI)               -4.9681     1.0462
-Event_EoI.Event_EoI.Bs3(Event_EoI)               -0.8915     1.2132
-Event_EoI.Event_EoI.Bs4(Event_EoI)                0.2217     0.5081
-Event_EoI.Event_EoI.Bs5(Event_EoI)                0.2216     0.5081
-Event_EoI.Event_EoI.Bs6(Event_EoI)                0.2214     0.5081
-Event_EoI.Event_EoI.Bs7(Event_EoI)                0.8860     0.5224
-Event_EoI.Event_EoI.randarm5-FU + Oxaliplatin    -0.0314     0.1426
-Event_DepC.Event_DepC.(Intercept)               -12.1859     0.9738
-Event_DepC.Event_DepC.log(Event_DepC)             1.3352     0.1402
-Event_DepC.Event_DepC.randarm5-FU + Oxaliplatin  -0.1107     0.2027
-Event_DepC.Event_EoI.(Intercept)                  0.0204     0.4523
+Event_EoI.Event_EoI.Bs1(Event_EoI)               -7.2632     0.7793
+Event_EoI.Event_EoI.Bs2(Event_EoI)               -4.9711     1.3128
+Event_EoI.Event_EoI.Bs3(Event_EoI)               -0.8871     2.1362
+Event_EoI.Event_EoI.Bs4(Event_EoI)                0.2202     2.0206
+Event_EoI.Event_EoI.Bs5(Event_EoI)                0.2203     0.8634
+Event_EoI.Event_EoI.Bs6(Event_EoI)                0.2202     0.8634
+Event_EoI.Event_EoI.Bs7(Event_EoI)                0.8778     0.6249
+Event_EoI.Event_EoI.randarm5-FU + Oxaliplatin    -0.0319     0.1428
+Event_DepC.Event_DepC.(Intercept)               -12.1857     0.9744
+Event_DepC.Event_DepC.log(Event_DepC)             1.3351     0.1403
+Event_DepC.Event_DepC.randarm5-FU + Oxaliplatin  -0.1113     0.2027
+Event_DepC.Event_EoI.(Intercept)                  0.0215     0.4545
                                                 z value Pr(>|z|)    
-Event_EoI.Event_EoI.Bs1(Event_EoI)                -9.33   <2e-16 ***
-Event_EoI.Event_EoI.Bs2(Event_EoI)                -4.75    2e-06 ***
-Event_EoI.Event_EoI.Bs3(Event_EoI)                -0.73     0.46    
-Event_EoI.Event_EoI.Bs4(Event_EoI)                 0.44     0.66    
-Event_EoI.Event_EoI.Bs5(Event_EoI)                 0.44     0.66    
-Event_EoI.Event_EoI.Bs6(Event_EoI)                 0.44     0.66    
-Event_EoI.Event_EoI.Bs7(Event_EoI)                 1.70     0.09 .  
-Event_EoI.Event_EoI.randarm5-FU + Oxaliplatin     -0.22     0.83    
-Event_DepC.Event_DepC.(Intercept)                -12.51   <2e-16 ***
-Event_DepC.Event_DepC.log(Event_DepC)              9.52   <2e-16 ***
-Event_DepC.Event_DepC.randarm5-FU + Oxaliplatin   -0.55     0.58    
-Event_DepC.Event_EoI.(Intercept)                   0.05     0.96    
+Event_EoI.Event_EoI.Bs1(Event_EoI)                -9.32  < 2e-16 ***
+Event_EoI.Event_EoI.Bs2(Event_EoI)                -3.79  0.00015 ***
+Event_EoI.Event_EoI.Bs3(Event_EoI)                -0.42  0.67795    
+Event_EoI.Event_EoI.Bs4(Event_EoI)                 0.11  0.91323    
+Event_EoI.Event_EoI.Bs5(Event_EoI)                 0.26  0.79856    
+Event_EoI.Event_EoI.Bs6(Event_EoI)                 0.26  0.79870    
+Event_EoI.Event_EoI.Bs7(Event_EoI)                 1.40  0.16009    
+Event_EoI.Event_EoI.randarm5-FU + Oxaliplatin     -0.22  0.82315    
+Event_DepC.Event_DepC.(Intercept)                -12.51  < 2e-16 ***
+Event_DepC.Event_DepC.log(Event_DepC)              9.51  < 2e-16 ***
+Event_DepC.Event_DepC.randarm5-FU + Oxaliplatin   -0.55  0.58297    
+Event_DepC.Event_EoI.(Intercept)                   0.05  0.96229    
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -624,18 +622,18 @@ Log-Likelihood:
 
 > confint(md)
                                                    2.5 %   97.5 %
-Event_EoI.Event_EoI.Bs1(Event_EoI)               -8.7917  -5.7383
-Event_EoI.Event_EoI.Bs2(Event_EoI)               -7.0187  -2.9176
-Event_EoI.Event_EoI.Bs3(Event_EoI)               -3.2693   1.4863
-Event_EoI.Event_EoI.Bs4(Event_EoI)               -0.7742   1.2176
-Event_EoI.Event_EoI.Bs5(Event_EoI)               -0.7742   1.2174
-Event_EoI.Event_EoI.Bs6(Event_EoI)               -0.7744   1.2173
-Event_EoI.Event_EoI.Bs7(Event_EoI)               -0.1379   1.9099
-Event_EoI.Event_EoI.randarm5-FU + Oxaliplatin    -0.3110   0.2482
-Event_DepC.Event_DepC.(Intercept)               -14.0946 -10.2773
-Event_DepC.Event_DepC.log(Event_DepC)             1.0604   1.6100
-Event_DepC.Event_DepC.randarm5-FU + Oxaliplatin  -0.5079   0.2865
-Event_DepC.Event_EoI.(Intercept)                 -0.8661   0.9070
+Event_EoI.Event_EoI.Bs1(Event_EoI)               -8.7906  -5.7358
+Event_EoI.Event_EoI.Bs2(Event_EoI)               -7.5441  -2.3981
+Event_EoI.Event_EoI.Bs3(Event_EoI)               -5.0739   3.2998
+Event_EoI.Event_EoI.Bs4(Event_EoI)               -3.7401   4.1804
+Event_EoI.Event_EoI.Bs5(Event_EoI)               -1.4719   1.9126
+Event_EoI.Event_EoI.Bs6(Event_EoI)               -1.4720   1.9123
+Event_EoI.Event_EoI.Bs7(Event_EoI)               -0.3469   2.1025
+Event_EoI.Event_EoI.randarm5-FU + Oxaliplatin    -0.3118   0.2480
+Event_DepC.Event_DepC.(Intercept)               -14.0955 -10.2759
+Event_DepC.Event_DepC.log(Event_DepC)             1.0600   1.6102
+Event_DepC.Event_DepC.randarm5-FU + Oxaliplatin  -0.5085   0.2859
+Event_DepC.Event_EoI.(Intercept)                 -0.8693   0.9123
 
 > library("tramME")
 
@@ -679,7 +677,7 @@ Bs4(iDFS)                  -5.0906 -0.26878
 Bs5(iDFS)                  -3.6187 -1.74067
 Bs6(iDFS)                  -1.1281 -0.69005
 Bs7(iDFS)                  -0.9479 -0.63975
-randarm5-FU + Oxaliplatin  -0.4452 -0.02566
+randarm5-FU + Oxaliplatin  -0.4452 -0.02565
 Block|(Intercept)          -2.6956  0.05330
 
 > tmp <- CAOsurv$iDFS
@@ -922,8 +920,8 @@ The following object is masked from 'package:rstpm2':
 
 The following objects are masked from 'package:eha':
 
-    dgompertz, dllogis, hgompertz, Hgompertz, hllogis, Hllogis,
-    hlnorm, Hlnorm, hweibull, Hweibull, pgompertz, pllogis,
+    Hgompertz, Hllogis, Hlnorm, Hweibull, dgompertz, dllogis,
+    hgompertz, hllogis, hlnorm, hweibull, pgompertz, pllogis,
     qgompertz, qllogis, rgompertz, rllogis
 
 Loading required package: mpr
@@ -976,26 +974,6 @@ The following object is masked from 'package:base':
     backsolve
 
 Loading required package: parfm
-Loading required package: optimx
-
-Attaching package: 'optimx'
-
-The following object is masked _by_ '.GlobalEnv':
-
-    coef<-
-
-The following object is masked from 'package:nlme':
-
-    coef<-
-
-The following object is masked from 'package:rstpm2':
-
-    coef<-
-
-The following object is masked from 'package:mlt':
-
-    coef<-
-
 Loading required package: frailtyEM
 Loading required package: frailtypack
 Loading required package: boot
@@ -1036,10 +1014,146 @@ The following object is masked from 'package:gamlss':
     lp
 
 Loading required package: timereg
+Warning messages:
+1: In library(package, lib.loc = lib.loc, character.only = TRUE, logical.return = TRUE,  :
+  there is no package called 'TransModel'
+2: In library(package, lib.loc = lib.loc, character.only = TRUE, logical.return = TRUE,  :
+  there is no package called 'ICsurv'
+3: In library(package, lib.loc = lib.loc, character.only = TRUE, logical.return = TRUE,  :
+  there is no package called 'parfm'
 R> if (length(ix) > 0) {
 +     install.packages(pkgs[ix], repos = "https://stat.ethz.ch/CRAN/")
 +     sapply(pkgs[ix], require, char = TRUE)
 +  }
+Installing packages into '/tmp/Rtmpg9mfRs/RLIBS_2ccb72e87dd1'
+(as 'lib' is unspecified)
+also installing the dependencies 'pracma', 'optimx', 'sn'
+
+trying URL 'https://stat.ethz.ch/CRAN/src/contrib/pracma_2.4.6.tar.gz'
+trying URL 'https://stat.ethz.ch/CRAN/src/contrib/optimx_2025-4.9.tar.gz'
+trying URL 'https://stat.ethz.ch/CRAN/src/contrib/sn_2.1.1.tar.gz'
+trying URL 'https://stat.ethz.ch/CRAN/src/contrib/TransModel_2.3.tar.gz'
+trying URL 'https://stat.ethz.ch/CRAN/src/contrib/ICsurv_1.0.1.tar.gz'
+trying URL 'https://stat.ethz.ch/CRAN/src/contrib/parfm_2.7.8.tar.gz'
+* installing *source* package 'pracma' ...
+** this is package 'pracma' version '2.4.6'
+** package 'pracma' successfully unpacked and MD5 sums checked
+** using staged installation
+** R
+** data
+*** moving datasets to lazyload DB
+** demo
+** byte-compile and prepare package for lazy loading
+** help
+*** installing help indices
+** building package indices
+** testing if installed package can be loaded from temporary location
+** testing if installed package can be loaded from final location
+** testing if installed package keeps a record of temporary installation path
+* DONE (pracma)
+* installing *source* package 'sn' ...
+** this is package 'sn' version '2.1.1'
+** package 'sn' successfully unpacked and MD5 sums checked
+** using staged installation
+** R
+** data
+** inst
+** byte-compile and prepare package for lazy loading
+** help
+*** installing help indices
+** building package indices
+** installing vignettes
+** testing if installed package can be loaded from temporary location
+** testing if installed package can be loaded from final location
+** testing if installed package keeps a record of temporary installation path
+* DONE (sn)
+* installing *source* package 'TransModel' ...
+** this is package 'TransModel' version '2.3'
+** package 'TransModel' successfully unpacked and MD5 sums checked
+** using staged installation
+** R
+** data
+** inst
+** byte-compile and prepare package for lazy loading
+** help
+*** installing help indices
+** building package indices
+** testing if installed package can be loaded from temporary location
+** testing if installed package can be loaded from final location
+** testing if installed package keeps a record of temporary installation path
+* DONE (TransModel)
+* installing *source* package 'ICsurv' ...
+** this is package 'ICsurv' version '1.0.1'
+** package 'ICsurv' successfully unpacked and MD5 sums checked
+** using staged installation
+** R
+** data
+** byte-compile and prepare package for lazy loading
+** help
+*** installing help indices
+** building package indices
+** testing if installed package can be loaded from temporary location
+** testing if installed package can be loaded from final location
+** testing if installed package keeps a record of temporary installation path
+* DONE (ICsurv)
+* installing *source* package 'optimx' ...
+** this is package 'optimx' version '2025-4.9'
+** package 'optimx' successfully unpacked and MD5 sums checked
+** using staged installation
+** R
+** inst
+** byte-compile and prepare package for lazy loading
+** help
+*** installing help indices
+** building package indices
+** installing vignettes
+** testing if installed package can be loaded from temporary location
+** testing if installed package can be loaded from final location
+** testing if installed package keeps a record of temporary installation path
+* DONE (optimx)
+* installing *source* package 'parfm' ...
+** this is package 'parfm' version '2.7.8'
+** package 'parfm' successfully unpacked and MD5 sums checked
+** using staged installation
+** R
+** data
+** inst
+** byte-compile and prepare package for lazy loading
+** help
+*** installing help indices
+** building package indices
+** testing if installed package can be loaded from temporary location
+** testing if installed package can be loaded from final location
+** testing if installed package keeps a record of temporary installation path
+* DONE (parfm)
+
+The downloaded source packages are in
+	'/tmp/Rtmpg9mfRs/working_dir/RtmpyxVFi4/downloaded_packages'
+Loading required package: TransModel
+Loading required package: ICsurv
+Loading required package: parfm
+Loading required package: optimx
+
+Attaching package: 'optimx'
+
+The following object is masked _by_ '.GlobalEnv':
+
+    coef<-
+
+The following object is masked from 'package:nlme':
+
+    coef<-
+
+The following object is masked from 'package:rstpm2':
+
+    coef<-
+
+The following object is masked from 'package:mlt':
+
+    coef<-
+
+TransModel     ICsurv      parfm 
+      TRUE       TRUE       TRUE 
 R> 
 R> 
 R> ## ----pkgs-setup---------------------------------------------------------------
@@ -1240,7 +1354,7 @@ R>
 R> ## ----STRAT-iDFS-results-------------------------------------------------------
 R> print.results(list(mstci1, mstci2))##, mstci3))
   Function Package Interpretation Estimate Std. Error    logLik
-1    Coxph    tram         log-HR   -0.228      0.107 -2'213.94
+1    Coxph    tram         log-HR   -0.228      0.107 -2'213.93
 2    stpm2  rstpm2         log-HR   -0.220      0.107 -2'242.88
 R> 
 R> 
@@ -1254,7 +1368,7 @@ R>
 R> ## ----STRAT-DFS-results--------------------------------------------------------
 R> print.results(list(mstc1, mstc2, mstc3))
   Function  Package Interpretation Estimate Std. Error    logLik
-1    Coxph     tram         log-HR   -0.228      0.107 -3'234.58
+1    Coxph     tram         log-HR   -0.228      0.107 -3'234.59
 2    coxph survival         log-HR   -0.222      0.107 -2'089.54
 3      cph      rms         log-HR   -0.222      0.107 -2'089.54
 R> 
@@ -1484,13 +1598,13 @@ R> mfc5 <- frailtypack::frailtyPenal(DFS ~ randarm + cluster(id), data = CAOsurv
 +    RandDist = "Gamma", n.knots = 10, kappa = 1)
 
 Be patient. The program is computing ... 
-The program took 0.48 seconds 
+The program took 0.14 seconds 
 R> 
 R> 
 R> ## ----FRAILTY-DFS-results------------------------------------------------------
 R> print.results(list(mfc1, mfc2, mfc3, mfc4, mfc5))
       Function     Package Interpretation Estimate Std. Error    logLik
-1        Coxph        tram         log-HR   -0.230      0.107 -3'264.89
+1        Coxph        tram         log-HR   -0.230      0.108 -3'264.89
 2        stpm2      rstpm2         log-HR   -0.685      0.670 -3'264.88
 3        coxph    survival         log-HR   -0.406      0.159 -1'944.22
 4      emfrail   frailtyEM         log-HR   -0.384      0.153 -2'430.45
@@ -1521,21 +1635,21 @@ R> ## ----session, results = "asis"---------------------------------------------
 R> sessionInfo()
 R version 4.5.2 (2025-10-31)
 Platform: x86_64-pc-linux-gnu
-Running under: Ubuntu 24.04.3 LTS
+Running under: Debian GNU/Linux 12 (bookworm)
 
 Matrix products: default
-BLAS:   /usr/lib/x86_64-linux-gnu/openblas-pthread/libblas.so.3 
-LAPACK: /usr/lib/x86_64-linux-gnu/openblas-pthread/libopenblasp-r0.3.26.so;  LAPACK version 3.12.0
+BLAS:   /usr/local/lib/R/lib/libRblas.so 
+LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.11.0  LAPACK version 3.11.0
 
 locale:
- [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
- [3] LC_TIME=de_CH.UTF-8        LC_COLLATE=en_US.UTF-8    
- [5] LC_MONETARY=de_CH.UTF-8    LC_MESSAGES=en_US.UTF-8   
- [7] LC_PAPER=de_CH.UTF-8       LC_NAME=C                 
+ [1] LC_CTYPE=en_GB.UTF-8       LC_NUMERIC=C              
+ [3] LC_TIME=en_GB.UTF-8        LC_COLLATE=C              
+ [5] LC_MONETARY=en_GB.UTF-8    LC_MESSAGES=en_GB.UTF-8   
+ [7] LC_PAPER=en_GB.UTF-8       LC_NAME=C                 
  [9] LC_ADDRESS=C               LC_TELEPHONE=C            
-[11] LC_MEASUREMENT=de_CH.UTF-8 LC_IDENTIFICATION=C       
+[11] LC_MEASUREMENT=en_GB.UTF-8 LC_IDENTIFICATION=C       
 
-time zone: Europe/Zurich
+time zone: Europe/Berlin
 tzcode source: system (glibc)
 
 attached base packages:
@@ -1543,21 +1657,21 @@ attached base packages:
  [8] datasets  methods   base     
 
 other attached packages:
- [1] timereg_2.0.7     mgcv_1.9-4        frailtypack_3.7.1
- [4] survC1_1.0-3      doBy_4.7.0        boot_1.3-32      
- [7] frailtyEM_1.0.1   parfm_2.7.8       optimx_2025-4.9  
-[10] coxme_2.2-22      bdsmatrix_1.3-7   gamlss.cens_5.0-7
-[13] gamlss_5.5-0      nlme_3.1-168      gamlss.dist_6.1-1
-[16] gamlss.data_6.0-7 mpr_1.0.6         flexsurv_2.3.2   
-[19] rstpm2_1.7.1      eha_2.11.5        ICsurv_1.0.1     
-[22] rms_8.1-0         Hmisc_5.2-4       TransModel_2.3   
+ [1] parfm_2.7.8       optimx_2025-4.9   ICsurv_1.0.1     
+ [4] TransModel_2.3    timereg_2.0.7     mgcv_1.9-4       
+ [7] frailtypack_3.7.1 survC1_1.0-3      doBy_4.7.0       
+[10] boot_1.3-32       frailtyEM_1.0.1   coxme_2.2-22     
+[13] bdsmatrix_1.3-7   gamlss.cens_5.0-7 gamlss_5.5-0     
+[16] nlme_3.1-168      gamlss.dist_6.1-1 gamlss.data_6.0-7
+[19] mpr_1.0.6         flexsurv_2.3.2    rstpm2_1.7.1     
+[22] eha_2.11.5        rms_8.1-0         Hmisc_5.2-4      
 [25] icenReg_2.0.16    coda_0.19-4.1     fastGHQuad_1.0.1 
 [28] Rcpp_1.1.0        knitr_1.50        english_1.2-6    
 [31] xtable_1.8-4      colorspace_2.1-2  coin_1.4-3       
 [34] multcomp_1.4-29   TH.data_1.1-5     MASS_7.3-65      
 [37] survival_3.8-3    tramME_1.0.8      ATR_0.1-1        
 [40] SparseGrid_0.8.2  trtf_0.4-3        partykit_1.2-24  
-[43] libcoin_1.0-10    tram_1.3-0        mvtnorm_1.3-3    
+[43] libcoin_1.0-10    tram_1.3-1        mvtnorm_1.3-4    
 [46] mlt_1.7-2         basefun_1.2-5     variables_1.1-2  
 
 loaded via a namespace (and not attached):
@@ -1566,12 +1680,12 @@ loaded via a namespace (and not attached):
  [7] rmarkdown_2.30       vctrs_0.6.5          base64enc_0.1-3     
 [10] htmltools_0.5.8.1    polspline_1.1.25     polynom_1.4-1       
 [13] broom_1.0.10         deSolve_1.40         Formula_1.2-5       
-[16] parallelly_1.45.1    pracma_2.4.6         htmlwidgets_1.6.4   
+[16] pracma_2.4.6         parallelly_1.45.1    htmlwidgets_1.6.4   
 [19] sandwich_3.1-1       rootSolve_1.8.2.4    zoo_1.8-14          
 [22] TMB_1.9.18           alabama_2023.1.0     lifecycle_1.0.4     
 [25] iterators_1.0.14     pkgconfig_2.0.3      Matrix_1.7-4        
-[28] R6_2.6.1             fastmap_1.2.0        future_1.67.0       
-[31] rbibutils_2.4        digest_0.6.38        numDeriv_2016.8-1.1 
+[28] R6_2.6.1             fastmap_1.2.0        rbibutils_2.4       
+[31] future_1.68.0        digest_0.6.38        numDeriv_2016.8-1.1 
 [34] compiler_4.5.2       microbenchmark_1.5.0 withr_3.0.2         
 [37] htmlTable_2.4.3      S7_0.2.1             backports_1.5.0     
 [40] BB_2019.10-1         lava_1.8.2           quantreg_6.1        
@@ -1579,7 +1693,7 @@ loaded via a namespace (and not attached):
 [46] future.apply_1.20.0  nnet_7.3-20          glue_1.8.0          
 [49] quadprog_1.5-8       inum_1.0-5           checkmate_2.3.3     
 [52] cluster_2.1.8.1      generics_0.1.4       orthopolynom_1.0-6.1
-[55] gtable_0.3.6         tidyr_1.3.1          sn_2.1.1            
+[55] gtable_0.3.6         sn_2.1.1             tidyr_1.3.1         
 [58] data.table_1.17.8    Deriv_4.2.0          foreach_1.5.2       
 [61] pillar_1.11.1        stringr_1.6.0        dplyr_1.1.4         
 [64] lattice_0.22-7       SparseM_1.84-2       tidyselect_1.2.1    
@@ -1592,10 +1706,10 @@ loaded via a namespace (and not attached):
 [85] Rdpack_2.6.4         modelr_0.1.11        globals_0.18.0      
 [88] MatrixModels_0.5-4   assertthat_0.2.1     ggplot2_4.0.1       
 [91] listenv_0.10.0       matrixcalc_1.0-6     scales_1.4.0        
-[94] purrr_1.2.0          rlang_1.1.6          cowplot_1.2.0       
-[97] mnormt_2.1.1        
+[94] purrr_1.2.0          rlang_1.1.6          mnormt_2.1.1        
+[97] cowplot_1.2.0       
 R> 
 R> 
 > proc.time()
    user  system elapsed 
-  596.4   878.2   566.7 
+163.387   1.684 167.217 

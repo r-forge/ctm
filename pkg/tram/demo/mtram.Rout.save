@@ -1090,17 +1090,12 @@ Bs6(iDFS2):strat_ncN+:strat_tcT1-3 Bs7(iDFS2):strat_ncN+:strat_tcT1-3
          randarm5-FU + Oxaliplatin                             gamma1 
                            -0.2305                             0.1711 
 
-> S <- vcov(CAO_Cox_2_mtram)
+> S <- try(vcov(CAO_Cox_2_mtram))
 
-> rbeta <- rmvnorm(10000, mean = coef(CAO_Cox_2_mtram), 
-+     sigma = S)
-
-> s <- rbeta[, ncol(rbeta)]
-
-> rbeta <- rbeta[, -ncol(rbeta)]/sqrt(s^2 + 1)
-
-> quantile(exp(rbeta[, ncol(rbeta)]), prob = c(0.025, 
-+     0.5, 0.975))
+> if (!inherits(S, "try-error")) {
++     rbeta <- rmvnorm(10000, mean = coef(CAO_Cox_2_mtram), sigma = S)
++     s <- rbeta[, "gamma1"]
++     rbeta <-  .... [TRUNCATED] 
   2.5%    50%  97.5% 
 0.6480 0.7965 0.9795 
 
@@ -1108,20 +1103,29 @@ Bs6(iDFS2):strat_ncN+:strat_tcT1-3 Bs7(iDFS2):strat_ncN+:strat_tcT1-3
 
 > tmp <- CAO_Cox_2
 
-> tmp$coef <- coef(CAO_Cox_2_mtram)[-22]/sqrt(coef(CAO_Cox_2_mtram)[22]^2 + 
+> cf <- coef(CAO_Cox_2_mtram)
+
+> tmp$coef <- cf[names(cf) != "gamma1"]/sqrt(cf["gamma1"]^2 + 
 +     1)
 
 > (CAO_Cox_PI <- PI(tmp, newdata = nd[2, ], reference = nd[1, 
 +     ], one2one = TRUE, conf.level = 0.95))[1, ]
 Estimate      lwr      upr 
-  0.5026   0.4504   0.5547 
+  0.5566   0.5045   0.6074 
 
-> ci_man <- quantile(-rbeta[, ncol(rbeta)], prob = c(0.025, 
-+     0.5, 0.975))
+> nd <- CAOsurv[1:2, ]
 
-> (CAO_Cox_PIm <- PI(ci_man, link = "minimum extreme value"))
-  2.5%    50%  97.5% 
-0.5052 0.5566 0.6068 
+> tmp <- CAO_Cox_2
+
+> cf <- coef(CAO_Cox_2_mtram)
+
+> tmp$coef <- cf[names(cf) != "gamma1"]/sqrt(cf["gamma1"]^2 + 
++     1)
+
+> (CAO_Cox_PI <- PI(tmp, newdata = nd[2, ], reference = nd[1, 
++     ], one2one = TRUE, conf.level = 0.95))[1, ]
+Estimate      lwr      upr 
+  0.5566   0.5045   0.6074 
 
 > CAO_Cox_2_tramME <- CoxphME(iDFS2 | 0 + strat_n:strat_t ~ 
 +     randarm + (1 | Block), data = CAOsurv)
@@ -1164,7 +1168,7 @@ other attached packages:
  [4] ordinalCont_2.0.2   Deriv_4.2.0         boot_1.3-32        
  [7] latticeExtra_0.6-31 lattice_0.22-7      gridExtra_2.3      
 [10] lme4_1.1-37         Matrix_1.7-4        survival_3.8-3     
-[13] colorspace_2.1-2    tram_1.3-0          mvtnorm_1.3-4      
+[13] colorspace_2.1-2    tram_1.3-1          mvtnorm_1.3-4      
 [16] mlt_1.7-2           basefun_1.2-5       variables_1.1-2    
 
 loaded via a namespace (and not attached):
@@ -1172,7 +1176,7 @@ loaded via a namespace (and not attached):
  [4] numDeriv_2016.8-1.1  quadprog_1.5-8       vctrs_0.6.5         
  [7] tools_4.5.2          Rdpack_2.6.4         generics_0.1.4      
 [10] SparseGrid_0.8.2     sandwich_3.1-1       tibble_3.3.0        
-[13] coneproj_1.21        pkgconfig_2.0.3      RColorBrewer_1.1-3  
+[13] coneproj_1.22        pkgconfig_2.0.3      RColorBrewer_1.1-3  
 [16] alabama_2023.1.0     lifecycle_1.0.4      compiler_4.5.2      
 [19] deldir_2.0-4         codetools_0.2-20     icenReg_2.0.16      
 [22] Formula_1.2-5        tidyr_1.3.1          pillar_1.11.1       
@@ -1181,7 +1185,7 @@ loaded via a namespace (and not attached):
 [31] nlme_3.1-168         tidyselect_1.2.1     purrr_1.2.0         
 [34] dplyr_1.1.4          grid_4.5.2           cli_3.6.5           
 [37] magrittr_2.0.4       broom_1.0.10         orthopolynom_1.0-6.1
-[40] TH.data_1.1-4        backports_1.5.0      jpeg_0.1-11         
+[40] TH.data_1.1-5        backports_1.5.0      jpeg_0.1-11         
 [43] interp_1.1-6         BB_2019.10-1         zoo_1.8-14          
 [46] png_0.1-8            coda_0.19-4.1        evaluate_1.0.5      
 [49] knitr_1.50           rbibutils_2.4        mgcv_1.9-4          
@@ -1211,7 +1215,7 @@ loaded via a namespace (and not attached):
 [1] "\\\\pkg{mlt} \\\\citep[version~1.7-2,][]{pkg:mlt}"
 
 > pkg("tram")
-[1] "\\\\pkg{tram} \\\\citep[version~1.3-0,][]{pkg:tram}"
+[1] "\\\\pkg{tram} \\\\citep[version~1.3-1,][]{pkg:tram}"
 
 > pkg("SparseGrid")
 [1] "\\\\pkg{SparseGrid} \\\\citep[version~0.8.2,][]{pkg:SparseGrid}"
@@ -1224,4 +1228,4 @@ In trellis.par.set(list(plot.symbol = list(col = 1, pch = 20, cex = 0.7),  :
 R> 
 > proc.time()
    user  system elapsed 
- 74.409   0.471  75.006 
+ 80.628   0.564  82.157 
