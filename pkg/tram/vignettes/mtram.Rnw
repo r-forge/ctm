@@ -2059,8 +2059,7 @@ We now relax the Weibull assumption in the Cox model
 \end{eqnarray*}
 (note the positive sign of the treatment effect).
 <<mtram-CAO_Cox_2, cache = FALSE>>=
-CAO_Cox_2 <- Coxph(iDFS2 | 0 + strat_n:strat_t ~ randarm, data = CAOsurv)#, 
-                   ### support = c(1, 1700), order = 4)
+CAO_Cox_2 <- Coxph(iDFS2 | 0 + strat_n:strat_t ~ randarm, data = CAOsurv)
 logLik(CAO_Cox_2)
 CAO_Cox_2_mtram <- mtram(CAO_Cox_2, ~ (1 | Block), data = CAOsurv, 
                          optim = fastoptH)
@@ -2069,32 +2068,40 @@ coef(CAO_Cox_2_mtram)
 @
 with confidence interval
 <<mtram-CAO-CI-3, echo = FALSE>>=
-S <- vcov(CAO_Cox_2_mtram)
-rbeta <- rmvnorm(10000, mean = coef(CAO_Cox_2_mtram), 
-                 sigma = S)
-s <- rbeta[,ncol(rbeta)]
-rbeta <- rbeta[,-ncol(rbeta)] / sqrt(s^2 + 1)
-quantile(exp(rbeta[, ncol(rbeta)]), prob = c(.025, .5, .975))
+S <- try(vcov(CAO_Cox_2_mtram)) ### possible problematic with openBLAS
+if (!inherits(S, "try-error")) {
+    rbeta <- rmvnorm(10000, mean = coef(CAO_Cox_2_mtram), 
+                     sigma = S)
+    s <- rbeta[,"gamma1"]
+    rbeta <- rbeta[,colnames(rbeta) != "gamma1"] / sqrt(s^2 + 1)
+    print(quantile(exp(rbeta[, "randarm5-FU + Oxaliplatin"]), 
+                   prob = c(.025, .5, .975)))
+}
+@
+<<mtram-CAO_PI>>=
+nd <- CAOsurv[1:2, ]
+tmp <- CAO_Cox_2
+cf <- coef(CAO_Cox_2_mtram)
+tmp$coef <- cf[names(cf) != "gamma1"] / sqrt(cf["gamma1"]^2 + 1)
+(CAO_Cox_PI <- PI(tmp, newdata = nd[2, ], reference = nd[1, ],
+                  one2one = TRUE, conf.level = .95))[1, ]
 @
 For the marginally interpretable models that can be derived from model
 \code{CAO\_Cox\_2\_mtram} we can compute the probabilistic index.
 This value is the meaning that over all study centers, a randomly selected patient 
-receiving Oxaliplatin has a $56\%$ probability of staying disease-free
+receiving Oxaliplatin has a $\Sexpr{round(CAO_Cox_PI[1] * 100)}\%$ probability of staying disease-free
 longer than a randomly
 selected patient receiving the standard treatment only, given that they both 
-have the same lymph node state and tumor grading.
-<<mtram-CAO_PI>>=
-nd <- CAOsurv[1:2, ]
-tmp <- CAO_Cox_2
-tmp$coef <- coef(CAO_Cox_2_mtram)[-22] / sqrt(coef(CAO_Cox_2_mtram)[22]^2 + 1)
-(CAO_Cox_PI <- PI(tmp, newdata = nd[2, ], reference = nd[1, ],
-                  one2one = TRUE, conf.level = .95))[1, ]
+have the same lymph node state and tumor grading:
+<<mtram-CAO_PI-echo>>=
+<<mtram-CAO_PI>>
 @
 but we can compute the same manually as follows:
-<<mtram-CAO_PI_man>>=
+<<mtram-CAO_PI_man, eval = FALSE>>=
 ci_man <- quantile(-rbeta[, ncol(rbeta)], prob = c(.025, .5, .975))
-(CAO_Cox_PIm <- PI(ci_man, link = "minimum extreme value"))
+PI(ci_man, link = "minimum extreme value")
 @
+
 We can fit mixed-effects transformation models 
 \citep{tamasi2021tramme,Tamasi_Crowther_Puhan_2022} as follows:
 <<tramME-CAO_SR, cache = FALSE>>=
