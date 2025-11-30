@@ -10,7 +10,7 @@
 %%% \usepackage{animate}
 \usepackage{amsfonts,amstext,amsmath,amssymb,amsthm}
 \usepackage{accents}
-\usepackage{color}
+\usepackage{xcolor}
 \usepackage{rotating}
 \usepackage{verbatim}
 \usepackage[utf8]{inputenc}
