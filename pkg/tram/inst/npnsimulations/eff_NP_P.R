@@ -1,7 +1,7 @@
 
 source("setup.R")
 library("tram")
-source("fit.R")
+source("../fit.R")
 
 load("data.rda")
 

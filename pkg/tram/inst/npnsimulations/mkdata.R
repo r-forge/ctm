@@ -1,6 +1,6 @@
 
 set.seed(29)
-source("dgp.R")
+source("../dgp.R")
 
 Nsim <- 100
 
