@@ -42,8 +42,6 @@ Mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
             mc$scale <- scale
             mc$optim <- optim
             mc$args <- args
-            if (!is.null(mc$args$w)) 
-                mc$args$w <- mc$args$w[1:(j - 1L),,drop = FALSE]
             mc$dofit <- FALSE
             ret <- do.call("mmlt", mc) ### only get names
             cfj <- coef(mj, fixed = TRUE)
