@@ -2,6 +2,14 @@
 \name{NEWS}
 \title{NEWS file for the mlt package}
 
+\section{Changes in Version 1.7-4 (2026-01-08)}{
+  \subsection{Bugfixes}{
+    \itemize{
+       \item{Determine constant columns in design matrices correctly.}
+    }
+  }
+}
+
 \section{Changes in Version 1.7-3 (2025-12-11)}{
   \subsection{Bugfixes}{
     \itemize{
