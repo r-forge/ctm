@@ -74,25 +74,16 @@ function.
 }
 \details{
 This is a highly experimental approach to an alternative competing risk
-regression framework described by Czado and Van Keilegom (2023) and Deresa
-and Van Keilegom (2023).
+regression framework described by \bibcitet{tram::Czado:Keilegom:2022} and 
+\bibcitet{tram::Deresa:Keilegom:2023}, the implementation here is discussed
+in \bibcitet{tram::Siegfried:Tamasi:Hothorn:2026}.
 }
 \value{
 An object of class \code{Mmlt}, allowing to derive marginal time-to-event
 distributions for the primary event of interest and all competing events.
 }
 \references{
-
-  Claudia Czado and Ingrid Van Keilegom (2023). Dependent Censoring Based on Parametric Copulas.
-  \emph{Biometrika}, \bold{110}(3), 721--738, \doi{10.1093/biomet/asac067}.
-
-  Negera Wakgari Deresa and Ingrid Van Keilegom (2023).  Copula Based Cox Proportional Hazards 
-  Models for Dependent Censoring. \emph{Journal of the American Statistical
-  Association}, \bold{119}(546), 1044--1054, \doi{10.1080/01621459.2022.2161387}.
-
-  Sandra Siegfried, Bálint Tamási and Torsten Hothorn (2024). Smooth Transformation Models for 
-  Survival Analysis: A Tutorial Using R. \doi{10.48550/arXiv.2402.06428}.
-
+  \bibshow{*}
 }
 \examples{
   

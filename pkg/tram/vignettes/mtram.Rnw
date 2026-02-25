@@ -602,7 +602,7 @@ col <- diverge_hcl(2, h = c(246, 40), c = 120, l = c(65, 90), alpha = .75)
 
 The purpose of this document is to compare marginally interpretable linear
 transformation models for clustered observations
-\citep{Hothorn_2019_mtram} to conventional conditional
+\citep{Barbanti:Hothorn:2023} to conventional conditional
 formulations of mixed-effects models where such an overlap exists.  In
 addition, novel transformation models going beyond the capabilities of
 convential mixed-effects models are estimated and interpreted.  A
@@ -779,7 +779,7 @@ model in named in honor of the first paper on the analysis of
 transformed responses by \cite{BoxCox_1964} but it \emph{does not} simply apply
 what is known as a Box-Cox transformation. Bernstein polynomials
 $\h(\ry) = \basisy(\ry)^\top \parm$ under suitable constraints 
-\citep{Hothorn_Moest_Buehlmann_2017} are applied instead by
+\citep{Hothorn:Moest:Buehlmann:2017} are applied instead by
 <<mtram-sleep_BoxCox, cache = FALSE>>=
 sleep_BC <- BoxCox(Reaction ~ Days, data = sleepstudy)
 sleep_BCmer <- mtram(sleep_BC, ~ (Days | Subject), data = sleepstudy)
@@ -817,7 +817,7 @@ likelihood \citep{Maruo_Yamaguchi_2017}.  Recently, \THcite{Tang, Wu, and
 Chen}{Tang_Wu_Chen_2018} and \THcite{Wu and Wang}{Wu_Wang_2019}
 proposed a monotone spline parameterisation of $\h$ in a Bayesian context.
 The model presented here was estimated by simultaneously maximising the
-log-likelihood \citep{Hothorn_2019_mtram} %(\ref{fm:cll}) 
+log-likelihood \citep{Barbanti:Hothorn:2023} %(\ref{fm:cll}) 
 with respect to the parameters $\parm$,
 $\eshiftparm$, and $\varparm$. For a linear Bernstein polynomial of order
 one, the models obtained with this approach and classical maximum likelihood
@@ -1037,7 +1037,7 @@ treatment (itraconazole vs.~terbinafine) and time.  Subject-specific random
 intercept models were estimated by the \code{glmer} function from package
 \pkg{lme4} \citep{pkg:lme4}, by the \code{glmmTMB} function from package
 \pkg{glmmTMB} \citep{pkg:glmmTMB}, and by direct maximisation of the exact
-discrete log-likelihood given in Appendix B of \cite{Hothorn_2019_mtram}.
+discrete log-likelihood given in Appendix B of \cite{Barbanti:Hothorn:2023}.
 % discrete log-likelihood (\ref{fm:dll}) given in Appendix~\ref{app:cens}.
 
 The random intercept probit model fitted by Laplace and Adaptive
@@ -1165,7 +1165,7 @@ Alternatively, we can use
 the transformation approach to compute marginally interpretable
 time-dependent log-odds ratios from random intercept transformation logit
 models:% \citep[\code{standardise = TRUE} computes model (M2) instead of the
-%default (M1), see][]{Hothorn_2019_mtram}:
+%default (M1), see][]{Barbanti:Hothorn:2023}:
 <<mtram-toenail_logit, cache = FALSE>>=
 m <- ctm(as.basis(~ outcome, data = toenail), 
          shifting = ~ treatment * time, 
@@ -1365,7 +1365,7 @@ xyplot(prob ~ time | model, data = nd2, group = treatment, ylim = c(0, 1),
 %Here, substantial differences for all parameters can be observed. Because
 %the parameters have the same meaning in all three implementations, we can
 %compare the three models in light of the exact discrete log-likelihood
-%\citep[Equation~6 in][]{Hothorn_2019_mtram} evaluated at these parameters.
+%\citep[Equation~6 in][]{Barbanti:Hothorn:2023} evaluated at these parameters.
 %The results are given in
 %Table~\ref{tab:toenail}.  For the random intercept models, AGQ, Laplace, and the
 %discrete log-likelihood give the same results, the Laplace approximation
@@ -1639,7 +1639,7 @@ R> coef(toenail_mtram_RS)
 Here, substantial differences for all parameters can be observed. Because
 the parameters have the same meaning in all three implementations, we can
 compare the three models in light of the exact discrete log-likelihood
-\citep[Equation~6 in][]{Hothorn_2019_mtram} evaluated at these parameters.
+\citep[Equation~6 in][]{Barbanti:Hothorn:2023} evaluated at these parameters.
 The results are given in
 Table~\ref{tab:toenail}.  For the random intercept models, AGQ, Laplace, and the
 discrete log-likelihood give the same results, the Laplace approximation
@@ -2146,7 +2146,7 @@ exp(coef(m) + c(-1, 0, 1) * qnorm(.975) * sd)
 
 \section{Simulations}
 
-Empirical results presented in Section 4 of \cite{Hothorn_2019_mtram} can be
+Empirical results presented in Section 4 of \cite{Barbanti:Hothorn:2023} can be
 reproduced using
 <<sim, eval = FALSE>>=
 source(system.file("simulations", "mtram_sim.R", package = "tram"), echo = TRUE)

@@ -26,9 +26,9 @@ structure via the lambda parameters. The default is set to \code{~ 1} for consta
 }
   \item{conditional}{logical; parameters are defined conditionally (only
 possible when all models are probit models). This is the default as
-described by Klein et al. (2022). If \code{FALSE}, parameters can be
-directly interpreted marginally, this is explained in Section 2.6 by Klein
-et al. (2022). Using \code{conditional = FALSE} with probit-only models
+described by \bibcitet{tram::Klein:Hothorn:Barbanti:2020}. If \code{FALSE}, parameters can be
+directly interpreted marginally, this is explained in Section 2.6 by 
+\bibcitet{tram::Klein:Hothorn:Barbanti:2020}. Using \code{conditional = FALSE} with probit-only models
 gives the same likelihood but different parameter estimates.
 }
   \item{theta}{an optional vector of starting values.
@@ -56,7 +56,7 @@ iterated for \code{ACSiter} iterations.
 }
 \details{
   The function implements multivariate conditional transformation models
-  as described by Klein et al (2020). 
+  as described by \bibcitet{tram::Klein:Hothorn:Barbanti:2020}. 
   Below is a simple example for an unconditional bivariate distribution.
   See \code{demo("undernutrition", package = "tram")} for a conditional
   three-variate example.
@@ -66,13 +66,7 @@ An object of class \code{Mmlt} with \code{coef} and \code{predict}
 methods.
 }
 \references{
-
-  Nadja Klein, Torsten Hothorn, Luisa Barbanti, Thomas Kneib (2022),
-  Multivariate Conditional Transformation Models. \emph{Scandinavian Journal
-  of Statistics}, \bold{49}, 116--142, \doi{10.1111/sjos.12501}.
-
-  Torsten Hothorn (2024), On Nonparanormal Likelihoods. \doi{10.48550/arXiv.2408.17346}.
-
+  \bibshow{*}
 }
 \examples{
 

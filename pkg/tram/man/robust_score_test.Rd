@@ -50,13 +50,17 @@ Doubly robust p-values and confidence intervals for parameters in
 using the tram generalised covariance measure test.
 }
 \details{
-For a (stratified) linear shift (-scale) transformation he tram-GCM test
+For a (stratified) linear shift (-scale) transformation model, the tram-GCM test
 tests the hypothesis H0: \code{parm} = \code{nullvalue} by re-fitting the
 model under the null hypothesis, computing the score residuals (see
 \code{\link[tram]{residuals.tram}}), and running an additional regression
 of the column in the design matrix corresponding to \code{parm} on the
 remaining columns, computing the corresponding residuals, and finally
-computing correlation-type test between the score and predictor residuals.
+computing correlation-type test between the score and predictor residuals,
+see \bibcitet{tram::Kook:Saengkyongam:Lundborg:2024}.
+}
+\references{
+  \bibshow{*}
 }
 \examples{
 data("mtcars")
@@ -74,13 +78,4 @@ robust_score_test(m3, parm = "cyl")
 m4 <- Lm(mpg | 0 + disp ~ cyl | cyl, data = mtcars)
 robust_score_test(m4, parm = "cyl")
 
-}
-\references{
-Kook, L., Saengkyongam, S., Lundborg, A. R., Hothorn, T., &
-Peters, J. (2024). Model-based causal feature selection for general response
-types. Journal of the American Statistical Association, 1-12.
-\doi{10.1080/01621459.2024.2395588}
-}
-\author{
-Lucas Kook, Torsten Hothorn
 }

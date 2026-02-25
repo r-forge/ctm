@@ -41,7 +41,7 @@ Lehmann(formula, data, subset, weights, offset, cluster, na.action = na.omit, ..
   \item{\dots}{additional arguments to \code{\link{tram}}.}
 }
 \details{
-This transformation model uses the cumulative distribution function for the
+This transformation model, introduced by \bibcitet{tram::Lehmann:1953}, uses the cumulative distribution function for the
 standard Gumbel maximum extreme value distribution to map the shifted
 transformation function into probabilities. The exponential of the shift
 paramater can be interpreted as a Lehmann-alternative or 
@@ -53,15 +53,7 @@ An object of class \code{Lehmann}, with corresponding \code{coef},
 \code{print}, \code{plot} and \code{predict} methods.
 }
 \references{
-
-  Erich L. Lehmann (1953), The Power of Rank Tests,
-  \emph{The Annals of Mathematical Statistics}, \bold{24}(1),
-  23-43.
-
-  Torsten Hothorn, Lisa Moest, Peter Buehlmann (2018), Most Likely
-  Transformations, \emph{Scandinavian Journal of Statistics}, \bold{45}(1),
-  110--134, \doi{10.1111/sjos.12291}.
-
+  \bibshow{*}
 }
 \examples{
 

@@ -49,7 +49,7 @@ estimation of the log-hazard ratios and the log-cumulative baseline hazard,
 the latter parameterised by a Bernstein polynomial. The model can be fitted
 under stratification (time-varying coefficients), all types of random
 censoring and trunction. An early reference to this parameterisation is
-McLain and Ghosh (2013).
+\bibcitet{tram::McLain:Ghosh:2013}.
 
 The response is bounded (\code{bounds = c(0, Inf)}) when specified as a
 \code{Surv} object. Otherwise, \code{bounds} can be specified via
@@ -65,16 +65,7 @@ An object of class \code{Coxph}, with corresponding \code{coef},
 \code{print}, \code{plot} and \code{predict} methods.
 }
 \references{
-
-  Alexander C. McLain and Sujit K. Ghosh (2013).
-  Efficient Sieve Maximum Likelihood Estimation of
-  Time-Transformation Models, \emph{Journal of Statistical Theory and Practice},
-  \bold{7}(2), 285--303, \doi{10.1080/15598608.2013.772835}.
-
-  Torsten Hothorn, Lisa Moest, Peter Buehlmann (2018), Most Likely
-  Transformations, \emph{Scandinavian Journal of Statistics}, \bold{45}(1),
-  110--134, \doi{10.1111/sjos.12291}.
-
+  \bibshow{*}
 }
 \examples{
 

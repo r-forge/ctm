@@ -39,8 +39,8 @@ a list of optimisers as returned by \code{\link[mlt]{mltoptim}}
   intercept or random intercept / random slope model (that is, clustered or
   longitudinal data can by modelled only) is used to capture the
   correlations whereas the marginal distributions are described by a 
-  transformation model. The methodology is described in Barbanti and Hothorn
-  (2022) and examples are given in the \code{mtram} package vignette.
+  transformation model. The methodology is described in
+  \bibcitet{tram::Barbanti:Hothorn:2023} and examples are given in the \code{mtram} package vignette.
 
   Only \code{coef()} and \code{logLik()} methods are available at the
   moment, see \code{vignette("mtram", package = "tram")} for worked
@@ -54,11 +54,7 @@ a list of optimisers as returned by \code{\link[mlt]{mltoptim}}
   \code{vignette("mtram", package = "tram")}
 }
 \references{
-
-  Luisa Barbanti and Torsten Hothorn (2024). A Transformation Perspective on 
-  Marginal and Conditional Models, \emph{Biostatistics}, \bold{25}(2),
-  402--428, \doi{10.1093/biostatistics/kxac048}.
-
+  \bibshow{*}
 }
 \examples{
 

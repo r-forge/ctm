@@ -922,7 +922,7 @@ To tackle these challenges, researchers may explore the
 potential of the \pkg{tram} add-on package \citep{pkg:tram} in \proglang{R}
 \citep{R}, which offers a flexible framework for survival analysis.  The
 \pkg{tram} package implements a user-friendly interface to smooth
-transformation models \citep{Hothorn_Moest_Buehlmann_2017}, which encompass
+transformation models \citep{Hothorn:Moest:Buehlmann:2017}, which encompass
 a range of classical survival models including accelerated failure models
 and the Cox proportional hazards model, as well as many useful extensions
 and novel model formulations.  The package can be easily installed from the
@@ -975,7 +975,7 @@ straightforward maximum likelihood inference.  The estimation of these
 models is facilitated by the core infrastructure package \pkg{mlt}
 \citep{Hothorn_2018,pkg:mlt} which provides a unified maximum likelihood
 framework for general transformation models
-\citep{Hothorn_Moest_Buehlmann_2017}.  We further leverage two add-on
+\citep{Hothorn:Moest:Buehlmann:2017}.  We further leverage two add-on
 packages from this family of packages for transformation modelling: The
 \pkg{tramME} package \citep{Tamasi_2025,pkg:tramME} implementing mixed-effects and
 non-linear additive effects for smooth transformation models, and the
@@ -1168,7 +1168,7 @@ This obstacle was one of the main
 motivation to develop a comprehensive software package implementing a
 general class of transformation models with applications in the domain of survival
 analysis. The corresponding framework implementing smooth
-transformation models \citep{Hothorn_Moest_Buehlmann_2017} in \proglang{R}
+transformation models \citep{Hothorn:Moest:Buehlmann:2017} in \proglang{R}
 helps to address such and other practically relevant limitations.
 In this tutorial, we present analyses that the CAO/ARO/AIO-04 study investigators
 would have liked to have been able to perform a decade ago.
@@ -1250,7 +1250,7 @@ functions $\basisy$ and corresponding parameters $\parm$.  This yields the follo
 %
 where the hazard ratio is given by $\nicefrac{\Hazone(\ry)}{\Haznul(\ry)} =
 \nicefrac{\hazone(\ry)}{\haznul(\ry)} = \exp(\eshiftparm)$. 
-\citet{McLain_Ghosh_2013} and \citet{Hothorn_Moest_Buehlmann_2017} proposed
+\citet{McLain:Ghosh:2013} and \citet{Hothorn:Moest:Buehlmann:2017} proposed
 parametrising $\h(\ry) = \basisy(\ry)^\top \parm$ as polynomials in
 Bernstein form $\h(\ry) = \bern{\dimparm - 1}(\ry)^\top \parm$ of order
 $\dimparm - 1$. The corresponding model~(\ref{mod:COX}) is a fully parametric version of the otherwise semi-parametric Cox
@@ -1263,7 +1263,7 @@ likelihood.  The parametrisation of $\h$ in terms of basis functions
 and corresponding parameters allows to specify of a flexible, yet fully
 parametric, monotonically increasing log-cumulative hazard function. 
 This is achieved under appropriate constraints $\eparm_p \le \eparm_{p + 1}$
-for $p \in 1, \dots, \dimparm - 1$ \citep{Hothorn_Moest_Buehlmann_2017}. 
+for $p \in 1, \dots, \dimparm - 1$ \citep{Hothorn:Moest:Buehlmann:2017}. 
 Adopting this specific parametrisation for the log-cumulative baseline
 hazard function $\log(\Haznul(\ry)) = \h(\ry)$ facilitates the computation
 of the corresponding density $\dnul(\ry)$ and distribution function
@@ -1289,7 +1289,7 @@ itself is in Bernstein form, the order $\dimparm - 1$ must be chosen
 in a data-driven way, for example for density estimation. Sieve maximum
 likelihood procedures have been suggested in this context, for example in Cox models with
 log-cumulative baseline hazard functions in Bernstein form
-\cite{McLain_Ghosh_2013}.
+\cite{McLain:Ghosh:2013}.
 
 \subsubsection{Stratified proportional hazards model} \label{sec:STRAT}
 
@@ -1762,7 +1762,7 @@ assignment $\rW = \rw$, that is $\rY \indep \rC \mid \rW = \rw$.  We can
 however move beyond relying on this assumption and allow the model to
 capture potential dependence between the censoring times $\rC$ and event times $\rY$.
 
-We explore models discussed in recent work of \citet{Cazado_Keilegom_2022},
+We explore models discussed in recent work of \citet{Czado:Keilegom:2022},
 which involve a joint model for $\rY$ and $\rC$ employing a bivariate
 Gaussian copula of 
 the marginal survivor functions $\sYw(\ry)$ and 
@@ -1787,7 +1787,7 @@ with correlation matrix
 \end{eqnarray*}
 %
 to account for the association between $\rY$ and $\rC$.
-\citet{Deresa_Keilegom_2023} recently demonstrated that the above model
+\citet{Deresa:Keilegom:2023} recently demonstrated that the above model
 maintains identifiability when the marginal survivor functions $\sYw(\ry)$ and
 $\sCw(\rc)$ are described by a
 flexible proportional hazards model~(\ref{mod:COX}) and a model that assumes
@@ -1928,7 +1928,7 @@ see \citet{Tamasi_Hothorn_2021} and \citet{Tamasi_Crowther_Puhan_2022}.
 \subsubsection{Marginalised proportional hazards model} \label{sec:MCOX}
 
 Furthermore, we can explore the model proposed by
-\citet{Barbanti_Hothorn_2023}, where the marginal survivor functions are
+\citet{Barbanti:Hothorn:2023}, where the marginal survivor functions are
 characterised by models~(\ref{mod:COX}), while the correlations within
 clusters are captured by a joint multivariate normal distribution.  This
 joint modeling approach yields a marginalised formulation for the random
@@ -1949,7 +1949,7 @@ using the marginal hazard ratio given by $\exp\left(\nicefrac{\eshiftparm}{
 \sqrt{\mparm^2 + 1}}\right)$.
 
 Further details on the models, including likelihood-based inference, can be
-found in \citet{Barbanti_Hothorn_2023}.
+found in \citet{Barbanti:Hothorn:2023}.
 
 \subsection{Application}
 
@@ -2078,7 +2078,7 @@ function from the \pkg{tram} package.  Estimation is straightforward for
 completely exact or interval-censored outcomes within a cluster.  Since
 \var{iDFS} comprises a mix of different types of outcomes (within each
 cluster, event times can be either all exact or all censored, see Formulae
-2.5 and 2.6 of \citet{Barbanti_Hothorn_2023}), we handle exact
+2.5 and 2.6 of \citet{Barbanti:Hothorn:2023}), we handle exact
 event times by treating them as interval-censored, accomplished by adding a
 4-day window (stored in the object \code{iDFS2} of class `\code{Surv}', 
 see Section~5 of the \code{mtram} package vignette \citep{Barbanti_Hothorn_mtram} for details).
@@ -2311,7 +2311,7 @@ unobserved heterogeneity in scenarios where the study population comprises
 individuals with varying baseline risks \citep{Balan_Putter_2020}.
 
 To handle such scenarios in the framework of smooth transformation models,
-the approach discussed by \citet{McLain_Ghosh_2013} can be employed.  The
+the approach discussed by \citet{McLain:Ghosh:2013} can be employed.  The
 corresponding frailty proportional hazards model introduces an unobservable
 multiplicative frailty effect $\rF$ on the hazard, with
 corresponding conditional survivor function
@@ -2410,7 +2410,7 @@ models are well known from the class of accelerated failure time models
 (with log-linear $\h$), but extend seamlessly to the more flexible
 framework of smooth transformation models.  Moreover, by selecting the
 log-log link, it is possible to define a reverse time hazards model.  For a
-comprehensive overview, see Table~1 of \citet{Hothorn_Moest_Buehlmann_2017}.
+comprehensive overview, see Table~1 of \citet{Hothorn:Moest:Buehlmann:2017}.
 
 \subsection{Covariate adjustment}
 
@@ -2479,7 +2479,7 @@ nd$T <- as.Surv(simulate(m, newdata = nd, K = 1000))
 In addition, we simulate censoring times $\rC \indep \rY \mid \rW = \rw,  \rA = \ra$ such that $80\%$ of observations
 will be right-censored (with probabilistic index
 $\Prob(\rY > \rC \mid \rW = \rw,  \rA = \ra) = 0.8 = \logit^{-1}(\Sexpr{frmt3(qlogis(0.8))})$
-\citep{Sewak_Hothorn_2023})
+\citep{Sewak:Hothorn:2023})
 %
 <<SS-simC, echo = TRUE>>=
 cf["(Intercept)"] <- cf["(Intercept)"] + qlogis(.8)
@@ -2508,7 +2508,7 @@ Survreg(nOS ~ randarm + age, data = nd, dist = "weibull")
 Motivated by the complexities researchers face when navigating various
 software implementations for survival analysis, we outline the potential of
 leveraging smooth transformation models
-\citep{Hothorn_Moest_Buehlmann_2017} in \proglang{R}.
+\citep{Hothorn:Moest:Buehlmann:2017} in \proglang{R}.
 Together with related add-on packages such as
 \pkg{tramME} \citep{pkg:tramME} and \pkg{trtf} \citep{pkg:trtf}, the \pkg{tram} package
 provides a unified maximum likelihood framework that seamlessly extends
@@ -2528,7 +2528,7 @@ individual model components to be combined --- for example, covariate-dependent 
 ratios can be paired with random effects using \pkg{tramME}.
 The framework also extends to multiple event times per subject,
 allowing for the estimation of multivariate survival models via the
-\cmd{Mmlt} function \citep{Klein_Hothorn_Barbanti_2020}.
+\cmd{Mmlt} function \citep{Klein:Hothorn:Barbanti:2020}.
 This flexibility provides users with a unified toolkit to seamlessly address a wide spectrum of
 complex survival analysis tasks in \proglang{R}.
 

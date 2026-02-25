@@ -153,9 +153,10 @@ direct access to the corresponding models.
 The model class and the specific models implemented in \pkg{tram} are 
 explained in the package vignette of package \pkg{tram}.
 The underlying theory of most likely transformations 
-is presented in Hothorn et al. (2018), computational
+is presented in \bibcitet{tram::Hothorn:Moest:Buehlmann:2017}, computational
 and modelling aspects in more complex situations 
-are discussed by Hothorn (2018).
+are discussed by \bibcitet{Hothorn_2018}. Location-scale transformation 
+models have been introduced by \bibcitet{tram::Siegfried:Kook:Hothorn:2023}.
 
 For smooth transformation functions parameterised in terms of a polynomial
 in Bernstein form, the default was to define the support of this polynomial
@@ -179,16 +180,7 @@ the \code{support}, \code{prob}, or \code{log_first} arguments.
 An object of class \code{tram} inheriting from \code{mlt}.
 }
 \references{
-  Torsten Hothorn, Lisa Moest, Peter Buehlmann (2018), Most Likely
-  Transformations, \emph{Scandinavian Journal of Statistics}, \bold{45}(1),
-  110--134, \doi{10.1111/sjos.12291}.
-
-  Torsten Hothorn (2020), Most Likely Transformations: The mlt Package,
-  \emph{Journal of Statistical Software}, \bold{92}(1), \doi{10.18637/jss.v092.i01}.
-
-  Sandra Siegfried, Lucas Kook, Torsten Hothorn (2023),
-  Distribution-Free Location-Scale Regression, \emph{The American Statistician},
-  \doi{10.1080/00031305.2023.2203177}.
+  \bibshow{*}
 }
 \examples{
 

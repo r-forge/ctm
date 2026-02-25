@@ -54,6 +54,10 @@ of reference).  Large values of the linear predictor correspond to small
 values of the conditional expectation response (but this relationship is
 nonlinear).
 
+Details about the model parameterisation and estimation can be found in
+\bibcitet{tram::Lohse:Rohrmann:Faeh:2017} and
+\bibcitet{tram::Hothorn:Moest:Buehlmann:2017}.
+
 }
 \value{
 An object of class \code{Colr}, with corresponding \code{coef},
@@ -61,16 +65,7 @@ An object of class \code{Colr}, with corresponding \code{coef},
 \code{print}, \code{plot} and \code{predict} methods.
 }
 \references{
-
-  Tina Lohse, Sabine Rohrmann, David Faeh and Torsten Hothorn (2017),
-  Continuous Outcome Logistic Regression for Analyzing Body Mass Index
-  Distributions, \emph{F1000Research}, \bold{6}(1933),
-  \doi{10.12688/f1000research.12934.1}.
-
-  Torsten Hothorn, Lisa Moest, Peter Buehlmann (2018), Most Likely
-  Transformations, \emph{Scandinavian Journal of Statistics}, \bold{45}(1),
-  110--134, \doi{10.1111/sjos.12291}.
-
+  \bibshow{*}
 }
 \examples{
 

@@ -138,7 +138,7 @@ The \pkg{tram} package offers standard formula-based \proglang{R} interfaces
 for stratified linear transformation models.  The package uses general
 infrastructure for likelihood-based inference in conditional transformation
 models provided by package \pkg{mlt} \citep{Hothorn_2018,pkg:mlt}.  The underlying
-theory is presented by \cite{Hothorn_Moest_Buehlmann_2017} and an
+theory is presented by \cite{Hothorn:Moest:Buehlmann:2017} and an
 introduction to the \pkg{mlt} package is given by \cite{Hothorn_2018}.
 An interface to
 package \pkg{trtf} \citep{pkg:trtf} also allows more complex models to be
@@ -490,7 +490,7 @@ odds ratio. We can interpret $\beta$ as log-odds ratios, simultaneously for
 all possible binary logistic regression models with cutpoint $\ry$. The
 baseline transformation $\h_\rY(\ry)$ is the intercept in the logistic
 regression model corresponding to cutpoint $\ry$.
-\cite{Lohse_Rohrmann_Faeh_2017} introduced the name `Continuous Outcome Logistic
+\cite{Lohse:Rohrmann:Faeh:2017} introduced the name `Continuous Outcome Logistic
 Regression' (COLR) for this formulation of the model.
 
 Using proximity to Charles River as single stratum variable $\rs$, we can fit this

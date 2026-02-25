@@ -157,7 +157,8 @@
 
   \code{PI} and friends also accept an argument \code{conf.level} which
   triggers computation of simultaneous 
-  Wald confidence intervals for these measures.
+  Wald confidence intervals for these measures, see
+  \bibcitet{tram::Sewak:Hothorn:2023}.
   Arguments in \dots are forwarded to \code{\link[multcomp]{glht}}.
 
 }
@@ -165,9 +166,7 @@
   \code{\link[mlt]{mlt-methods}},  \code{\link[mlt]{plot.ctm}}
 }
 \references{
-  Torsten Hothorn, Lisa Moest, Peter Buehlmann (2018), Most Likely
-  Transformations, \emph{Scandinavian Journal of Statistics}, \bold{45}(1),
-  110--134, \doi{10.1111/sjos.12291}.
+  \bibshow{*}
 }
 \examples{
 
