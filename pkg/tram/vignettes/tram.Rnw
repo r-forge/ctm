@@ -1115,7 +1115,7 @@ estimation and inference provided by package \pkg{mlt}.
 
 \clearpage
 
-\bibliography{mlt,packages}
+\bibliography{\Sexpr{gsub("\\.bib", "", system.file("REFERENCES.bib", package = "tram"))},packages}
 
 <<tram-funs, echo = FALSE, results='hide', purl = FALSE, cache = FALSE>>=
 if (file.exists("packages.bib")) file.remove("packages.bib")

@@ -2138,7 +2138,7 @@ sd <- sqrt(diag(vcov(m)))
 exp(coef(m) + c(-1, 0, 1) * qnorm(.975) * sd)
 @
 
-\bibliography{mlt,packages}
+\bibliography{\Sexpr{gsub("\\.bib", "", system.file("REFERENCES.bib", package = "tram"))},packages}
 
 \newpage
 

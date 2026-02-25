@@ -2,11 +2,18 @@
 \name{NEWS}
 \title{NEWS file for the tram package}
 
+\section{Changes in Version 1.4-0 (2026-02-25)}{
+  \itemize{
+    \item{All references in \code{inst/REFERENCES.bib}.}
+  }
+}
+
 \section{Changes in Version 1.3-2 (2025-12-15)}{
   \itemize{
     \item{Update \code{Mmlt} simulation code.}
   }
 }
+
 
 \section{Changes in Version 1.3-1 (2025-12-02)}{
   \itemize{

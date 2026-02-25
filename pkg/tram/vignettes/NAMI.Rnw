@@ -846,7 +846,7 @@ sapply(pkgs, pkgbib)
 out <- sapply(pkgs, pkg)
 @
 
-\bibliography{mlt}
+\bibliography{\Sexpr{gsub("\\.bib", "", system.file("REFERENCES.bib", package = "tram"))},packages}
 
 
 \end{document}

@@ -37,7 +37,7 @@
 %% bibliography
 \usepackage[sectionbib]{bibunits}
 \defaultbibliographystyle{jss} 
-\defaultbibliography{survtram}
+\defaultbibliography{\Sexpr{gsub("\\.bib", "", system.file("REFERENCES.bib", package = "tram"))},survtram}
 
 %% appendix
 \usepackage[title]{appendix}
