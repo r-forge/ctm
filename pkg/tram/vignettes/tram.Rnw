@@ -137,9 +137,9 @@ if (!interactive() && .Platform$OS.type != "unix")
 The \pkg{tram} package offers standard formula-based \proglang{R} interfaces
 for stratified linear transformation models.  The package uses general
 infrastructure for likelihood-based inference in conditional transformation
-models provided by package \pkg{mlt} \citep{Hothorn_2018,pkg:mlt}.  The underlying
+models provided by package \pkg{mlt} \citep{Hothorn:2018,pkg:mlt}.  The underlying
 theory is presented by \cite{Hothorn:Moest:Buehlmann:2017} and an
-introduction to the \pkg{mlt} package is given by \cite{Hothorn_2018}.
+introduction to the \pkg{mlt} package is given by \cite{Hothorn:2018}.
 An interface to
 package \pkg{trtf} \citep{pkg:trtf} also allows more complex models to be
 fitted by recursive partitioning and random forest technology \citep{Hothorn_Zeileis_2017}.

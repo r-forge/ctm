@@ -592,6 +592,10 @@ few related packages.
 \IfFileExists{upquote.sty}{\usepackage{upquote}}{}
 \begin{document}
 
+\footnote{Please cite this work as:
+Sandra Siegfried, B{\'a}lint Tam{\'a}si and Torsten Hothorn (2026), 
+Smooth Transformation Models for Survival Analysis: A Tutorial Using
+\proglang{R}, \emph{Statistical Methods in Medical Research}.}
 
 <<survtram-pkgs, echo = FALSE, results = "hide", message = FALSE, warning = FALSE>>=
 # required packages
@@ -973,7 +977,7 @@ legend("bottomright", legend = levs, col = col, bty = "n", lty = 1, lwd = 1, cex
 All models are implemented in a fully parametric fashion, allowing for
 straightforward maximum likelihood inference.  The estimation of these
 models is facilitated by the core infrastructure package \pkg{mlt}
-\citep{Hothorn_2018,pkg:mlt} which provides a unified maximum likelihood
+\citep{Hothorn:2018,pkg:mlt} which provides a unified maximum likelihood
 framework for general transformation models
 \citep{Hothorn:Moest:Buehlmann:2017}.  We further leverage two add-on
 packages from this family of packages for transformation modelling: The
@@ -1281,7 +1285,8 @@ $\h$ it not prone to overfit and
 thus, in principle, $\dimparm$ can be chosen much larger.
 The effect of larger $\dimparm$ on 
 estimates of other model parameters and their standard errors is very small
-(see, for example, the log-hazard ratios in Figure~5 provided by \citet{Hothorn_2018}
+(see, for example, the log-hazard ratios in Figure~5 provided by
+\citet{Hothorn:2018}
 and the empirical comparison to non-parametric models
 \cite{Yuqi_Hothorn_Li_2020}). However, if one is
 interested in expressions involving the derivative $\h^\prime(\ry)$, which
