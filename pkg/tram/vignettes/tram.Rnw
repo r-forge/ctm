@@ -1155,7 +1155,7 @@ pkgbib <- function(pkg) {
 
     b[1] <- paste("@Manual{pkg:", pkg, ",", sep = "")
     if (is.na(b["url"])) {
-        b[length(b)] <- paste("   URL = {http://CRAN.R-project.org/package=",
+        b[length(b)] <- paste("   URL = {https://CRAN.R-project.org/package=",
                               pkg, "}", sep = "")
         b <- c(b, "}")
     }
