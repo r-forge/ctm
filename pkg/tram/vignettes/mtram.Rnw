@@ -776,7 +776,7 @@ the non-normal linear mixed-effects transformation model
 where $\h(\ry) = \basisy(\ry)^\top \parm$ represents a monotone non-decreasing
 transformation function. The function implementing such a more flexible
 model in named in honor of the first paper on the analysis of
-transformed responses by \cite{BoxCox_1964} but it \emph{does not} simply apply
+transformed responses by \cite{BoxCox:1964} but it \emph{does not} simply apply
 what is known as a Box-Cox transformation. Bernstein polynomials
 $\h(\ry) = \basisy(\ry)^\top \parm$ under suitable constraints 
 \citep{Hothorn:Moest:Buehlmann:2017} are applied instead by

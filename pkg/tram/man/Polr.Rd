@@ -56,11 +56,18 @@ increase in a numeric variable). Large values of the
 linear predictor correspond to large values of the conditional 
 expectation response (but this relationship is nonlinear).
 
+Details about the model parameterisation, estimation and implementation 
+can be found in \bibcitet{tram::Hothorn:Moest:Buehlmann:2017} and
+\bibcitet{tram::Hothorn:2018}.
+
 }
 \value{
 An object of class \code{Polr}, with corresponding \code{coef},
 \code{vcov}, \code{logLik}, \code{estfun}, \code{summary}, 
 \code{print}, \code{plot} and \code{predict} methods.
+}
+\references{
+  \bibshow{*}
 }
 \examples{
 

@@ -41,10 +41,29 @@ score_test(object, ...)
   Score tests and confidence intervals for the parameters in the linear
   predictor of \code{object} are computed. These parameters must be present
   in \code{object}.
+
+  Model scores are available from \bibcitet{tram::Hothorn:Moest:Buehlmann:2017}.
+
 }
 \value{
   An object of class \code{htest} or a list thereof. See \code{\link{Coxph}}
   for an example. A corresponding permutation test for parameters in a
   transformation models is available in
   \code{\link[tram]{perm_test}}.
+}
+\references{
+  \bibshow{*}
+}
+\examples{
+
+  data("GBSG2", package = "TH.data")
+
+  library("survival")
+
+  ### see ?Coxph for Wald and likelihood intervals
+  (m2 <- Coxph(Surv(time, cens) ~ horTh, data = GBSG2))
+
+  ### score interval
+  confint(score_test(m2))
+
 }

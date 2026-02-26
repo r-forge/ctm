@@ -51,11 +51,18 @@ The responses is bounded (\code{bounds = c(0, Inf)}) when specified as a
 \code{Surv} object. Otherwise, \code{bounds} can be specified via
 \code{\dots}.
 
+Details about the model parameterisation, estimation and implementation 
+can be found in \bibcitet{tram::Hothorn:Moest:Buehlmann:2017} and
+\bibcitet{tram::Hothorn:2018}.
+
 }
 \value{
 An object of class \code{Aareg}, with corresponding \code{coef},
 \code{vcov}, \code{logLik}, \code{estfun}, \code{summary}, 
 \code{print}, \code{plot} and \code{predict} methods.
+}
+\references{
+  \bibshow{*}
 }
 \examples{
 

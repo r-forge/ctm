@@ -43,18 +43,25 @@ BoxCox(formula, data, subset, weights, offset, cluster, na.action = na.omit, ...
 \details{
 A normal model for transformed responses, where the transformation is
 estimated from the data simultaneously with the regression coefficients.
-This is similar to a Box-Cox transformation, but the technical details
+This is similar to a Box-Cox transformation \bibcitep{tram::BoxCox:1964}, but the technical details
 differ. Examples can be found in the package vignette.
 
 The model is defined with a negative shift term. Large values of the
 linear predictor correspond to large values of the conditional 
 expectation response (but this relationship is potentially nonlinear).
 
+Details about the model parameterisation, estimation and implementation 
+can be found in \bibcitet{tram::Hothorn:Moest:Buehlmann:2017} and
+\bibcitet{tram::Hothorn:2018}.
+
 }
 \value{
 An object of class \code{BoxCox}, with corresponding \code{coef},
 \code{vcov}, \code{logLik}, \code{estfun}, \code{summary}, 
 \code{print}, \code{plot} and \code{predict} methods.
+}
+\references{
+  \bibshow{*}
 }
 \examples{
 

@@ -58,6 +58,11 @@ The response is bounded (\code{bounds = c(0, Inf)}) when specified as a
 Parameters are log-hazard ratios comparing treatment (or a one unit increase
 in a numeric variable) with a reference.
 
+Details about the model parameterisation, estimation and implementation 
+can be found in \bibcitet{tram::Hothorn:Moest:Buehlmann:2017},
+\bibcitet{tram::Siegfried:Tamasi:Hothorn:2026}, and
+\bibcitet{tram::Hothorn:2018}.
+
 }
 \value{
 An object of class \code{Coxph}, with corresponding \code{coef},
@@ -85,8 +90,7 @@ An object of class \code{Coxph}, with corresponding \code{coef},
   confint(m2)
   ### profile likelihood interval
   confint(profile(m2))
-  ### score interval
-  confint(score_test(m2))
+  ### see ?score_test for score intervals
 
 }
 \keyword{models}

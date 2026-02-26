@@ -42,6 +42,6 @@ Suggests: MASS, TH.data, trtf (>= 0.3-3), mlbench, knitr, quantreg,
         Stat2Data, cotram, latex2exp, tramvs, AER, 
         KONPsurv, gamlss.data, xtable, english
 VignetteBuilder: knitr
-URL: http://ctm.R-forge.R-project.org
+URL: https://ctm.R-forge.R-project.org
 Encoding: UTF-8
 License: GPL-2

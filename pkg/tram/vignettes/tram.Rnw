@@ -360,7 +360,7 @@ restrictive assumption.
 
 Maybe the question causing most headaches in normal linear regression is `Is
 my response conditionally normal?'. In their seminal paper,
-\cite{BoxCox_1964} suggested to transform the response to normality. They
+\cite{BoxCox:1964} suggested to transform the response to normality. They
 used a rather simple function, today known as the Box-Cox transformation,
 whereas the \pkg{tram} package uses rather flexible Bernstein polynomials
 for the `baseline transformation' $\h_\rY$. Although the technical details
@@ -1149,7 +1149,7 @@ pkgbib <- function(pkg) {
     b <- gsub("Göran Broström", "G\\\\\"oran Brostr\\\\\"om", b)
 
     b <- gsub(" The publishers web page is", "},", b)
-    b <- gsub("http://www.crcpress.com/product/isbn/9781584885740},", "", b)
+    b <- gsub("https://www.crcpress.com/product/isbn/9781584885740},", "", b)
 
     b <- gsub("R package", "\\\\proglang{R} package", b)
 
