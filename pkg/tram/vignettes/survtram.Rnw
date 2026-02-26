@@ -3,21 +3,6 @@
 %\VignetteIndexEntry{Smooth Transformation Models for Survival Analysis: A Tutorial Using R}
 %\VignetteDepends{mlt, tram, trtf, SparseGrid, ATR, tramME, multcomp, coin, TH.data, survival, colorspace, xtable, english}
 
-%%% running the vignettes takes way too long on Windows. Include the PDFs
-%%% but still allow code from this file to be extracted, ie in demo("tram")
-<<dontrun, echo = FALSE, results = "asis">>=
-if (.Platform$OS.type != "unix") {
-  library("knitr")
-  pdf <- system.file("doc", "survtram.pdf", package = "tram")
-  cat("\\documentclass{article}\n")
-  cat("\\usepackage{graphicx,color,pdfpages}\n")
-  cat("\\begin{document}\n")
-  cat("\\includepdf[pages=1-]{", pdf, "}\n")
-  cat("\\end{document}")
-  knitr::knit_exit()
-}
-@
-
 \documentclass[article,nojss,shortnames]{jss}
 
 
