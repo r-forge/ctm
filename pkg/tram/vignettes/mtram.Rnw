@@ -3,6 +3,22 @@
 %\VignetteIndexEntry{Marginally Interpretable Linear Transformation Models}
 %\VignetteDepends{variables, basefun, mlt, tram, survival, lme4, gridExtra, lattice, latticeExtra, colorspace, HSAUR3, mvtnorm, ordinalCont, tramME, glmmTMB, geepack}
 
+%%% running the vignettes takes way too long on Windows. Include the PDFs
+%%% but still allow code from this file to be extracted, ie in demo("tram")
+<<dontrun, echo = FALSE, results = "asis">>=
+if (.Platform$OS.type != "unix") {
+  library("knitr")
+  pdf <- system.file("doc", "mtram.pdf", package = "tram")
+  cat("\\documentclass{article}\n")
+  cat("\\usepackage{graphicx,color,pdfpages}\n")
+  cat("\\begin{document}\n")
+  cat("\\includepdf[pages=1-]{", pdf, "}\n")
+  cat("\\end{document}")
+  knitr::knit_exit()
+}
+@
+
+
 \documentclass[article,nojss,shortnames]{jss}
 
 %% packages
