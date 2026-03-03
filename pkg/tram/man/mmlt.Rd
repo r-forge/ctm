@@ -65,9 +65,7 @@ iterated for \code{ACSiter} iterations.
 An object of class \code{Mmlt} with \code{coef} and \code{predict}
 methods.
 }
-\references{
-  \bibshow{*}
-}
+\references{\bibshow{*}}
 \examples{
 
   data("cars")

@@ -53,9 +53,7 @@ a list of optimisers as returned by \code{\link[mlt]{mltoptim}}
 \seealso{
   \code{vignette("mtram", package = "tram")}
 }
-\references{
-  \bibshow{*}
-}
+\references{\bibshow{*}}
 \examples{
 
   if (require("lme4")) {

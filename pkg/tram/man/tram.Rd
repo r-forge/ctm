@@ -179,9 +179,7 @@ the \code{support}, \code{prob}, or \code{log_first} arguments.
 \value{
 An object of class \code{tram} inheriting from \code{mlt}.
 }
-\references{
-  \bibshow{*}
-}
+\references{\bibshow{*}}
 \examples{
 
   data("BostonHousing2", package = "mlbench")

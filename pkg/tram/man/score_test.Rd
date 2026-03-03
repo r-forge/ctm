@@ -51,9 +51,7 @@ score_test(object, ...)
   transformation models is available in
   \code{\link[tram]{perm_test}}.
 }
-\references{
-  \bibshow{*}
-}
+\references{\bibshow{*}}
 \examples{
 
   data("GBSG2", package = "TH.data")

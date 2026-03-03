@@ -82,9 +82,7 @@ in \bibcitet{tram::Siegfried:Tamasi:Hothorn:2026}.
 An object of class \code{Mmlt}, allowing to derive marginal time-to-event
 distributions for the primary event of interest and all competing events.
 }
-\references{
-  \bibshow{*}
-}
+\references{\bibshow{*}}
 \examples{
   
   if (require("randomForestSRC")) {

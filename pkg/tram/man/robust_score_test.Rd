@@ -59,9 +59,7 @@ remaining columns, computing the corresponding residuals, and finally
 computing correlation-type test between the score and predictor residuals,
 see \bibcitet{tram::Kook:Saengkyongam:Lundborg:2024}.
 }
-\references{
-  \bibshow{*}
-}
+\references{\bibshow{*}}
 \examples{
 data("mtcars")
 ### Linear shift tram

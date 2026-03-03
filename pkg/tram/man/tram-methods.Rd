@@ -165,9 +165,7 @@
 \seealso{
   \code{\link[mlt]{mlt-methods}},  \code{\link[mlt]{plot.ctm}}
 }
-\references{
-  \bibshow{*}
-}
+\references{\bibshow{*}}
 \examples{
 
     data("BostonHousing2", package = "mlbench")

@@ -64,9 +64,7 @@ An object of class \code{Colr}, with corresponding \code{coef},
 \code{vcov}, \code{logLik}, \code{estfun}, \code{summary}, 
 \code{print}, \code{plot} and \code{predict} methods.
 }
-\references{
-  \bibshow{*}
-}
+\references{\bibshow{*}}
 \examples{
 
   data("BostonHousing2", package = "mlbench")
