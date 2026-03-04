@@ -155,7 +155,7 @@ explained in the package vignette of package \pkg{tram}.
 The underlying theory of most likely transformations 
 is presented in \bibcitet{tram::Hothorn:Moest:Buehlmann:2017}, computational
 and modelling aspects in more complex situations 
-are discussed by \bibcitet{Hothorn:2018}. Location-scale transformation 
+are discussed by \bibcitet{tram::Hothorn:2018}. Location-scale transformation 
 models have been introduced by \bibcitet{tram::Siegfried:Kook:Hothorn:2023}.
 
 For smooth transformation functions parameterised in terms of a polynomial
