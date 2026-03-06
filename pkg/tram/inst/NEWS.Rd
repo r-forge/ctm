@@ -2,6 +2,13 @@
 \name{NEWS}
 \title{NEWS file for the tram package}
 
+\section{Changes in Version 1.4-1 (2026-03-06)}{
+  \itemize{
+    \item{Update to \pkg{mlt} 1.7-4.}
+    \item{Update reference output.}
+  }
+}
+
 \section{Changes in Version 1.4-0 (2026-02-25)}{
   \itemize{
     \item{All references in \code{inst/REFERENCES.bib}.}
