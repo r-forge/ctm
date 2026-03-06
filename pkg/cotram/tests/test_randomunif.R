@@ -60,16 +60,16 @@ d <- data.frame(y = y, x = x)
 # ## compare coef
 # # coef(mb1)
 # # coef(mb2)
-# coef(mb1, type = "Lambda")[1,]
-# coef(mb2, type = "Lambda")[1,]
+# coef(mb1, type = "Omega")[1,]
+# coef(mb2, type = "Omega")[1,]
 # coef(mb1, type = "Corr")[1,]
 # coef(mb2, type = "Corr")[1,]
 # 
 # ## log_first = FALSE
 # # coef(mb1l)
 # # coef(mb2l)
-# coef(mb1l, type = "Lambda")[1,]
-# coef(mb2l, type = "Lambda")[1,]
+# coef(mb1l, type = "Omega")[1,]
+# coef(mb2l, type = "Omega")[1,]
 # coef(mb1l, type = "Corr")[1,]
 # coef(mb2l, type = "Corr")[1,]
 # 
@@ -184,8 +184,8 @@ d <- data.frame(y = y, x = x)
 # coef(uc1)
 # coef(uc2)
 # value
-# coef(uc1, type = "Lambda")[1,] 
-# coef(uc2, type = "Lambda")[1,]
+# coef(uc1, type = "Omega")[1,] 
+# coef(uc2, type = "Omega")[1,]
 # cov2cor(Sigma)[1, 2]
 # coef(uc1, type = "Corr")[1,]
 # coef(uc2, type = "Corr")[1,]
@@ -194,8 +194,8 @@ d <- data.frame(y = y, x = x)
 # beta
 # coef(uc1r)
 # coef(uc2r)
-# coef(uc1r, type = "Lambda")[1,]
-# coef(uc2r, type = "Lambda")[1,]
+# coef(uc1r, type = "Omega")[1,]
+# coef(uc2r, type = "Omega")[1,]
 # coef(uc1r, type = "Corr")[1,]
 # coef(uc2r, type = "Corr")[1,]
 # 
@@ -302,8 +302,8 @@ beta
 coef(mb1)
 coef(mb2)
 value
-coef(mb1, type = "Lambda")[1,]
-coef(mb2, type = "Lambda")[1,]
+coef(mb1, type = "Omega")[1,]
+coef(mb2, type = "Omega")[1,]
 cov2cor(Sigma)[1, 2]
 coef(mb1, type = "Corr")[1,]
 coef(mb2, type = "Corr")[1,]
@@ -312,8 +312,8 @@ coef(mb2, type = "Corr")[1,]
 beta
 coef(mb1l)
 coef(mb2l)
-coef(mb1l, type = "Lambda")[1,]
-coef(mb2l, type = "Lambda")[1,]
+coef(mb1l, type = "Omega")[1,]
+coef(mb2l, type = "Omega")[1,]
 coef(mb1l, type = "Corr")[1,]
 coef(mb2l, type = "Corr")[1,]
 
@@ -473,15 +473,15 @@ for (i in 1:3) {
 ## log_first = TRUE
 coef(uc1)
 coef(uc2)
-cbind(lb[1:3], coef(uc1, type = "Lambda")[1:3,], coef(uc2, type = "Lambda")[1:3,])
+cbind(lb[1:3], coef(uc1, type = "Omega")[1:3,], coef(uc2, type = "Omega")[1:3,])
 cbind(orig = R, uc1 = coef(uc1, type = "Corr")[1:3,], 
       uc2 = coef(uc2, type = "Corr")[1:3,])
 
 ## log_first = FALSE
 coef(uc1l)
 coef(uc2l)
-cbind(orig = lb[1:3], uc1l = coef(uc1l, type = "Lambda")[1:3,], 
-      uc2l = coef(uc2l, type = "Lambda")[1:3,])
+cbind(orig = lb[1:3], uc1l = coef(uc1l, type = "Omega")[1:3,], 
+      uc2l = coef(uc2l, type = "Omega")[1:3,])
 cbind(orig = R, uc1 = coef(uc1l, type = "Corr")[1:3,], 
       uc2 = coef(uc2l, type = "Corr")[1:3,])
 
@@ -564,14 +564,14 @@ cf_l
 ## log_first = TRUE
 coef(mb1)
 coef(mb2)
-cbind(lb[1:3], coef(mb1, type = "Lambda")[1:3,], coef(mb2, type = "Lambda")[1:3,])
+cbind(lb[1:3], coef(mb1, type = "Omega")[1:3,], coef(mb2, type = "Omega")[1:3,])
 cbind(orig = R, mb1 = coef(mb1, type = "Corr")[1:3,], 
       mb2 = coef(mb2, type = "Corr")[1:3,])
 
 ## log_first = FALSE
 coef(mb1l)
 coef(mb2l)
-cbind(lb[1:3], coef(mb1l, type = "Lambda")[1:3,], coef(mb2l, type = "Lambda")[1:3,])
+cbind(lb[1:3], coef(mb1l, type = "Omega")[1:3,], coef(mb2l, type ="Omega")[1:3,])
 cbind(orig = R, mb1l = coef(mb1l, type = "Corr")[1:3,], 
       mb2l = coef(mb2l, type = "Corr")[1:3,])
 

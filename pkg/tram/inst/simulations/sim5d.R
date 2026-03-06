@@ -109,7 +109,7 @@ run_mmlt <- function(i) {
   )
   
   ### predict correlations
-  rho <- unclass(coef(m, newdata = data.frame(x = xseq), type = "Lambdapar"))
+  rho <- unclass(coef(m, newdata = data.frame(x = xseq), type = "Lambda"))
   ret <- list(rho = rho, ptm = ptm[3])
   return(ret)
 }

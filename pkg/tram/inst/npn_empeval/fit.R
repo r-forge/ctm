@@ -47,7 +47,7 @@ fit <- function(data, mfun = BoxCox, as.R.interval = FALSE, as.R.ordered = FALSE
     # if (!se) optim <- optim["nloptr"]
     m$optim <- optim
     ret <- do.call("Mmlt", m)
-    L <- coef(ret, type = "Lambdapar")
+    L <- coef(ret, type = "Lambda")
     if (!se) return(L)
 
     mp <- sum(sapply(lapply(marg, function(x) coef(as.mlt(x), fixed = FALSE)), length))

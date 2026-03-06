@@ -55,7 +55,7 @@ logLik(m)
 ### marginal parameters
 coef(m, type = "marginal")
 ### copula parameter: Lambda
-coef(m, type = "Lambdapar")
+coef(m, type = "Lambda")
 ### standard errors for all parameters
 sqrt(diag(vcov(m)))
 

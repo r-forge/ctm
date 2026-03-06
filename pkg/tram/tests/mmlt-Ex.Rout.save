@@ -94,7 +94,7 @@ The following object is masked from 'package:MASS':
 > 
 > 
 > chk(as.array(coef(mm, type = "Lambda"))[,,1], 
-+     as.array(coef(mmN, type = "Lambdapar"))[,,1])
++     as.array(coef(mmN, type = "Lambda"))[,,1])
 [1] TRUE
 > chk(as.array(coef(mm, type = "Cor"))[,,1], 
 +     as.array(coef(mmN, type = "Cor"))[,,1])
@@ -249,7 +249,7 @@ In .mmlt_setup(models = models, formula = formula, dofit = dofit,  :
 + chk(c(logLik(mmN)), sum(predict(mmN, newdata = d, type = "density", log = TRUE)))
 + 
 + chk(as.array(coef(mm, newdata = d, type = "Lambda"))[,,1], 
-+     as.array(coef(mmN, newdata = d, type = "Lambdapar"))[,,1])
++     as.array(coef(mmN, newdata = d, type = "Lambda"))[,,1])
 + chk(as.array(coef(mm, newdata = d, type = "Cor"))[,,1], 
 +     as.array(coef(mmN, newdata = d, type = "Cor"))[,,1])
 + chk(as.array(coef(mm, newdata = d, type = "Spearman"))[,,1], 
@@ -946,8 +946,8 @@ y.4.x.1   0.072   0.070   0.111   0.122
 > m$args <- list(seed = 1, M = 100)
 > mm <- do.call("mmlt", m)
 > 
-> L <- as.array(coef(mm, type = "Lambda"))[,,1]
-> chk(as.array(coef(mm, type = "Lambdainv"))[,,1], solve(L))
+> L <- as.array(coef(mm, type = "Omega"))[,,1]
+> chk(as.array(coef(mm, type = "Omegainv"))[,,1], solve(L))
 [1] TRUE
 > chk(as.array(coef(mm, type = "Sigma"))[,,1], tcrossprod(solve(L)))
 [1] TRUE

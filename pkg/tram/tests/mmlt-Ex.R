@@ -55,7 +55,7 @@ vcov(mmN)["V1.x", "V4.x"]
 
 
 chk(as.array(coef(mm, type = "Lambda"))[,,1], 
-    as.array(coef(mmN, type = "Lambdapar"))[,,1])
+    as.array(coef(mmN, type = "Lambda"))[,,1])
 chk(as.array(coef(mm, type = "Cor"))[,,1], 
     as.array(coef(mmN, type = "Cor"))[,,1])
 chk(as.array(coef(mm, type = "Spearman"))[,,1], 
@@ -177,7 +177,7 @@ chk(logLik(mm), logLik(mmN))
 chk(c(logLik(mmN)), sum(predict(mmN, newdata = d, type = "density", log = TRUE)))
 
 chk(as.array(coef(mm, newdata = d, type = "Lambda"))[,,1], 
-    as.array(coef(mmN, newdata = d, type = "Lambdapar"))[,,1])
+    as.array(coef(mmN, newdata = d, type = "Lambda"))[,,1])
 chk(as.array(coef(mm, newdata = d, type = "Cor"))[,,1], 
     as.array(coef(mmN, newdata = d, type = "Cor"))[,,1])
 chk(as.array(coef(mm, newdata = d, type = "Spearman"))[,,1], 
@@ -591,8 +591,8 @@ m$formula <- ~ 1
 m$args <- list(seed = 1, M = 100)
 mm <- do.call("mmlt", m)
 
-L <- as.array(coef(mm, type = "Lambda"))[,,1]
-chk(as.array(coef(mm, type = "Lambdainv"))[,,1], solve(L))
+L <- as.array(coef(mm, type = "Omega"))[,,1]
+chk(as.array(coef(mm, type = "Omegainv"))[,,1], solve(L))
 chk(as.array(coef(mm, type = "Sigma"))[,,1], tcrossprod(solve(L)))
 chk(as.array(coef(mm, type = "Cor"))[,,1], cov2cor(tcrossprod(solve(L))))
 chk(colSums(estfun(mm)), -colSums(mm$score(coef(mm, type = "all"))))

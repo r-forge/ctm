@@ -118,7 +118,7 @@ m4 <- Lm(AFP ~ D, data = dd)
 
 m <- Mmlt(m1, m2, m3, m4, formula = ~ 1, data = dd)
 LL_LDA <- logLik(m)
-# coef(m, type = "Lambdapar")
+# coef(m, type = "Lambda")
 LLR_LDA <- predict(m, newdata = nd0, type = "density", log = TRUE) -
           predict(m, newdata = nd1, type = "density", log = TRUE)
 stopifnot(isTRUE(all.equal(LL_BB, c(LL_LDA), tol = 1e-5)))
@@ -148,7 +148,7 @@ m4 <- BoxCox(AFP ~ D, data = dd, order = OR)
 
 m <- Mmlt(m1, m2, m3, m4, formula = ~ 1, data = dd)
 LL_lTDA <- logLik(m)
-# coef(m, type = "Lambdapar")
+# coef(m, type = "Lambda")
 LLR_lTDA <- predict(m, newdata = nd0, type = "density", log = TRUE) -
             predict(m, newdata = nd1, type = "density", log = TRUE)
 
@@ -174,7 +174,7 @@ m4 <- BoxCox(AFP ~ D | D, data = dd, order = OR)
 
 m <- Mmlt(m1, m2, m3, m4, formula = ~ 1, data = dd)
 LL_lsTDA <- logLik(m)
-# coef(m, type = "Lambdapar")
+# coef(m, type = "Lambda")
 LLR_lsTDA <- predict(m, newdata = nd0, type = "density", log = TRUE) -
           predict(m, newdata = nd1, type = "density", log = TRUE)
 
@@ -204,7 +204,7 @@ args <- list(seed = 1, type = "ghalton", M = M)
 
 mi <- Mmlt(m1, m2, m3i, m4i, formula = ~ 1, data = dd, args = args)
 LL_elsTDA <- logLik(mi)
-# coef(mi, type = "Lambdapar")
+# coef(mi, type = "Lambda")
 
 tmp1 <- BoxCox(DKK ~ Di | Di, data = rbind(nd0, nd1), order = OR, dofit = FALSE, LRtest = FALSE, theta = coef(m1))
 tmp2 <- BoxCox(OPN ~ Di | Di, data = rbind(nd0, nd1), order = OR, dofit = FALSE, LRtest = FALSE, theta = coef(m2))

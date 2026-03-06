@@ -81,6 +81,8 @@ gamma1 gamma2 gamma3
             (Intercept) Days
 (Intercept)         565   11
 Days                 11   33
+attr(,"class")
+[1] "vcmat_us" "matrix"   "array"   
 attr(,"stddev")
 (Intercept)        Days 
        23.8         5.7 
@@ -109,4 +111,4 @@ Days              0.081 1.000
 > 
 > proc.time()
    user  system elapsed 
-  2.998   0.087   3.082 
+  2.959   0.087   3.042 

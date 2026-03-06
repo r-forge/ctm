@@ -49,18 +49,18 @@ l1 <- logLik(m)
 s1 <- -colSums(estfun(m))
 s2 <- grad(function(parm) logLik(m, parm = parm), coef(m))
 chk(s2, unname(s1))
-L1 <- aperm(coef(m, type = "Lambda"), perm = c("X1", "X2", "X3", "x"))
+L1 <- aperm(coef(m, type = "Omega"), perm = c("X1", "X2", "X3", "x"))
 
 ## change order of variables
 m <- mmlt(m2, m4, m1, m3, data = d, args = args, optim = op)
 l2 <- logLik(m)
-L2 <- aperm(coef(m, type = "Lambda"), perm = c("X1", "X2", "X3", "x"))
+L2 <- aperm(coef(m, type = "Omega"), perm = c("X1", "X2", "X3", "x"))
 
 ## use less evaluation points for normal integrals
 m <- mmlt(m2, m4, m1, m3, data = d, optim = op,
           args = list(type = "ghalton", M = 100))
 l3 <- logLik(m)
-L3 <- aperm(coef(m, type = "Lambda"), perm = c("X1", "X2", "X3", "x"))
+L3 <- aperm(coef(m, type = "Omega"), perm = c("X1", "X2", "X3", "x"))
 ## check near identity: This can't be exact, because the evaluation points
 ## correspond to different dimensions in the different calls
 chk(l2, l1)
@@ -75,17 +75,17 @@ l1a <- logLik(m, newdata = d[idx,]) + logLik(m, newdata = d[-idx,])
 s1 <- -colSums(estfun(m))
 s2 <- grad(function(parm) logLik(m, parm = parm), coef(m))
 chk(s2, unname(s1))
-L1 <- aperm(coef(m, type = "Lambda"), perm = c("X1", "X2", "x"))
+L1 <- aperm(coef(m, type = "Omega"), perm = c("X1", "X2", "x"))
 
 m <- mmlt(m2, m1, m4, data = d, optim = op)
 l2 <- logLik(m)
 l2a <- logLik(m, newdata = d[idx,]) + logLik(m, newdata = d[-idx,])
-L2 <- aperm(coef(m, type = "Lambda"), perm = c("X1", "X2", "x"))
+L2 <- aperm(coef(m, type = "Omega"), perm = c("X1", "X2", "x"))
 
 m <- mmlt(m4, m2, m1, data = d, optim = op)
 l3 <- logLik(m)
 l3a <- logLik(m, newdata = d[idx,]) + logLik(m, newdata = d[-idx,])
-L3 <- aperm(coef(m, type = "Lambda"), perm = c("X1", "X2", "x"))
+L3 <- aperm(coef(m, type = "Omega"), perm = c("X1", "X2", "x"))
 chk(l2, l1)
 chk(l3, l1)
 chk(L2, L1)
@@ -102,15 +102,15 @@ l1 <- logLik(m)
 s1 <- -colSums(estfun(m))
 s2 <- grad(function(parm) logLik(m, parm = parm), coef(m))
 chk(s2, unname(s1))
-L1 <- aperm(coef(m, type = "Lambda"), perm = c("X1", "X2", "x"))
+L1 <- aperm(coef(m, type = "Omega"), perm = c("X1", "X2", "x"))
 
 m <- mmlt(m2, m1, m4, data = dw, optim = op)
 l2 <- logLik(m)
-L2 <- aperm(coef(m, type = "Lambda"), perm = c("X1", "X2", "x"))
+L2 <- aperm(coef(m, type = "Omega"), perm = c("X1", "X2", "x"))
 
 m <- mmlt(m4, m2, m1, data = dw, optim = op)
 l3 <- logLik(m)
-L3 <- aperm(coef(m, type = "Lambda"), perm = c("X1", "X2", "x"))
+L3 <- aperm(coef(m, type = "Omega"), perm = c("X1", "X2", "x"))
 ### check if order matters
 chk(l2, l1)
 chk(l3, l1)
@@ -130,19 +130,19 @@ l1wa <- logLik(m, newdata = d[idx,], w = w[idx]) +
 s1 <- -colSums(estfun(m))
 s2 <- grad(function(parm) logLik(m, parm = parm, w = w), coef(m))
 chk(s2, unname(s1))
-L1w <- aperm(coef(m, type = "Lambda"), perm = c("X1", "X2", "x"))
+L1w <- aperm(coef(m, type = "Omega"), perm = c("X1", "X2", "x"))
 
 m <- mmlt(m2, m1, m4, data = d, optim = op)
 l2w <- logLik(m)
 l2wa <- logLik(m, newdata = d[idx,], w = w[idx]) + 
         logLik(m, newdata = d[-idx,], w = w[-idx])
-L2w <- aperm(coef(m, type = "Lambda"), perm = c("X1", "X2", "x"))
+L2w <- aperm(coef(m, type = "Omega"), perm = c("X1", "X2", "x"))
 
 m <- mmlt(m4, m2, m1, data = dw, optim = op)
 l3w <- logLik(m)
 l3wa <- logLik(m, newdata = d[idx,], w = w[idx]) + 
         logLik(m, newdata = d[-idx,], w = w[-idx])
-L3w <- aperm(coef(m, type = "Lambda"), perm = c("X1", "X2", "x"))
+L3w <- aperm(coef(m, type = "Omega"), perm = c("X1", "X2", "x"))
 
 ## check if order matters
 chk(l2w, l1w)
@@ -173,15 +173,15 @@ l1 <- logLik(m)
 s1 <- -colSums(estfun(m))
 s2 <- grad(function(parm) logLik(m, parm = parm), coef(m))
 chk(s2, unname(s1))
-L1 <- aperm(coef(m, type = "Lambda"), perm = c("X1", "X2", "X3"))
+L1 <- aperm(coef(m, type = "Omega"), perm = c("X1", "X2", "X3"))
 
 m <- mmlt(m2, m1, m3, data = dw, optim = op)
 l2 <- logLik(m)
-L2 <- aperm(coef(m, type = "Lambda"), perm = c("X1", "X2", "X3"))
+L2 <- aperm(coef(m, type = "Omega"), perm = c("X1", "X2", "X3"))
 
 m <- mmlt(m3, m2, m1, data = dw, optim = op)
 l3 <- logLik(m)
-L3 <- aperm(coef(m, type = "Lambda"), perm = c("X1", "X2", "X3"))
+L3 <- aperm(coef(m, type = "Omega"), perm = c("X1", "X2", "X3"))
 ## check if order matters
 chk(l2, l1)
 chk(l3, l1)
@@ -199,15 +199,15 @@ l1w <- logLik(m)
 s1 <- -colSums(estfun(m))
 s2 <- grad(function(parm) logLik(m, parm = parm, w = w), coef(m))
 chk(s2, unname(s1))
-L1w <- aperm(coef(m, type = "Lambda"), perm = c("X1", "X2", "X3"))
+L1w <- aperm(coef(m, type = "Omega"), perm = c("X1", "X2", "X3"))
 
 m <- mmlt(m2, m1, m3, data = d, optim = op)
 l2w <- logLik(m)
-L2w <- aperm(coef(m, type = "Lambda"), perm = c("X1", "X2", "X3"))
+L2w <- aperm(coef(m, type = "Omega"), perm = c("X1", "X2", "X3"))
 
 m <- mmlt(m3, m2, m1, data = d, optim = op)
 l3w <- logLik(m)
-L3w <- aperm(coef(m, type = "Lambda"), perm = c("X1", "X2", "X3"))
+L3w <- aperm(coef(m, type = "Omega"), perm = c("X1", "X2", "X3"))
 
 ## check if order matters
 chk(l2w, l1w)

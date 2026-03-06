@@ -96,7 +96,7 @@ w100 -0.3902 0.4865
 y.w100 
 0.1757 
 
-> lambda <- c(unclass(coef(m, type = "Lambdapar")))
+> lambda <- c(unclass(coef(m, type = "Lambda")))
 
 > sqrt(2/nrow(immun) * ((1 + lambda^2) * cf1^2 + 8)/(4 * 
 +     (1 + lambda^2)))

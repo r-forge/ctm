@@ -295,7 +295,7 @@ evaluated at the maximum-likelihood estimates $\hat{\tau}$ and
 $\hat{\lambda}$:
 
 <<setheo_cont, echo = TRUE, message = FALSE>>=
-lambda <- c(unclass(coef(m, type = "Lambdapar")))
+lambda <- c(unclass(coef(m, type = "Lambda")))
 sqrt(2/nrow(immun) * ((1 + lambda^2)*cf1^2 + 8)/(4*(1 + lambda^2))) 
 ### SE from expected info (Lemma 2)
 @
@@ -320,7 +320,7 @@ coef(m, type = "Corr")
 The coefficient of determination $R^2$ \citep[see Section~2.2 in][]{Dandl_2025_nami} obtained by
 
 <<r2_cont, echo = TRUE, message = FALSE>>=
-Omega <- as.array(coef(m, type = "Lambda"))[,,1]
+Omega <- as.array(coef(m, type = "Omega"))[,,1]
 1 - Omega[nrow(Omega), ncol(Omega)]^(-2)
 @
 suggests an improvement of the conditional over the marginal model.
@@ -362,7 +362,7 @@ m <- Mmlt(m0, m1, formula = ~ 1, data = immun)
 
 The coefficient of determination $R^2$ can be obtained via
 <<r2_boxcox, echo = TRUE, message = FALSE>>=
-Omega <- as.array(coef(m, type = "Lambda"))[,,1]
+Omega <- as.array(coef(m, type = "Omega"))[,,1]
 1 - Omega[nrow(Omega), ncol(Omega)]^(-2)
 @
 suggesting an improved model fit over \NAMI with a linear transformation.
@@ -503,7 +503,7 @@ only has a value of $\hat{\rho}_{J,\text{\Sexpr{toupper(substr(ni, 1,
 Consequently, adjusting for covariates did not improve fit nor precision, 
 reflected in a low $R^2$:
 <<CAO-r2, echo = TRUE, message = FALSE>>=
-Omega <- as.array(coef(m, type = "Lambda"))[,,1]
+Omega <- as.array(coef(m, type = "Omega"))[,,1]
 1 - Omega[nrow(Omega), ncol(Omega)]^(-2)
 @
 
@@ -583,7 +583,7 @@ $95\%$ Wald interval of $\Sexpr{frmtci(ci1)}$.
 The coefficient of determination indicates that thorax length is highly
 prognostic:
 <<flies_r2, echo = TRUE, message = FALSE>>=
-Omega <- as.array(coef(m, type = "Lambda"))[,,1]
+Omega <- as.array(coef(m, type = "Omega"))[,,1]
 1 - Omega[nrow(Omega), ncol(Omega)]^(-2)
 @
 
