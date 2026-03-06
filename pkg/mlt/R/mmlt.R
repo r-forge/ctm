@@ -863,15 +863,15 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
     prm <- prm[[length(prm)]]
 
     if (is.null(object$bx)) {
-        ret0 <- ret <- ltMatrices(t(prm), byrow = TRUE, diag = FALSE, 
-                          names = object$names)
+        ret <- t(prm)
     } else {
         if (missing(newdata))
             stop("Argument newdata not specified")
         X <- model.matrix(object$bx, data = newdata)
-        ret0 <- ret <- ltMatrices(t(X %*% prm), byrow = TRUE, diag = FALSE, 
-                                  names = object$names)
+        ret <- t(X %*% prm)
     }
+    ret0 <- ret <- as.invchol(ltMatrices(ret, byrow = TRUE, diag = FALSE, 
+                                         names = object$names))
 
     if (inherits(object, "mmmlt"))
         ret <- mvtnorm::standardize(invchol = ret)
