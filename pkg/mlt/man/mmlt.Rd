@@ -100,7 +100,8 @@ The model is always parameterised in terms of a unit lower-triangular matrix
 lower-triangular matrix \eqn{\Omega = \Lambda \text{diag}(\Lambda^{-1}
 \Lambda^{-\top})} such that \eqn{\Sigma = \Omega^{-1} \Omega^{-\top}} is a
 correlation matrix. Note that \eqn{Omega = \Lambda} when \code{conditional =
-TRUE} was requested.
+TRUE} was requested. These concepts are explained in
+\bibcitet{mlt::hothorn_2024}, Section 2.
 
 }
 \references{\bibshow{*}}
