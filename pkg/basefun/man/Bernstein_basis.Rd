@@ -32,15 +32,9 @@ Bernstein_basis(var, order = 2, ui = c("none", "increasing", "decreasing",
 \details{
   \code{Bernstein_basis} returns a function for the evaluation of
   the basis functions with corresponding \code{model.matrix} and \code{predict}
-  methods.
+  methods for polynomials in Bernstein form, see \bibcitet{basefun::Farouki_2012}.
 }
-\references{
-
-  Rida T. Farouki (2012), The Bernstein Polynomial Basis: A Centennial Retrospective,
-  \emph{Computer Aided Geometric Design}, \bold{29}(6), 379--419, 
-  \doi{10.1016/j.cagd.2012.03.001}.
-
-}
+\references{\bibshow{*}}
 \examples{
 
   ### set-up basis

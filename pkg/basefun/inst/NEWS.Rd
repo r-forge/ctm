@@ -2,6 +2,13 @@
 \name{NEWS}
 \title{NEWS file for the basefun package}
 
+\section{Changes in Version 1.2-6 (2026-03-06)}{
+  \itemize{
+    \item{Use \file{REFERENCES.bib}.}
+  }
+}
+
+
 \section{Changes in Version 1.2-5 (2025-10-03)}{
   \itemize{
     \item{Fix bug triggered by new \code{fun} argument in 

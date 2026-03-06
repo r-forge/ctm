@@ -6,18 +6,11 @@
 \description{
   The \pkg{basefun} package offers a small collection of objects for
   handling basis functions and corresponding methods.
-
+}
+\details{
   The package was written to support the \pkg{mlt}
-  package and will be of limited use outside this package.
+  package \bibcitep{basefun::Hothorn:2018}
+  and will be of limited use outside this package.
 }
-\references{
-
-  Torsten Hothorn (2018), Most Likely Transformations: The mlt Package,
-  \emph{Journal of Statistical Software}, forthcoming. URL: 
-  \url{https://cran.r-project.org/package=mlt.docreg}
-
-}
-\author{
-  This package is authored by Torsten Hothorn <Torsten.Hothorn@R-project.org>.
-}
+\references{\bibshow{*}}
 \keyword{package}

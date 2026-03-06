@@ -19,15 +19,10 @@ Legendre_basis(var, order = 2, ui = c("none", "increasing", "decreasing",
 \details{
   \code{Legendre_basis} returns a function for the evaluation of
   the basis functions with corresponding \code{model.matrix} and \code{predict}
-  methods.
-}
-\references{
-
-  Rida T. Farouki (2012), The Bernstein Polynomial Basis: A Centennial Retrospective,
-  \emph{Computer Aided Geometric Design}, \bold{29}(6), 379--419,
-  \doi{10.1016/j.cagd.2012.03.001}.
+  methods for Legendre polynomials, see \bibcitet{basefun::Farouki_2012}.
 
 }
+\references{\bibshow{*}}
 \examples{
 
   ### set-up basis

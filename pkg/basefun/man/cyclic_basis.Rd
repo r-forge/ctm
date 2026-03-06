@@ -16,18 +16,12 @@ cyclic_basis(var, order = 3, frequency)
 }
 \details{
   \code{cyclic_basis} returns a set of sin and cosine functions for
-  modelling seasonal effects, see Held and Paul (2012), Section 2.2.
+  modelling seasonal effects, see \bibcitet{basefun::Held_Paul_2012}, Section 2.2.
 
   For any choice of coefficients, the function returns the same value
   when evaluated at multiples of \code{frequency}.
 }
-\references{
-
-  Leonhard Held and Michaela Paul (2012), Modeling Seasonality in Space-time
-  Infectious Disease Surveillance Data, \emph{Biometrical Journal},
-  \bold{54}(6), 824--843, \doi{10.1002/bimj.201200037}
-
-}
+\references{\bibshow{*}}
 \examples{
 
   ### set-up basis

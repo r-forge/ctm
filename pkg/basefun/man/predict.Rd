@@ -29,16 +29,9 @@
 \details{
   \code{predict} evaluates the basis functions and multiplies them with \code{coef}.
   There is no need to expand multiple variables as \code{predict} uses array models
-  (Currie et al, 2006) to compute the corresponding predictions efficiently.
+  \bibcitep{basefun::Currie_Durban_Eilers_2006} to compute the corresponding predictions efficiently.
 }
-\references{
-
-  Ian D. Currie, Maria Durban, Paul H. C. Eilers, P. H. C. (2006), Generalized Linear 
-  Array Models with Applications to Multidimensional Smoothing, 
-  \emph{Journal of the Royal Statistical Society, Series B: Methodology}, \bold{68}(2), 
-  259--280.
-
-}
+\references{\bibshow{*}}
 \examples{
 
   ### set-up a Bernstein polynomial
