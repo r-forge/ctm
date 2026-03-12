@@ -180,3 +180,67 @@ HDR.Mmlt <- function(object, level = .95, newdata, nsim = 1000L, K = 25, ...) {
     attr(ret, "cuts") <- quantile(d, prob = 1 - level)
     ret
 }
+
+### still experimental and thus not exported
+perm_test.mmlt <- function(object, parm, nullvalue = 0, 
+                           confint = FALSE, level = 0.95, seed = NULL, ...) 
+{
+    stopifnot(length(parm) == 1L)
+    cf <- coef(object)
+    stopifnot(parm %in% names(cf))
+    mn <- strsplit(parm, "\\.")[[c(1L, 1L)]]
+    ### would need X for lambda parameters as well
+    stopifnot(mn %in% object$model$names)
+    vn <- strsplit(parm, "\\.")[[c(1L, 2L)]]
+    fx <- object$fixed
+    X <- tram:::model.matrix.tram(object$model$models[[match(mn, object$models$names)]])[, vn]
+    X <- factor(X)
+
+    if (!exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)) 
+        runif(1)
+    if (is.null(seed)) 
+        seed <- RNGstate <- get(".Random.seed", envir = .GlobalEnv)
+    else {
+        R.seed <- get(".Random.seed", envir = .GlobalEnv)
+        set.seed(seed)
+        RNGstate <- structure(seed, kind = as.list(RNGkind()))
+        on.exit(assign(".Random.seed", R.seed, envir = .GlobalEnv))
+    }
+
+    it <- function(value) {
+        names(value) <- parm
+        r <- residuals(update(object, fixed = c(fx, value)))[, mn]
+        set.seed(seed) ### evaluate on same permutations when inverting
+        independence_test(r ~ X, ...)
+    }
+
+    pval <- function(value) pvalue(it(value))
+
+    stat <- it(nullvalue)
+
+    ret <- list(statistic = c("Z" = statistic(stat)), 
+                p.value = pvalue(stat), 
+                null.value = nullvalue, 
+                alternative = stat@statistic@alternative, 
+                method = "Permutation Test")
+    class(ret) <- "htest"
+
+    ci_lg <- confint(object, level = level^exp( 2))[parm,]
+    ci_sm <- confint(object, level = level^exp(-2))[parm,]
+
+    ci <- c(-Inf, Inf)
+    alpha <- 1 - level
+
+    if (ret$alternative != "less") {
+        x <- seq(from = ci_lg[1], to = ci_sm[1], length.out = 10)
+        ci[1] <- splinefun(sapply(x, pval), x, method = "hyman")(alpha)
+    }
+    if (ret$alternative != "greater") {
+        x <- seq(from = ci_lg[2], to = ci_sm[2], length.out = 10)
+        ci[2] <- splinefun(sapply(x, pval), x, method = "hyman")(alpha)
+    }
+    attr(ci, "conf.level") <- level
+    ret$conf.int <- ci
+    ret$estimate <- coef(object)[parm]
+    return(ret)
+}
