@@ -1,6 +1,6 @@
 
-R version 4.5.2 (2025-10-31) -- "[Not] Part in a Rumble"
-Copyright (C) 2025 The R Foundation for Statistical Computing
+R Under development (unstable) (2026-03-11 r89601) -- "Unsuffered Consequences"
+Copyright (C) 2026 The R Foundation for Statistical Computing
 Platform: x86_64-pc-linux-gnu
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
@@ -209,6 +209,7 @@ Loading required package: mlbench
  2.5 % 97.5 % 
 -0.058  0.375 
 > round(perm_test(m2, "x1")$conf, 3)
+Loading required namespace: coin
 [1] -0.054  0.377
 attr(,"conf.level")
 [1] 0.95
@@ -251,4 +252,4 @@ attr(,"achieved.conf.level")
 > 
 > proc.time()
    user  system elapsed 
-  9.036   0.088   9.123 
+  8.888   0.123   9.024 

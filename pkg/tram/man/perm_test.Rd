@@ -110,6 +110,27 @@ perm_test(object, ...)
   (pt <- perm_test(md, confint = TRUE, distribution = "exact", 
                    Taylor = TRUE))
 
+  if (require("coin")) {
+     ### Note that perm_test can't compute confidence
+     ### intervals for K samples. For computing p-values, one
+     ### only needs to fit the null model and the scores
+     aq <- airquality[complete.cases(airquality[, c("Ozone", "Month")]),]
+     aq$Month <- factor(aq$Month)
+     pKW <- kruskal.test(Ozone ~ Month, data = aq)$p.value
+     aq$O <- ordered(aq$Ozone)
+     ### scores = residuals wrt constant intercept term are
+     ### linear function of rank(aq$Ozone) when method = "logistic"
+     aq$r <- resid(Polr(O ~ 1, data = aq, method = "logistic")) 
+     ### permutation test against proportional odds alternatives
+     all.equal(pKW, 
+               c(pvalue(independence_test(r ~ Month, data = aq, 
+                                          teststat = "quad"))))
+     ### Savage scores against proportional hazards alternatives
+     aq$r <- resid(Polr(O ~ 1, data = aq, method = "cloglog")) 
+     ### van der Waerden normal scores
+     aq$r <- resid(Polr(O ~ 1, data = aq, method = "probit")) 
+  }
+
   ### compare with probabilistic indices obtained from asht::wmwTest
   if (require("asht", warn.conflicts = FALSE)) {
       print(wt2 <- wmwTest(pd ~ I(relevel(age, "At term")), 
