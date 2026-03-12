@@ -181,7 +181,7 @@ HDR.Mmlt <- function(object, level = .95, newdata, nsim = 1000L, K = 25, ...) {
     ret
 }
 
-### still experimental and thus not exported
+### still experimental and thus not documented
 perm_test.mmlt <- function(object, parm, nullvalue = 0, 
                            confint = FALSE, level = 0.95, seed = NULL, ...) 
 {
@@ -193,7 +193,8 @@ perm_test.mmlt <- function(object, parm, nullvalue = 0,
     stopifnot(mn %in% object$model$names)
     vn <- strsplit(parm, "\\.")[[c(1L, 2L)]]
     fx <- object$fixed
-    X <- tram:::model.matrix.tram(object$model$models[[match(mn, object$models$names)]])[, vn]
+    ### mmlt removes tram class
+    X <- model.matrix.tram(object$model$models[[match(mn, object$models$names)]])[, vn]
     X <- factor(X)
 
     if (!exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)) 
@@ -207,19 +208,21 @@ perm_test.mmlt <- function(object, parm, nullvalue = 0,
         on.exit(assign(".Random.seed", R.seed, envir = .GlobalEnv))
     }
 
+    stopifnot(requireNamespace("coin"))
+
     it <- function(value) {
         names(value) <- parm
         r <- residuals(update(object, fixed = c(fx, value)))[, mn]
         set.seed(seed) ### evaluate on same permutations when inverting
-        independence_test(r ~ X, ...)
+        coin::independence_test(r ~ X, ...)
     }
 
-    pval <- function(value) pvalue(it(value))
+    pval <- function(value) coin::pvalue(it(value))
 
     stat <- it(nullvalue)
 
-    ret <- list(statistic = c("Z" = statistic(stat)), 
-                p.value = pvalue(stat), 
+    ret <- list(statistic = c("Z" = coin::statistic(stat)), 
+                p.value = coin::pvalue(stat), 
                 null.value = nullvalue, 
                 alternative = stat@statistic@alternative, 
                 method = "Permutation Test")

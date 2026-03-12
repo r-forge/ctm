@@ -12,7 +12,7 @@ importFrom("stats", "model.matrix", "coef", "vcov", "nobs", "predict", "quantile
            "printCoefmat", "qqline", "qqplot", "qunif", "variable.names", "pchisq",
            "model.frame", "pnorm", "qnorm", "sigma", "residuals", "qchisq", "approx", "spline",
            "confint", "relevel", "resid", "ecdf", "dnorm", "weights", "lm", "simulate", 
-           "plogis", "qlogis", "dist", "uniroot", "optim", "runif", "rnorm", "update", "sd")
+           "plogis", "qlogis", "dist", "uniroot", "optim", "runif", "rnorm", "update", "sd", "splinefun")
 importFrom("Matrix", "Matrix", "bdiag", "Diagonal", "Cholesky", "crossprod", 
            "update", "t", "determinant", "rowSums", "diag")
 importFrom("survival", "survfit", "Surv", "is.Surv", "coxph.control")
@@ -59,6 +59,7 @@ S3method("perm_test", "tram")
 S3method("perm_test", "default")
 S3method("perm_test", "glm")
 S3method("perm_test", "coxph")
+S3method("perm_test", "mmlt")
 S3method("confint", "htest")
 S3method("confint", "htests")
 

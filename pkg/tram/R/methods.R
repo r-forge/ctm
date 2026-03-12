@@ -524,6 +524,7 @@ perm_test.tram <- function(object, parm = names(coef(object)),
     if (length(grep("Score", statistic)) > 0) {
 
         stopifnot(isTRUE(all.equal(nullvalue, 0)))
+        stopifnot(requireNamespace("coin"))
 
         if (length(parm) > 1) {
             ret <- lapply(parm, perm_test, object = object, 
