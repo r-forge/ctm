@@ -103,12 +103,15 @@ perm_test(object, ...)
 
   ### Score confidence interval
   confint(score_test(md))
-  confint(score_test(md, Taylor = TRUE))
+  confint(score_test(md, Taylor = TRUE))	### returns Wald with N(0, 1) quantiles
+  confint(md)					### also Wald with N(0, 1) quantiles
 
   ### exact permutation score test
   (pt <- perm_test(md, confint = TRUE, distribution = "exact"))
   (pt <- perm_test(md, confint = TRUE, distribution = "exact", 
-                   Taylor = TRUE))
+                   Taylor = TRUE))		### uses asymptotic normal
+                                                ### permutation quantiles
+                                                ### for Wald-like interval
 
   if (require("coin")) {
      ### Note that perm_test can't compute confidence
