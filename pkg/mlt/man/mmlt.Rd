@@ -4,6 +4,7 @@
 \alias{coef.mmmlt}
 \alias{predict.mmlt}
 \alias{simulate.mmlt}
+\alias{residuals.mmlt}
 \title{
   Multivariate Conditional Transformation Models
 }
@@ -18,13 +19,13 @@ mmlt(..., formula = ~ 1, data, conditional = FALSE,
      args = list(seed = 1, M = 1000), 
      dofit = TRUE, domargins = TRUE)
 \method{coef}{cmmlt}(object, newdata, 
-     type = c("all", "conditional", "Lambdapar", 
+     type = c("all", "conditional",
               "Lambda", "Omega", "Lambdainv", "Omegainv",
               "Precision", "PartialCorr", "Sigma", "Corr", 
               "Spearman", "Kendall"), fixed = TRUE, 
      ...)
 \method{coef}{mmmlt}(object, newdata, 
-     type = c("all", "marginal", "Lambdapar", 
+     type = c("all", "marginal",
               "Lambda", "Omega", "Lambdainv", "Omegainv",
               "Precision", "PartialCorr", "Sigma", "Corr", 
               "Spearman", "Kendall"), fixed = TRUE,
@@ -33,6 +34,8 @@ mmlt(..., formula = ~ 1, data, conditional = FALSE,
         type = c("trafo", "distribution", "survivor", "density", "hazard"), 
                  log = FALSE, args = object$args, ...)
 \method{simulate}{mmlt}(object, nsim = 1L, seed = NULL, newdata, K = 50, ...)
+\method{residuals}{mmlt}(object, parm = coef(object, fixed = FALSE), 
+                         w = NULL, newdata = NULL, ...)
 }
 \arguments{
   \item{\dots}{marginal transformation models, one for each response, for
@@ -85,6 +88,8 @@ variable, or multiple integers (currently only \code{1:j} implemented).
   \item{nsim}{number of samples to generate.}
   \item{seed}{optional seed for the random number generator.}
   \item{K}{number of grid points to generate.}
+  \item{parm}{parameter vector.}
+  \item{w}{weights.}
 }
 \details{
   The function implements core functionality for fitting 
