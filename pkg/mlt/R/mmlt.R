@@ -743,6 +743,9 @@ mmlt <- function(..., formula = ~ 1, data, conditional = FALSE,
         }
         idx <- match(1:length(cdpat), do.call("c", split(1:length(cdpat), cdpat)))
         ret <- mm[[1L]]
+        ### overwrite models with the original arguments (not the subsetted
+        ### ones)
+        ret$models <- models
         ret$data <- data
         ret$logliki <- function(parm, newdata = NULL) {
             if (!is.null(newdata))
