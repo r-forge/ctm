@@ -193,9 +193,12 @@ perm_test.mmlt <- function(object, parm, nullvalue = 0,
     stopifnot(mn %in% object$model$names)
     vn <- strsplit(parm, "\\.")[[c(1L, 2L)]]
     fx <- object$fixed
-    ### mmlt removes tram class
-    X <- model.matrix.tram(object$model$models[[match(mn, object$models$names)]])[, vn]
-    X <- factor(X)
+
+    ### selecting the data corresponding to parm is a bit messy
+    vmod <- object$model$models[[match(mn, object$models$names)]]
+    if (is.null(vmod$model$bases$shifting))
+        stop("only shift parameters parm allowed")
+    X <- vmod$model$bases$shifting(object$data)[, vn]
 
     if (!exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)) 
         runif(1)
@@ -228,22 +231,25 @@ perm_test.mmlt <- function(object, parm, nullvalue = 0,
                 method = "Permutation Test")
     class(ret) <- "htest"
 
-    ci_lg <- confint(object, level = level^exp( 2))[parm,]
-    ci_sm <- confint(object, level = level^exp(-2))[parm,]
+    ### slow, so only if necessary
+    if (confint) {
+        ci_lg <- confint(object, level = level^exp( 2))[parm,]
+        ci_sm <- confint(object, level = level^exp(-2))[parm,]
 
-    ci <- c(-Inf, Inf)
-    alpha <- 1 - level
+        ci <- c(-Inf, Inf)
+        alpha <- 1 - level
 
-    if (ret$alternative != "less") {
-        x <- seq(from = ci_lg[1], to = ci_sm[1], length.out = 10)
-        ci[1] <- splinefun(sapply(x, pval), x, method = "hyman")(alpha)
+        if (ret$alternative != "less") {
+            x <- seq(from = ci_lg[1], to = ci_sm[1], length.out = 10)
+            ci[1] <- splinefun(sapply(x, pval), x, method = "hyman")(alpha)
+        }
+        if (ret$alternative != "greater") {
+            x <- seq(from = ci_lg[2], to = ci_sm[2], length.out = 10)
+            ci[2] <- splinefun(sapply(x, pval), x, method = "hyman")(alpha)
+        }
+        attr(ci, "conf.level") <- level
+        ret$conf.int <- ci
+        ret$estimate <- coef(object)[parm]
     }
-    if (ret$alternative != "greater") {
-        x <- seq(from = ci_lg[2], to = ci_sm[2], length.out = 10)
-        ci[2] <- splinefun(sapply(x, pval), x, method = "hyman")(alpha)
-    }
-    attr(ci, "conf.level") <- level
-    ret$conf.int <- ci
-    ret$estimate <- coef(object)[parm]
     return(ret)
 }
