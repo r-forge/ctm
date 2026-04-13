@@ -1,6 +1,6 @@
 
 cotram <- function(formula, data, method = c("logit", "cloglog", "loglog", "probit"),
-                   log_first = NULL, prob = NULL, order = NULL, subset, weights, offset, cluster,
+                   log_first = TRUE, prob = 0.9, subset, weights, offset, cluster,
                    na.action = na.omit, ...)
 {
     mf <- match.call(expand.dots = FALSE)
@@ -24,44 +24,27 @@ cotram <- function(formula, data, method = c("logit", "cloglog", "loglog", "prob
     
     y <- as.integer(td$response)
     
-    ### linear h only makes sense with log_first
-    if (!is.null(order)) {
-        if (order == 1L) log_first <- TRUE
-    }
-
-    if (isFALSE(log_first)) log_first <- NULL
     ## y + 1 for log_first
-    plus_one <- isTRUE(log_first) + 0L
+    stopifnot(is.logical(log_first))
+    plus_one <- as.integer(log_first)
     
     ## interval-censored count response for correct likelihood
-    td$response <- R(.R.count(td$response, plus_one = plus_one))
+    td$response <- .R.count(td$response, plus_one = plus_one)
     td$mf[, td$rname] <- .R.count(td$mf[, td$rname], plus_one = plus_one)
     
     ## support
-    support <- NULL
-    if (!is.null(prob)) 
-        support <- c(0, round(quantile(y, probs = prob)))[0:1 + length(prob)] + plus_one
+    support <- c(0, round(quantile(y, probs = prob)))[0:1 + length(prob)] + plus_one
     
     ## bounds
-    bounds <- NULL
-    if (!is.null(prob))
-        bounds <- c(-0.01, Inf) + plus_one
+    bounds <- c(-0.01, Inf) + plus_one
     
-    if (is.null(order)) {
-        ret <- tram(td, transformation = "smooth", distribution = distribution, 
-                    log_first = log_first, support = support, bounds = bounds, 
-                    negative = TRUE, ...)
-    } else {
-        ret <- tram(td, transformation = "smooth", distribution = distribution, 
-                    log_first = log_first, support = support, bounds = bounds, 
-                    order = order,
-                    negative = TRUE, ...)
-    }
-
+    ret <- tram(td, transformation = "smooth", distribution = distribution, 
+                log_first = log_first, support = support, bounds = bounds, 
+                negative = TRUE, ...)
     if (!inherits(ret, "mlt")) return(ret)
     
     ret$call <- match.call(expand.dots = TRUE)
-    ret$log_first <- isTRUE(log_first)
+    ret$log_first <- log_first
     ret$support <- support
     ret$bounds <- bounds
     if (method != "probit") {
@@ -77,6 +60,6 @@ cotram <- function(formula, data, method = c("logit", "cloglog", "loglog", "prob
     ret$count_response <- numeric_var(td$rname, support = min(y):max(y))
     class(ret) <- c("cotram", class(ret))
     
-    if (ret$log_first) message(paste0("Model was fitted to log(", td$rname, " + 1)."))
+    if (log_first) message(paste0("Model was fitted to log(", td$rname, " + 1)."))
     ret
 }

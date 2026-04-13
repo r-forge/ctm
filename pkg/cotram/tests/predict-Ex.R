@@ -7,18 +7,13 @@ set.seed(25)
 ### some basic checks for predictions wrt discrete distributions
 n <- 50
 d <- data.frame(x1 = 0:n, x2 = sample(0:n) + 1, q = sample(0:n))
-
-log_first <- FALSE
-LF <- NULL
-if (log_first) LF <- TRUE
-
-mc3 <- cotram(q ~ x1 + x2, data = d, log_first = LF)
+mc3 <- cotram(q ~ x1 + x2, data = d, log_first = log_first <- FALSE)
 
 di <- d
 di$qleft <- with(di, q - 1L)
 di$qleft[di$qleft < 0] <- -Inf
 di$q <- with(di, Surv(qleft + log_first, q + log_first, type = "interval2"))
-m3 <- Colr(R(q) ~ x1 + x2, data = di, support = mc3$support, bounds = mc3$bounds, log_first = LF)
+m3 <- Colr(q ~ x1 + x2, data = di, support = mc3$support, bounds = mc3$bounds, log_first = log_first)
 
 .chk <- function(x)
   stopifnot(max(abs(x), na.rm = TRUE) < sqrt(.Machine$double.eps))
@@ -103,14 +98,15 @@ pr <- 1:9/10
 }
 
 ## cotram: log_first = FALSE
-mc1 <- cotram(y ~ 1)
+mc1 <- cotram(y ~ 1, log_first = FALSE, prob = prob <- .99, extrapolate = TRUE)
 
 .check_prd(mc1)
 
-m1 <- Colr(R(yi) ~ 1, data = data.frame(yi = Surv(yleft, y, type = "interval2")))
+m1 <- Colr(yi ~ 1, data = data.frame(yi = Surv(yleft, y, type = "interval2")), extrapolate = TRUE,
+            log_first = FALSE, support = c(0, quantile(y, prob = prob)), bounds = c(-.01, Inf))
 
 ## cotram: log_first = TRUE
-mc2 <- cotram(y ~ 1, log_first = TRUE)
+mc2 <- cotram(y ~ 1, log_first = TRUE, extrapolate = TRUE, prob = .99)
 
 .check_prd(mc2)
 
