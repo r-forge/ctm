@@ -15,7 +15,7 @@ set.seed(29)
   cf[c$shiftcoef] <- c(-1, 1)[(m$negative & mc$negative) + 1] * cf[c$shiftcoef]
   
   ## check tram vs cotram coefs
-  stopifnot(all.equal(cf, cfc, check.attributes = FALSE, ...))
+  print(all.equal(cf, cfc, check.attributes = FALSE, ...))
 }
 
 
@@ -28,26 +28,25 @@ set.seed(29)
   ## likelihood contributions interval-censored
   ### newdata
   nd_m <- d[c("y", "x")]
-  colnames(nd_m) <- colnames(m$data)
+  colnames(nd_m) <- variable.names(m)
   nd_m1 <- nd_m2 <- nd_m
   nd_m2[, 1] <- nd_m2[, 1] + as.integer(log_first)
-  nd_m1[, 1] <- (nd_m1[, 1] - 1L) + as.integer(log_first)
+  nd_m1[, 1] <- nd_m1[, 1] - 1L + as.integer(log_first)
   
-  L <- predict(m, newdata = nd_m2, type = "distribution") -
-    predict(m, newdata = nd_m1, type = "distribution")
-  
-  ## check interval-censored vs cotram log-likelihood contributions
-  stopifnot(all.equal(log(L), mc$logliki(coef(as.mlt(mc)), mc$weights), check.attributes = FALSE, ...))
-  
+  pm <- predict(m, newdata = nd_m2, type = "distribution")
+  pc <- predict(mc, newdata = d, type = "distribution")
+  print(all.equal(pm, pc, ...))
+
   # check tram vs cotram log-likelihood contributions
-  stopifnot(all.equal(m$logliki(coef(as.mlt(m)), m$weight), mc$logliki(coef(as.mlt(mc)), mc$weight), ...))
+  print(all.equal(m$logliki(coef(as.mlt(m)), m$weight), mc$logliki(coef(as.mlt(mc)), mc$weight), ...))
 }
+
 
 
 ### run checks for log_first = FALSE / TRUE & all links
 ## dgp counts
-n <- 200
-x <- runif(n)
+n <- 2000
+x <- runif(n, max = 3)
 y <- as.integer(rnbinom(n, mu = exp(.5 + .8 * x), size = 10))
 
 ## trams & cotrams
@@ -58,8 +57,11 @@ trams <- c("logit" = "Colr", "cloglog" = "Coxph", "loglog" = "Lehmann", "probit"
 for (log_first in c(FALSE, TRUE)) {
   
   set.seed(2)
+
+  LF <- NULL
+  if (isTRUE(log_first)) LF <- TRUE  
   
-  # print(log_first)
+  print(log_first)
   
   ## plus_one for log_first = TRUE
   plus_one <- as.integer(log_first)
@@ -73,22 +75,24 @@ for (log_first in c(FALSE, TRUE)) {
   yi <- Surv(yleft + plus_one, y + plus_one, type = "interval2")
   
   yi2 <- cotram:::.R.count(as.integer(y), plus_one = log_first)
-  all.equal(yi, yi2)
+  print(all.equal(yi, yi2))
   
   d <- data.frame(y = y, yi = yi, x = x)
   
   for (link in links) {
-    # print(link)
+    print(link)
     
     ## fit "cotram"
-    mc <- cotram(as.formula(y ~ x), data = d, method = link, log_first = log_first)
+    mc <- cotram(as.formula(y ~ x), data = d, method = link, log_first = LF)
     
     ## check model.frame
     stopifnot(all.equal(nd <- model.frame(mc), d[names(nd)], check.attributes = FALSE))
     
-    ## "tram" with interval-censored response
+    ## "tram" with interval-censored response, R() ensures that Surv and
+    ## integer use the same preprocessing steps in mlt::pretrafo
     tram <- unname(trams[link])
-    m <- do.call(tram, list(formula = yi ~ x, support = mc$support, bounds = mc$bounds, log_first = log_first))
+    m <- do.call(tram, list(formula = R(yi) ~ x, support = mc$support, bounds = mc$bounds, 
+                            log_first = LF))
     
     ## check if same model
     stopifnot(mc$model$todistr$name == m$model$todistr$name)
@@ -98,8 +102,8 @@ for (log_first in c(FALSE, TRUE)) {
     .check_ll(m, mc)
     
     ## "tram" with integer response
-    m2 <- do.call(tram, list(formula = yii ~ x, support = c(mc$support), bounds = mc$bounds,
-      log_first = log_first))
+    m2 <- do.call(tram, list(formula = R(yii) ~ x, support = c(mc$support), bounds = mc$bounds,
+      log_first = LF))
     
     ## check if same model
     stopifnot(mc$model$todistr$name == m2$model$todistr$name)

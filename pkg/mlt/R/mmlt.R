@@ -669,7 +669,10 @@
     object$weights <- weights
     object$optim <- optim
     ll <- object$loglik
-    object$loglik <- function(parm, ...) {
+    
+    ### likelihood and score function handling of fixed parameters
+    ### to be called in logLik() and estfun() and residuals()
+    object$loglikfx <- function(parm, ...) {
         if (!is.null(fixed)) {
             eparnames <- object$parnames[!object$parnames %in% names(fixed)]
             stopifnot(length(parm) == length(eparnames))
@@ -681,7 +684,7 @@
         ll(parm = parm, ...)
     }
     sc <- object$score
-    object$score <- function(parm, ...) {
+    object$scorefx <- function(parm, ...) {
         if (!is.null(fixed)) {
             eparnames <- object$parnames[!object$parnames %in% names(fixed)]
             stopifnot(length(parm) == length(eparnames))
@@ -1021,7 +1024,7 @@ logLik.mmlt <- function (object, parm = coef(object, fixed = FALSE), w = NULL, n
         warning("Arguments ", names(args), " are ignored")
     if (is.null(w) && is.null(newdata))
         w <- weights(object)
-    ret <- object$loglik(parm, newdata = newdata, weights = w)
+    ret <- object$loglikfx(parm, newdata = newdata, weights = w)
     attr(ret, "df") <- length(object$par)
     class(ret) <- "logLik"
     ret
@@ -1034,7 +1037,7 @@ estfun.mmlt <- function(x, parm = coef(x, fixed = FALSE),
         warning("Arguments ", names(args), " are ignored")
     if (is.null(w) && is.null(newdata))
         w <- weights(x)
-    return(-x$score(parm, newdata = newdata, weights = w, Xmult = TRUE))
+    return(-x$scorefx(parm, newdata = newdata, weights = w, Xmult = TRUE))
 }
 
 residuals.mmlt <- function(object, parm = coef(object, fixed = FALSE), 
@@ -1044,7 +1047,7 @@ residuals.mmlt <- function(object, parm = coef(object, fixed = FALSE),
         warning("Arguments ", names(args), " are ignored")
     if (is.null(w) && is.null(newdata))
         w <- weights(object)
-    return(-object$score(parm, newdata = newdata, weights = w, Xmult = FALSE))
+    return(-object$scorefx(parm, newdata = newdata, weights = w, Xmult = FALSE))
 }
 
 weights.mmlt <- weights.mlt

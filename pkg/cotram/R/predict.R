@@ -74,10 +74,12 @@ predict.cotram <- function(object, newdata = model.frame(object),
             q_m1 <- q
             if (!is.null(q_m1)) q_m1 <- q_m1 - 1L
             
-            ret <- predict(as.mlt(object), newdata = newdata, 
-                           type = "distribution", q = q, K = K, prob = prob, ...) - 
-                predict(as.mlt(object), newdata = newdata_m1, 
+            ret1 <- predict(as.mlt(object), newdata = newdata, 
+                           type = "distribution", q = q, K = K, prob = prob, ...)
+            ret0 <- predict(as.mlt(object), newdata = newdata_m1, 
                         type = "distribution", q = q_m1, K = K, prob = prob, ...)
+            ret0[,q_m1 < 0] <- 0
+            ret <- ret1 - ret0
             if (type == "logdensity") ret <- log(ret)
         }
 

@@ -275,3 +275,14 @@ stopifnot(max(abs(solve(-hessian(f, cf))[i,i] - vcov(m3))) < 1e-3)
 ### optimHess and numDeriv::hessian disagree a bit
 f <- function(x) logLik(m4, parm = x)
 stopifnot(max(abs(solve(-hessian(f, cf))[i,i] - vcov(m4))) < 1e-1)
+
+### existing fixed parameters in perm_test.mmlt
+N <- 50
+w <- gl(2, N)
+x <- rnorm(length(w))
+y <- sample(gl(2, N))
+d <- data.frame(w = w, x = x, y = y)
+mx <- Lm(x ~ 1, data = d)
+my <- Polr(y ~ w, data = d)
+m <- mmlt(mx, my, data = d, family = ~ 1)
+pt <- perm_test(m, parm = "y.w2", confint = FALSE)
