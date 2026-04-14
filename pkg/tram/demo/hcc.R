@@ -6,7 +6,1060 @@
 ###
 ### Hepatocellular Carcinoma Diagnosis
 pdf("hcc.pdf")
-source("https://gitlab.com/asewak/optcomb/-/raw/main/hcc.R?ref_type=heads&inline=false", echo = TRUE)
+
+pkgs <- c("tram", "tramME", "mvtnorm", "parallel",
+          "xtable", "randomForest", "ggplot2", "pracma", "qrng", "gtools",
+          "expm")
+req <- sapply(pkgs, require, char = TRUE)
+if (!all(req)){
+  sapply(pkgs[!req], install.packages)
+  req[!req] <- sapply(pkgs[!req], require, char = TRUE)
+}
+if (!all(req)) 
+  stop("cannot load dependencies")
+
+### Global params
+# Seed
+set.seed(3006)
+# Confidence intervals
+alpha <- 0.05
+qs <- c(alpha/2, 1 - alpha/2)
+# Probabilities for ROC curves and AUC
+ps <- seq(0, 1, by = 0.0001)
+# Repetitions for parametric bootstrap
+n_boot <- 100
+# Repetitions for OOS LLR / AUC
+n_reps <- 100
+n_cores <- 10
+
+
+### Load data
+dat <- structure(list(
+  HCC_studyGr = c(
+    0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 
+    0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 
+    0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 
+    0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 
+    0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 
+    0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 
+    0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 
+    0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 
+    0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 
+    0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 
+    0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 
+    0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 
+    0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 
+    1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 
+    1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 
+    1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 
+    1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 
+    1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 
+    1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 
+    1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 
+    1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 
+    1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 
+    1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 
+    1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 
+    1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 
+    1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L
+  ),
+  Gender = c(
+    0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 
+    0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 
+    0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 
+    0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 
+    0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 
+    1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 
+    1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 
+    1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 0L, 0L, 0L, 0L, 0L, 
+    1L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 
+    0L, 0L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 
+    1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 0L, 1L, 1L, 0L, 0L, 0L, 0L, 0L, 
+    0L, 0L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 0L, 0L, 0L, 
+    0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L, 0L, 1L, 1L, 0L, 0L, 
+    1L, 1L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L, 
+    0L, 0L, 0L, 0L, 0L, 0L, 1L, 0L, 1L, 0L, 0L, 0L, 1L, 0L, 0L, 0L, 
+    1L, 1L, 0L, 0L, 0L, 1L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L, 0L, 
+    0L, 0L, 0L, 1L, 0L, 1L, 0L, 0L, 1L, 0L, 0L, 0L, 0L, 1L, 0L, 0L, 
+    0L, 1L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 
+    0L, 0L, 0L, 0L, 0L, 0L, 1L, 0L, 1L, 0L, 0L, 0L, 0L, 0L, 0L, 1L, 
+    0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L, 0L, 1L, 0L, 0L, 0L, 
+    1L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L, 0L, 0L, 0L, 0L, 0L, 0L, 
+    0L, 0L, 1L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 
+    0L, 0L, 0L, 0L, 0L, 1L, 1L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 
+    0L, 1L, 1L, 0L, 1L, 0L, 1L, 1L, 0L, 0L, 0L, 1L, 0L, 0L, 1L, 0L, 
+    0L, 0L, 0L, 0L, 0L, 1L, 0L, 0L, 0L, 0L, 1L, 0L, 0L
+  ),
+  Age = c(
+    54L, 74L, 66L, 65L, 58L, 39L, 60L, 54L, 53L, 73L, 49L, 56L, 55L, 58L, 
+    64L, 41L, 52L, 52L, 51L, 65L, 38L, 47L, 77L, 46L, 41L, 71L, 48L, 
+    36L, 68L, 47L, 31L, 58L, 56L, 51L, 47L, 55L, 55L, 61L, 61L, 56L, 
+    53L, 55L, 50L, 51L, 54L, 52L, 46L, 69L, 47L, 51L, 73L, 56L, 75L, 
+    48L, 53L, 64L, 41L, 51L, 45L, 54L, 49L, 41L, 46L, 47L, 47L, 43L, 
+    47L, 63L, 54L, 41L, 51L, 59L, 67L, 37L, 50L, 66L, 57L, 59L, 63L, 
+    54L, 58L, 62L, 62L, 46L, 51L, 53L, 46L, 69L, 52L, 46L, 53L, 52L, 
+    56L, 54L, 56L, 64L, 53L, 55L, 68L, 49L, 48L, 43L, 53L, 71L, 71L, 
+    60L, 48L, 57L, 54L, 54L, 49L, 54L, 49L, 64L, 44L, 48L, 48L, 54L, 
+    41L, 52L, 57L, 35L, 54L, 35L, 53L, 54L, 63L, 61L, 63L, 70L, 46L, 
+    50L, 63L, 62L, 81L, 61L, 60L, 74L, 48L, 72L, 60L, 51L, 79L, 65L, 
+    90L, 65L, 72L, 61L, 57L, 57L, 71L, 63L, 69L, 62L, 55L, 77L, 81L, 
+    52L, 76L, 49L, 74L, 66L, 66L, 75L, 70L, 58L, 66L, 65L, 69L, 73L, 
+    73L, 76L, 39L, 79L, 76L, 68L, 71L, 51L, 73L, 69L, 49L, 72L, 45L, 
+    69L, 62L, 63L, 65L, 74L, 75L, 71L, 73L, 63L, 67L, 75L, 75L, 75L, 
+    68L, 62L, 64L, 76L, 60L, 83L, 83L, 61L, 74L, 76L, 72L, 47L, 60L, 
+    49L, 57L, 51L, 64L, 66L, 60L, 59L, 62L, 71L, 55L, 59L, 55L, 50L, 
+    51L, 54L, 54L, 40L, 55L, 76L, 63L, 65L, 55L, 61L, 71L, 68L, 64L, 
+    52L, 66L, 53L, 42L, 49L, 24L, 53L, 40L, 63L, 71L, 55L, 56L, 55L, 
+    45L, 39L, 51L, 46L, 46L, 51L, 52L, 57L, 38L, 56L, 49L, 71L, 61L, 
+    47L, 66L, 59L, 57L, 47L, 52L, 60L, 72L, 77L, 83L, 56L, 57L, 74L, 
+    81L, 70L, 69L, 70L, 63L, 52L, 65L, 57L, 76L, 56L, 58L, 63L, 65L, 
+    52L, 56L, 57L, 59L, 59L, 59L, 52L, 51L, 69L, 60L, 68L, 64L, 58L, 
+    57L, 57L, 45L, 56L, 57L, 59L, 62L, 65L, 63L, 42L, 45L, 65L, 49L, 
+    49L, 46L, 54L, 59L, 65L, 78L, 67L, 84L, 64L, 81L, 69L, 75L, 75L, 
+    58L, 72L, 60L, 57L, 46L, 66L, 70L, 64L, 73L, 22L, 49L, 53L, 56L, 
+    59L, 72L, 45L, 36L, 41L, 63L, 70L, 75L, 74L, 69L, 76L, 69L, 67L, 
+    56L, 80L, 72L, 59L, 68L, 53L, 51L, 55L, 57L, 59L, 61L, 64L, 71L, 
+    49L, 53L, 52L, 61L, 61L, 44L, 53L, 46L, 51L, 57L, 42L, 51L, 49L, 
+    79L, 49L, 65L, 73L, 69L, 80L, 68L, 74L, 84L, 79L, 82L, 78L, 63L, 
+    72L, 79L, 85L, 65L, 48L, 81L, 80L, 87L, 71L, 54L
+  ),
+  Etiology = c(
+    1L, 1L, 1L, 1L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 
+    2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 
+    2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 
+    2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 
+    2L, 2L, 2L, 2L, 2L, 2L, 2L, 1L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 
+    2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 
+    2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 
+    2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 
+    2L, 2L, 2L, 2L, 2L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 
+    3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 
+    3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 8L, 8L, 
+    8L, 8L, 2L, 8L, 8L, 8L, 8L, 8L, 8L, 8L, 8L, 8L, 8L, 8L, 8L, 8L, 
+    1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 2L, 1L, 1L, 2L, 2L, 2L, 
+    2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 1L, 2L, 2L, 2L, 2L, 2L, 2L, 
+    2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 
+    2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 
+    2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 3L, 3L, 3L, 3L, 3L, 
+    3L, 3L, 3L, 8L, 9L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 
+    2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 
+    2L, 2L, 8L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 3L, 3L, 3L, 
+    3L, 3L, 3L, 3L, 3L, 3L, 3L, 9L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 
+    2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 
+    1L, 1L, 1L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 
+    2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 3L, 3L, 3L, 8L, 8L, 8L, 8L, 
+    8L, 8L, 8L, 8L, 8L, 8L, 8L, 8L, 8L, 8L, 8L, 8L, 8L, 8L, 9L, 2L
+  ),
+  AFP_ng_per_ml = c(
+    4.91, 2.29, 4.03, 2.82, 16.67, 6.27, 2.81, 
+    3.68, 16.46, 3.51, 4.27, 17.06, 9.33, 13.08, 12.46, 6.11, 25.79, 
+    2.89, 5.7, 18.65, 8.37, 2.09, 4.61, 7.49, 2.98, 18.27, 9.73, 
+    2.36, 6.11, 2.27, 3.85, 35.72, 5.09, 22.74, 2.14, 8.76, 1.88, 
+    7.34, 3.86, 11.23, 1.69, 3.35, 4.85, 2.23, 7.27, 3.52, 8.13, 
+    3.35, 6.63, 1.61, 7.43, 2.49, 0.86, 1.43, 2.06, 2.41, 3.52, 14.79, 
+    2.23, 3.86, 10.08, 3.1, 1.79, 2.23, 4.36, 4.53, 1.43, 6.39, 2.58, 
+    2.23, 2.93, 0.61, 8.22, 2.76, 11.08, 6.07, 5.09, 9.39, 130.46, 
+    59.77, 7.9, 11.99, 6.87, 2.32, 3.44, 1.33, 3.78, 7.85, 1.71, 
+    2.47, 3.58, 7.6, 2.37, 1.8, 6.13, 5.18, 5.18, 16.46, 2.29, 4.21, 
+    5.88, 3.67, 3.48, 4.03, 1.61, 3.03, 2.19, 4.39, 1.02, 5.88, 4.56, 
+    1.51, 2.94, 3.3, 2.66, 3.67, 2.57, 3.67, 1.61, 10.94, 10.85, 
+    2.75, 3.12, 8.36, 1.75, 6.04, 7.54, 22.91, 3.19, 18.63, 187.55, 
+    14.41, 12.16, 47.11, 14.52, 6.32, 4.74, 5.88, 13.07, 4.11, 5.36, 
+    25.42, 65.82, 120.18, 10.61, 7.34, 27.75, 10.61, 8.78, 46.66, 
+    42.96, 3.03, 6.57, 13.55, 1.8, 58.52, 2.94, 2.84, 34.65, 8.02, 
+    10.53, 8.78, 15.66, 10.44, 5.18, 4.03, 4.03, 4.21, 1.71, 3.85, 
+    6.82, 7.97, 23.45, 26.41, 11.02, 0.93, 10.38, 1.55, 9.18, 2.63, 
+    17.38, 2.43, 0.71, 5.05, 7.97, 1.75, 2.24, 8.06, 5.13, 2.92, 
+    2.24, 7.09, 64.11, 1.8, 21.54, 3.52, 104.34, 4.77, 5.36, 3131.49, 
+    0.85, 95969.56, 5.28, 10.7, 10.21, 106.26, 150.97, 6.74, 20.65, 
+    37.79, 26.33, 96800, 418.9, 3.93, 9.1, 15.54, 1255.75, 26.22, 
+    7.25, 144.62, 15.54, 2.76, 41.37, 19335.67, 11.23, 54.66, 409.04, 
+    4.77, 13.96, 333.05, 373.78, 3331.03, 19689.82, 2.63, 13.21, 
+    96800, 1.33, 4.94, 2.41, 94.26, 8.19, 1211.98, 21740.69, 716.68, 
+    44.39, 3.4, 20.41, 3.22, 118.24, 42.65, 50.66, 3.03, 5.71, 96800, 
+    3.39, 4.3, 3387.38, 64.31, 110.69, 20.1, 7.09, 94.96, 46.22, 
+    136.38, 1363.5, 352.76, 63.49, 2.43, 7622.43, 24.84, 83.83, 45.98, 
+    19.31, 24.02, 3.76, 10.04, 2.36, 9.39, 449.65, 3.16, 83.09, 9.33, 
+    20.88, 270.6, 11155.5, 2787.62, 3.16, 5877.65, 2.47, 3.4, 27.04, 
+    1157, 8979.72, 9.1, 96800, 1.26, 17.09, 32.96, 4847.99, 3412.74, 
+    75890.26, 25.13, 5.18, 3.01, 63.84, 10.31, 10.85, 2.06, 5.28, 
+    23, 318.58, 7.77, 2.75, 2986.89, 96800, 3.58, 3562.52, 78.11, 
+    275.83, 252.84, 138.16, 6.92, 3107.85, 21.79, 839.64, 20.4, 27.52, 
+    4.11, 96800, 4.21, 21.63, 441.81, 60.81, 12969.69, 52.34, 96800, 
+    11.76, 11.92, 61.66, 1090.19, 67385.47, 1207.77, 96800, 96800, 
+    7.77, 4.19, 150.87, 1.26, 8113.56, 96800, 6.47, 16373.19, 9.15, 
+    1706.86, 1.11, 3.22, 158.61, 8.06, 66.38, 152.7, 113.21, 65.1, 
+    92.86, 2.89, 14.16, 31.5, 44.53, 1134.79, 96800, 3503.51, 117.68, 
+    96800, 96800, 1.15, 345.44, 38.47, 336.92, 96800, 28.13, 322.69, 
+    83.9, 2.63, 40.63, 1.73, 29.45, 16162.31, 7.9, 1.33, 2.32, 3.27, 
+    18049.39, 474.63, 85.38, 96800, 842.77, 2.84, 18002.23, 8.86, 
+    3.29, 4228.64, 109.7
+  ),
+  PIVKA_delete_range = c(
+    3.34, 1.23, 4.52, 5.89, 3.6, 1.5, 0.42, 1.37, 2.85, 0.84, 1.89, 3.03, 5.06, 11.07, 
+    3.54, 1.51, 8.69, 0.89, 3.42, 4.1, 12.43, 0.45, 0.88, 2.14, 0.46, 
+    4.72, 1.62, 3.26, 2.04, 0.68, 4.93, 12.11, 4.08, 9.29, 3.1, 3.75, 
+    2.44, 4.8, 2.85, 4.52, 0.52, 0.87, 1.09, 0.44, 3.86, 5.92, 4.31, 
+    3.36, 3.7, 2.42, 5.88, 0.65, 0.36, 0.31, 0.37, 0.51, 0.55, 6.26, 
+    0.41, 1.66, 1.64, 0.48, 7.22, 0.8, 0.71, 0.79, 0.25, 1.18, 0.42, 
+    0.37, 0.51, 0.85, 1.93, 1.31, 3.5, 1.27, 1.04, 1.33, 34.03, 10.39, 
+    1.67, 3.3, 1.91, 0.79, 1.42, 0.37, 1.59, 1.48, 0.12, 0.32, 0.35, 
+    1.79, 0.55, 0.22, 0.93, 0.74, 0.89, 3.01, 0.32, 1.92, 1.24, 0.92, 
+    0.36, 0.62, 0.18, 0.45, 0.48, 3.38, 8.01, 2.07, 2.41, 1.6, 1.37, 
+    2.84, 1.42, 1.29, 1.64, 2.12, 2.71, 5.12, 3.11, 2.45, 1.12, 2.84, 
+    0.95, 2.09, 2.48, 5.66, 3.62, 4.42, 2.19, 4.24, 3.84, 8.94, 4.48, 
+    3.63, 3.35, 3.98, 6.49, 2.23, 4.52, 12, 45.54, 107.23, 5.35, 
+    4.21, 20.98, 8.71, 4.99, 14.08, 38.99, 1.56, 3.88, 8.27, 8.15, 
+    36.9, 2.97, 2.29, 19.01, 6.37, 6.43, 3.75, 9.05, 8.66, 6.47, 
+    8.95, 2.11, 2.22, 1.59, 3.2, 3.99, 7.28, 5.53, 9.04, 4.23, 4.87, 
+    12.31, 14.7, 7.46, 5.53, 8.6, 5.57, 5.08, 6.19, 7.25, 6.24, 7.36, 
+    14.9, 6.37, 7.39, 5.57, 5.46, 20.39, 3.18, 3.05, 0.82, 17.5, 
+    0.76, 6.89, 528.11, 0.72, 10000, 1.67, 3.99, 3.36, 33.2, 17.18, 
+    5.73, 43.94, 24.74, 33.85, 10000, 97.55, 1.07, 1.22, 2.47, 95.18, 
+    3.64, 1.43, 79.68, 3.12, 0.39, 2.03, 5398.5, 1.44, 13, 127.05, 
+    0.63, 2.51, 106.6, 118.02, 499.64, 5603.7, 7.81, 3.55, 10000, 
+    1.73, 1.55, 0.54, 11.13, 3.2, 223.59, 6554.57, 265.08, 9.83, 
+    1.93, 8.05, 1.88, 85.66, 12.54, 15.11, 0.84, 4.48, 10000, 7.07, 
+    2.94, 1054.2, 20.2, 1.96, 7.25, 3.36, 51.19, 26.67, 56.81, 525.88, 
+    60.67, 12.08, 0.18, 1291.77, 1.97, 13.28, 6.6, 8.3, 7.44, 197.98, 
+    2.97, 0.17, 1.29, 76.07, 2.47, 40.7, 2.13, 2.97, 40.59, 5242.81, 
+    67.5, 0.52, 357.71, 1.89, 1.93, 25.94, 178.49, 2282.47, 1.11, 
+    10000, 0.18, 26.54, 5.56, 828.4, 181.5, 10000, 3.2, 1.37, 6.39, 
+    14.66, 1.41, 2.31, 0.54, 0.79, 4.38, 18.84, 1.31, 1.36, 795.11, 
+    10000, 3.38, 1420.19, 187.61, 49.53, 84.87, 25.25, 1.12, 379.72, 
+    3.79, 81.92, 5.94, 6.61, 1.52, 10000, 3.81, 4.42, 54.48, 43.93, 
+    5941.54, 8.77, 10000, 5.16, 2.7, 10.02, 331.24, 19.7, 340.47, 
+    10000, 10000, 2.63, 0.59, 81.21, 0.51, 821.09, 10000, 0.77, 2814.56, 
+    1.05, 293.07, 1.14, 0.59, 6.51, 4.6, 288.58, 164.75, 206.08, 
+    15.36, 19.19, 4.69, 2.29, 8, 7.83, 261.68, 10000, 505.35, 119.8, 
+    10000, 10000, 0.18, 82.37, 6.26, 191.8, 10000, 14.41, 26.61, 
+    7.94, 5.96, 9.46, 0.46, 6.79, 3453.31, 2.49, 0.77, 0.33, 1.19, 
+    7884.91, 148.38, 10.3, 10000, 294.87, 3.09, 5458.25, 3.35, 26.7, 
+    759.82, 14.4
+  ),
+  OPN = c(
+    70.68, 97.44, 60.95, 43.27, 54.03, 47.85, 
+    64.04, 79.52, 60.99, 44.16, 83.37, 59.19, 110.61, 65.46, 195.72, 
+    371.15, 75.83, 70.04, 83.98, 105.26, 71.78, 52.22, 199.82, 96.69, 
+    116.54, 72.33, 59.12, 59.94, 89.01, 65.94, 72.79, 72.55, 176.11, 
+    60.14, 61.76, 75.8, 91.39, 84.49, 65.32, 106.7, 55.83, 72.62, 
+    60.81, 70.2, 76.26, 76.75, 112.46, 57.98, 57.94, 50.8, 71.81, 
+    59.03, 88.58, 81.78, 51.57, 68.36, 246.05, 120.65, 48.63, 74.73, 
+    74.65, 49.28, 54.86, 57.02, 67.45, 64.25, 17.09, 50.95, 70.92, 
+    114.51, 46.4, 69.23, 152.7, 56.01, 64.01, 51.87, 59.05, 75.86, 
+    85.79, 79.49, 68.25, 62.55, 95.42, 113.78, 71.91, 53.66, 63.31, 
+    95.3, 55.51, 57.11, 89.36, 100.22, 44.18, 83.5, 92.46, 633.91, 
+    62.66, 148.45, 57.69, 59.7, 74.09, 37.84, 57.39, 68.1, 77.72, 
+    76.32, 70.02, 78.44, 59.22, 89.97, 76.02, 51.89, 63.2, 77.68, 
+    49.84, 58.25, 46.26, 80.89, 48.97, 95.54, 54.96, 55.28, 74.52, 
+    56.31, 103.42, 71.65, 65.97, 64.04, 56.95, 102.78, 61.01, 100.63, 
+    88.49, 85.33, 100.36, 66.56, 141.72, 80.31, 68.82, 67, 78.9, 
+    77.02, 91.9, 59.32, 157.07, 91.32, 87.12, 85.88, 309.19, 91.64, 
+    137.33, 77.32, 97.86, 91.79, 85.11, 88.1, 135.37, 80.54, 235.11, 
+    57.24, 67.49, 137.7, 65.64, 109.04, 83.35, 46.06, 55.2, 107.21, 
+    42.55, 142.93, 74.36, 77.95, 62.28, 68.89, 84.54, 72.82, 116.38, 
+    50.11, 148.39, 58.35, 46.62, 160.1, 53.93, 111.74, 56.09, 70.7, 
+    62.4, 167.86, 88.9, 40.16, 54.18, 199.75, 134.84, 176.93, 557.79, 
+    34.42, 81.46, 61.94, 50.83, 157.89, 98.37, 1192.2, 114.71, 67.39, 
+    101.04, 279.65, 74.52, 31.08, 47.9, 962.73, 274.01, 91.48, 960.22, 
+    100.52, 79.91, 96.65, 78.75, 72.86, 123.94, 101.07, 77.54, 70.32, 
+    64.2, 595.63, 74.33, 76.26, 150.32, 47.41, 72.82, 275.69, 103.17, 
+    89.07, 102.38, 34.52, 325.06, 653.27, 51.66, 61.87, 74.72, 87.28, 
+    212.23, 537.79, 125.26, 2223.34, 158.74, 80.25, 38.7, 50.79, 
+    79.26, 79.85, 203.98, 64.68, 186.15, 101.22, 27.92, 84.74, 180.7, 
+    77.31, 37.58, 61.27, 71.96, 60.01, 130.5, 63.34, 258.37, 64.49, 
+    50.72, 60.72, 79.39, 69.28, 87.56, 197.74, 114.76, 109.1, 329.86, 
+    105.34, 133.38, 61.31, 597.02, 120.94, 868.06, 61.29, 62.39, 
+    3824.61, 185.48, 77.08, 119.84, 43.18, 1934.98, 42.81, 86.16, 
+    103.36, 55.74, 277.62, 1196.81, 31.1, 73.77, 86.1, 109.2, 155.04, 
+    966.52, 113.05, 50.76, 59.27, 33.13, 60.19, 144.68, 25.14, 311.36, 
+    97.66, 175.02, 58.54, 81.67, 1306.48, 434.71, 107.5, 93.02, 54.81, 
+    66.5, 81.26, 92.22, 110.51, 96.17, 83.22, 66.23, 82.81, 353.34, 
+    82.24, 104.36, 408, 56.42, 62.16, 89.01, 96.08, 295.49, 651.69, 
+    85.41, 139.54, 91.21, 2020.33, 238.38, 502.84, 130.7, 128.62, 
+    3060.04, 57.15, 992.68, 59.09, 75.06, 1381.34, 9.47, 360.52, 
+    65.64, 942.66, 85.65, 38.45, 99.28, 72.19, 72.38, 59.51, 68.24, 
+    150.49, 93.75, 51.34, 65.85, 63.83, 73.13, 348.72, 72.18, 232.22, 
+    342.74, 169.18, 659.18, 6.91, 475.57, 156.47, 1598.2, 117.3, 
+    81.78, 85.94, 205.56, 88.65, 97.3, 212.97, 193.92, 34.92, 5077.21, 
+    58.43, 85.26, 147.15, 72.99, 222.72, 159.95, 45.76, 177.29, 9.23, 
+    458.82, 75.54, 106.76, 1096.85, 214.69), DKK = c(253.48, 226.43, 
+                                                     568.25, 438.45, 359.13, 298.77, 506.71, 1023.81, 393.37, 353.25, 
+                                                     790.55, 405.79, 411.06, 455.35, 1147.98, 288.45, 68.15, 52.24, 
+                                                     418.9, 201.48, 332.48, 186.64, 277.96, 71.76, 283.6, 284.35, 
+                                                     324.4, 312.36, 231.73, 265.55, 549.16, 338.95, 150.5, 317.43, 
+                                                     1156.44, 404.05, 301.31, 446.52, 503.94, 370.47, 884.61, 801.42, 
+                                                     472.73, 235.81, 529.67, 382.23, 1068.64, 577.24, 360.79, 85.09, 
+                                                     368.65, 397.64, 255.87, 191.89, 400.19, 253.45, 567.62, 463.42, 
+                                                     638.94, 508.77, 345.36, 416.97, 559.54, 239.08, 277.19, 351.84, 
+                                                     350.63, 204.65, 229.65, 496.97, 381.83, 36.1, 481.77, 233.25, 
+                                                     251.25, 194.61, 576.48, 179.83, 563.9, 240.49, 226.42, 359.84, 
+                                                     726.26, 171.52, 123.09, 100.22, 55.31, 155.01, 142.82, 733.92, 
+                                                     161.2, 405.83, 208.11, 444.57, 113.48, 206.58, 286.14, 425.51, 
+                                                     335.06, 85.56, 89.2, 336.26, 190.2, 240.19, 368.96, 178.92, 239.76, 
+                                                     380.95, 918.39, 327.99, 576.92, 270.76, 540.61, 608, 168.34, 
+                                                     99.28, 150, 208.27, 546.04, 294.27, 357.18, 250, 138.91, 192.05, 
+                                                     432.53, 201.05, 156.47, 268.98, 350.9, 301.53, 218.68, 317.32, 
+                                                     415.93, 342.6, 191.93, 335.31, 272.06, 415.97, 408.77, 377.42, 
+                                                     614.83, 256.64, 278.99, 843.19, 213.84, 547.05, 262.38, 892.49, 
+                                                     118.64, 469.07, 490.94, 357.92, 159.72, 933.69, 388.95, 471.7, 
+                                                     133.55, 889.93, 264.97, 275.39, 290.27, 362.3, 248.48, 304.34, 
+                                                     301.7, 442.44, 373.99, 192.63, 421.18, 173.18, 256.08, 795.93, 
+                                                     186.3, 1121.03, 1074.8, 499.42, 485.04, 249.15, 925.23, 432.22, 
+                                                     318.72, 316.78, 401.93, 352.93, 416.32, 352.06, 747.69, 243.11, 
+                                                     345.83, 141.29, 239.02, 445.54, 394.52, 243.06, 1191.24, 1192.12, 
+                                                     441.37, 274.81, 232.34, 1417.9, 549.99, 174.94, 160.68, 721.92, 
+                                                     666.52, 486.49, 118.84, 617.74, 579.11, 219.87, 756.49, 670.59, 
+                                                     523.55, 328.41, 561.07, 148.85, 667.2, 630.39, 516.89, 159.26, 
+                                                     740.46, 369.05, 272.58, 1769.93, 189.35, 343.2, 240.88, 626.92, 
+                                                     785.33, 662.08, 158.69, 444.53, 622.42, 1111.81, 781.98, 4267.28, 
+                                                     493.15, 274.77, 185.03, 169.43, 323.77, 282.37, 1309.95, 624.74, 
+                                                     380.24, 440.13, 530.74, 747.49, 569.46, 206.99, 123.17, 313.32, 
+                                                     273.25, 374.62, 304.73, 196.56, 4311.68, 340.36, 191.84, 46.09, 
+                                                     576.68, 515.01, 685.62, 1209.83, 315.22, 390.38, 1109.39, 420.88, 
+                                                     782.1, 924.42, 160.06, 64.48, 716.26, 380.81, 374.84, 298.75, 
+                                                     184.62, 637.49, 238.4, 905.54, 582.26, 377.96, 995.04, 873.35, 
+                                                     1395.53, 691.66, 501.12, 586.31, 279.03, 550.32, 210.47, 421.86, 
+                                                     321.3, 317.02, 1764.38, 825.2, 276.21, 1188.57, 352.05, 218.65, 
+                                                     487.26, 774.15, 233.59, 480.11, 1408.41, 542.2, 965.5, 286.31, 
+                                                     921.34, 544.01, 232.84, 810.88, 278.49, 632.93, 553.14, 627.55, 
+                                                     863.76, 481.42, 675.34, 806.49, 794.85, 519.83, 38.65, 188.52, 
+                                                     270.05, 982.62, 1203.8, 311.61, 1350.39, 573.04, 985.46, 181.57, 
+                                                     933.62, 1801.94, 1016.13, 2806.89, 164.87, 349.98, 427.53, 329.87, 
+                                                     212.29, 520.24, 433.13, 1413.06, 1316.52, 266.58, 471.2, 710.5, 
+                                                     2128.01, 9132.56, 272.22, 1426.04, 212.39, 4305.43, 339.87, 64.66, 
+                                                     402.86, 513.18, 413.62, 211.25, 337, 406.45, 454.98, 421.55, 
+                                                     245.57, 605.81, 371.17, 629.57, 350.73, 149.89, 759.03, 26732.63, 
+                                                     27399.82, 358.78, 272.89, 480.99, 1008.92, 689.97, 788.89, 509.46, 
+                                                     1008.59, 276.52, 384.93, 186.25, 385.74, 1871.18, 1593.25, 192.29, 
+                                                     535.99, 303.36, 863.72, 431.5, 600.6, 2978.14, 733.57, 510.6, 
+                                                     836.32, 148.82, 789.75, 257.58, 239.65)),
+  class = "data.frame", row.names = c(NA, -401L))
+d <- with(dat, data.frame(id = 1:nrow(dat),
+                          D = HCC_studyGr,
+                          AFP = AFP_ng_per_ml,
+                          PIV = PIVKA_delete_range,
+                          OPN,
+                          DKK,
+                          Age,
+                          Gender,
+                          Etiology))
+d$D <- factor(d$D, levels = 0:1, labels = 0:1)
+d$Gender <- factor(d$Gender, levels = 0:1, labels = c("Male", "Female"))
+d$Age <- as.numeric(d$Age)
+d$Eti_g <- ifelse(d$Etiology %in% c(2, 3), "Viral", "Non-viral")
+d$Eti_g <- factor(d$Eti_g, levels = c("Non-viral", "Viral"))
+rm(dat)
+
+## Disease column
+var_shft <- "D"
+lvls <- levels(d[, var_shft])
+
+## Biomarker columns
+bcol <- c("DKK", "OPN", "PIV", "AFP")
+bcoln <- c("DKK-1", "OPN", "PIVKA-II", "AFP")
+J <- length(bcol)
+# log all biomarkers
+dd <- d
+dd[, bcol] <- log(dd[, bcol])
+
+## Covariates
+ccol <- c("Age", "Gender", "Eti_g")
+
+
+### Functions
+# Predict log-likehood ratio llr
+mod2llr <- function(m, newdata, ...){
+  var_shft <- "D"
+  # Create individual datasets for the llr prediction
+  nd0 <- nd1 <- newdata
+  nd0[, var_shft] <- factor(lvls[1], levels = lvls, labels = 0:1)
+  nd1[, var_shft] <- factor(lvls[2], levels = lvls, labels = 0:1)
+  # Calculate model-based llr
+  f0 <- predict(m, newdata = nd0, type = "density", log = TRUE, ...)
+  f1 <- predict(m, newdata = nd1, type = "density", log = TRUE, ...)
+  llr <- f1 - f0
+  return(llr)
+}
+
+# Calculate the quantile function of the generalized chi-square distribution
+gcdfi <- function(par, xout){
+  l <- seq(-15, 15, by = 0.001)
+  cdf <- mgcv::psum.chisq(-2 * (l - par$cn), lb = par$lb0, df = par$df, nc = par$nc0,
+                          sigz = 0)
+  s <- spline(l, cdf, n = 10000)
+  y <- approx(x = s$y, y = (s$x), xout = xout)$y
+  return(y)
+}
+
+# Cumulative ROC curves
+rocc <- function(m, mrgn){
+  gparsm <- m2gpar(m, margins = mrgn)
+  if (length(mrgn) == 1){
+    qf0 <- qchisq(1 - ps, df = gparsm$df, ncp = gparsm$nc0)
+    gcdf0im <- gparsm$lb0 * qf0 + gparsm$cn
+    spec <- (gcdf0im - gparsm$cn) / gparsm$lb1
+    rc_optm <- 1 - pchisq(spec, df = gparsm$df, ncp = gparsm$nc1)
+  } else {
+    gcdf0im <- gcdfi(gparsm, 1 - ps)
+    rc_optm <- 1 - mgcv::psum.chisq(-2 * (gcdf0im - gparsm$cn), gparsm$lb1,
+                                    df = gparsm$df, nc = gparsm$nc1,
+                                    sigz = 0)
+  }
+}
+
+# Theoretical CDF of LR(Yd)
+# Returns parameters of the generalized chi-squared distribution
+# Under a multivariate tram with shift scale marginals
+# Note: require scale_shift = TRUE in tram
+m2gpar <- function(m, margins = 1:J){
+  # Scale terms
+  cf_all <- coef(m)
+  scl <- cf_all[grep("scl_", names(cf_all))]
+  scl <- scl[margins]
+  scls <- exp(scl)^(0.5)
+  sclss <- sum(-log(scls))
+  # Sigma matrices for Zd
+  S0 <- as.array(coef(m, newdata = nd0, type = "Sigma"))[,,1]
+  S1 <- as.array(coef(m, newdata = nd1, type = "Sigma"))[,,1]
+  S0 <- S0[margins, margins, drop = FALSE]
+  S1 <- S1[margins, margins, drop = FALSE]
+  # Sigma and precision matrices for h(Yd)
+  Gi <- diag(scls, nrow = length(margins), ncol = length(margins))
+  G <- solve(Gi)
+  S0s <- S0
+  S1s <- G %*% S1 %*% G
+  Pr0 <- solve(S0s)
+  Pr1 <- solve(S1s)
+  # Extract shift coefficients = delta
+  var_D <- paste0(m$names, ".", "D1")
+  cf <- coef(m, newdata = nd0)
+  dta <- cf[var_D][margins]
+  # Scaling matrix A
+  A <- Pr1 - Pr0
+  Ai <- solve(A)
+  SAi <- diag(length(margins)) + solve(S0 %*% A)
+  # Mean vector of h(Yd)
+  bta <- SAi %*% dta
+  mu0 <- - bta
+  mu1 <- dta - bta
+  # Constant
+  cn <- -0.5 * (log(det(S1) / det(S0)) - t(dta) %*% Pr0 %*% SAi %*% dta) - sclss
+  cn <- as.numeric(cn)
+  # Square root of S0s, S1s
+  S0sqrt <- expm::sqrtm(S0s)
+  S0sqrti <- solve(S0sqrt)
+  S1sqrt <- expm::sqrtm(S1s)
+  S1sqrti <- solve(S1sqrt)
+  # Spectral decomposition
+  eS0 <- eigen(S0sqrt %*% A %*% S0sqrt)
+  eS1 <- eigen(S1sqrt %*% A %*% S1sqrt)
+  P0 <- eS0$vectors
+  P1 <- eS1$vectors
+  v0 <- t(P0) %*% S0sqrti %*% mu0
+  v1 <- t(P1) %*% S1sqrti %*% mu1
+  # Set parameter values for generalized chi square
+  lb0 <- eS0$values
+  lb1 <- eS1$values
+  df <- rep(1, length(margins))
+  nc0 <- (v0^2)[, 1L]
+  nc1 <- (v1^2)[, 1L]
+  
+  list(lb0 = lb0, lb1 = lb1, df = df, nc0 = nc0, nc1 = nc1, cn = cn)
+}
+
+# Parameter values to marginal and cumulative AUCs
+theta2aucs <- function(theta){
+  # Create an mmlt shell
+  mms <- do.call(mmlt, c(msl, data = list(dd), theta = list(theta),
+                         dofit = FALSE))
+  
+  # Marginal AUCs
+  # rocms_sim <- lapply(1:J, rocc, m = mms)
+  # aucm_sim <- sapply(rocms_sim, function(r) pracma::trapz(ps, r))
+  
+  # Cumulative AUCs
+  roccs_sim <- lapply(ords_all, rocc, m = mms)
+  aucc_sim <- sapply(roccs_sim, function(r) pracma::trapz(ps, r))
+  
+  return(list(aucc_sim))
+}
+
+# Parameter values to total AUC
+theta2auc <- function(theta){
+  # Create an mmlt shell
+  mms <- do.call(mmlt, c(msl, data = list(dd), theta = list(theta),
+                         dofit = FALSE))
+  r <- rocc(m = mms, mrgn = 1:J)
+  auc <- pracma::trapz(ps, r)
+  return(auc)
+}
+
+# Parameter values to coefficients
+theta2coefs <- function(theta){
+  # Create an mmlt shell
+  mms <- do.call(mmlt, c(msl, data = list(dd), theta = list(theta), dofit = FALSE))
+  
+  # Coefficients
+  cf <- coef(mms)
+  var_D <- paste0(bcol, ".", "D1")
+  # Location
+  loc <- cf[var_D]
+  # Scale
+  scl <- cf[grep("scl_", names(cf))]
+  scls <- -scl
+  # Correlation
+  S <- coef(mms, type = "Corr")
+  corr <- Lower_tri(S, diag = FALSE)[, 1L]
+  cfs <- c(loc, scls, corr)
+  
+  return(cfs)
+}
+
+# Plot marginal CDFs
+plot_mcdfs <- function(i){
+  # AUC
+  r <- rocc(m = mm, mrgn = i)
+  aucm <- pracma::trapz(ps, r)
+  
+  bm <- dd[bcol][, i]
+  y <- ys[[i]]
+  e0 <- ecdf(bm[ind_D0])
+  e1 <- ecdf(bm[-ind_D0])
+  plot(1, type="n", xlab = "", ylab = "", xaxt = "n", yaxt = "n",
+       xlim = lims, ylim = c(0, 1))
+  lines(y, e0(y), type = "s", col = cols[1])
+  lines(y, e1(y), type = "s", col = cols[2])
+  mdf0 <- predict(mm, newdata = nd0, type = "distribution", q = y, margin = i)
+  mdf1 <- predict(mm, newdata = nd1, type = "distribution", q = y, margin = i)
+  lines(y, mdf0, col = cols[1])
+  lines(y, mdf1, col = cols[2])
+  auct <- paste("mAUC=", round(aucm, 2))
+  mtext(auct, side = 3, outer = FALSE, line= -2, adj = 0.05, cex = cexauc)
+  mtext(bcoln[i], side = 1, outer = FALSE, line = -2, adj = 0.95, cex = cexauc)
+  if(i == 1) axis(2, at = c(0, 1), las = 1, labels = c("min", "max"))
+  if(i == J) axis(1, at = c(lims[1], lims[2]), labels = c("min", "max"))
+}
+
+# Plot bivariate data
+plot_bi <- function(cmb){
+  # AUC
+  r <- rocc(mm, cmb)
+  aucb <- pracma::trapz(ps, r)
+  bm <- dd[bcol][, cmb]
+  bmx <- bm[, 1L]
+  bmy <- bm[, 2L]
+  gbmx <- seq(lims[1], lims[2], length.out = n_out)
+  gbmy <- seq(lims[1], lims[2], length.out = n_out)
+  ndj <- expand.grid(gbmx, gbmy)
+  colnames(ndj) <- bcol[cmb]
+  llr <- mod2llr(mm, ndj, margins = cmb)
+  llrm <- matrix(llr, nrow = n_out)
+  plot(1, type="n", xlab = "", ylab = "", xaxt = "n", yaxt = "n",
+       xlim = lims, ylim = lims)
+  points(bmx[ind_D0], bmy[ind_D0], pch = pchs[1], col = cols[1L], cex = 0.75)
+  points(bmx[-ind_D0], bmy[-ind_D0], pch = "+", col = cols[2L], cex = 0.75)
+  contour(gbmx, gbmy, llrm, levels = 0, add = TRUE, drawlabels = FALSE, col = "#1B191999")
+  auct <- paste("cAUC=", round(aucb, 2))
+  mtext(auct, side = 3, outer = FALSE, line= -2, adj = 0.05, cex = cexauc)
+  
+  if(all(cmb == c(1, 2)) | all(cmb == c(1, 3)) | all(cmb == c(1, 4))){
+    axis(2, at = c(-3, 12), las = 1, labels = c("min", "max"))
+  } 
+  if(all(cmb == c(1, 4)) | all(cmb == c(2, 4)) | all(cmb == c(3, 4))){
+    axis(1, at = c(lims[1], lims[2]), labels = c("min", "max"))
+  }
+}
+
+# Plot bivariate modeled density functions
+plot_bidf <- function(cmb){
+  gbmx <- seq(lims[1], lims[2], length.out = n_out)
+  gbmy <- seq(lims[1], lims[2], length.out = n_out)
+  ndj <- expand.grid(gbmx, gbmy)
+  colnames(ndj) <- bcol[rev(cmb)]
+  ndj0 <- ndj1 <- ndj
+  ndj0$D <- factor(0, levels = 0:1, labels = 0:1)
+  ndj1$D <- factor(1, levels = 0:1, labels = 0:1)
+  jd0 <- predict(mm, newdata = ndj0, margins = cmb, type = "density")
+  jd1 <- predict(mm, newdata = ndj1, margins = cmb, type = "density")
+  jdm0 <- matrix(jd0, nrow = n_out, ncol = n_out, byrow = TRUE)
+  jdm1 <- matrix(jd1, nrow = n_out, ncol = n_out, byrow = TRUE)
+  plot(1, type="n", xlab = "", ylab = "", xaxt = "n", yaxt = "n",
+       xlim = lims, ylim = lims)
+  contour(gbmx, gbmy, jdm0, add = TRUE, drawlabels = FALSE, col = cols[1], nlevels = 5)
+  contour(gbmx, gbmy, jdm1, add = TRUE, drawlabels = FALSE, col = cols[2], nlevels = 5)
+}
+
+# OOS LLR per resampling
+oosllr <- function(){
+  # Split data
+  folds <- cut(sample(nrow(dd), replace = FALSE), breaks = 2L, labels = FALSE)
+  ind_test <- which(folds == 2L)
+  dts <- dd[ind_test, ]
+  dtr <- dd[-ind_test, ]
+  ddp <- data.frame(id = dts$id, D = dts$D)
+  # Models - predict llr on test
+  # mmlt
+  mss <- lapply(form_tss, BoxCox, data = dtr)
+  mms <- do.call(mmlt, c(mss, data = list(dtr)))
+  ddp$llrt <- mod2llr(mms, newdata = dts)
+  # randomForest
+  m_rf <- randomForest(form_cl, data = dtr, ntree = 5000, nodesize = 10)
+  ddp$llrr <- predict(m_rf, newdata = dts, type = "prob")[, lvls[2]]
+  return(ddp)
+}
+
+# OOS AUC per resampling
+oosauc <- function(margins){
+  # Split data
+  folds <- cut(sample(nrow(d), replace = FALSE), breaks = 2L, labels = FALSE)
+  ind_test <- which(folds == 2L)
+  dts <- d[ind_test, ]
+  dtr <- d[-ind_test, ]
+  ddp <- data.frame(1:nrow(dts), dts[, var_shft])
+  colnames(ddp) <- c("id", var_shft)
+  # mmlt predict llr on test
+  mss <- lapply(form_tss, BoxCox, data = dtr)
+  mms <- do.call(mmlt, c(mss, data = list(dtr)))
+  ddp$llrt <- mod2llr(mms, newdata = dts, margins = margins)
+  llrt0 <- ddp[ddp[, var_shft] == 0, "llrt"]
+  llrt1 <- ddp[ddp[, var_shft] == 1, "llrt"]
+  oauc <- fauc(llrt0, llrt1)
+  
+  return(oauc)
+}
+
+
+# Plot goodness-of-fit
+plot_gof <- function(nd){
+  # Marginal CDFs
+  nd$lp1 <- predict(mm, newdata = nd, margin = 1, type = "trafo")
+  nd$lp2 <- predict(mm, newdata = nd, margin = 2, type = "trafo")
+  nd$lp3 <- predict(mm, newdata = nd, margin = 3, type = "trafo")
+  nd$lp4 <- predict(mm, newdata = nd, margin = 4, type = "trafo")
+  lcol <- paste0("lp", 1:J)
+  
+  ### Plot layout
+  layout(mat = matrix(c(1, 2,
+                        3, 4), nrow = 2, byrow = TRUE))
+  par(mar = c(0, 0, 3, 0) + 0.1, oma = c(4, 4, 0.5, 0.5))
+  cxa <- 1
+  cxt <- 0.8
+  grd <- seq(0, 1, by = 0.001)
+  xlim <- c(0, 1)
+  ylim <- c(0, 1)
+  
+  ### U1
+  u1 <- predict(mm, newdata = nd, margins = 1, type = "distribution")
+  e1 <- ecdf(u1)
+  pv1 <- ks.test(u1, punif)$p.value
+  pvt1 <- paste("p-value=", sprintf("%.3f", pv1))
+  plot(grd, e1(grd), xaxt = "n", las = 1, type = "s", 
+       cex.axis = cxa, cex.main = cxa, 
+       xlim = xlim, ylim = ylim,
+       main = expression("ECDF of"~F[1](Y[1])))
+  mtext(pvt1, side = 3, outer = FALSE, line= -1.5, adj = 0.03, cex = cxt)
+  abline(0, 1, col = "red")
+  
+  ### U2
+  # Conditional distribution of (Y2, Y3, Y4 | Y1)
+  cd2 <- cond_mvnorm(invchol = coef(mm, type = "Lambda"), which_given = 1,
+                     given = t(as.matrix(nd[, lcol[1]])))
+  # Integration limits
+  lower <- upper <- matrix(0, nrow = 3, ncol = nrow(nd))
+  lower[1, ] <- -Inf
+  lower[2, ] <- -Inf
+  lower[3, ] <- -Inf
+  upper[1, ] <- nd$lp2
+  upper[2, ] <- Inf
+  upper[3, ] <- Inf
+  # Evaluate u2 = P(Y2 <= y2 | Y1 = y1)
+  # This is the same as evaluating P(h2(Y2) <= h2(y2) | h1(Y1) = h1(y1))
+  M <- 2000
+  pmvargs <- list(M = M, w = t(ghalton(M, d = 2)))
+  u2 <- exp(lpmvnorm(lower = lower, upper = upper, 
+                     mean = cd2$mean, invchol = cd2$invchol, 
+                     w = pmvargs$w, logLik = FALSE))
+  e2 <- ecdf(u2)
+  pv2 <- ks.test(u2, punif)$p.value
+  pvt2 <- paste("p-value=", sprintf("%.3f", pv2))
+  plot(grd, e2(grd), xaxt = "n", yaxt = "n", las = 1, type = "s",
+       cex.axis = cxa, cex.main = cxa,
+       xlim = c(0, 1), ylim = c(0, 1),
+       main = expression("ECDF of "~F[2](Y[2]~"|"~Y[1])))
+  mtext(pvt2, side = 3, outer = FALSE, line= -1.5, adj = 0.03, cex = cxt)
+  abline(0, 1, col = "red")
+  
+  ## U3
+  # Conditional distribution of (Y3, Y4 | Y1, Y2)
+  cd3 <- cond_mvnorm(invchol = coef(mm, type = "Lambda"), which_given = 1:2,
+                     given = t(as.matrix(nd[, lcol[1:2]])))
+  # Integration limits
+  lower <- upper <- matrix(0, nrow = 2, ncol = nrow(nd))
+  lower[1, ] <- -Inf
+  lower[2, ] <- -Inf
+  upper[1, ] <-  nd$lp3
+  upper[2, ] <- Inf
+  # Evaluate u3 = P(Y3 <= y3 | Y1 = y1, Y2 = y2)
+  pmvargs <- list(M = M, w = t(ghalton(M, d = 1)))
+  u3 <- exp(lpmvnorm(lower = lower, upper = upper, 
+                     mean = cd3$mean, invchol = cd3$invchol, 
+                     w = pmvargs$w, logLik = FALSE))
+  e3 <- ecdf(u3)
+  pv3 <- ks.test(u3, punif)$p.value
+  pvt3 <- paste("p-value=", sprintf("%.3f", pv3))
+  plot(grd, e3(grd), las = 1, type = "s",
+       cex.axis = cxa, cex.main = cxa,
+       xlim = xlim, ylim = ylim,
+       main = expression("ECDF of"~F[3](Y[3]~"|"~Y[2]~","~Y[1])))
+  mtext(pvt3, side = 3, outer = FALSE, line= -1.5, adj = 0.03, cex = cxt)
+  abline(0, 1, col = "red")
+  
+  ### U4
+  cd4 <- cond_mvnorm(invchol = coef(mm, type = "Lambda"), which_given = 1:3,
+                     given = t(as.matrix(nd[, lcol[1:3]])))
+  u4 <- pnorm(nd$lp4, mean = c(cd4$mean), 
+              sd = sqrt(c(diagonals(invchol2cov(cd4$invchol)))))
+  e4 <- ecdf(u4)
+  pv4 <- ks.test(u4, punif)$p.value
+  pvt4 <- paste("p-value=", sprintf("%.3f", pv4))
+  plot(grd, e4(grd), yaxt = "n", las = 1, type = "s",
+       cex.axis = cxa, cex.main = cxa, 
+       xlim = xlim, ylim = ylim,
+       main = expression("ECDF of"~F[4](Y[4]~"|"~Y[3]~","~Y[2]~","~Y[1])))
+  mtext(pvt4, side = 3, outer = FALSE, line= -1.5, adj = 0.03, cex = cxt)
+  abline(0, 1, col = "red")
+  
+  mtext("Empirical cumulative distribution function (ECDF)", side = 2, outer = TRUE, line = 2.5, cex = 0.9)
+  mtext("Rosenblatt transformation", side = 1, outer = TRUE, line = 2, cex = 0.9)
+  
+  ## Goodness of fit tests
+  us <- list(u1, u2, u3, u4)
+  pvals <- sapply(us, function(u) ks.test(u, punif)$p.value)
+  # Minimum p-value
+  pvalmin <- pbeta(min(pvals), 1, J)
+  # Product of p-values
+  pprod <- prod(pvals)
+  pvalprod <- pprod * sum(sapply(1:J, function(j) ((-1)^(j - 1) / factorial(j - 1)) * log(pprod)^(j - 1) ))
+  
+  return(list(pvalmin = pvalmin, pvalprod = pvalprod))
+  
+}
+
+# Plot regression monotonicity
+plot_mon <- function(dat){
+  ylab <- "Spline term"
+  xlabs <- bcoln[1:3]
+  
+  m1 <- BoxCoxME(OPN ~ s(DKK, k = 20), data = dat)
+  plot(smooth_terms(m1), ylim = ylims, xaxt = "n", las = 1, cex.axis = cx)
+  rug(dat$DKK)
+  
+  m2 <- BoxCoxME(PIV ~ s(DKK, k = 20) + s(OPN, k = 20), data = dat)
+  plot(smooth_terms(m2), which = 1, ylim = ylims, xaxt = "n", las = 1, cex.axis = cx)
+  rug(dat$DKK)
+  plot(smooth_terms(m2), which = 2, ylim = ylims, xaxt = "n", yaxt = "n")
+  rug(dat$OPN)
+  
+  m3 <- BoxCoxME(AFP ~ s(DKK, k = 20) + s(OPN, k = 20) + s(PIV, k = 20), data = dat)
+  plot(smooth_terms(m3), which = 1, ylim = ylims, las = 1, cex.axis = cx)
+  mtext(xlabs[1], side = 1, outer = FALSE, line = 3, cex = cxt)
+  rug(dat$DKK)
+  plot(smooth_terms(m3), which = 2, ylim = ylims, yaxt = "n", cex.axis = cx)
+  mtext(xlabs[2], side = 1, outer = FALSE, line = 3, cex = cxt)
+  rug(dat$OPN)
+  plot(smooth_terms(m3), which = 3, ylim = ylims, yaxt = "n", cex.axis = cx)
+  mtext(xlabs[3], side = 1, outer = FALSE, line = 3, cex = cxt)
+  rug(dat$PIV)
+  
+  mtext(ylab, side = 2, outer = TRUE, line = 2.5, cex = 0.9)
+}
+
+# Plot marginal transformation functions
+plot_hyj <- function(j){
+  xlims <- c(-4, 12)
+  ylims <- c(-15, 15)
+  n_out <- 100
+  cxa <- 1
+  cxt <- 0.8
+  grd <- seq(xlims[1], xlims[2], length.out = n_out)
+  xlim <- c(0, 1)
+  ylim <- c(0, 1)
+  lbyax <- c(-10, -5, 0, 5, 10)
+  lbxax <- c(0, 5, 10)
+  
+  
+  ndj <- data.frame(grd)
+  colnames(ndj) <- bcol[j]
+  ndj$D <- factor(0, levels = 0:1, labels = 0:1)
+  hyj <- predict(mm, newdata = ndj, margins = j, type = "trafo")
+  plot(1, type="n", xlab = "", ylab = "", xaxt = "n", yaxt = "n",
+       xlim = xlims, ylim = ylims)
+  lines(grd, hyj)
+  rug(dd[,bcol[j]])
+  if(j %in% c(1, 3)) axis(2, at = lbyax, las = 1, labels = lbyax)
+  if(j %in% c(3, J)) axis(1, at = lbxax, labels = lbxax)
+  mtext(bcoln[j], side = 3, outer = FALSE, line= -2, adj = 0.05, cex = cxt)
+  if(j == J){
+    mtext(expression(y[j]), side = 1, outer = TRUE, line = 2.5, cex = cxt)
+    mtext(expression("Estimated transformation function"~hat(h)[j](y[j])),
+          side = 2, line = 2.5, outer = TRUE, cex = cxt)
+  }
+}
+
+#### Create newdata frames
+nd <- dd
+nd0 <- nd[dd$D == 0, ][1L, ]
+nd1 <- nd[dd$D == 1, ][1L, ]
+
+
+#### Main analysis
+# Shift-scale marginal models
+form_tss <- paste(bcol, "~ D | D")
+# Global covariance joint model
+ms <- lapply(form_tss, BoxCox, data = dd, scale_shift = TRUE, prob = c(0, 1))
+# Multivariate model
+mm <- do.call(mmlt, c(ms, data = list(dd)))
+# Actual llr
+llr <- mod2llr(mm, nd)
+
+# Model-based AUC on the original dataset
+r_orig <- rocc(m = mm, mrgn = 1:J)
+auc_orig <- pracma::trapz(ps, r_orig)
+# Normal bootstrap
+N <- nrow(dd)
+
+fauc <- function(u, v) {
+  N1 <- length(u)
+  N2 <- length(v)
+  r <- rank(c(u, v))
+  W <- sum(r[seq_along(u)])
+  U <- W - N1 * (N1 + 1) / 2
+  return(1 - U / (N1 * N2))
+}
+
+
+# Parametric bootstrap (from the asymptotic distribution of the params)
+# Mean
+cf <- coef(mm)
+# Variance-covariance matrix
+V <- vcov(mm)
+V <- (V + t(V)) / 2
+# Simulate parameters
+P <- rmvnorm(n_boot, mean = cf, sigma = V)
+ms_mlt <- lapply(ms, as.mlt)
+msl <- lapply(1:J, function(j) mlt(ms_mlt[[j]]$model, data = dd))
+
+
+### Optimal ROC curve
+# Calculate the quantile function of the generalized chi-square distribution
+gpars <- m2gpar(mm)
+rllr <- range(llr)
+
+
+### Cumulative ROC curves
+### Plot cumulative ROC curves
+# ords <- lapply(1:J, function(e) seq(1, e))
+ords <- lapply(1:J, function(e) seq(J, J - e + 1, by = -1))
+# All others apart from AFP
+
+ord2 <- permutations(n = J - 1, r = 2)
+ord2r <- ord2[nrow(ord2):1, ]
+ord1r <- lapply((J-1):1, function(i) c(4, i))
+ord2A <- lapply(seq_len(nrow(ord2r)), function(i) c(4, ord2r[i, ]))
+ordm <- as.list(J:1)
+ords_all <- c(ordm, ord1r, ord2A, list(J:1))
+
+
+roccs <- lapply(ords, rocc, m = mm)
+r_umat <- do.call(cbind, roccs)
+matplot(ps, r_umat, type = "l", lty = 4:1, col = 1,
+        xlab = "1 - Specificity", ylab = "Sensitivity", las = 1)
+abline(0, 1, col = "gray80")
+lgnd <- sapply(ords, function(i) paste(bcoln[i], collapse = ", "))
+legend("bottomright", legend = lgnd, lty = 4:1, cex = 0.8, col = c(rep(1, J)),
+       bty = "n")
+
+### Combination AUC
+roccs_all <- lapply(ords_all, rocc, m = mm)
+# Marginal AUCs
+# rocms <- lapply(1:J, rocc, m = mm)
+# aucm <- sapply(rocms, function(r) pracma::trapz(ps, r))
+# Cumulative AUCs
+aucc <- sapply(roccs_all, function(r) pracma::trapz(ps, r))
+
+# OOS AUCs
+# loop over cumulative margins
+oosaucs <- lapply(ords_all, function(mrg) mclapply(1:n_reps, function(x) oosauc(mrg), mc.cores = n_cores))
+oosaucc <- sapply(1:length(ords_all), function(j) mean(unlist(oosaucs[[j]])))
+
+# Asymptotic distribution
+# Mean
+cf <- coef(mm)
+# Variance-covariance matrix
+V <- vcov(mm)
+V <- (V + t(V)) / 2
+# Simulate parameters
+P <- rmvnorm(n_boot, mean = cf, sigma = V)
+cols <- colnames(P)
+# Create model shells
+ms_mlt <- lapply(ms, as.mlt)
+msl <- lapply(1:J, function(j) mlt(ms_mlt[[j]]$model, data = dd))
+# Parametric bootstrap confidence intervals
+aucs <- mclapply(1:nrow(P), function(j) theta2aucs(P[j, ]), mc.cores = n_cores)
+auccs <- do.call(rbind, sapply(aucs, "[", 1))
+ci_aucc <- apply(auccs, 2, function(x) quantile(x, qs))
+ci_oaucc <- sapply(1:length(ords_all), function(j) quantile(unlist(oosaucs[[j]]), probs = qs))
+
+# Final table for marginal vs cumulative auc
+auccr <- format(round(aucc, 3))
+oauccr <- format(round(oosaucc, 3))
+ci_auccr <- format(round(ci_aucc, 3))
+ci_oauccr <- format(round(ci_oaucc, 3))
+prtci <- function(x,y) paste0("(",x,", ", y,")") 
+ci_auccrt <- apply(ci_auccr, 2, function(x) prtci(x[1], x[2]))
+ci_oauccrt <- apply(ci_oauccr, 2, function(x) prtci(x[1], x[2]))
+ords_comb <- lapply(ords_all, function(i) bcoln[i])
+ords_comb <- sapply(ords_comb, function(x) paste(x, collapse = " \\& "))
+tb_auc <- data.frame(name = ords_comb,
+                     paste(auccr, ci_auccrt),
+                     paste(oauccr, ci_oauccrt),
+                     row.names = NULL)
+colnames(tb_auc) <- c("Combination",
+                      "Cumulative AUC (95% CI)",
+                      "Mean cumulative OOS AUC (95% CI)")
+xtab <- xtable(tb_auc,
+               align = c("l", "l", "c", "c"))  # l for rownames, then 3 columns
+print(xtab,
+      include.rownames = FALSE,
+      caption.placement = "top",
+      sanitize.text.function = identity)
+tb_auc
+
+### Table of coefficients
+# Calculate confidence intervals
+coefs <- mclapply(1:nrow(P), function(j) theta2coefs(P[j, ]), mc.cores = n_cores)
+coefs <- do.call(rbind, coefs)
+ci_coefs <- apply(coefs, 2, function(x) quantile(x, qs))
+# Format final table
+ci_coefsr <- format(round(ci_coefs, 3))
+coefp <- theta2coefs(cf)
+coefpr <- format(round(coefp, 3))
+cf_ci <- apply(ci_coefsr, 2, function(x) prtci(x[1], x[2]))
+tb_cfs <- data.frame(name = names(cf_ci), paste(coefpr, cf_ci), row.names = NULL)
+tb_cfs$name <- c(paste0("location.", bcoln),
+                 paste0("scale.", bcoln),
+                 paste0("correlation.",
+                        gsub("\\.", " - ", tail(tb_cfs$name, J * (J - 1) / 2))))
+colnames(tb_cfs) <- c("Variable", "Coefficient (95% CI)")
+tb_cfs
+
+### Bivariate plot
+# Plot parameters
+cexauc <- 0.9
+n_out <- 100
+lims <- c(-4, 12)
+layout(mat = matrix(c(1, 11, 12, 13,
+                      5, 2, 14, 15,
+                      6, 8, 3, 16,
+                      7, 9, 10, 4), nrow = 4, byrow = TRUE))
+par(mar = c(0, 0, 0, 0) + 0.1, oma = c(4, 4, 4, 4))
+ylims <- c(-10, 10)
+cols <- c("#1B1919FF", "#AD002ABF")
+pchs <- c(20, 3)
+
+
+## Calculate and plot the marginal ecdfs / modeled cdfs
+rng <- sapply(dd[, bcol], range)
+ys <- apply(rng, 2, function(x) seq(lims[1L], lims[2L], by = 0.1), simplify = FALSE)
+ind_D0 <- which(dd$D == 0)
+
+## Diagonal marginal CDFs
+lapply(1:J, plot_mcdfs)
+
+## Calculate and plot the bivariate data
+cmbs <- combn(J, 2)
+apply(cmbs, 2, plot_bi)
+
+## Calculate and plot the modeled bivariate density function
+apply(cmbs, 2, plot_bidf)
+
+
+### Conditional analysis
+# Biomarker combination with covariates
+m_age <- BoxCox(Age ~ D | D, data = dd, scale_shift = TRUE, prob = c(0, 1))
+# m_gender <- Polr(Gender ~ D , data = dd, scale_shift = TRUE, method = "logistic", prob = c(0, 1))
+ms_cov <- c(ms, list(m_age))
+# Multivariate model
+mm_cov <- do.call(mmlt, c(ms_cov, data = list(dd)))
+# Actual llr
+llr_cov <- mod2llr(mm_cov, nd)
+r_orig_cov <- rocc(m = mm_cov, mrgn = 1:length(ms_cov))
+(auc_orig_cov <- pracma::trapz(ps, r_orig_cov))
+
+# Conditional model to see if score is impacted by covs
+form_tss <- paste(bcol, "~ D | D")
+form_cl <- as.formula(paste("D ~", paste(bcol, collapse = "+")))
+## Unbiased LLR
+oosllrs <- mclapply(1:n_reps, function(x) oosllr(), mc.cores = n_cores)
+oosllrd <- do.call(rbind, oosllrs)
+llru <- aggregate(cbind(llrt, llrr) ~ id, data = oosllrd, FUN = mean)
+colnames(llru) <- c("id", "llrt", "llrr")
+# Join back to original table
+ddm <- merge(dd, llru, by = "id", all.x = TRUE)
+
+### Regress unbiased LLR on covariates
+mct <- Colr(llrt ~ D * (Age + Gender + Eti_g), data = ddm)
+# mcr <- Colr(llrr ~ D * (Age + Gender + Eti_g), data = ddm)
+
+## Plot covariate dependent AUCs
+grd_age <- 30:90
+nda <- nda0 <- nda1 <- expand.grid(Gender = unique(dd$Gender),
+                                   Eti_g = unique(dd$Eti_g),
+                                   Age = grd_age)
+nda0$D <- nd0$D
+nda1$D <- nd1$D
+# Covariate-dependent AUC
+auc_cov <- PI(mct, nda1, nda0, one2one = T, conf.level = 0.95)
+nda_cov <- cbind(nda, auc_cov)
+# Plot
+ggplot(nda_cov, aes(x = Age, y = Estimate)) +
+  geom_ribbon(aes(ymin = lwr, ymax = upr), alpha = 0.2) +
+  geom_line() +
+  ylim(0, 1) +
+  ylab("Estimated AUC") + 
+  facet_grid(Gender ~ Eti_g) +
+  theme_bw(base_size = 12)
+
+
+#### Supplementary analysis
+#### Model assessment
+### Goodness-of-fit
+plot_gof(subset(dd, D == 0))
+plot_gof(subset(dd, D == 1))
+
+
+### Model monotonicity
+# Plot layout
+layout(mat = matrix(c(1, 0, 0,
+                      2, 3, 0,
+                      4, 5, 6), nrow = 3, byrow = TRUE))
+par(mar = c(0, 0, 0, 0) + 0.1, oma = c(5, 5, 0.5, 0.5))
+ylims <- c(-5.5, 5.5)
+cx <- 1.2
+cxt <- 0.9
+plot_mon(subset(dd, D == 0))
+plot_mon(subset(dd, D == 1))
+rm(ylims, cx, cxt)
+
+
+### Model transformation functions
+# Plot layout
+layout(mat = matrix(c(1, 2,
+                      3, 4), nrow = 2, byrow = TRUE))
+par(mar = c(0, 0, 0, 0) + 0.1, oma = c(4, 4, 0.5, 0.5))
+lapply(1:J, plot_hyj)
+
 dev.off()
 ###
 ### Simulation; takes a while
