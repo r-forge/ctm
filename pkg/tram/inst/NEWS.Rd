@@ -2,7 +2,7 @@
 \name{NEWS}
 \title{NEWS file for the tram package}
 
-\section{Changes in Version 1.4-2 (2026-04-14)}{
+\section{Changes in Version 1.4-2 (2026-05-06)}{
   \itemize{
     \item{New \code{perm_test.mmlt}.}
     \item{Update demo reference output.}
