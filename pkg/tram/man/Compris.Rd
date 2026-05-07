@@ -120,22 +120,23 @@ distributions for the primary event of interest and all competing events.
     ##   a marginal "Coxph" model for the primary event of interest and 
     ##   a Weibull "Survreg" model for dependent censoring
 
-    m <- Compris(y ~ ch + age + hgb + clinstg, data = follic,
-                 ### speed-up to make CRAN happy
-                 order = 4,          ### less flexible log-cum. hazard
-                 optim = mltoptim(), ### no numerical hessian
-                 args  = list(type = "ghalton", 
-                              M = 80))  ### only 80 MC integration points
+    ## this takes too long for CRAN, so don't test here (there is
+    ## a test in the "survtram" vignette)
+    \donttest{
+      m <- Compris(y ~ ch + age + hgb + clinstg, data = follic,
+                   args  = list(type = "ghalton", 
+                                M = 250))  ### 250 qMC integration points
 
-    ### log-likelihood
-    logLik(m)
+      ### log-likelihood
+      logLik(m)
 
-    ## Similar to Table 4 of Deresa & Van Keilegom (2023),
-    ## but using a Gaussian copula instead of a Gumbel copula.
-    ## marginal parameters
-    coef(m, type = "marginal")    
-    ## Kendall's tau
-    coef(m, type = "Kendall")
+      ## Similar to Table 4 of Deresa & Van Keilegom (2023),
+      ## but using a Gaussian copula instead of a Gumbel copula.
+      ## marginal parameters
+      coef(m, type = "marginal")    
+      ## Kendall's tau
+      coef(m, type = "Kendall")
+    }
   }
 }
 
