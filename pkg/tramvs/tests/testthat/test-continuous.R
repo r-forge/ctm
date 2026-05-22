@@ -31,7 +31,7 @@ test_that("continuous", {
   # Compare with abess ------------------------------------------------------
 
   if (require("abess")) {
-    res_abess <- abess(y ~ ., data = dat, family = "gaussian")
-    coef(res_abess)[,-1]
+    res_abess <- abess(y ~ ., data = dat, family = "gaussian", num.threads = 2)
+    coef(res_abess)[, -1]
   }
 })

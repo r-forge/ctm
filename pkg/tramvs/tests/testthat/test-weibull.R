@@ -10,7 +10,7 @@ test_that("weibull", {
     ## using the alias SurvregVS
     GBSG2$surv <- with(GBSG2, Surv(time, cens))
     res <- SurvregVS(surv ~ horTh + age + menostat + tsize + tgrade +
-                       pnodes + progrec + estrec, data = GBSG2)
+      pnodes + progrec + estrec, data = GBSG2)
 
     coef(res)
 

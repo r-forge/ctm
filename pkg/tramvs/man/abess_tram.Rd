@@ -71,5 +71,9 @@ Y <- 1 + X \%*\% beta + rnorm(N)
 dat <- data.frame(y = Y, x = X)
 
 abess_tram(y ~ ., dat, modFUN = Lm, supp = 3)
-
+}
+\references{
+Siegfried, S., Kook, L., & Hothorn, T. (2023). Distribution-free
+location-scale regression. The American Statistician, 77(4), 345-356.
+\doi{10.1080/00031305.2023.2203177}
 }
